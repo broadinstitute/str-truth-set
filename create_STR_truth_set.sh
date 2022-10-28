@@ -121,7 +121,7 @@ set -euo pipefail
 
 echo ===============
 input_vcf=${syndip_truth_vcf}
-output_vcf=full.38.step1.high_confidence_regions.vcf.gz
+output_vcf=step1.high_confidence_regions.vcf.gz
 
 print_input_stats $input_vcf "STEP #1: Filter SynDip truth set to SynDip high confidence regions"
 set -x
@@ -136,7 +136,7 @@ print_output_stats ${input_vcf} ${output_vcf}
 
 echo ===============
 input_vcf="${output_vcf}"
-output_prefix=full.38.step2.STRs
+output_prefix=step2.STRs
 output_vcf="${output_prefix}.vcf.gz"
 
 # NOTE: these parameter values were chosen so that the subset of known disease-associated STR loci that have
@@ -158,22 +158,20 @@ python3 -m str_analysis.filter_vcf_to_STR_variants \
   --min-str-length "${min_str_length}" \
   --min-str-repeats "${min_str_repeats}" \
   --output-prefix "${output_prefix}" \
-   -n 20000 \
   "${input_vcf}"
 
+#  -n 10000 \
 
 
 
-bgzip -f ${output_prefix}.vcf
-tabix ${output_prefix}.vcf.gz
 
 set +x
 print_output_stats $input_vcf $output_vcf
 
 echo ===============
 input_vcf=$output_vcf
-output_vcf=full.38.step3.STRs.lifted_to_chm13v2.vcf.gz
-output_failed_liftover1_vcf=full.38.step3.lifted_to_chm13v2_rejected.vcf.gz
+output_vcf=step3.STRs.lifted_to_chm13v2.vcf.gz
+output_failed_liftover1_vcf=step3.lifted_to_chm13v2_rejected.vcf.gz
 
 print_input_stats $input_vcf "STEP #3: Liftover variants from hg38 to the T2T reference (chm13v2.0)"
 set -x
@@ -197,7 +195,7 @@ print_liftover_output_stats $input_vcf $output_vcf $output_failed_liftover1_vcf
 
 echo ===============
 input_vcf=$output_vcf
-output_vcf=full.38.step4.STRs.found_in_chm13v2.vcf.gz
+output_vcf=step4.STRs.found_in_chm13v2.vcf.gz
 print_input_stats ${input_vcf} "STEP #4: Filter out variants that are true homozygous alt or multi-allelic after liftover since this means neither allele matches the T2T reference (chm13v2.0)"
 set -x
 
@@ -208,8 +206,8 @@ print_output_stats ${input_vcf} ${output_vcf}
 
 echo ===============
 input_vcf=${output_vcf}
-output_vcf=full.38.step5.STRs.lifted_back_to_38.vcf.gz
-output_failed_liftover2_vcf=full.38.step5.lifted_back_to_38_rejected.vcf.gz
+output_vcf=step5.STRs.lifted_back_to_38.vcf.gz
+output_failed_liftover2_vcf=step5.lifted_back_to_38_rejected.vcf.gz
 
 print_input_stats $input_vcf "STEP #5: Liftover the truth variants that passed all checks back to hg38"
 set -x
@@ -233,7 +231,7 @@ print_liftover_output_stats $input_vcf $output_vcf $output_failed_liftover2_vcf
 
 echo ===============
 input_vcf=$output_vcf
-output_vcf=full.38.step6.STRs.restored_dels_that_failed_liftover.vcf.gz
+output_vcf=step6.STRs.restored_dels_that_failed_liftover.vcf.gz
 
 print_input_stats $input_vcf "STEP #6: Restore deletions that were dropped in the 1st liftover (hg38 => chm13v2.0) due to IndelStraddlesMultipleIntevals flag in picard LiftoverVcf. See https://github.com/broadinstitute/picard/blob/master/src/main/java/picard/vcf/LiftoverVcf.java#L424-L431 for more details on IndelStraddlesMultipleIntevals"
 set -x
@@ -251,22 +249,22 @@ print_output_stats $input_vcf $output_vcf
 
 echo ===============
 input_vcf=$output_vcf
-output_vcf=full.38.step7.STRs.passed_liftover_checks.vcf.gz
+output_vcf=step7.STRs.passed_liftover_checks.vcf.gz
 
 print_input_stats $input_vcf "STEP #7: Check VCF positions before vs. after liftover to confirm concordance."
 set -x
 
 python3 scripts/check_vcf_concordance_before_vs_after_liftover.py \
   -o $output_vcf \
-  full.38.step2.STRs.vcf.gz \
-  full.38.step6.STRs.restored_dels_that_failed_liftover.vcf.gz
+  step2.STRs.vcf.gz \
+  step6.STRs.restored_dels_that_failed_liftover.vcf.gz
 
 set +x
 print_output_stats $input_vcf $output_vcf
 
 echo ===============
 input_vcf=$output_vcf
-output_prefix=full.38.step7.filtered_STRs
+output_prefix=step7.filtered_STRs
 
 print_input_stats $input_vcf "step8: Print stats and compute overlap with other catalogs."
 set -x
@@ -282,8 +280,8 @@ python3 -m str_analysis.filter_vcf_to_STR_variants \
   --output-prefix "${output_prefix}" \
   $input_vcf
 
-python3 scripts/compute_overlap_with_other_catalogs.py ${output_prefix}.variants.tsv  ${output_prefix}.variants.with_overlap_columns.tsv
-python3 scripts/compute_overlap_with_other_catalogs.py ${output_prefix}.alleles.tsv  ${output_prefix}.alleles.with_overlap_columns.tsv
+python3 scripts/compute_overlap_with_other_catalogs.py ${output_prefix}.variants.tsv.gz  ${output_prefix}.variants.with_overlap_columns.tsv
+python3 scripts/compute_overlap_with_other_catalogs.py ${output_prefix}.alleles.tsv.gz  ${output_prefix}.alleles.with_overlap_columns.tsv
 
 set +x
 
