@@ -136,7 +136,7 @@ def process_truth_set_row(truth_set_df, truth_set_row_idx, truth_set_row, other_
         truth_set_df.at[truth_set_row_idx, locus_similarity_column_name] = final_locus_similarity
         if is_STR_catalog:
             truth_set_df.at[truth_set_row_idx, motif_similarity_column_name] = final_motif_similarity
-            counters[f"{other_catalog_label} vs Truthset: {final_motif_similarity}|{final_locus_similarity}"] += 1
+            counters[f"{other_catalog_label} vs Truthset: {final_motif_similarity}--{final_locus_similarity}"] += 1
         else:
             counters[f"{other_catalog_label} vs Truthset: {final_locus_similarity}"] += 1
 
@@ -155,7 +155,7 @@ def print_counters(counters):
             print(f"{value:10,d} {key}")
         else:
             s = f"{value:10,d}  {key:100s}   ({percent_of_truth_set} of {total_truth_set_loci:10,d} truth_set loci)"
-            if " vs Truthset" in key and not key.endswith(": NoOverlap|None"):
+            if " vs Truthset" in key and not key.endswith(": NoOverlap--None"):
                 other_catalog_label = key.split(" vs Truthset")[0]
                 total_loci_in_other_catalog = counters[f"{other_catalog_label} loci"]
                 percent_of_other_catalog = f"{100 * value / total_loci_in_other_catalog :5.1f}%"
@@ -178,20 +178,20 @@ def main():
     truth_set_df = truth_set_df[truth_set_df.End1Based - truth_set_df.Start1Based > 0]
     print(f"Skipped {len_before - len(truth_set_df)} loci without matching reference repeats")
 
-    output_tsv_path = args.output_tsv if args.output_tsv else args.truth_set_tsv.replace(".tsv", "") + ".with_overlap_columns.tsv"
+    output_tsv_path = args.output_tsv if args.output_tsv else re.sub(".tsv(.gz)?", "", args.truth_set_tsv) + ".with_overlap_columns.tsv"
 
     counters = collections.defaultdict(int)
 
     # load other catalogs into IntervalTrees
     other_catalogs = [
-        ("KnownPathogenicSTRCatalog", True, "./ref/other/known_disease_associated_STR_loci.GRCh38.bed.gz"),
-        ("IlluminaSTRCatalog", True, "./ref/other/illumina_variant_catalog.sorted.bed.gz"),
-        ("GangSTRCatalog", True, "./ref/other/hg38_ver17.fixed.bed.gz"),
-        ("SegDupIntervals", False, "./ref/other/GRCh38GenomicSuperDup.without_decoys.sorted.bed.gz"),
-        ("ExonsFromGencode40", False, "./ref/other/gencode.v40.exons.bed.gz"),
-        ("CDSFromGencode40", False, "./ref/other/gencode.v40.CDS.bed.gz"),
-        ("ExonsFromMANE", False, "./ref/other/MANE.v1.exons.bed.gz"),
-        ("CDSFromMANE", False, "./ref/other/MANE.v1.CDS.bed.gz"),
+        ("SegDup-intervals", False, "./ref/other/GRCh38GenomicSuperDup.without_decoys.sorted.bed.gz"),
+        ("exons-from-gencode-v40", False, "./ref/other/gencode.v40.exons.bed.gz"),
+        ("exons-from-MANE", False, "./ref/other/MANE.v1.exons.bed.gz"),
+        ("CDS-from-gencode-v40", False, "./ref/other/gencode.v40.CDS.bed.gz"),
+        ("CDS-from-MANE", False, "./ref/other/MANE.v1.CDS.bed.gz"),
+        ("Illumina-STR-catalog", True, "./ref/other/illumina_variant_catalog.sorted.bed.gz"),
+        ("GangSTR-STR-catalog", True, "./ref/other/hg38_ver17.fixed.bed.gz"),
+        ("known-disease-associated-STRs", True, "./ref/other/known_disease_associated_STR_loci.GRCh38.bed.gz"),
     ]
 
     if args.n:

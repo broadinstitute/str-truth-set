@@ -52,9 +52,10 @@ for i, line in enumerate(fopen(args.vcf_path, "rt")):
 
         if len(ref) == len(alt):
             snv_counter += 1
-            counters[f"SNV alleles"] += 1
             if len(ref) > 1:
-                counters[f"SNV alleles (MNV)"] += 1
+                counters[f"MNV alleles"] += 1
+            else:
+                counters[f"SNV alleles"] += 1
         elif len(ref) > len(alt):
             deletion_counter += 1
             counters[f"DEL alleles"] += 1
@@ -66,21 +67,31 @@ for i, line in enumerate(fopen(args.vcf_path, "rt")):
 
     # count variant types
     if insertion_counter > 0 and deletion_counter == 0 and snv_counter == 0:
-        counters["INS variants"] += 1
-        if insertion_counter > 1: counters["INS variants (multiallelic)"] += 1
+        if insertion_counter > 1:
+            counters["multiallelic INS variants"] += 1
+        else:
+            counters["INS variants"] += 1
     elif insertion_counter == 0 and deletion_counter > 0 and snv_counter == 0:
-        counters["DEL variants"] += 1
-        if deletion_counter > 1: counters["DEL variants (multiallelic)"] += 1
+        if deletion_counter > 1:
+            counters["multiallelic DEL variants"] += 1
+        else:
+            counters["DEL variants"] += 1
     elif insertion_counter == 0 and deletion_counter == 0 and snv_counter > 0:
-        counters["SNV variants"] += 1
-        if snv_counter > 1: counters["SNV variants (multiallelic)"] += 1
+        if snv_counter > 1:
+            counters["multiallelic SNV variants"] += 1
+        else:
+            counters["SNV variants"] += 1
     else:
         var_types = []
-        if insertion_counter > 0: var_types.append("INS")
-        if deletion_counter > 0:  var_types.append("DEL")
-        if snv_counter > 0:       var_types.append("SNV")
+        if insertion_counter > 0:
+            var_types.append("INS")
+        if deletion_counter > 0:
+            var_types.append("DEL")
+        if snv_counter > 0:
+            var_types.append("SNV")
+
         var_types = "/".join(var_types)
-        counters[f"mixed {var_types} variants (multiallelic)"] += 1
+        counters[f"mixed multiallelic {var_types} variants"] += 1
 
 
 # step 2: Print totals
@@ -91,23 +102,17 @@ print(
 )
 
 # step 3: Print all counters
-for key, value in sorted(counters.items(), key=lambda x: (
-        not x[0].startswith("TOTAL"), "genotype" in x[0], "variants" not in x[0], len(x[0]), -1*x[1])
-):
-    if "TOTAL" in key:
-        continue
+for keyword in "genotype", "variants", "alleles":
+    current_counter = [(key, count) for key, count in counters.items() if keyword in key]
+    current_counter = sorted(current_counter, key=lambda x: (-x[1], x[0]))
+    print("--------------")
+    for key, value in current_counter:
+        if "variants" in key or "genotype" in key:
+            total_key = "TOTAL variants"
+        else:
+            total_key = "TOTAL alleles"
 
-    denominator_key = "TOTAL variants" if "genotype" in key or "variants" in key else "TOTAL alleles"
-    total = counters[denominator_key]
-    percent = 100 * value / total
+        total = counters[total_key]
+        percent = f"{100*value / total:5.1f}%" if total > 0 else ""
 
-    if percent < args.min_percent:
-        continue
-    
-    try:
-        percent = f"{percent:5.1f}%"
-    except:
-        percent = ""
-
-    print(f"{value:10,d} ({percent}) {key:17s}  (out of {total:9,d} {denominator_key})")
-
+        print(f"{value:10,d} out of {total:10,d} ({percent}) {key}")
