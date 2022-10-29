@@ -25,7 +25,7 @@ def parse_bed_row(line, is_STR_catalog):
         if re.match("^[ACGTNRYSWKMBDHV]+$", fields[3]):
             repeat_unit = fields[3]
         else:
-            print(f"Unexpected characters in repeat unit {fields[3]} in line: {line}. Discarding repeat unit nad setting it to None")
+            print(f"Unexpected characters in repeat unit {fields[3]} in line: {line}. Discarding repeat unit...")
 
     return chrom, start_0based, end_1based, repeat_unit
 
@@ -42,75 +42,85 @@ def create_interval_trees(other_catalogs, counters, show_progress_bar=False):
                 chrom = chrom.replace("chr", "")
                 other_catalog_interval = Interval(start_0based, end_1based, data=other_catalog_repeat_unit)
                 other_catalog_interval_trees[chrom].add(other_catalog_interval)
-                counters[f"{other_catalog_label} loci"] += 1
+                counters[f"total:{other_catalog_label}"] += 1
 
-        print(f"Parsed {counters[other_catalog_label+' loci']:,d} intervals from {other_catalog_label}: {other_catalog_path}")
+        total_count = counters[f"total:{other_catalog_label}"]
+        print(f"Parsed {total_count:10,d} intervals from {other_catalog_label:<40s} {other_catalog_path}")
+
         all_other_catalog_interval_trees[other_catalog_label] = other_catalog_interval_trees
 
     return all_other_catalog_interval_trees
 
 
 def process_truth_set_row(truth_set_df, truth_set_row_idx, truth_set_row, other_catalogs, interval_trees, counters):
-    """This method is called for each row in the truth set, and performs overlap checks with the given interval trees"""
+    """This method is called for each row in the truth set, and does overlap checks with the interval trees"""
     truth_set_repeat_unit = truth_set_row.Motif
-    truth_set_canonical_repeat_unit = compute_canonical_motif(truth_set_repeat_unit)
+    truth_set_canonical_repeat_unit = compute_canonical_motif(truth_set_repeat_unit, include_reverse_complement=True)
     truth_set_chrom = truth_set_row.Chrom.replace("chr", "")
     truth_set_locus_interval = Interval(truth_set_row.Start1Based - 1, truth_set_row.End1Based)
     a1 = int(truth_set_locus_interval.begin)
     a2 = int(truth_set_locus_interval.end)
-    counters["Truthset loci"] += 1
+    counters["total:TruthSetLoci"] += 1
     for other_catalog_label, is_STR_catalog, _ in other_catalogs:
         final_locus_similarity = None
         final_motif_similarity = None
         previous_similarity_rank = 10**6
-        locus_similarity_column_name = f"Overlaps{other_catalog_label}: Locus" if is_STR_catalog else f"Overlaps{other_catalog_label}"
+        if is_STR_catalog:
+            locus_similarity_column_name = f"Overlaps{other_catalog_label}: Locus"
+        else:
+            locus_similarity_column_name = f"Overlaps{other_catalog_label}"
         motif_similarity_column_name = f"Overlaps{other_catalog_label}: Motif"
+
+        # The truth set STR may overlap more than one entry in the other catalog.
+        # Look for the entry with the most similarity.
         other_catalog_interval_trees = interval_trees[other_catalog_label]
         overlapping_intervals_from_other_catalog = other_catalog_interval_trees[truth_set_chrom].overlap(truth_set_locus_interval)
         for overlapping_interval_from_other_catalog in overlapping_intervals_from_other_catalog:
-            # must overlap by more than 1 repeat unit
-            if overlapping_interval_from_other_catalog.overlap_size(truth_set_locus_interval) <= len(truth_set_repeat_unit):
+            # must overlap by at least 1 repeat unit
+            if overlapping_interval_from_other_catalog.overlap_size(truth_set_locus_interval) < len(truth_set_repeat_unit):
                 continue
 
             # compute similarity
             other_catalog_repeat_unit = overlapping_interval_from_other_catalog.data
             if other_catalog_repeat_unit is None:
+                # check similarity with interval that is not an STR locus
                 motif_similarity = None
                 if overlapping_interval_from_other_catalog.contains_interval(truth_set_locus_interval):
-                    locus_similarity = "IsWithin"
+                    locus_similarity = "interval contains truth set STR locus"
                     similarity_rank = 0
                 elif truth_set_locus_interval.contains_interval(overlapping_interval_from_other_catalog):
-                    locus_similarity = "Contains"
+                    locus_similarity = "truth set STR locus contains interval"
                     similarity_rank = 1
                 else:
-                    locus_similarity = "OverlapsBoundary"
+                    locus_similarity = "interval overlaps truth set STR locus"
                     similarity_rank = 2
             else:
+                # check similarity with STR from another catalog
                 b1 = int(overlapping_interval_from_other_catalog.begin)
                 b2 = int(overlapping_interval_from_other_catalog.end)
 
-                other_catalog_canonical_repeat_unit = compute_canonical_motif(other_catalog_repeat_unit)
+                other_catalog_canonical_repeat_unit = compute_canonical_motif(other_catalog_repeat_unit, include_reverse_complement=True)
                 if a1 == b1 and a2 == b2:
-                    locus_similarity = "ExactSameLocus"
+                    locus_similarity = "truth set STR locus has exactly the same coordinates"
                     locus_similarity_rank = 1
                 elif overlapping_interval_from_other_catalog.contains_interval(truth_set_locus_interval):
-                    locus_similarity = "LocusFromOtherCatalogContainsTruthLocus"
+                    locus_similarity = "truth set STR locus is contained within the STR locus"
                     locus_similarity_rank = 2
                 elif truth_set_locus_interval.contains_interval(overlapping_interval_from_other_catalog):
-                    locus_similarity = "TruthLocusContainsLocusFromOtherCatalog"
+                    locus_similarity = "truth set STR locus contains the STR locus"
                     locus_similarity_rank = 3
                 else:
-                    locus_similarity = "LociOverlap"
+                    locus_similarity = "STR loci overlap"
                     locus_similarity_rank = 4
 
                 if truth_set_repeat_unit == other_catalog_repeat_unit:
-                    motif_similarity = "ExactSameMotif"
+                    motif_similarity = "same motif"
                     motif_similarity_rank = 1
                 elif truth_set_canonical_repeat_unit == other_catalog_canonical_repeat_unit:
-                    motif_similarity = "ShiftedMotif"
+                    motif_similarity = "same motif after normalization"
                     motif_similarity_rank = 10
                 else:
-                    motif_similarity = "CompletelyDifferentMotif"
+                    motif_similarity = "different motif"
                     motif_similarity_rank = 1000
 
                 similarity_rank = motif_similarity_rank * locus_similarity_rank - 1
@@ -125,41 +135,60 @@ def process_truth_set_row(truth_set_df, truth_set_row_idx, truth_set_row, other_
 
         if is_STR_catalog:
             if final_motif_similarity is None:
-                final_motif_similarity = "NoOverlappingLoci"
+                final_motif_similarity = "no motif similarity"
 
             if final_locus_similarity is None:
-                final_locus_similarity = "NoOverlappingLoci"
+                final_locus_similarity = "no overlap"
+                final_motif_similarity = ""
         else:
             if final_locus_similarity is None:
-                final_locus_similarity = "NoOverlap"
+                final_locus_similarity = "no overlap"
+                final_motif_similarity = "no overlap"
 
         truth_set_df.at[truth_set_row_idx, locus_similarity_column_name] = final_locus_similarity
         if is_STR_catalog:
             truth_set_df.at[truth_set_row_idx, motif_similarity_column_name] = final_motif_similarity
-            counters[f"{other_catalog_label} vs Truthset: {final_motif_similarity}--{final_locus_similarity}"] += 1
-        else:
-            counters[f"{other_catalog_label} vs Truthset: {final_locus_similarity}"] += 1
+
+        counters[f"overlap:{is_STR_catalog}|{other_catalog_label}|{final_locus_similarity}|{final_motif_similarity}"] += 1
 
 
 def print_counters(counters):
+    truth_set_total_loci = counters[f"total:TruthSetLoci"]
+
     def counter_sort_order(x):
-        split_by_sep1 = x[0].split(":")
-        #split_by_sep2 = split_by_sep1[1].split("|") if len(split_by_sep1) > 1 else "X"
-        return (-1 * x[0].endswith(" loci"), split_by_sep1[0], -x[1]) #, split_by_sep2[1] if len(split_by_sep2) > 1 else "X")
+        key = x[0]
+        count = x[1]
+        if key.startswith("total:"):
+            return "", count
+        key_tokens = key.split("|")
 
-    total_truth_set_loci = counters[f"Truthset loci"]
-    for key, value in sorted(counters.items(), key=counter_sort_order):
-        percent_of_truth_set = f"{100 * value / total_truth_set_loci :5.1f}%"
+        return key_tokens[1], -count
 
-        if key.endswith("loci"):
-            print(f"{value:10,d} {key}")
+    for key, count in sorted(counters.items(), key=counter_sort_order):
+        if key.startswith("total:"):
+            continue
+
+        if not key.startswith("overlap:"):
+            raise ValueError(f"Unexpected counter key: {key}")
+
+        is_STR_catalog, other_catalog_label, locus_overlap, motif_overlap = re.sub("^overlap:", "", key).split("|")
+        is_STR_catalog = is_STR_catalog == "True"
+        other_catalog_total_loci = counters[f"total:{other_catalog_label}"]
+
+        percent_of_truth_set = f"{100 * count / truth_set_total_loci :5.1f}%" if truth_set_total_loci > 0 else ""
+        percent_of_other_catalog = f"{100 * count / other_catalog_total_loci :5.1f}%" if other_catalog_total_loci > 0 else ""
+
+        s = f"{other_catalog_label}: "
+        s += f"{count:10,d} out of {truth_set_total_loci:10,d} ({percent_of_truth_set}) truth set loci"
+        if locus_overlap == "no overlap":
+            s += f": "
         else:
-            s = f"{value:10,d}  {key:100s}   ({percent_of_truth_set} of {total_truth_set_loci:10,d} truth_set loci)"
-            if " vs Truthset" in key and not key.endswith(": NoOverlap--None"):
-                other_catalog_label = key.split(" vs Truthset")[0]
-                total_loci_in_other_catalog = counters[f"{other_catalog_label} loci"]
-                percent_of_other_catalog = f"{100 * value / total_loci_in_other_catalog :5.1f}%"
-                s += f"    ({percent_of_other_catalog} of {total_loci_in_other_catalog:10,d} {other_catalog_label} loci)"
+            s += f", and out of {other_catalog_total_loci:10,d} ({percent_of_other_catalog}) {other_catalog_label} loci: "
+
+        s += f"    {locus_overlap:<70s}"
+        if is_STR_catalog and motif_overlap:
+            print(f"{s}  and has {motif_overlap}")
+        else:
             print(s)
 
 
@@ -174,9 +203,9 @@ def main():
     truth_set_df = pd.read_table(args.truth_set_tsv)
 
     # filter out non-ref rows
-    len_before = len(truth_set_df)
-    truth_set_df = truth_set_df[truth_set_df.End1Based - truth_set_df.Start1Based > 0]
-    print(f"Skipped {len_before - len(truth_set_df)} loci without matching reference repeats")
+    #len_before = len(truth_set_df)
+    #truth_set_df = truth_set_df[truth_set_df.End1Based - truth_set_df.Start1Based > 0]
+    #print(f"Skipped {len_before - len(truth_set_df)} loci without matching reference repeats")
 
     output_tsv_path = args.output_tsv if args.output_tsv else re.sub(".tsv(.gz)?", "", args.truth_set_tsv) + ".with_overlap_columns.tsv"
 
@@ -184,19 +213,19 @@ def main():
 
     # load other catalogs into IntervalTrees
     other_catalogs = [
-        ("SegDup-intervals", False, "./ref/other/GRCh38GenomicSuperDup.without_decoys.sorted.bed.gz"),
-        ("exons-from-gencode-v40", False, "./ref/other/gencode.v40.exons.bed.gz"),
-        ("exons-from-MANE", False, "./ref/other/MANE.v1.exons.bed.gz"),
-        ("CDS-from-gencode-v40", False, "./ref/other/gencode.v40.CDS.bed.gz"),
-        ("CDS-from-MANE", False, "./ref/other/MANE.v1.CDS.bed.gz"),
-        ("Illumina-STR-catalog", True, "./ref/other/illumina_variant_catalog.sorted.bed.gz"),
-        ("GangSTR-STR-catalog", True, "./ref/other/hg38_ver17.fixed.bed.gz"),
-        ("known-disease-associated-STRs", True, "./ref/other/known_disease_associated_STR_loci.GRCh38.bed.gz"),
+        ("SegDupIntervals", False, "./ref/other/GRCh38GenomicSuperDup.without_decoys.sorted.bed.gz"),
+        ("ExonsFromGencodeV40", False, "./ref/other/gencode.v40.exons.bed.gz"),
+        ("ExonsFromMANEv1", False, "./ref/other/MANE.v1.exons.bed.gz"),
+        ("CodingRegionFromGencodeV40", False, "./ref/other/gencode.v40.CDS.bed.gz"),
+        ("CodingRegionFromMANE", False, "./ref/other/MANE.v1.CDS.bed.gz"),
+        ("IlluminaSTRCatalog", True, "./ref/other/illumina_variant_catalog.sorted.bed.gz"),
+        ("GangSTRCatalog", True, "./ref/other/hg38_ver17.fixed.bed.gz"),
+        ("KnownDiseaseAssociatedSTRs", True, "./ref/other/known_disease_associated_STR_loci.GRCh38.bed.gz"),
     ]
 
     if args.n:
         truth_set_df = truth_set_df.iloc[0:args.n, :]
-        #other_catalogs = other_catalogs[:1]
+        other_catalogs = [other_catalogs[0], other_catalogs[-1], other_catalogs[-3]]
 
     interval_trees = create_interval_trees(
         other_catalogs, counters, show_progress_bar=args.show_progress_bar)
@@ -226,5 +255,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-#%%
