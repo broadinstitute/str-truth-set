@@ -7,7 +7,7 @@ A genome-wide short tandem repeat (STR) truth set based on the
 ---
 ### Creating the Truth Set
 
-This repo contains the code used to generate the STR truthset.  
+This repo contains the code used to generate the STR truth set.  
 To recreate the truth set files:
 
 ```
