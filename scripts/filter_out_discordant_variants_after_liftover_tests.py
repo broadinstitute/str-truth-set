@@ -1,10 +1,10 @@
 import collections
-import os
 import pyfaidx
 import tempfile
 import unittest
 
 from filter_out_discordant_variants_after_liftover import does_variant_have_ref_allele
+
 
 class Tests(unittest.TestCase):
     def setUp(self):
