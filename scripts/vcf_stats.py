@@ -25,7 +25,7 @@ for i, line in enumerate(fopen(args.vcf_path, "rt")):
         continue
 
     # VCF Header:  #CHROM  POS     ID      REF     ALT     QUAL    FILTER  INFO    FORMAT  syndip
-    fields = line.split("\t")
+    fields = line.strip().split("\t")
     try:
         chrom = fields[0]
         pos = fields[1]
