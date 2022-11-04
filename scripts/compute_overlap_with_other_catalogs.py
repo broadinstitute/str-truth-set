@@ -13,6 +13,21 @@ import tqdm
 
 from str_analysis.utils.canonical_repeat_unit import compute_canonical_motif
 
+# paths of other STR catalogs and genomic regions to intersect with
+OTHER_STR_CATALOGS = {
+    "IlluminaSTRCatalog": "./ref/other/illumina_variant_catalog.sorted.bed.gz",
+    "GangSTRCatalog": "./ref/other/hg38_ver17.fixed.bed.gz",
+    "KnownDiseaseAssociatedSTRs": "./ref/other/known_disease_associated_STR_loci.GRCh38.bed.gz",
+}
+
+GENOMIC_REGIONS = {
+    "SegDupIntervals": "./ref/other/GRCh38GenomicSuperDup.without_decoys.sorted.bed.gz",
+    "ExonsFromGencodeV40": "./ref/other/gencode.v40.exons.bed.gz",
+    "ExonsFromMANEv1": "./ref/other/MANE.v1.exons.bed.gz",
+    "CodingRegionFromGencodeV40": "./ref/other/gencode.v40.CDS.bed.gz",
+    "CodingRegionFromMANE": "./ref/other/MANE.v1.CDS.bed.gz",
+}
+
 
 def parse_bed_row(line, is_STR_catalog):
     fields = line.strip().split("\t")
@@ -76,8 +91,8 @@ def process_truth_set_row(truth_set_df, truth_set_row_idx, truth_set_row, other_
         other_catalog_interval_trees = interval_trees[other_catalog_label]
         overlapping_intervals_from_other_catalog = other_catalog_interval_trees[truth_set_chrom].overlap(truth_set_locus_interval)
         for overlapping_interval_from_other_catalog in overlapping_intervals_from_other_catalog:
-            # must overlap by at least 1 repeat unit
-            if overlapping_interval_from_other_catalog.overlap_size(truth_set_locus_interval) < len(truth_set_repeat_unit):
+            # must overlap by at least 1bp
+            if overlapping_interval_from_other_catalog.overlap_size(truth_set_locus_interval) < 1:
                 continue
 
             # compute similarity
@@ -89,7 +104,7 @@ def process_truth_set_row(truth_set_df, truth_set_row_idx, truth_set_row, other_
                     locus_similarity = "interval contains truth set STR locus"
                     similarity_rank = 0
                 elif truth_set_locus_interval.contains_interval(overlapping_interval_from_other_catalog):
-                    locus_similarity = "truth set STR locus contains interval"
+                    locus_similarity = "interval contained within truth set STR locus"
                     similarity_rank = 1
                 else:
                     locus_similarity = "interval overlaps truth set STR locus"
@@ -101,13 +116,13 @@ def process_truth_set_row(truth_set_df, truth_set_row_idx, truth_set_row, other_
 
                 other_catalog_canonical_repeat_unit = compute_canonical_motif(other_catalog_repeat_unit, include_reverse_complement=True)
                 if a1 == b1 and a2 == b2:
-                    locus_similarity = "truth set STR locus has exactly the same coordinates"
+                    locus_similarity = "STR locus has exact same coordinates as truth set STR locus"
                     locus_similarity_rank = 1
                 elif overlapping_interval_from_other_catalog.contains_interval(truth_set_locus_interval):
-                    locus_similarity = "truth set STR locus is contained within the STR locus"
+                    locus_similarity = "STR locus contains truth set STR locus"
                     locus_similarity_rank = 2
                 elif truth_set_locus_interval.contains_interval(overlapping_interval_from_other_catalog):
-                    locus_similarity = "truth set STR locus contains the STR locus"
+                    locus_similarity = "STR locus is contained within truth set STR locus "
                     locus_similarity_rank = 3
                 else:
                     locus_similarity = "STR loci overlap"
@@ -140,16 +155,24 @@ def process_truth_set_row(truth_set_df, truth_set_row_idx, truth_set_row, other_
             if final_locus_similarity is None:
                 final_locus_similarity = "no overlap"
                 final_motif_similarity = ""
-        else:
-            if final_locus_similarity is None:
-                final_locus_similarity = "no overlap"
-                final_motif_similarity = "no overlap"
-
-        truth_set_df.at[truth_set_row_idx, locus_similarity_column_name] = final_locus_similarity
-        if is_STR_catalog:
+            truth_set_df.at[truth_set_row_idx, locus_similarity_column_name] = final_locus_similarity
             truth_set_df.at[truth_set_row_idx, motif_similarity_column_name] = final_motif_similarity
 
-        counters[f"overlap:{is_STR_catalog}|{other_catalog_label}|{final_locus_similarity}|{final_motif_similarity}"] += 1
+            counters[f"overlap:{is_STR_catalog}|{other_catalog_label}|{final_locus_similarity}|{final_motif_similarity}"] += 1
+
+            bed_filename = f"STR_{other_catalog_label}_{final_locus_similarity}.bed"
+        else:
+            truth_set_df.at[truth_set_row_idx, locus_similarity_column_name] = "No" if final_locus_similarity is None else "Yes"
+            final_locus_similarity = "no overlap" if final_locus_similarity is None else final_locus_similarity
+            final_motif_similarity = ""
+
+            counters[f"overlap:{is_STR_catalog}|{other_catalog_label}|{final_locus_similarity}|"] += 1
+            bed_filename = f"region_{other_catalog_label}_{final_locus_similarity}.bed"
+
+        #if final_locus_similarity != "no overlap" and any(k.lower() in other_catalog_label.lower() for k in ("known", "GangSTR", "Illumina")):
+        #    with open(bed_filename.replace(" ", "_"), "at") as f:
+        #        bed_row_name = f"{truth_set_repeat_unit}:{final_locus_similarity}:{final_motif_similarity}"
+        #        f.write("\t".join(map(str, [truth_set_chrom, a1, a2, bed_row_name, "."])) + "\n")
 
 
 def print_counters(counters):
@@ -162,7 +185,7 @@ def print_counters(counters):
             return "", count
         key_tokens = key.split("|")
 
-        return key_tokens[1], -count
+        return key_tokens[1], -len(key_tokens[2]), len(key_tokens[2]), -count
 
     for key, count in sorted(counters.items(), key=counter_sort_order):
         if key.startswith("total:"):
@@ -171,7 +194,11 @@ def print_counters(counters):
         if not key.startswith("overlap:"):
             raise ValueError(f"Unexpected counter key: {key}")
 
-        is_STR_catalog, other_catalog_label, locus_overlap, motif_overlap = re.sub("^overlap:", "", key).split("|")
+        try:
+            is_STR_catalog, other_catalog_label, locus_overlap, motif_overlap = re.sub("^overlap:", "", key).split("|")
+        except Exception as e:
+            raise ValueError(f"Unexpected counter key: {key}: {e}")
+
         is_STR_catalog = is_STR_catalog == "True"
         other_catalog_total_loci = counters[f"total:{other_catalog_label}"]
 
@@ -196,6 +223,9 @@ def main():
     p = argparse.ArgumentParser()
     p.add_argument("-n", help="Process only the 1st N rows of the truth set TSV. Useful for testing.", type=int)
     p.add_argument("--show-progress-bar", help="Show a progress bar in the terminal when processing variants.", action="store_true")
+    p.add_argument("-c", "--catalog", action="append", choices=list(OTHER_STR_CATALOGS) + list(GENOMIC_REGIONS),
+                   help="The name of the genomic region or catalog to check overlap with. This option can be specified "
+                        "more than once. If not specified, all available catalogs and region lists will be included.")
     p.add_argument("truth_set_tsv", help="The STR variants TSV file generated by the STR truth set pipeline" )
     p.add_argument("output_tsv", nargs="?", help="Optional output file name")
     args = p.parse_args()
@@ -211,21 +241,11 @@ def main():
 
     counters = collections.defaultdict(int)
 
-    # load other catalogs into IntervalTrees
-    other_catalogs = [
-        ("SegDupIntervals", False, "./ref/other/GRCh38GenomicSuperDup.without_decoys.sorted.bed.gz"),
-        ("ExonsFromGencodeV40", False, "./ref/other/gencode.v40.exons.bed.gz"),
-        ("ExonsFromMANEv1", False, "./ref/other/MANE.v1.exons.bed.gz"),
-        ("CodingRegionFromGencodeV40", False, "./ref/other/gencode.v40.CDS.bed.gz"),
-        ("CodingRegionFromMANE", False, "./ref/other/MANE.v1.CDS.bed.gz"),
-        ("IlluminaSTRCatalog", True, "./ref/other/illumina_variant_catalog.sorted.bed.gz"),
-        ("GangSTRCatalog", True, "./ref/other/hg38_ver17.fixed.bed.gz"),
-        ("KnownDiseaseAssociatedSTRs", True, "./ref/other/known_disease_associated_STR_loci.GRCh38.bed.gz"),
-    ]
-
     if args.n:
         truth_set_df = truth_set_df.iloc[0:args.n, :]
-        other_catalogs = [other_catalogs[0], other_catalogs[-1], other_catalogs[-3]]
+
+    other_catalogs = [(label, True, path) for label, path in OTHER_STR_CATALOGS.items() if not args.catalog or label in args.catalog]
+    other_catalogs += [(label, False, path) for label, path in GENOMIC_REGIONS.items() if not args.catalog or label in args.catalog]
 
     interval_trees = create_interval_trees(
         other_catalogs, counters, show_progress_bar=args.show_progress_bar)
