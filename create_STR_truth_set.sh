@@ -160,8 +160,6 @@ python3 -m str_analysis.filter_vcf_to_STR_variants \
   --output-prefix "${output_prefix}" \
   "${input_vcf}"
 
-#  -n 10000 \
-
 
 
 
