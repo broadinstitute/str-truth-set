@@ -178,14 +178,14 @@ def print_counters(counters):
         percent_of_truth_set = f"{100 * count / truth_set_total_loci :5.1f}%" if truth_set_total_loci > 0 else ""
         percent_of_other_catalog = f"{100 * count / other_catalog_total_loci :5.1f}%" if other_catalog_total_loci > 0 else ""
 
-        s = f"{other_catalog_label}: "
+        s = f"{other_catalog_label:30s}: "
         s += f"{count:10,d} out of {truth_set_total_loci:10,d} ({percent_of_truth_set}) truth set loci"
         if locus_overlap == "no overlap":
             s += f": "
         else:
             s += f", and out of {other_catalog_total_loci:10,d} ({percent_of_other_catalog}) {other_catalog_label} loci: "
 
-        s += f"    {locus_overlap:<70s}"
+        s += f"    {locus_overlap:<60s}"
         if is_STR_catalog and motif_overlap:
             print(f"{s}  and has {motif_overlap}")
         else:
