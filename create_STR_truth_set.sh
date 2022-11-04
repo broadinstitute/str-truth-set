@@ -15,6 +15,8 @@
 #    chm13v2.0.fa  (T2T reference fasta)
 
 
+version=v1
+
 syndip_truth_vcf=./ref/full.38.vcf.gz
 syndip_confidence_regions_bed=./ref/full.38.bed.gz
 
@@ -144,7 +146,7 @@ output_vcf="${output_prefix}.vcf.gz"
 # reference start and end coordinates despite some of the repeat interruptions in the hg38 reference sequence at some
 # of these loci
 
-min_fraction_covered_by_repeat=0.8
+min_fraction_covered_by_repeat=1
 min_str_length=9
 min_str_repeats=3
 
@@ -160,11 +162,12 @@ python3 -m str_analysis.filter_vcf_to_STR_variants \
   --output-prefix "${output_prefix}" \
   "${input_vcf}"
 
-
-
+# generate overlap statistics before liftover
+python3 scripts/compute_overlap_with_other_catalogs.py ${output_prefix}.variants.tsv.gz  ${output_prefix}.variants.with_overlap_columns.tsv -c IlluminaSTRCatalog -c GangSTRCatalog -c KnownDiseaseAssociatedSTRs
 
 set +x
 print_output_stats $input_vcf $output_vcf
+
 
 echo ===============
 input_vcf=$output_vcf
@@ -281,8 +284,16 @@ python3 -m str_analysis.filter_vcf_to_STR_variants \
 python3 scripts/compute_overlap_with_other_catalogs.py ${output_prefix}.variants.tsv.gz  ${output_prefix}.variants.with_overlap_columns.tsv
 python3 scripts/compute_overlap_with_other_catalogs.py ${output_prefix}.alleles.tsv.gz  ${output_prefix}.alleles.with_overlap_columns.tsv
 
+bgzip -f ${output_prefix}.variants.with_overlap_columns.tsv
+bgzip -f ${output_prefix}.alleles.with_overlap_columns.tsv
+
+cp ${output_prefix}.variants.with_overlap_columns.tsv.gz STR_truthset.${version}.variants.tsv.gz
+cp ${output_prefix}.alleles.with_overlap_columns.tsv.gz STR_truthset.${version}.alleles.tsv.gz
+
+cp ${output_prefix}.variants.bed.gz STR_truthset.${version}.variants.bed.gz
+cp ${output_prefix}.variants.bed.gz.tbi STR_truthset.${version}.variants.bed.gz.tbi
+
 set +x
 
 echo ===============
-
 
