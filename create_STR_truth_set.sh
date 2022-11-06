@@ -287,11 +287,16 @@ python3 scripts/compute_overlap_with_other_catalogs.py ${output_prefix}.alleles.
 bgzip -f ${output_prefix}.variants.with_overlap_columns.tsv
 bgzip -f ${output_prefix}.alleles.with_overlap_columns.tsv
 
-cp ${output_prefix}.variants.with_overlap_columns.tsv.gz STR_truthset.${version}.variants.tsv.gz
-cp ${output_prefix}.alleles.with_overlap_columns.tsv.gz STR_truthset.${version}.alleles.tsv.gz
+final_output_prefix=STR_truthset.${version}
 
-cp ${output_prefix}.variants.bed.gz STR_truthset.${version}.variants.bed.gz
-cp ${output_prefix}.variants.bed.gz.tbi STR_truthset.${version}.variants.bed.gz.tbi
+cp ${output_prefix}.variants.with_overlap_columns.tsv.gz ${final_output_prefix}.variants.tsv.gz
+cp ${output_prefix}.alleles.with_overlap_columns.tsv.gz  ${final_output_prefix}.alleles.tsv.gz
+
+cp ${output_prefix}.variants.bed.gz     ${final_output_prefix}.variants.bed.gz
+cp ${output_prefix}.variants.bed.gz.tbi ${final_output_prefix}.variants.bed.gz.tbi
+
+cp ${output_prefix}.vcf.gz      ${final_output_prefix}.vcf.gz
+cp ${output_prefix}.vcf.gz.tbi  ${final_output_prefix}.vcf.gz.tbi
 
 set +x
 
