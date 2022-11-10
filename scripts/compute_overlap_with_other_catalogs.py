@@ -16,8 +16,14 @@ from str_analysis.utils.canonical_repeat_unit import compute_canonical_motif
 # paths of other STR catalogs and genomic regions to intersect with
 OTHER_STR_CATALOGS = {
     "IlluminaSTRCatalog": "./ref/other/illumina_variant_catalog.sorted.bed.gz",
-    "GangSTRCatalog": "./ref/other/hg38_ver17.fixed.bed.gz",
+    "GangSTRCatalog17": "./ref/other/hg38_ver17.fixed.bed.gz",
+    "GangSTRCatalog13": "./ref/other/hg38_ver13.fixed.bed.gz",
     "KnownDiseaseAssociatedSTRs": "./ref/other/known_disease_associated_STR_loci.GRCh38.bed.gz",
+    "TRFPureRepeats15bp": "./ref/other/repeat_specs_GRCh38_without_mismatches.sorted.trimmed.at_least_15bp.bed.gz",
+    "TRFPureRepeats12bp": "./ref/other/repeat_specs_GRCh38_without_mismatches.sorted.trimmed.at_least_12bp.bed.gz",
+    "TRFPureRepeats9bp": "./ref/other/repeat_specs_GRCh38_without_mismatches.sorted.trimmed.at_least_9bp.bed.gz",
+    "TRFPureRepeats8bp": "./ref/other/repeat_specs_GRCh38_without_mismatches.sorted.trimmed.at_least_8bp.bed.gz",
+    "TRFPureRepeats6bp": "./ref/other/repeat_specs_GRCh38_without_mismatches.sorted.trimmed.at_least_6bp.bed.gz",
 }
 
 GENOMIC_REGIONS = {
@@ -67,7 +73,7 @@ def create_interval_trees(other_catalogs, counters, show_progress_bar=False):
     return all_other_catalog_interval_trees
 
 
-def process_truth_set_row(truth_set_df, truth_set_row_idx, truth_set_row, other_catalogs, interval_trees, counters):
+def process_truth_set_row(truth_set_df, truth_set_row_idx, truth_set_row, other_catalogs, interval_trees, counters, write_beds=False):
     """This method is called for each row in the truth set, and does overlap checks with the interval trees"""
     truth_set_repeat_unit = truth_set_row.Motif
     truth_set_canonical_repeat_unit = compute_canonical_motif(truth_set_repeat_unit, include_reverse_complement=True)
@@ -149,12 +155,11 @@ def process_truth_set_row(truth_set_df, truth_set_row_idx, truth_set_row, other_
                     break
 
         if is_STR_catalog:
-            if final_motif_similarity is None:
-                final_motif_similarity = "no motif similarity"
 
             if final_locus_similarity is None:
                 final_locus_similarity = "no overlap"
                 final_motif_similarity = ""
+
             truth_set_df.at[truth_set_row_idx, locus_similarity_column_name] = final_locus_similarity
             truth_set_df.at[truth_set_row_idx, motif_similarity_column_name] = final_motif_similarity
 
@@ -169,10 +174,11 @@ def process_truth_set_row(truth_set_df, truth_set_row_idx, truth_set_row, other_
             counters[f"overlap:{is_STR_catalog}|{other_catalog_label}|{final_locus_similarity}|"] += 1
             bed_filename = f"region_{other_catalog_label}_{final_locus_similarity}.bed"
 
-        #if final_locus_similarity != "no overlap" and any(k.lower() in other_catalog_label.lower() for k in ("known", "GangSTR", "Illumina")):
-        #    with open(bed_filename.replace(" ", "_"), "at") as f:
-        #        bed_row_name = f"{truth_set_repeat_unit}:{final_locus_similarity}:{final_motif_similarity}"
-        #        f.write("\t".join(map(str, [truth_set_chrom, a1, a2, bed_row_name, "."])) + "\n")
+        if write_beds and final_locus_similarity != "no overlap" and motif_similarity == "different motif" and any(
+                k.lower() in other_catalog_label.lower() for k in ("known", "GangSTR", "Illumina")):
+            with open(bed_filename.replace(" ", "_"), "at") as f:
+                bed_row_name = f"{truth_set_repeat_unit}:{final_locus_similarity}:{final_motif_similarity}"
+                f.write("\t".join(map(str, [truth_set_chrom, a1, a2, bed_row_name, "."])) + "\n")
 
 
 def print_counters(counters):
@@ -223,6 +229,9 @@ def main():
     p = argparse.ArgumentParser()
     p.add_argument("-n", help="Process only the 1st N rows of the truth set TSV. Useful for testing.", type=int)
     p.add_argument("--show-progress-bar", help="Show a progress bar in the terminal when processing variants.", action="store_true")
+    p.add_argument("--write-beds", help="Whether to outputu bed files for different overlap categories."
+                                       "This is useful for visually checking / troubleshooting results in IGV.", action="store_true")
+
     p.add_argument("-c", "--catalog", action="append", choices=list(OTHER_STR_CATALOGS) + list(GENOMIC_REGIONS),
                    help="The name of the genomic region or catalog to check overlap with. This option can be specified "
                         "more than once. If not specified, all available catalogs and region lists will be included.")
@@ -263,8 +272,8 @@ def main():
         truth_set_df_row_iterator = truth_set_df.iterrows()
 
     for truth_set_row_idx, truth_set_row in truth_set_df_row_iterator:
-        process_truth_set_row(
-            truth_set_df, truth_set_row_idx, truth_set_row, other_catalogs, interval_trees, counters)
+        process_truth_set_row(truth_set_df, truth_set_row_idx, truth_set_row,
+                              other_catalogs, interval_trees, counters, write_beds=args.write_beds)
 
     truth_set_df.to_csv(output_tsv_path, sep="\t", index=False, header=True)
     print(f"Wrote {len(truth_set_df)} rows to the output tsv: {output_tsv_path}")
