@@ -22,7 +22,6 @@ OTHER_STR_CATALOGS = {
     "TRFPureRepeats15bp": "./ref/other/repeat_specs_GRCh38_without_mismatches.sorted.trimmed.at_least_15bp.bed.gz",
     "TRFPureRepeats12bp": "./ref/other/repeat_specs_GRCh38_without_mismatches.sorted.trimmed.at_least_12bp.bed.gz",
     "TRFPureRepeats9bp": "./ref/other/repeat_specs_GRCh38_without_mismatches.sorted.trimmed.at_least_9bp.bed.gz",
-    "TRFPureRepeats8bp": "./ref/other/repeat_specs_GRCh38_without_mismatches.sorted.trimmed.at_least_8bp.bed.gz",
     "TRFPureRepeats6bp": "./ref/other/repeat_specs_GRCh38_without_mismatches.sorted.trimmed.at_least_6bp.bed.gz",
 }
 
