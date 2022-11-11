@@ -2,3 +2,4 @@ pyfaidx>=0.6.4
 pandas>=1.3.5
 str-analysis>=0.9.12
 intervaltree>=3.1.0
+pybedtools>=0.9.0
