@@ -111,7 +111,7 @@ def generate_gtf_records(gtf_path):
 
 def compute_genomic_region(input_row, interval_trees, transcript_id_to_cds_coords):
     """This method is called for each row in the truth set, and does overlap checks with the interval trees"""
-    input_chrom = input_row["Chrom"].replace("chr", "")
+    input_chrom = str(input_row["Chrom"]).replace("chr", "")
     input_locus_interval = Interval(input_row.Start1Based - 1, input_row.End1Based)
 
     # The truth set STR may overlap more than one region in the GTF. Return the most biologically important region.
@@ -119,16 +119,17 @@ def compute_genomic_region(input_row, interval_trees, transcript_id_to_cds_coord
     overlapping_intervals_feature_types = {i.data["feature_type"]: i.data for i in overlapping_intervals_from_gtf}
 
     if "transcript" in overlapping_intervals_feature_types and "exon" not in overlapping_intervals_feature_types:
-        overlapping_intervals_feature_types["intron"] = {}
+        overlapping_intervals_feature_types["intron"] = overlapping_intervals_feature_types["transcript"]
 
     for region in "CDS", "5' UTR", "3' UTR", "UTR", "exon", "intron", "promoter":  # handle both coding and non-coding transcripts
         if region not in overlapping_intervals_feature_types:
             continue
+        record = overlapping_intervals_feature_types[region]
         if region == "UTR":
             region = compute_UTR_type(overlapping_intervals_feature_types["UTR"], transcript_id_to_cds_coords)
-        return region
+        return region, record["gene_name"], record["gene_id"], record["transcript_id"]
 
-    return "intergenic"
+    return "intergenic", None, None, None
 
 
 def compute_UTR_type(utr_record, transcript_id_to_cds_coords):
@@ -171,7 +172,7 @@ def main():
     if not args.output_tsv:
         args.output_tsv = re.sub(".tsv(.gz)?", "", args.truth_set_tsv_or_bed_path)
         args.output_tsv = re.sub(".bed(.gz)?", "", args.output_tsv)
-        args.output_tsv += f".with_{gtf_label.lower()}_column"
+        args.output_tsv += f".with_{gtf_label.lower()}_columns"
         args.output_tsv += ".tsv.gz"
 
     # parse the GTF file into IntervalTrees
@@ -219,8 +220,8 @@ def main():
 
     # Compute genomic regions
     print(f"Processing rows from {args.truth_set_tsv_or_bed_path}")
-    input_df.loc[:, f"GenomicRegionBasedOn{gtf_label}Transcripts"] = input_df.apply(
-        lambda input_row: compute_genomic_region(input_row, interval_trees, transcript_id_to_cds_coords), axis=1)
+    input_df[[f"GeneRegionFrom{gtf_label}", f"GeneNameFrom{gtf_label}", f"GeneIdFrom{gtf_label}", f"TranscriptIdFrom{gtf_label}"]] = input_df.apply(
+        lambda input_row: compute_genomic_region(input_row, interval_trees, transcript_id_to_cds_coords), axis=1, result_type='expand')
 
     input_df.to_csv(args.output_tsv, sep="\t", index=False, header=True)
     print(f"Wrote {len(input_df)} rows to the output tsv: {args.output_tsv}")
