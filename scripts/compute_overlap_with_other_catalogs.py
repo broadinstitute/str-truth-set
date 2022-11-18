@@ -19,6 +19,7 @@ OTHER_STR_CATALOGS = {
     "GangSTRCatalog17": "./ref/other/hg38_ver17.fixed.bed.gz",
     "GangSTRCatalog13": "./ref/other/hg38_ver13.fixed.bed.gz",
     "KnownDiseaseAssociatedSTRs": "./ref/other/known_disease_associated_STR_loci.GRCh38.bed.gz",
+
     "TRFPureRepeats15bp": "./ref/other/repeat_specs_GRCh38_without_mismatches.sorted.trimmed.at_least_15bp.bed.gz",
     "TRFPureRepeats12bp": "./ref/other/repeat_specs_GRCh38_without_mismatches.sorted.trimmed.at_least_12bp.bed.gz",
     "TRFPureRepeats9bp": "./ref/other/repeat_specs_GRCh38_without_mismatches.sorted.trimmed.at_least_9bp.bed.gz",
@@ -30,7 +31,7 @@ GENOMIC_REGIONS = {
 }
 
 
-def parse_bed_row(line, is_STR_catalog):
+def parse_bed_row(line_i, line, is_STR_catalog):
     fields = line.strip().split("\t")
     chrom = fields[0].strip("chr")
     start_0based = int(fields[1])
@@ -41,7 +42,7 @@ def parse_bed_row(line, is_STR_catalog):
         if re.match("^[ACGTNRYSWKMBDHV]+$", fields[3]):
             repeat_unit = fields[3]
         else:
-            print(f"Unexpected characters in repeat unit {fields[3]} in line: {line}. Discarding repeat unit...")
+            print(f"Unable to parse repeat unit in line {line_i}. Unexpected characters in column 4 '{fields[3]}' in line: {fields}. Discarding repeat unit...")
 
     return chrom, start_0based, end_1based, repeat_unit
 
@@ -56,7 +57,7 @@ def create_interval_trees(other_catalogs, counters, show_progress_bar=False, n=N
             for i, line in enumerate(f if not show_progress_bar else tqdm.tqdm(f, unit=" bed records")):
                 if n is not None and i > n:
                     break
-                chrom, start_0based, end_1based, other_catalog_repeat_unit = parse_bed_row(line, is_STR_catalog)
+                chrom, start_0based, end_1based, other_catalog_repeat_unit = parse_bed_row(i, line, is_STR_catalog)
                 chrom = chrom.replace("chr", "")
                 other_catalog_interval = Interval(start_0based, end_1based, data=other_catalog_repeat_unit)
                 other_catalog_interval_trees[chrom].add(other_catalog_interval)
@@ -225,9 +226,12 @@ def print_counters(counters):
 def main():
     p = argparse.ArgumentParser()
     p.add_argument("-n", help="Process only the 1st N rows of the truth set TSV. Useful for testing.", type=int)
-    p.add_argument("--show-progress-bar", help="Show a progress bar in the terminal when processing variants.", action="store_true")
-    p.add_argument("--write-beds", help="Whether to outputu bed files for different overlap categories."
-                                       "This is useful for visually checking / troubleshooting results in IGV.", action="store_true")
+    p.add_argument("--show-progress-bar", help="Show a progress bar in the terminal when processing variants.",
+                   action="store_true")
+    p.add_argument("--write-beds",
+                   help="Whether to output bed files for different overlap categories. This is useful for visually "
+                        "checking / troubleshooting results in IGV.",
+                   action="store_true")
 
     p.add_argument("-c", "--catalog", action="append", choices=list(OTHER_STR_CATALOGS) + list(GENOMIC_REGIONS),
                    help="The name of the genomic region or catalog to check overlap with. This option can be specified "
