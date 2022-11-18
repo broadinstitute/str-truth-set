@@ -209,7 +209,10 @@ def main():
 
     # Cache all CDS coords to use later for converting "UTR" records into "5' UTR" and "3' UTR"
     transcript_id_to_cds_coords = {}
-    for record in tqdm.tqdm(gtf_records, "GTF records"):
+    gtf_records_iterator = gtf_records
+    if args.show_progress_bar:
+        gtf_records_iterator = tqdm.tqdm(gtf_records, "GTF records")
+    for record in gtf_records_iterator:
         if record["feature_type"] == "CDS" and record["transcript_id"] not in transcript_id_to_cds_coords:
             transcript_id_to_cds_coords[record["transcript_id"]] = (
                 record["chrom"],
