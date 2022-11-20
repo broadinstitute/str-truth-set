@@ -153,7 +153,7 @@ min_str_repeats=3
 print_input_stats $input_vcf "STEP #2: Filter variants to the subset that are actually STR expansion or contractions"
 set -x
 
-python3 -m str_analysis.filter_vcf_to_STR_variants \
+python3 -u -m str_analysis.filter_vcf_to_STR_variants \
   -R "${hg38_fasta_path}" \
   --write-bed-file \
   --min-fraction-of-variant-covered-by-repeat "${min_fraction_covered_by_repeat}" \
@@ -162,8 +162,11 @@ python3 -m str_analysis.filter_vcf_to_STR_variants \
   --output-prefix "${output_prefix}" \
   "${input_vcf}"
 
+#   -n 10000 \
+
+
 # generate overlap statistics before liftover
-python3 scripts/compute_overlap_with_other_catalogs.py ${output_prefix}.variants.tsv.gz  ${output_prefix}.variants.with_overlap_columns.tsv -c IlluminaSTRCatalog -c GangSTRCatalog -c KnownDiseaseAssociatedSTRs
+python3 -u scripts/compute_overlap_with_other_catalogs.py ${output_prefix}.variants.tsv.gz  ${output_prefix}.variants.with_overlap_columns.tsv.gz -c IlluminaSTRCatalog -c GangSTRCatalog17 -c KnownDiseaseAssociatedSTRs
 
 set +x
 print_output_stats $input_vcf $output_vcf
@@ -200,7 +203,7 @@ output_vcf=step4.STRs.found_in_chm13v2.vcf.gz
 print_input_stats ${input_vcf} "STEP #4: Filter out variants that are true homozygous alt or multi-allelic after liftover since this means neither allele matches the T2T reference (chm13v2.0)"
 set -x
 
-python3 scripts/filter_out_discordant_variants_after_liftover.py --reference-fasta ${t2t_fasta_path} ${input_vcf} ${output_vcf}
+python3 -u scripts/filter_out_discordant_variants_after_liftover.py --reference-fasta ${t2t_fasta_path} ${input_vcf} ${output_vcf}
 
 set +x
 print_output_stats ${input_vcf} ${output_vcf}
@@ -255,7 +258,7 @@ output_vcf=step7.STRs.passed_liftover_checks.vcf.gz
 print_input_stats $input_vcf "STEP #7: Check VCF positions before vs. after liftover to confirm concordance."
 set -x
 
-python3 scripts/check_vcf_concordance_before_vs_after_liftover.py \
+python3 -u scripts/check_vcf_concordance_before_vs_after_liftover.py \
   -o $output_vcf \
   step2.STRs.vcf.gz \
   step6.STRs.restored_dels_that_failed_liftover.vcf.gz
@@ -272,7 +275,7 @@ set -x
 
 # even though all the variants in $input_vcf are already STRs, run the str_analysis.filter_vcf_to_STR_variants script on
 # it just to generate the .variants.tsv and .alleles.tsv tables and print summary stats.
-python3 -m str_analysis.filter_vcf_to_STR_variants \
+python3 -u -m str_analysis.filter_vcf_to_STR_variants \
   -R "${hg38_fasta_path}" \
   --write-bed-file \
   --min-fraction-of-variant-covered-by-repeat "${min_fraction_covered_by_repeat}" \
@@ -281,22 +284,49 @@ python3 -m str_analysis.filter_vcf_to_STR_variants \
   --output-prefix "${output_prefix}" \
   $input_vcf
 
-python3 scripts/compute_overlap_with_other_catalogs.py ${output_prefix}.variants.tsv.gz  ${output_prefix}.variants.with_overlap_columns.tsv
-python3 scripts/compute_overlap_with_other_catalogs.py ${output_prefix}.alleles.tsv.gz  ${output_prefix}.alleles.with_overlap_columns.tsv
 
-bgzip -f ${output_prefix}.variants.with_overlap_columns.tsv
-bgzip -f ${output_prefix}.alleles.with_overlap_columns.tsv
+# compute overlap with various reference annotations
+suffix=with_overlap_columns
+python3 -u scripts/compute_overlap_with_other_catalogs.py ${output_prefix}.variants.tsv.gz  ${output_prefix}.variants.${suffix}.tsv.gz &
+python3 -u scripts/compute_overlap_with_other_catalogs.py ${output_prefix}.alleles.tsv.gz  ${output_prefix}.alleles.${suffix}.tsv.gz &
+wait
+mv ${output_prefix}.variants.${suffix}.tsv.gz ${output_prefix}.variants.tsv.gz
+mv ${output_prefix}.alleles.${suffix}.tsv.gz  ${output_prefix}.alleles.tsv.gz
 
+suffix=with_gencode_v42_columns
+python3 -u scripts/compute_overlap_with_gene_models.py ./ref/other/gencode.v42.annotation.gtf.gz  ${output_prefix}.variants.tsv.gz  ${output_prefix}.variants.${suffix}.tsv.gz &
+python3 -u scripts/compute_overlap_with_gene_models.py ./ref/other/gencode.v42.annotation.gtf.gz  ${output_prefix}.alleles.tsv.gz   ${output_prefix}.alleles.${suffix}.tsv.gz &
+wait
+mv ${output_prefix}.variants.${suffix}.tsv.gz ${output_prefix}.variants.tsv.gz
+mv ${output_prefix}.alleles.${suffix}.tsv.gz ${output_prefix}.alleles.tsv.gz
+
+suffix=with_MANE_columns
+python3 -u scripts/compute_overlap_with_gene_models.py ./ref/other/MANE.v1.0.ensembl_genomic.gtf.gz  ${output_prefix}.variants.tsv.gz ${output_prefix}.variants.${suffix}.tsv.gz &
+python3 -u scripts/compute_overlap_with_gene_models.py ./ref/other/MANE.v1.0.ensembl_genomic.gtf.gz  ${output_prefix}.alleles.tsv.gz  ${output_prefix}.alleles.${suffix}.tsv.gz &
+wait
+mv ${output_prefix}.variants.${suffix}.tsv.gz ${output_prefix}.variants.tsv.gz
+mv ${output_prefix}.alleles.${suffix}.tsv.gz ${output_prefix}.alleles.tsv.gz
+
+
+# move files to final output filenames
 final_output_prefix=STR_truthset.${version}
 
-cp ${output_prefix}.variants.with_overlap_columns.tsv.gz ${final_output_prefix}.variants.tsv.gz
-cp ${output_prefix}.alleles.with_overlap_columns.tsv.gz  ${final_output_prefix}.alleles.tsv.gz
+mv ${output_prefix}.variants.tsv.gz ${final_output_prefix}.variants.tsv.gz
+mv ${output_prefix}.alleles.tsv.gz  ${final_output_prefix}.alleles.tsv.gz
 
-cp ${output_prefix}.variants.bed.gz     ${final_output_prefix}.variants.bed.gz
-cp ${output_prefix}.variants.bed.gz.tbi ${final_output_prefix}.variants.bed.gz.tbi
+mv ${output_prefix}.variants.bed.gz     ${final_output_prefix}.variants.bed.gz
+mv ${output_prefix}.variants.bed.gz.tbi ${final_output_prefix}.variants.bed.gz.tbi
 
-cp ${output_prefix}.vcf.gz      ${final_output_prefix}.vcf.gz
-cp ${output_prefix}.vcf.gz.tbi  ${final_output_prefix}.vcf.gz.tbi
+mv ${output_prefix}.vcf.gz      ${final_output_prefix}.vcf.gz
+mv ${output_prefix}.vcf.gz.tbi  ${final_output_prefix}.vcf.gz.tbi
+
+python3 tool_comparison/scripts/convert_truth_set_to_variant_catalogs.py \
+	--expansion-hunter-loci-per-run 500 \
+	--gangstr-loci-per-run 10000 \
+	--output-dir ./tool_comparison/variant_catalogs \
+	--high-confidence-regions-bed ./ref/full.38.bed.gz \
+	--all-repeats-bed ./ref/other/repeat_specs_GRCh38_without_mismatches.sorted.trimmed.at_least_9bp.bed.gz \
+	STR_truthset.v1.variants.tsv.gz
 
 set +x
 
