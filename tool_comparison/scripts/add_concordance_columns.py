@@ -9,13 +9,13 @@ CONCORDANCE_PAIRS = [
     ("ExpansionHunter", "GangSTR"),
 ]
 
-warning_counter = 0
+WARNING_COUNTER = 0
 
 def compute_concordance_label_func_wrapper(column_suffix1="ExpansionHunter", column_suffix2="GangSTR"):
     """Creates function for adding concordance columns"""
 
     def compute_concordance_between_calls(row):
-        global warning_counter
+        global WARNING_COUNTER
 
         label1 = column_suffix1
         label2 = column_suffix2
@@ -30,9 +30,9 @@ def compute_concordance_label_func_wrapper(column_suffix1="ExpansionHunter", col
         for allele_number in 1, 2:
             if pd.isna(row[f"NumRepeats: Allele {allele_number}: {label1}"]) and pd.isna(row[f"NumRepeats: Allele {allele_number}: {label2}"]):
                 #raise ValueError("Both tools have NumRepeats == NaN")
-                warning_counter += 1
+                WARNING_COUNTER += 1
                 if not row[f"IsHomRef: {label1}"] and not row[f"IsHomRef: {label2}"]:
-                    print(f"WARNING {warning_counter}: Both {label1} and {label2} have NumRepeats: Allele {allele_number}: {label1} and Allele {allele_number}: {label2} == NaN")
+                    print(f"WARNING {WARNING_COUNTER:3d}: Both {label1} and {label2} have NumRepeats: Allele {allele_number}: {label1} and Allele {allele_number}: {label2} == NaN")
                 continue
 
             elif pd.isna(row[f"NumRepeats: Allele {allele_number}: {label1}"]):
@@ -67,9 +67,58 @@ def compute_concordance_label_func_wrapper(column_suffix1="ExpansionHunter", col
 
 
 # function for adding concordance column
-def compute_max_distance_func_wrapper(column_suffix1="ExpansionHunter", column_suffix2="GangSTR"):
+def compute_distance_func_wrapper(column_suffix1="ExpansionHunter", column_suffix2="GangSTR"):
+    def convert_num_repeats_to_string(num_repeats):
+        if num_repeats > 0:
+            sign = "+"
+        elif num_repeats < 0:
+            sign = "-"
+        else:
+            sign = ""
 
-    def compute_max_distance_between_calls(row):
+        if abs(num_repeats) < 5:
+            return f"{sign}{num_repeats}"
+        elif abs(num_repeats) <= 9:
+            return f"{sign}5 to {sign}9"
+        elif abs(num_repeats) <= 14:
+            return f"{sign}10 to {sign}14"
+        elif abs(num_repeats) <= 19:
+            return f"{sign}15 to {sign}19"
+        elif abs(num_repeats) <= 24:
+            return f"{sign}20 to {sign}24"
+        elif abs(num_repeats) <= 50:
+            return f"{sign}25 to {sign}49"
+        elif abs(num_repeats) <= 100:
+            return f"{sign}50 to {sign}99"
+        else:
+            return f"{sign}100 or more"
+
+    def convert_base_pairs_to_string(base_pairs):
+        if base_pairs > 0:
+            sign = "+"
+        elif base_pairs < 0:
+            sign = "-"
+        else:
+            sign = ""
+
+        if abs(base_pairs) <= 12:
+            return f"{sign}1 to {sign}12bp"
+        elif abs(base_pairs) <= 24:
+            return f"{sign}13 to {sign}24bp"
+        elif abs(base_pairs) <= 48:
+            return f"{sign}25 to {sign}48bp"
+        elif abs(base_pairs) <= 72:
+            return f"{sign}48 to {sign}72bp"
+        elif abs(base_pairs) <= 96:
+            return f"{sign}72 to {sign}96bp"
+        elif abs(base_pairs) <= 144:
+            return f"{sign}96 to {sign}144bp"
+        elif abs(base_pairs) <= 192:
+            return f"{sign}144 to {sign}192bp"
+        else:
+            return f"{sign}193bp or more"
+
+    def compute_distance_between_calls(row):
         diffs = []
         for allele_number in 1, 2:
             if pd.isna(row[f"NumRepeats: Allele {allele_number}: {column_suffix1}"]):
@@ -84,12 +133,15 @@ def compute_max_distance_func_wrapper(column_suffix1="ExpansionHunter", column_s
         if not diffs:
             return None
 
-        if abs(diffs[0]) > abs(diffs[1]):
-            return diffs[0]
-        else:
-            return diffs[1]
+        diff1 = diffs[0]
+        diff2 = diffs[1]
 
-    return compute_max_distance_between_calls
+        return (
+            [convert_num_repeats_to_string(d) for d in (diff1, diff2)] +
+            [convert_base_pairs_to_string(d * row.MotifSize) for d in (diff1, diff2)]
+        )
+
+    return compute_distance_between_calls
 
 
 def parse_args():
@@ -122,17 +174,18 @@ def main():
 
     print("Adding max diff columns...")
     for label1, label2 in CONCORDANCE_PAIRS:
-        max_diff_column_name = f"Max Diff: {label1} - {label2}"
-        df.loc[:, max_diff_column_name] = df.apply(compute_max_distance_func_wrapper(label1, label2), axis=1)
-    
-        for allele_number in 1, 2:
-            diff_column_name = f"Diff: Allele {allele_number}: {label1} - {label2}"
-            #df.loc[:, max_diff_column_name] = int(row[f"NumRepeats: Allele {allele_number}: {column_suffix1}"]) - int(row[f"NumRepeats: Allele {allele_number}: {column_suffix2}"])
-    
-        print(f"Computed {max_diff_column_name} column. {sum(df[concordance_column_name].isna())} of {len(df)} values are NA")
-    
-    if "Coverage: Truth" in set(df.columns):
-        df = df.drop("Coverage: Truth", axis=1)
+        if "truth" not in label1.lower() and "truth" not in label2.lower():
+            continue
+        #max_diff_column_name = f"Max Diff: {label1} - {label2}"
+        diff_repeats1_column_name = f"DiffRepeats: Allele 1: {label1} - {label2}"
+        diff_repeats2_column_name = f"DiffRepeats: Allele 2: {label1} - {label2}"
+        diff_size1_column_name = f"DiffSize: Allele 1: {label1} - {label2}"
+        diff_size2_column_name = f"DiffSize: Allele 2: {label1} - {label2}"
+        df[[diff_repeats1_column_name, diff_repeats2_column_name, diff_size1_column_name, diff_size2_column_name]] = \
+            df.apply(compute_distance_func_wrapper(label1, label2), axis=1, result_type="expand")
+
+        for column_name in diff_repeats1_column_name, diff_repeats2_column_name, diff_size1_column_name, diff_size2_column_name:
+            print(f"Computed {column_name} column. {sum(df[column_name].isna())} of {len(df)} values are NA")
 
     if not args.output_tsv:
         args.output_tsv = args.combined_tsv.replace(".tsv", ".with_concordance.tsv")

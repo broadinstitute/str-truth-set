@@ -12,6 +12,7 @@ TSV_HEADER = [
     "DiffFromRefRepeats: Allele 1", "DiffFromRefSize (bp): Allele 1",
     "DiffFromRefRepeats: Allele 2", "DiffFromRefSize (bp): Allele 2",
 ] + [
+    "TruthSetOrNegativeLocus",
     "HET_or_HOM",
     "IsHomRef",
     "IsFoundInReference",
