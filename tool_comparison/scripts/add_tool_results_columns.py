@@ -2,7 +2,7 @@ import argparse
 import os
 import pandas as pd
 from pprint import pprint
-
+import re
 
 COLUMNS_TO_KEEP = [
     "LocusId",
@@ -88,7 +88,14 @@ def main():
 
     tool_df.loc[:, "ReferenceRegion"] = tool_df["ReferenceRegion"].str.replace("^chr", "", regex=True)
     tool_df.loc[:, "LocusId"] = tool_df["LocusId"].str.replace("^chr", "", regex=True)
-    tool_df.loc[:, "Chrom"], tool_df.loc[:, "Start0Based"], tool_df.loc[:, "End1Based"] = tool_df.loc[:, "ReferenceRegion"].str.split("[:-]", expand=True)
+
+    def split_reference_region(row):
+        result = re.split("[:-]", row["ReferenceRegion"])
+        if len(result) != 3:
+            raise ValueError(f"Unexpected ReferenceRegion: " + str(row["ReferenceRegion"]))
+        return result
+
+    tool_df[["Chrom", "Start0Based", "End1Based"]] = tool_df.apply(split_reference_region, axis=1, result_type="expand")
     tool_df.loc[:, "Start0Based"] = tool_df["Start0Based"].astype(int)
     tool_df.loc[:, "End1Based"] = tool_df["End1Based"].astype(int)
 
@@ -99,8 +106,8 @@ def main():
     tool_df.loc[:, "DiffFromRefSize (bp): Allele 1"] = tool_df["DiffFromRefRepeats: Allele 1"] * tool_df["MotifSize"]
     tool_df.loc[:, "DiffFromRefSize (bp): Allele 2"] = tool_df["DiffFromRefRepeats: Allele 2"] * tool_df["MotifSize"]
 
-    tool_df.loc[:, "IsRef: Allele 1"] = tool_df["LocusSize (bp)"] == tool_df["RepeatSize (bp): Allele 1"]
-    tool_df.loc[:, "IsRef: Allele 2"] = tool_df["LocusSize (bp)"] == tool_df["RepeatSize (bp): Allele 2"]
+    tool_df.loc[:, "IsRef: Allele 1"] = tool_df["LocusSize (bp)"].astype(int) == tool_df["RepeatSize (bp): Allele 1"].astype(int)
+    tool_df.loc[:, "IsRef: Allele 2"] = tool_df["LocusSize (bp)"].astype(int) == tool_df["RepeatSize (bp): Allele 2"].astype(int)
     tool_df.loc[:, "IsHomRef"] = (
          tool_df["RepeatSize (bp): Allele 1"] == tool_df["RepeatSize (bp): Allele 2"]
     ) & (
@@ -108,6 +115,11 @@ def main():
     )
 
     if args.debug:
+        print("="*100)
+        for column in sorted(tool_df.columns):
+            is_nan_count = sum(pd.isna(tool_df[column]))
+            print(f"\t{is_nan_count:7,d} of {len(tool_df):,d} ({100*is_nan_count/len(tool_df):5.1f}%) NaN values in {column}")
+
         print("="*100)
         print("set(truth_set_df.columns) & set(tool_df.columns)")
         pprint(sorted(set(truth_set_df.columns) & set(tool_df.columns)))
