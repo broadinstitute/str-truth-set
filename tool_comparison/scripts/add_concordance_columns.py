@@ -2,7 +2,6 @@ import argparse
 import os
 import pandas as pd
 
-
 CONCORDANCE_PAIRS = [
     ("ExpansionHunter", "Truth"),
     ("GangSTR", "Truth"),
@@ -66,57 +65,9 @@ def compute_concordance_label_func_wrapper(column_suffix1="ExpansionHunter", col
     return compute_concordance_between_calls
 
 
+
 # function for adding concordance column
 def compute_distance_func_wrapper(column_suffix1="ExpansionHunter", column_suffix2="GangSTR"):
-    def convert_num_repeats_to_string(num_repeats):
-        if num_repeats > 0:
-            sign = "+"
-        elif num_repeats < 0:
-            sign = "-"
-        else:
-            sign = ""
-
-        if abs(num_repeats) < 5:
-            return f"{sign}{num_repeats}"
-        elif abs(num_repeats) <= 9:
-            return f"{sign}5 to {sign}9"
-        elif abs(num_repeats) <= 14:
-            return f"{sign}10 to {sign}14"
-        elif abs(num_repeats) <= 19:
-            return f"{sign}15 to {sign}19"
-        elif abs(num_repeats) <= 24:
-            return f"{sign}20 to {sign}24"
-        elif abs(num_repeats) <= 50:
-            return f"{sign}25 to {sign}49"
-        elif abs(num_repeats) <= 100:
-            return f"{sign}50 to {sign}99"
-        else:
-            return f"{sign}100 or more"
-
-    def convert_base_pairs_to_string(base_pairs):
-        if base_pairs > 0:
-            sign = "+"
-        elif base_pairs < 0:
-            sign = "-"
-        else:
-            sign = ""
-
-        if abs(base_pairs) <= 12:
-            return f"{sign}1 to {sign}12bp"
-        elif abs(base_pairs) <= 24:
-            return f"{sign}13 to {sign}24bp"
-        elif abs(base_pairs) <= 48:
-            return f"{sign}25 to {sign}48bp"
-        elif abs(base_pairs) <= 72:
-            return f"{sign}48 to {sign}72bp"
-        elif abs(base_pairs) <= 96:
-            return f"{sign}72 to {sign}96bp"
-        elif abs(base_pairs) <= 144:
-            return f"{sign}96 to {sign}144bp"
-        elif abs(base_pairs) <= 192:
-            return f"{sign}144 to {sign}192bp"
-        else:
-            return f"{sign}193bp or more"
 
     def compute_distance_between_calls(row):
         diffs = []
@@ -136,10 +87,7 @@ def compute_distance_func_wrapper(column_suffix1="ExpansionHunter", column_suffi
         diff1 = diffs[0]
         diff2 = diffs[1]
 
-        return (
-            [convert_num_repeats_to_string(d) for d in (diff1, diff2)] +
-            [convert_base_pairs_to_string(d * row.MotifSize) for d in (diff1, diff2)]
-        )
+        return diff1, diff2, diff1 * row.MotifSize, diff2 * row.MotifSize
 
     return compute_distance_between_calls
 
@@ -163,13 +111,18 @@ def main():
 
     df = pd.read_table(args.combined_tsv)
 
+    df.rename(columns={
+        "LocusSize (bp)": "ReferenceLocusSize (bp)",
+    }, inplace=True)
+
     print("Adding concordance columns...")
     for label1, label2 in CONCORDANCE_PAIRS:
         concordance_column_name = f"Concordance: {label1} vs {label2}"
     
-        df[[f"Allele 1: {concordance_column_name}", f"Allele 2: {concordance_column_name}", concordance_column_name]] = \
+        df[[f"Allele 1: {concordance_column_name}", f"Allele 2: {concordance_column_name}", f"Variant: {concordance_column_name}"]] = \
             df.apply(compute_concordance_label_func_wrapper(label1, label2), axis=1, result_type="expand")
-    
+
+        concordance_column_name = f"Variant: {concordance_column_name}"
         print(f"Computed {concordance_column_name} column. {sum(df[concordance_column_name].isna())} of {len(df)} values are NA")
 
     print("Adding max diff columns...")
@@ -190,6 +143,7 @@ def main():
     if not args.output_tsv:
         args.output_tsv = args.combined_tsv.replace(".tsv", ".with_concordance.tsv")
 
+    df = df.astype(str).replace(r"\.0$", "", regex=True)
     df.to_csv(args.output_tsv, index=False, header=True, sep="\t")
 
     print("Output columns:")
@@ -198,6 +152,52 @@ def main():
         print(f"\t{is_nan_count:7,d} of {len(df):,d} ({100*is_nan_count/len(df):5.1f}%) NaN values in {column}")
 
     print(f"Wrote {len(df):,d} rows to {args.output_tsv}")
+
+    write_alleles_table(df, args.output_tsv.replace(".tsv", ".alleles.tsv"))
+
+
+def write_alleles_table(df, output_tsv_path):
+    output_columns = []
+    for key in df.columns:
+        if "Allele 1" in key and "Allele 1: " not in key:
+            # assuming that all allele-specific columns include substring "Allele n: "
+            raise ValueError(f"Unexpected column name: {key}")
+        if "Allele 2" in key and "Allele 2: " not in key:
+            # assuming that all allele-specific columns include substring "Allele n: "
+            raise ValueError(f"Unexpected column name: {key}")
+
+        if "Allele 1: " in key:
+            output_columns.append(key.replace("Allele 1: ", "Allele: "))
+        elif "Allele 2: " in key:
+            pass
+        else:
+            output_columns.append(key)
+
+    output_rows = []
+    for row in df.to_dict("records"):
+        output_row1 = {}
+        output_row2 = {}
+        for key in df.columns:
+            if "Allele 1: " in key:
+                output_key = key.replace("Allele 1: ", "Allele: ")
+                output_row1[output_key] = row[key]
+            elif "Allele 2: " in key:
+                output_key = key.replace("Allele 2: ", "Allele: ")
+                output_row2[output_key] = row[key]
+            else:
+                output_key = key
+                output_row1[output_key] = row[key]
+                output_row2[output_key] = row[key]
+        output_rows.append(output_row1)
+        output_rows.append(output_row2)
+
+    df = None
+
+    alleles_df = pd.DataFrame(output_rows, columns=output_columns)
+    alleles_df = alleles_df.astype(str).replace(r"\.0$", "", regex=True).replace(r"^nan$", "", regex=True).replace(r"^None$", "", regex=True)
+    alleles_df.to_csv(output_tsv_path, index=False, header=True, sep="\t")
+
+    print(f"Wrote {len(alleles_df):,d} rows to {output_tsv_path}")
 
 
 if __name__ == "__main__":

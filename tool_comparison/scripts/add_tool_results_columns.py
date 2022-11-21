@@ -11,8 +11,11 @@ COLUMNS_TO_KEEP = [
     "MotifSize",
     "Genotype",
     "GenotypeConfidenceInterval",
+
     "IsHomRef",
-    
+    "IsRef: Allele 1",
+    "IsRef: Allele 2",
+
     "NumRepeats: Allele 1",
     "RepeatSize (bp): Allele 1",
     "CI start: Allele 1",
@@ -96,6 +99,8 @@ def main():
     tool_df.loc[:, "DiffFromRefSize (bp): Allele 1"] = tool_df["DiffFromRefRepeats: Allele 1"] * tool_df["MotifSize"]
     tool_df.loc[:, "DiffFromRefSize (bp): Allele 2"] = tool_df["DiffFromRefRepeats: Allele 2"] * tool_df["MotifSize"]
 
+    tool_df.loc[:, "IsRef: Allele 1"] = tool_df["LocusSize (bp)"] == tool_df["RepeatSize (bp): Allele 1"]
+    tool_df.loc[:, "IsRef: Allele 2"] = tool_df["LocusSize (bp)"] == tool_df["RepeatSize (bp): Allele 2"]
     tool_df.loc[:, "IsHomRef"] = (
          tool_df["RepeatSize (bp): Allele 1"] == tool_df["RepeatSize (bp): Allele 2"]
     ) & (

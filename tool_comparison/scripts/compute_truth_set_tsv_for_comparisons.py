@@ -5,7 +5,7 @@ import pandas as pd
 from str_analysis.utils.canonical_repeat_unit import compute_canonical_motif
 
 TSV_HEADER = [
-    "LocusId", "LocusSize (bp)", "Motif", "MotifSize",
+    "LocusId", "LocusSize (bp)", "NumRepeatsInReference", "Motif", "MotifSize",
     "Genotype", "GenotypeConfidenceInterval",
     "NumRepeats: Allele 1", "RepeatSize (bp): Allele 1", "CI start: Allele 1", "CI end: Allele 1", "CI size: Allele 1",
     "NumRepeats: Allele 2", "RepeatSize (bp): Allele 2", "CI start: Allele 2", "CI end: Allele 2", "CI size: Allele 2",
@@ -15,6 +15,8 @@ TSV_HEADER = [
     "TruthSetOrNegativeLocus",
     "HET_or_HOM",
     "IsHomRef",
+    "IsRef: Allele 1",
+    "IsRef: Allele 2",
     "IsFoundInReference",
     "SummaryString",
     "IsMultiallelic",
@@ -32,6 +34,7 @@ TSV_HEADER = [
 
 def parse_args():
     p = argparse.ArgumentParser()
+    p.add_argument("-n", help="Process only the 1st N rows of the truth set TSV. Useful for testing.", type=int)
     p.add_argument("--output-dir", default="./tool_comparison/results/", help="Output directory")
     p.add_argument("truth_set_variants_tsv", help="Path of the truth set variants tsv")
     p.add_argument("negative_loci_tsv", help="Path of negative loci tsv")
@@ -78,6 +81,9 @@ def add_extra_columns(df):
 
     df.loc[:, "Genotype"] = df["NumRepeats: Allele 1"].astype(str) + "/" + df["NumRepeats: Allele 2"].astype(str)
     df.loc[:, "GenotypeConfidenceInterval"] = df["NumRepeats: Allele 1"].astype(str) + "-" + df["NumRepeats: Allele 1"].astype(str) + "/" + df["NumRepeats: Allele 2"].astype(str) + "-" + df["NumRepeats: Allele 2"].astype(str)
+
+    df.loc[:, "IsRef: Allele 1"] = df["LocusSize (bp)"] == df["RepeatSize (bp): Allele 1"]
+    df.loc[:, "IsRef: Allele 2"] = df["LocusSize (bp)"] == df["RepeatSize (bp): Allele 2"]
     df.loc[:, "IsHomRef"] = (
         df["RepeatSize (bp): Allele 1"] == df["RepeatSize (bp): Allele 2"]
     ) & (
@@ -91,7 +97,7 @@ def add_extra_columns(df):
 def main():
     args = parse_args()
 
-    truth_set_variants_df = pd.read_table(args.truth_set_variants_tsv, low_memory=False)
+    truth_set_variants_df = pd.read_table(args.truth_set_variants_tsv, low_memory=False, nrows=args.n, dtype={"Chrom": str})
     truth_set_variants_df.loc[:, "Start0Based"] = truth_set_variants_df["Start1Based"] - 1
     truth_set_variants_df.loc[:, "TruthSetOrNegativeLocus"] = "TruthSet"
     truth_set_variants_df.loc[:, "LocusId"] = truth_set_variants_df["LocusId"].str.replace("^chr", "", regex=True)
@@ -99,7 +105,7 @@ def main():
     output_path = os.path.basename(args.truth_set_variants_tsv).replace(".tsv", ".for_comparison.tsv")
     write_to_tsv(truth_set_variants_df, os.path.join(args.output_dir, output_path))
 
-    negative_loci_df = pd.read_table(args.negative_loci_tsv, low_memory=False)
+    negative_loci_df = pd.read_table(args.negative_loci_tsv, low_memory=False, nrows=args.n, dtype={"Chrom": str})
     negative_loci_df.loc[:, "TruthSetOrNegativeLocus"] = "NegativeLocus"
     negative_loci_df.loc[:, "MotifSize"] = negative_loci_df["Motif"].str.len()
     negative_loci_df.loc[:, "Start1Based"] = negative_loci_df["Start0Based"] + 1
