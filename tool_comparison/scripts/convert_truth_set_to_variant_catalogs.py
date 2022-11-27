@@ -47,7 +47,7 @@ def compute_row_key(motif):
     elif len(motif) == 3 or len(motif) == 4:
         canonical_motif = compute_canonical_motif(motif, include_reverse_complement=True)
         key = (len(canonical_motif), canonical_motif)
-    elif len(motif) > 50:
+    elif len(motif) > 30:
         key = (30, None)
     else:
         key = (len(motif), None)
