@@ -1,0 +1,67 @@
+<html>
+  <head>
+  </head>
+  <body>
+    <div id="igv-div"></div>
+    <script src="https://cdn.jsdelivr.net/npm/igv@2.13.6/dist/igv.min.js"></script>
+    <script type="text/javascript">
+      // docs: https://github.com/igvteam/igv.js/wiki/Browser-API-2.0
+      const igvDiv = document.getElementById("igv-div")
+      const options = {
+        genome: "hg38",
+        locus: "chr1:1,557,474-1,557,534",
+        tracks: [
+          {
+            "name": "CHM1_CHM13_2",
+            "url": "gs://str-truth-set/hg38/CHM1_CHM13_2.bam",
+            "indexURL": "gs://str-truth-set/hg38/CHM1_CHM13_2.bam.bai",
+            "viewAsPairs": true,
+            "format": "bam",
+          }, {
+            "name": "UCSC 36bp mappability",
+            "url": "gs://tgg-viewer/ref/GRCh38/mappability/GRCh38_no_alt_analysis_set_GCA_000001405.15-k36_m2.bw",
+          }, {
+            "name": "UCSC 50bp mappability",
+            "url": "gs://tgg-viewer/ref/GRCh38/mappability/GRCh38_no_alt_analysis_set_GCA_000001405.15-k50_m2.bw",
+          }, {
+            "name": "UCSC 75bp mappability",
+            "url": "gs://tgg-viewer/ref/GRCh38/mappability/GRCh38_no_alt_analysis_set_GCA_000001405.15-k75_m2.bw",
+          }, {
+            "name": "UCSC 100bp mappability",
+            "url": "gs://tgg-viewer/ref/GRCh38/mappability/GRCh38_no_alt_analysis_set_GCA_000001405.15-k100_m2.bw",
+          }, {
+            "name": "Truth Set VCF",
+            "url": "gs://str-truth-set/hg38/STR_truthset.v1.vcf.gz",
+            "indexURL": "gs://str-truth-set/hg38/STR_truthset.v1.vcf.gz.tbi",
+          }, {
+            "name": "Truth Set BED",
+            "url": "gs://str-truth-set/hg38/STR_truthset.v1.variants.bed.gz",
+            "indexURL": "gs://str-truth-set/hg38/STR_truthset.v1.variants.bed.gz.tbi",
+          }, {
+            "name": "Negative Loci BED",
+            "url": "gs://str-truth-set/hg38/negative_loci.bed.gz",
+            "indexURL": "gs://str-truth-set/hg38/negative_loci.bed.gz.tbi",
+          }, {
+            "name": "SynDip confidence regions",
+            "url": "gs://str-truth-set/hg38/ref/full.38.bed.gz",
+            "indexURL": "gs://str-truth-set/hg38/ref/full.38.bed.gz.tbi",
+          }, {
+            "name": "MANE v1",
+            "url": "gs://str-truth-set/hg38/ref/other/MANE.v1.0.ensembl_genomic.sorted.gtf.gz",
+            "indexURL": "gs://str-truth-set/hg38/ref/other/MANE.v1.0.ensembl_genomic.sorted.gtf.gz.tbi",
+            "format": "gtf",
+          }, {
+            "name": "Gencode v42",
+            "url": "gs://str-truth-set/hg38/ref/other/gencode.v42.annotation.sorted.gtf.gz",
+            "indexURL": "gs://str-truth-set/hg38/ref/other/gencode.v42.annotation.sorted.gtf.gz.tbi",
+            "format": "gtf",
+          }
+        ]
+      }
+      
+        igv.createBrowser(igvDiv, options).then((browser) => {
+            console.log("Created IGV browser");
+        })
+    </script>
+  </body>
+</html>
