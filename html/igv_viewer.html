@@ -1,8 +1,19 @@
 <html>
   <head>
+    <link rel="stylesheet" type="text/css" href="semantic/dist/semantic.min.css">
   </head>
   <body>
+    <div>
+      <span><a href="" id="prev-button">Prev</a></span>
+      <span style="float:right"><a href="" id="next-button">Next</a></span>
+    </div>
     <div id="igv-div"></div>
+
+    <script
+            src="https://code.jquery.com/jquery-3.1.1.min.js"
+            integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
+            crossorigin="anonymous"></script>
+    <script src="semantic/dist/semantic.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/igv@2.13.6/dist/igv.min.js"></script>
     <script type="text/javascript">
       // docs: https://github.com/igvteam/igv.js/wiki/Browser-API-2.0
@@ -16,7 +27,11 @@
             "url": "gs://str-truth-set/hg38/CHM1_CHM13_2.bam",
             "indexURL": "gs://str-truth-set/hg38/CHM1_CHM13_2.bam.bai",
             "viewAsPairs": true,
+	        "showSoftClips": true,
+            "showInsertionText": true,
+            "showDeletionText": true,
             "format": "bam",
+            "height": 400,
           }, {
             "name": "UCSC 36bp mappability",
             "url": "gs://tgg-viewer/ref/GRCh38/mappability/GRCh38_no_alt_analysis_set_GCA_000001405.15-k36_m2.bw",
@@ -33,18 +48,27 @@
             "name": "Truth Set VCF",
             "url": "gs://str-truth-set/hg38/STR_truthset.v1.vcf.gz",
             "indexURL": "gs://str-truth-set/hg38/STR_truthset.v1.vcf.gz.tbi",
+            "format": "vcf",
           }, {
             "name": "Truth Set BED",
             "url": "gs://str-truth-set/hg38/STR_truthset.v1.variants.bed.gz",
             "indexURL": "gs://str-truth-set/hg38/STR_truthset.v1.variants.bed.gz.tbi",
+            "format": "bed",
           }, {
             "name": "Negative Loci BED",
             "url": "gs://str-truth-set/hg38/negative_loci.bed.gz",
             "indexURL": "gs://str-truth-set/hg38/negative_loci.bed.gz.tbi",
+            "format": "bed",
           }, {
             "name": "SynDip confidence regions",
             "url": "gs://str-truth-set/hg38/ref/full.38.bed.gz",
             "indexURL": "gs://str-truth-set/hg38/ref/full.38.bed.gz.tbi",
+            "format": "bed",
+          }, {
+            "name": "UCSC SegDups",
+            "url": "gs://str-truth-set/hg38/ref/other/GRCh38GenomicSuperDup.without_decoys.sorted.bed.gz",
+            "indexURL": "gs://str-truth-set/hg38/ref/other/GRCh38GenomicSuperDup.without_decoys.sorted.bed.gz.tbi",
+            "format": "bed",
           }, {
             "name": "MANE v1",
             "url": "gs://str-truth-set/hg38/ref/other/MANE.v1.0.ensembl_genomic.sorted.gtf.gz",
@@ -58,10 +82,80 @@
           }
         ]
       }
+      let igvBrowser
       
-        igv.createBrowser(igvDiv, options).then((browser) => {
-            console.log("Created IGV browser");
-        })
+      igv.createBrowser(igvDiv, options).then((browser) => {
+        console.log("Created IGV browser");
+        igvBrowser = browser
+      })
+
+      async function* makeTextFileLineIterator(fileURL) {
+        const utf8Decoder = new TextDecoder('utf-8');
+        const response = await fetch(fileURL);
+        const reader = response.body.getReader();
+        let { value: chunk, done: readerDone } = await reader.read();
+        chunk = chunk ? utf8Decoder.decode(chunk) : '';
+
+        const re = /\n|\r|\r\n/gm;
+        let startIndex = 0;
+        let result;
+
+        while (true) {
+          let result = re.exec(chunk);
+          if (!result) {
+            if (readerDone) break;
+            let remainder = chunk.substr(startIndex);
+            ({ value: chunk, done: readerDone } = await reader.read());
+            chunk = remainder + (chunk ? utf8Decoder.decode(chunk) : '');
+            startIndex = re.lastIndex = 0;
+            continue;
+          }
+          yield chunk.substring(startIndex, result.index);
+          startIndex = re.lastIndex;
+        }
+
+        if (startIndex < chunk.length) {
+          // Last line didn't end in a newline char
+          yield chunk.substr(startIndex);
+        }
+      }
+
+      function processLine(line) {
+        const fields = line.split("\t")
+        padding = 75
+        //coordinates.push(fields[0] + ":" + fields[1] + "-" + fields[2])
+        coordinates.push(fields[0] + ":" + (parseInt(fields[1]) - padding) + "-" + (parseInt(fields[2]) + padding))
+      }
+
+      async function fetchCoordinates(urlOfFile) {
+        console.log("Downloading..")
+        for await (const line of makeTextFileLineIterator(urlOfFile)) {
+          processLine(line);
+        }
+        console.log("Done", coordinates[0])
+      }
+
+      const coordinates = []
+      let current_coordinate_idx = 0;
+
+      fetchCoordinates("https://storage.googleapis.com/str-truth-set/hg38/positive_loci_coordinates.tsv");
+
+      $("#prev-button").click((e)=>{
+        e.preventDefault()
+        if (igvBrowser && current_coordinate_idx > 0) {
+          current_coordinate_idx -= 1
+          console.log("Jumping to", coordinates[current_coordinate_idx])
+          igvBrowser.search(coordinates[current_coordinate_idx])
+        }
+      })
+      $("#next-button").click((e)=>{
+        e.preventDefault()
+        if (igvBrowser && current_coordinate_idx < coordinates.length - 1) {
+          current_coordinate_idx += 1
+          console.log("Jumping to", coordinates[current_coordinate_idx])
+          igvBrowser.search(coordinates[current_coordinate_idx])
+        }
+      })
     </script>
   </body>
 </html>
