@@ -32,6 +32,15 @@ RUN wget https://github.com/samtools/htslib/releases/download/${SAMTOOLS_VERSION
 	&& make install \
 	&& make clean
 
+RUN wget -q https://github.com/samtools/samtools/releases/download/${SAMTOOLS_VERSION}/samtools-${SAMTOOLS_VERSION}.tar.bz2 \
+	&& tar xjf samtools-${SAMTOOLS_VERSION}.tar.bz2 \
+	&& rm samtools-${SAMTOOLS_VERSION}.tar.bz2 \
+	&& cd samtools-${SAMTOOLS_VERSION} \
+	&& ./configure \
+	&& make \
+	&& make install \
+	&& make clean
+
 RUN python3 -m pip install --upgrade cmake pip
 
 RUN git clone https://github.com/bw2/ExpansionHunter.git \
@@ -43,8 +52,18 @@ RUN git clone https://github.com/bw2/ExpansionHunter.git \
     && make install \
     && make clean
 
+RUN cp /ExpansionHunter/build/install/bin/ExpansionHunter /bin/
+
+
+ENV REVIEWER_VERSION="v0.2.7"
+RUN wget -q https://github.com/Illumina/REViewer/releases/download/${REVIEWER_VERSION}/REViewer-${REVIEWER_VERSION}-linux_x86_64.gz \
+    && gunzip REViewer-${REVIEWER_VERSION}-linux_x86_64.gz \
+    && mv /REViewer-${REVIEWER_VERSION}-linux_x86_64 /usr/local/bin/REViewer \
+    && chmod 777 /usr/local/bin/REViewer
+
+
 RUN python3 -m pip install str_analysis
 
-RUN cp /ExpansionHunter/build/install/bin/ExpansionHunter /bin/
+
 
 ENTRYPOINT ["/bin/bash"]
