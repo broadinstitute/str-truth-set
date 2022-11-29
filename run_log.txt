@@ -73,79 +73,79 @@ VCF stats for the output vcf -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
 STEP #2: Filter variants to the subset that are actually STR expansion or contractions
          INPUT: step1.high_confidence_regions.vcf.gz        4085178 variants
 + python3 -u -m str_analysis.filter_vcf_to_STR_variants -R ./ref/hg38.fa --write-bed-file --min-fraction-of-variant-covered-by-repeat 1 --min-str-length 9 --min-str-repeats 3 --output-prefix step2.STRs step1.high_confidence_regions.vcf.gz
-WARNING: Multi-allelic STR INS RU2:AC:INS:8=>11 has alleles with different repeat_units: AT, ATATATATATATTTCACATAATGTGGAAT   Skipping...
-WARNING: Multi-allelic STR DEL RU8:AAAAAAAC:DEL:4=>3 has alleles with different repeat_units: AGGAGGAGAGAGG, AGG   Skipping...
-WARNING: Multi-allelic STR DEL RU3:TTC:DEL:7=>6 has alleles with different repeat_units: GTCTTTCATCTGGTCTGGATGAAAGACCAGAT, GTCTTTCATCTGGTCTGGATGAAAGACCGGAT   Skipping...
-WARNING: Multi-allelic STR INS:INS RU2:TG:INS,INS:19=>20,21 has alleles with different repeat_units: CCAC, CCACCCACCCACCATCCATCCAC   Skipping...
-WARNING: Multi-allelic STR DEL RU4:GGAG:DEL:8=>5 has alleles with different repeat_units: CGGCGGCGGCGGCGGGCAGGGCGGGGCCGG, CGG   Skipping...
-2022-11-26 23:09:52,145 INFO: --------------
-2022-11-26 23:09:52,145 INFO:    181,064 out of    181,064 (100.0%) STR allele counts: TOTAL
-2022-11-26 23:09:52,145 INFO:     90,780 out of    181,064 ( 50.1%) STR allele counts: DEL
-2022-11-26 23:09:52,145 INFO:     90,284 out of    181,064 ( 49.9%) STR allele counts: INS
-2022-11-26 23:09:52,146 INFO: --------------
-2022-11-26 23:09:52,146 INFO:     95,675 out of    181,064 ( 52.8%) STR allele delta: 1 repeats
-2022-11-26 23:09:52,146 INFO:     35,335 out of    181,064 ( 19.5%) STR allele delta: 2 repeats
-2022-11-26 23:09:52,146 INFO:     17,893 out of    181,064 (  9.9%) STR allele delta: 3 repeats
-2022-11-26 23:09:52,146 INFO:     10,536 out of    181,064 (  5.8%) STR allele delta: 4 repeats
-2022-11-26 23:09:52,146 INFO:      6,691 out of    181,064 (  3.7%) STR allele delta: 5 repeats
-2022-11-26 23:09:52,146 INFO:      5,535 out of    181,064 (  3.1%) STR allele delta: 9+ repeats
-2022-11-26 23:09:52,146 INFO:      4,348 out of    181,064 (  2.4%) STR allele delta: 6 repeats
-2022-11-26 23:09:52,147 INFO:      2,985 out of    181,064 (  1.6%) STR allele delta: 7 repeats
-2022-11-26 23:09:52,147 INFO:      2,066 out of    181,064 (  1.1%) STR allele delta: 8 repeats
-2022-11-26 23:09:52,147 INFO: --------------
-2022-11-26 23:09:52,147 INFO:    107,594 out of    181,064 ( 59.4%) STR allele motif size: 2 bp
-2022-11-26 23:09:52,147 INFO:     40,439 out of    181,064 ( 22.3%) STR allele motif size: 4 bp
-2022-11-26 23:09:52,147 INFO:     14,888 out of    181,064 (  8.2%) STR allele motif size: 3 bp
-2022-11-26 23:09:52,147 INFO:      9,685 out of    181,064 (  5.3%) STR allele motif size: 5 bp
-2022-11-26 23:09:52,147 INFO:      4,538 out of    181,064 (  2.5%) STR allele motif size: 9+ bp
-2022-11-26 23:09:52,147 INFO:      2,627 out of    181,064 (  1.5%) STR allele motif size: 6 bp
-2022-11-26 23:09:52,147 INFO:        735 out of    181,064 (  0.4%) STR allele motif size: 7 bp
-2022-11-26 23:09:52,147 INFO:        558 out of    181,064 (  0.3%) STR allele motif size: 8 bp
-2022-11-26 23:09:52,147 INFO: --------------
-2022-11-26 23:09:52,147 INFO:    181,064 out of    181,064 (100.0%) STR allele purity: perfect repeats
-2022-11-26 23:09:52,147 INFO: --------------
-2022-11-26 23:09:52,148 INFO:    180,316 out of    181,064 ( 99.6%) STR allele reference repeats: with right matching ref. repeat
-2022-11-26 23:09:52,148 INFO:        747 out of    181,064 (  0.4%) STR allele reference repeats: with no matching ref. repeat
-2022-11-26 23:09:52,148 INFO:          1 out of    181,064 (  0.0%) STR allele reference repeats: with both left and right matching ref. repeat
-2022-11-26 23:09:52,148 INFO: --------------
-2022-11-26 23:09:52,148 INFO:    175,498 out of    181,064 ( 96.9%) STR allele size: 0-25bp
-2022-11-26 23:09:52,148 INFO:      4,142 out of    181,064 (  2.3%) STR allele size: 25-50bp
-2022-11-26 23:09:52,148 INFO:        664 out of    181,064 (  0.4%) STR allele size: 50-75bp
-2022-11-26 23:09:52,148 INFO:        255 out of    181,064 (  0.1%) STR allele size: 75-100bp
-2022-11-26 23:09:52,148 INFO:        144 out of    181,064 (  0.1%) STR allele size: 100-125bp
-2022-11-26 23:09:52,148 INFO:         93 out of    181,064 (  0.1%) STR allele size: 125-150bp
-2022-11-26 23:09:52,148 INFO:         66 out of    181,064 (  0.0%) STR allele size: 150-175bp
-2022-11-26 23:09:52,148 INFO:         44 out of    181,064 (  0.0%) STR allele size: 175-200bp
-2022-11-26 23:09:52,148 INFO:         33 out of    181,064 (  0.0%) STR allele size: 200-225bp
-2022-11-26 23:09:52,148 INFO:         30 out of    181,064 (  0.0%) STR allele size: 225-250bp
-2022-11-26 23:09:52,149 INFO:         19 out of    181,064 (  0.0%) STR allele size: 250-275bp
-2022-11-26 23:09:52,149 INFO:         14 out of    181,064 (  0.0%) STR allele size: 275-300bp
-2022-11-26 23:09:52,149 INFO:         14 out of    181,064 (  0.0%) STR allele size: 500+bp
-2022-11-26 23:09:52,149 INFO:         11 out of    181,064 (  0.0%) STR allele size: 350-375bp
-2022-11-26 23:09:52,149 INFO:          9 out of    181,064 (  0.0%) STR allele size: 425-450bp
-2022-11-26 23:09:52,149 INFO:          7 out of    181,064 (  0.0%) STR allele size: 325-350bp
-2022-11-26 23:09:52,149 INFO:          7 out of    181,064 (  0.0%) STR allele size: 375-400bp
-2022-11-26 23:09:52,149 INFO:          5 out of    181,064 (  0.0%) STR allele size: 450-475bp
-2022-11-26 23:09:52,149 INFO:          3 out of    181,064 (  0.0%) STR allele size: 300-325bp
-2022-11-26 23:09:52,149 INFO:          3 out of    181,064 (  0.0%) STR allele size: 400-425bp
-2022-11-26 23:09:52,149 INFO:          3 out of    181,064 (  0.0%) STR allele size: 475-500bp
-2022-11-26 23:09:52,149 INFO: --------------
-2022-11-26 23:09:52,149 INFO:     95,675 out of    181,064 ( 52.8%) STR allele source: found by NoRepeatFoundInVariantBases
-2022-11-26 23:09:52,150 INFO:     85,389 out of    181,064 ( 47.2%) STR allele source: found by BruteForce
-2022-11-26 23:09:52,150 INFO: --------------
-2022-11-26 23:09:52,150 INFO:    146,618 out of    146,618 (100.0%) STR variant counts: TOTAL
-2022-11-26 23:09:52,150 INFO:     30,751 out of    146,618 ( 21.0%) STR variant counts: multi-allelic
-2022-11-26 23:09:52,150 INFO: --------------
-2022-11-26 23:09:52,150 INFO:  3,570,342 out of  4,133,158 ( 86.4%) non-STR allele: SNV
-2022-11-26 23:09:52,150 INFO:    177,733 out of  4,133,158 (  4.3%) non-STR allele: allele repeat sequence is too short
-2022-11-26 23:09:52,150 INFO:     93,930 out of  4,133,158 (  2.3%) non-STR allele: 1bp INS
-2022-11-26 23:09:52,150 INFO:     87,908 out of  4,133,158 (  2.1%) non-STR allele: 1bp DEL
-2022-11-26 23:09:52,150 INFO:     21,090 out of  4,133,158 (  0.5%) non-STR allele: homopolymer
-2022-11-26 23:09:52,150 INFO:      1,091 out of  4,133,158 (  0.0%) non-STR allele: MNV
-2022-11-26 23:09:52,150 INFO: --------------
-2022-11-26 23:09:52,150 INFO:  3,934,870 out of  4,085,178 ( 96.3%) skipped variant: no repeat units found in variant
-2022-11-26 23:09:52,151 INFO:      3,685 out of  4,085,178 (  0.1%) skipped variant: mixed STR/non-STR multi-allelic variant
-2022-11-26 23:09:52,151 INFO:          5 out of  4,085,178 (  0.0%) skipped variant: multi-allelic with different RepeatUnits
+WARNING: Multi-allelic STR INS 2bp:AC:INS:8=>11:HET has alleles with different repeat_units: AT, ATATATATATATTTCACATAATGTGGAAT   Skipping...
+WARNING: Multi-allelic STR DEL 8bp:AAAAAAAC:DEL:4=>3:HOM has alleles with different repeat_units: AGGAGGAGAGAGG, AGG   Skipping...
+WARNING: Multi-allelic STR DEL 3bp:TTC:DEL:7=>6:HET has alleles with different repeat_units: GTCTTTCATCTGGTCTGGATGAAAGACCAGAT, GTCTTTCATCTGGTCTGGATGAAAGACCGGAT   Skipping...
+WARNING: Multi-allelic STR INS:INS 2bp:TG:INS,INS:19=>20,21:MULTI has alleles with different repeat_units: CCAC, CCACCCACCCACCATCCATCCAC   Skipping...
+WARNING: Multi-allelic STR DEL 4bp:GGAG:DEL:8=>5:HET has alleles with different repeat_units: CGGCGGCGGCGGCGGGCAGGGCGGGGCCGG, CGG   Skipping...
+2022-11-28 18:37:45,288 INFO: --------------
+2022-11-28 18:37:45,293 INFO:    181,064 out of    181,064 (100.0%) STR allele counts: TOTAL
+2022-11-28 18:37:45,293 INFO:     90,780 out of    181,064 ( 50.1%) STR allele counts: DEL
+2022-11-28 18:37:45,293 INFO:     90,284 out of    181,064 ( 49.9%) STR allele counts: INS
+2022-11-28 18:37:45,293 INFO: --------------
+2022-11-28 18:37:45,293 INFO:     95,675 out of    181,064 ( 52.8%) STR allele delta: 1 repeats
+2022-11-28 18:37:45,293 INFO:     35,335 out of    181,064 ( 19.5%) STR allele delta: 2 repeats
+2022-11-28 18:37:45,293 INFO:     17,893 out of    181,064 (  9.9%) STR allele delta: 3 repeats
+2022-11-28 18:37:45,293 INFO:     10,536 out of    181,064 (  5.8%) STR allele delta: 4 repeats
+2022-11-28 18:37:45,293 INFO:      6,691 out of    181,064 (  3.7%) STR allele delta: 5 repeats
+2022-11-28 18:37:45,293 INFO:      5,535 out of    181,064 (  3.1%) STR allele delta: 9+ repeats
+2022-11-28 18:37:45,293 INFO:      4,348 out of    181,064 (  2.4%) STR allele delta: 6 repeats
+2022-11-28 18:37:45,293 INFO:      2,985 out of    181,064 (  1.6%) STR allele delta: 7 repeats
+2022-11-28 18:37:45,293 INFO:      2,066 out of    181,064 (  1.1%) STR allele delta: 8 repeats
+2022-11-28 18:37:45,293 INFO: --------------
+2022-11-28 18:37:45,293 INFO:    107,594 out of    181,064 ( 59.4%) STR allele motif size: 2 bp
+2022-11-28 18:37:45,293 INFO:     40,439 out of    181,064 ( 22.3%) STR allele motif size: 4 bp
+2022-11-28 18:37:45,294 INFO:     14,888 out of    181,064 (  8.2%) STR allele motif size: 3 bp
+2022-11-28 18:37:45,294 INFO:      9,685 out of    181,064 (  5.3%) STR allele motif size: 5 bp
+2022-11-28 18:37:45,294 INFO:      4,538 out of    181,064 (  2.5%) STR allele motif size: 9+ bp
+2022-11-28 18:37:45,294 INFO:      2,627 out of    181,064 (  1.5%) STR allele motif size: 6 bp
+2022-11-28 18:37:45,294 INFO:        735 out of    181,064 (  0.4%) STR allele motif size: 7 bp
+2022-11-28 18:37:45,294 INFO:        558 out of    181,064 (  0.3%) STR allele motif size: 8 bp
+2022-11-28 18:37:45,294 INFO: --------------
+2022-11-28 18:37:45,294 INFO:    181,064 out of    181,064 (100.0%) STR allele purity: perfect repeats
+2022-11-28 18:37:45,294 INFO: --------------
+2022-11-28 18:37:45,294 INFO:    180,316 out of    181,064 ( 99.6%) STR allele reference repeats: with right matching ref. repeat
+2022-11-28 18:37:45,294 INFO:        747 out of    181,064 (  0.4%) STR allele reference repeats: with no matching ref. repeat
+2022-11-28 18:37:45,294 INFO:          1 out of    181,064 (  0.0%) STR allele reference repeats: with both left and right matching ref. repeat
+2022-11-28 18:37:45,294 INFO: --------------
+2022-11-28 18:37:45,294 INFO:    175,498 out of    181,064 ( 96.9%) STR allele size: 0-25bp
+2022-11-28 18:37:45,294 INFO:      4,142 out of    181,064 (  2.3%) STR allele size: 25-50bp
+2022-11-28 18:37:45,294 INFO:        664 out of    181,064 (  0.4%) STR allele size: 50-75bp
+2022-11-28 18:37:45,294 INFO:        255 out of    181,064 (  0.1%) STR allele size: 75-100bp
+2022-11-28 18:37:45,294 INFO:        144 out of    181,064 (  0.1%) STR allele size: 100-125bp
+2022-11-28 18:37:45,294 INFO:         93 out of    181,064 (  0.1%) STR allele size: 125-150bp
+2022-11-28 18:37:45,294 INFO:         66 out of    181,064 (  0.0%) STR allele size: 150-175bp
+2022-11-28 18:37:45,294 INFO:         44 out of    181,064 (  0.0%) STR allele size: 175-200bp
+2022-11-28 18:37:45,294 INFO:         33 out of    181,064 (  0.0%) STR allele size: 200-225bp
+2022-11-28 18:37:45,295 INFO:         30 out of    181,064 (  0.0%) STR allele size: 225-250bp
+2022-11-28 18:37:45,295 INFO:         19 out of    181,064 (  0.0%) STR allele size: 250-275bp
+2022-11-28 18:37:45,295 INFO:         14 out of    181,064 (  0.0%) STR allele size: 275-300bp
+2022-11-28 18:37:45,295 INFO:         14 out of    181,064 (  0.0%) STR allele size: 500+bp
+2022-11-28 18:37:45,295 INFO:         11 out of    181,064 (  0.0%) STR allele size: 350-375bp
+2022-11-28 18:37:45,295 INFO:          9 out of    181,064 (  0.0%) STR allele size: 425-450bp
+2022-11-28 18:37:45,295 INFO:          7 out of    181,064 (  0.0%) STR allele size: 325-350bp
+2022-11-28 18:37:45,295 INFO:          7 out of    181,064 (  0.0%) STR allele size: 375-400bp
+2022-11-28 18:37:45,295 INFO:          5 out of    181,064 (  0.0%) STR allele size: 450-475bp
+2022-11-28 18:37:45,295 INFO:          3 out of    181,064 (  0.0%) STR allele size: 300-325bp
+2022-11-28 18:37:45,295 INFO:          3 out of    181,064 (  0.0%) STR allele size: 400-425bp
+2022-11-28 18:37:45,295 INFO:          3 out of    181,064 (  0.0%) STR allele size: 475-500bp
+2022-11-28 18:37:45,295 INFO: --------------
+2022-11-28 18:37:45,295 INFO:     95,675 out of    181,064 ( 52.8%) STR allele source: found by NoRepeatFoundInVariantBases
+2022-11-28 18:37:45,295 INFO:     85,389 out of    181,064 ( 47.2%) STR allele source: found by BruteForce
+2022-11-28 18:37:45,295 INFO: --------------
+2022-11-28 18:37:45,295 INFO:    146,618 out of    146,618 (100.0%) STR variant counts: TOTAL
+2022-11-28 18:37:45,295 INFO:     30,751 out of    146,618 ( 21.0%) STR variant counts: multi-allelic
+2022-11-28 18:37:45,295 INFO: --------------
+2022-11-28 18:37:45,295 INFO:  3,570,342 out of  4,133,158 ( 86.4%) non-STR allele: SNV
+2022-11-28 18:37:45,295 INFO:    177,733 out of  4,133,158 (  4.3%) non-STR allele: allele repeat sequence is too short
+2022-11-28 18:37:45,295 INFO:     93,930 out of  4,133,158 (  2.3%) non-STR allele: 1bp INS
+2022-11-28 18:37:45,295 INFO:     87,908 out of  4,133,158 (  2.1%) non-STR allele: 1bp DEL
+2022-11-28 18:37:45,295 INFO:     21,090 out of  4,133,158 (  0.5%) non-STR allele: homopolymer
+2022-11-28 18:37:45,295 INFO:      1,091 out of  4,133,158 (  0.0%) non-STR allele: MNV
+2022-11-28 18:37:45,296 INFO: --------------
+2022-11-28 18:37:45,296 INFO:  3,934,870 out of  4,085,178 ( 96.3%) skipped variant: no repeat units found in variant
+2022-11-28 18:37:45,296 INFO:      3,685 out of  4,085,178 (  0.1%) skipped variant: mixed STR/non-STR multi-allelic variant
+2022-11-28 18:37:45,296 INFO:          5 out of  4,085,178 (  0.0%) skipped variant: multi-allelic with different RepeatUnits
 Finished writing to  step2.STRs.variants.tsv
 Finished writing to  step2.STRs.alleles.tsv
 Wrote 146618 to step2.STRs.variants.bed.gz
@@ -235,67 +235,67 @@ VCF stats for the output vcf -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
 STEP #3: Liftover variants from hg38 to the T2T reference (chm13v2.0)
          INPUT: step2.STRs.vcf.gz        146618 variants
 + gatk --java-options -Xmx7g LiftoverVcf -R ./ref/chm13v2.0.fa -C ./ref/hg38-chm13v2.chain -I step2.STRs.vcf.gz -O step3.STRs.lifted_to_chm13v2.vcf.gz --REJECT step3.lifted_to_chm13v2_rejected.vcf.gz --VALIDATION_STRINGENCY LENIENT --RECOVER_SWAPPED_REF_ALT --WARN_ON_MISSING_CONTIG --LIFTOVER_MIN_MATCH 0.00001 --WRITE_ORIGINAL_POSITION --WRITE_ORIGINAL_ALLELES --ALLOW_MISSING_FIELDS_IN_HEADER
-23:12:09.801 INFO  NativeLibraryLoader - Loading libgkl_compression.dylib from jar:file:/Users/weisburd/bin/gatk-package-4.2.0.0-local.jar!/com/intel/gkl/native/libgkl_compression.dylib
-[Sat Nov 26 23:12:10 EST 2022] LiftoverVcf --INPUT step2.STRs.vcf.gz --OUTPUT step3.STRs.lifted_to_chm13v2.vcf.gz --CHAIN ./ref/hg38-chm13v2.chain --REJECT step3.lifted_to_chm13v2_rejected.vcf.gz --WARN_ON_MISSING_CONTIG true --WRITE_ORIGINAL_POSITION true --WRITE_ORIGINAL_ALLELES true --LIFTOVER_MIN_MATCH 1.0E-5 --ALLOW_MISSING_FIELDS_IN_HEADER true --RECOVER_SWAPPED_REF_ALT true --VALIDATION_STRINGENCY LENIENT --REFERENCE_SEQUENCE ./ref/chm13v2.0.fa --LOG_FAILED_INTERVALS true --TAGS_TO_REVERSE AF --TAGS_TO_DROP MAX_AF --DISABLE_SORT false --VERBOSITY INFO --QUIET false --COMPRESSION_LEVEL 2 --MAX_RECORDS_IN_RAM 500000 --CREATE_INDEX false --CREATE_MD5_FILE false --GA4GH_CLIENT_SECRETS client_secrets.json --help false --version false --showHidden false --USE_JDK_DEFLATER false --USE_JDK_INFLATER false
-[Sat Nov 26 23:12:10 EST 2022] Executing as weisburd@wm103-772 on Mac OS X 10.16 x86_64; OpenJDK 64-Bit Server VM 1.8.0_322-b06; Deflater: Intel; Inflater: Intel; Provider GCS is available; Picard version: Version:4.2.0.0
-INFO	2022-11-26 23:12:10	LiftoverVcf	Loading up the target reference genome.
-INFO	2022-11-26 23:12:20	LiftoverVcf	Lifting variants over and sorting (not yet writing the output file.)
-INFO	2022-11-26 23:12:26	LiftoverVcf	Processed 146618 variants.
-INFO	2022-11-26 23:12:26	LiftoverVcf	61474 variants failed to liftover.
-INFO	2022-11-26 23:12:26	LiftoverVcf	623 variants lifted over but had mismatching reference alleles after lift over.
-INFO	2022-11-26 23:12:26	LiftoverVcf	42.3529% of variants were not successfully lifted over and written to the output.
-INFO	2022-11-26 23:12:26	LiftoverVcf	liftover success by source contig:
-INFO	2022-11-26 23:12:26	LiftoverVcf	chr1: 6487 / 11465 (56.5809%)
-INFO	2022-11-26 23:12:26	LiftoverVcf	chr10: 3955 / 6929 (57.0789%)
-INFO	2022-11-26 23:12:26	LiftoverVcf	chr11: 3791 / 6705 (56.5399%)
-INFO	2022-11-26 23:12:26	LiftoverVcf	chr12: 4013 / 7046 (56.9543%)
-INFO	2022-11-26 23:12:26	LiftoverVcf	chr13: 3008 / 5366 (56.0567%)
-INFO	2022-11-26 23:12:26	LiftoverVcf	chr14: 2673 / 4654 (57.4345%)
-INFO	2022-11-26 23:12:26	LiftoverVcf	chr15: 2313 / 4006 (57.7384%)
-INFO	2022-11-26 23:12:26	LiftoverVcf	chr16: 2449 / 4283 (57.1795%)
-INFO	2022-11-26 23:12:26	LiftoverVcf	chr17: 2428 / 4225 (57.4675%)
-INFO	2022-11-26 23:12:26	LiftoverVcf	chr18: 2313 / 4069 (56.8444%)
-INFO	2022-11-26 23:12:26	LiftoverVcf	chr19: 1919 / 3269 (58.7030%)
-INFO	2022-11-26 23:12:26	LiftoverVcf	chr2: 6875 / 12018 (57.2059%)
-INFO	2022-11-26 23:12:26	LiftoverVcf	chr20: 1971 / 3286 (59.9817%)
-INFO	2022-11-26 23:12:26	LiftoverVcf	chr21: 1165 / 1952 (59.6824%)
-INFO	2022-11-26 23:12:26	LiftoverVcf	chr22: 1117 / 1870 (59.7326%)
-INFO	2022-11-26 23:12:26	LiftoverVcf	chr3: 5765 / 9915 (58.1442%)
-INFO	2022-11-26 23:12:26	LiftoverVcf	chr4: 5561 / 9802 (56.7333%)
-INFO	2022-11-26 23:12:26	LiftoverVcf	chr5: 5286 / 8943 (59.1077%)
-INFO	2022-11-26 23:12:26	LiftoverVcf	chr6: 5047 / 8637 (58.4346%)
-INFO	2022-11-26 23:12:26	LiftoverVcf	chr7: 4537 / 7945 (57.1051%)
-INFO	2022-11-26 23:12:26	LiftoverVcf	chr8: 4273 / 7319 (58.3823%)
-INFO	2022-11-26 23:12:26	LiftoverVcf	chr9: 3338 / 5688 (58.6850%)
-INFO	2022-11-26 23:12:26	LiftoverVcf	chrX: 4237 / 7226 (58.6355%)
-INFO	2022-11-26 23:12:26	LiftoverVcf	lifted variants by target contig:
-INFO	2022-11-26 23:12:26	LiftoverVcf	chr1: 6487
-INFO	2022-11-26 23:12:26	LiftoverVcf	chr10: 3955
-INFO	2022-11-26 23:12:26	LiftoverVcf	chr11: 3791
-INFO	2022-11-26 23:12:26	LiftoverVcf	chr12: 4013
-INFO	2022-11-26 23:12:26	LiftoverVcf	chr13: 3008
-INFO	2022-11-26 23:12:26	LiftoverVcf	chr14: 2673
-INFO	2022-11-26 23:12:26	LiftoverVcf	chr15: 2313
-INFO	2022-11-26 23:12:26	LiftoverVcf	chr16: 2449
-INFO	2022-11-26 23:12:26	LiftoverVcf	chr17: 2428
-INFO	2022-11-26 23:12:26	LiftoverVcf	chr18: 2313
-INFO	2022-11-26 23:12:26	LiftoverVcf	chr19: 1919
-INFO	2022-11-26 23:12:26	LiftoverVcf	chr2: 6875
-INFO	2022-11-26 23:12:26	LiftoverVcf	chr20: 1971
-INFO	2022-11-26 23:12:26	LiftoverVcf	chr21: 1165
-INFO	2022-11-26 23:12:26	LiftoverVcf	chr22: 1117
-INFO	2022-11-26 23:12:26	LiftoverVcf	chr3: 5765
-INFO	2022-11-26 23:12:26	LiftoverVcf	chr4: 5561
-INFO	2022-11-26 23:12:26	LiftoverVcf	chr5: 5286
-INFO	2022-11-26 23:12:26	LiftoverVcf	chr6: 5047
-INFO	2022-11-26 23:12:26	LiftoverVcf	chr7: 4537
-INFO	2022-11-26 23:12:26	LiftoverVcf	chr8: 4273
-INFO	2022-11-26 23:12:26	LiftoverVcf	chr9: 3338
-INFO	2022-11-26 23:12:26	LiftoverVcf	chrX: 4237
-INFO	2022-11-26 23:12:26	LiftoverVcf	0 variants were lifted by swapping REF/ALT alleles.
-INFO	2022-11-26 23:12:26	LiftoverVcf	Writing out sorted records to final VCF.
-[Sat Nov 26 23:12:26 EST 2022] picard.vcf.LiftoverVcf done. Elapsed time: 0.28 minutes.
-Runtime.totalMemory()=4283957248
+18:40:21.568 INFO  NativeLibraryLoader - Loading libgkl_compression.dylib from jar:file:/Users/weisburd/bin/gatk-package-4.2.0.0-local.jar!/com/intel/gkl/native/libgkl_compression.dylib
+[Mon Nov 28 18:40:21 EST 2022] LiftoverVcf --INPUT step2.STRs.vcf.gz --OUTPUT step3.STRs.lifted_to_chm13v2.vcf.gz --CHAIN ./ref/hg38-chm13v2.chain --REJECT step3.lifted_to_chm13v2_rejected.vcf.gz --WARN_ON_MISSING_CONTIG true --WRITE_ORIGINAL_POSITION true --WRITE_ORIGINAL_ALLELES true --LIFTOVER_MIN_MATCH 1.0E-5 --ALLOW_MISSING_FIELDS_IN_HEADER true --RECOVER_SWAPPED_REF_ALT true --VALIDATION_STRINGENCY LENIENT --REFERENCE_SEQUENCE ./ref/chm13v2.0.fa --LOG_FAILED_INTERVALS true --TAGS_TO_REVERSE AF --TAGS_TO_DROP MAX_AF --DISABLE_SORT false --VERBOSITY INFO --QUIET false --COMPRESSION_LEVEL 2 --MAX_RECORDS_IN_RAM 500000 --CREATE_INDEX false --CREATE_MD5_FILE false --GA4GH_CLIENT_SECRETS client_secrets.json --help false --version false --showHidden false --USE_JDK_DEFLATER false --USE_JDK_INFLATER false
+[Mon Nov 28 18:40:22 EST 2022] Executing as weisburd@wm103-772 on Mac OS X 10.16 x86_64; OpenJDK 64-Bit Server VM 1.8.0_322-b06; Deflater: Intel; Inflater: Intel; Provider GCS is available; Picard version: Version:4.2.0.0
+INFO	2022-11-28 18:40:22	LiftoverVcf	Loading up the target reference genome.
+INFO	2022-11-28 18:40:37	LiftoverVcf	Lifting variants over and sorting (not yet writing the output file.)
+INFO	2022-11-28 18:40:42	LiftoverVcf	Processed 146618 variants.
+INFO	2022-11-28 18:40:42	LiftoverVcf	61474 variants failed to liftover.
+INFO	2022-11-28 18:40:42	LiftoverVcf	623 variants lifted over but had mismatching reference alleles after lift over.
+INFO	2022-11-28 18:40:42	LiftoverVcf	42.3529% of variants were not successfully lifted over and written to the output.
+INFO	2022-11-28 18:40:42	LiftoverVcf	liftover success by source contig:
+INFO	2022-11-28 18:40:42	LiftoverVcf	chr1: 6487 / 11465 (56.5809%)
+INFO	2022-11-28 18:40:42	LiftoverVcf	chr10: 3955 / 6929 (57.0789%)
+INFO	2022-11-28 18:40:42	LiftoverVcf	chr11: 3791 / 6705 (56.5399%)
+INFO	2022-11-28 18:40:42	LiftoverVcf	chr12: 4013 / 7046 (56.9543%)
+INFO	2022-11-28 18:40:42	LiftoverVcf	chr13: 3008 / 5366 (56.0567%)
+INFO	2022-11-28 18:40:42	LiftoverVcf	chr14: 2673 / 4654 (57.4345%)
+INFO	2022-11-28 18:40:42	LiftoverVcf	chr15: 2313 / 4006 (57.7384%)
+INFO	2022-11-28 18:40:42	LiftoverVcf	chr16: 2449 / 4283 (57.1795%)
+INFO	2022-11-28 18:40:42	LiftoverVcf	chr17: 2428 / 4225 (57.4675%)
+INFO	2022-11-28 18:40:42	LiftoverVcf	chr18: 2313 / 4069 (56.8444%)
+INFO	2022-11-28 18:40:42	LiftoverVcf	chr19: 1919 / 3269 (58.7030%)
+INFO	2022-11-28 18:40:42	LiftoverVcf	chr2: 6875 / 12018 (57.2059%)
+INFO	2022-11-28 18:40:42	LiftoverVcf	chr20: 1971 / 3286 (59.9817%)
+INFO	2022-11-28 18:40:42	LiftoverVcf	chr21: 1165 / 1952 (59.6824%)
+INFO	2022-11-28 18:40:42	LiftoverVcf	chr22: 1117 / 1870 (59.7326%)
+INFO	2022-11-28 18:40:42	LiftoverVcf	chr3: 5765 / 9915 (58.1442%)
+INFO	2022-11-28 18:40:42	LiftoverVcf	chr4: 5561 / 9802 (56.7333%)
+INFO	2022-11-28 18:40:42	LiftoverVcf	chr5: 5286 / 8943 (59.1077%)
+INFO	2022-11-28 18:40:42	LiftoverVcf	chr6: 5047 / 8637 (58.4346%)
+INFO	2022-11-28 18:40:42	LiftoverVcf	chr7: 4537 / 7945 (57.1051%)
+INFO	2022-11-28 18:40:42	LiftoverVcf	chr8: 4273 / 7319 (58.3823%)
+INFO	2022-11-28 18:40:42	LiftoverVcf	chr9: 3338 / 5688 (58.6850%)
+INFO	2022-11-28 18:40:42	LiftoverVcf	chrX: 4237 / 7226 (58.6355%)
+INFO	2022-11-28 18:40:42	LiftoverVcf	lifted variants by target contig:
+INFO	2022-11-28 18:40:42	LiftoverVcf	chr1: 6487
+INFO	2022-11-28 18:40:42	LiftoverVcf	chr10: 3955
+INFO	2022-11-28 18:40:42	LiftoverVcf	chr11: 3791
+INFO	2022-11-28 18:40:42	LiftoverVcf	chr12: 4013
+INFO	2022-11-28 18:40:42	LiftoverVcf	chr13: 3008
+INFO	2022-11-28 18:40:42	LiftoverVcf	chr14: 2673
+INFO	2022-11-28 18:40:42	LiftoverVcf	chr15: 2313
+INFO	2022-11-28 18:40:42	LiftoverVcf	chr16: 2449
+INFO	2022-11-28 18:40:42	LiftoverVcf	chr17: 2428
+INFO	2022-11-28 18:40:42	LiftoverVcf	chr18: 2313
+INFO	2022-11-28 18:40:42	LiftoverVcf	chr19: 1919
+INFO	2022-11-28 18:40:42	LiftoverVcf	chr2: 6875
+INFO	2022-11-28 18:40:42	LiftoverVcf	chr20: 1971
+INFO	2022-11-28 18:40:42	LiftoverVcf	chr21: 1165
+INFO	2022-11-28 18:40:42	LiftoverVcf	chr22: 1117
+INFO	2022-11-28 18:40:42	LiftoverVcf	chr3: 5765
+INFO	2022-11-28 18:40:42	LiftoverVcf	chr4: 5561
+INFO	2022-11-28 18:40:42	LiftoverVcf	chr5: 5286
+INFO	2022-11-28 18:40:42	LiftoverVcf	chr6: 5047
+INFO	2022-11-28 18:40:42	LiftoverVcf	chr7: 4537
+INFO	2022-11-28 18:40:42	LiftoverVcf	chr8: 4273
+INFO	2022-11-28 18:40:42	LiftoverVcf	chr9: 3338
+INFO	2022-11-28 18:40:42	LiftoverVcf	chrX: 4237
+INFO	2022-11-28 18:40:42	LiftoverVcf	0 variants were lifted by swapping REF/ALT alleles.
+INFO	2022-11-28 18:40:42	LiftoverVcf	Writing out sorted records to final VCF.
+[Mon Nov 28 18:40:43 EST 2022] picard.vcf.LiftoverVcf done. Elapsed time: 0.36 minutes.
+Runtime.totalMemory()=4743233536
 Tool returned:
 0
 Using GATK jar /Users/weisburd/bin/gatk-package-4.2.0.0-local.jar
@@ -430,67 +430,67 @@ VCF stats for the output vcf -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
 STEP #5: Liftover the truth variants that passed all checks back to hg38
          INPUT: step4.STRs.found_in_chm13v2.vcf.gz        84226 variants
 + gatk --java-options -Xmx7g LiftoverVcf -R ./ref/hg38.fa -C ./ref/chm13v2-hg38.chain -I step4.STRs.found_in_chm13v2.vcf.gz -O step5.STRs.lifted_back_to_38.vcf.gz --REJECT step5.lifted_back_to_38_rejected.vcf.gz --VALIDATION_STRINGENCY LENIENT --RECOVER_SWAPPED_REF_ALT --WARN_ON_MISSING_CONTIG --LIFTOVER_MIN_MATCH 0.00001 --WRITE_ORIGINAL_POSITION --WRITE_ORIGINAL_ALLELES --ALLOW_MISSING_FIELDS_IN_HEADER
-23:12:35.633 INFO  NativeLibraryLoader - Loading libgkl_compression.dylib from jar:file:/Users/weisburd/bin/gatk-package-4.2.0.0-local.jar!/com/intel/gkl/native/libgkl_compression.dylib
-[Sat Nov 26 23:12:35 EST 2022] LiftoverVcf --INPUT step4.STRs.found_in_chm13v2.vcf.gz --OUTPUT step5.STRs.lifted_back_to_38.vcf.gz --CHAIN ./ref/chm13v2-hg38.chain --REJECT step5.lifted_back_to_38_rejected.vcf.gz --WARN_ON_MISSING_CONTIG true --WRITE_ORIGINAL_POSITION true --WRITE_ORIGINAL_ALLELES true --LIFTOVER_MIN_MATCH 1.0E-5 --ALLOW_MISSING_FIELDS_IN_HEADER true --RECOVER_SWAPPED_REF_ALT true --VALIDATION_STRINGENCY LENIENT --REFERENCE_SEQUENCE ./ref/hg38.fa --LOG_FAILED_INTERVALS true --TAGS_TO_REVERSE AF --TAGS_TO_DROP MAX_AF --DISABLE_SORT false --VERBOSITY INFO --QUIET false --COMPRESSION_LEVEL 2 --MAX_RECORDS_IN_RAM 500000 --CREATE_INDEX false --CREATE_MD5_FILE false --GA4GH_CLIENT_SECRETS client_secrets.json --help false --version false --showHidden false --USE_JDK_DEFLATER false --USE_JDK_INFLATER false
-[Sat Nov 26 23:12:35 EST 2022] Executing as weisburd@wm103-772 on Mac OS X 10.16 x86_64; OpenJDK 64-Bit Server VM 1.8.0_322-b06; Deflater: Intel; Inflater: Intel; Provider GCS is available; Picard version: Version:4.2.0.0
-INFO	2022-11-26 23:12:36	LiftoverVcf	Loading up the target reference genome.
-INFO	2022-11-26 23:12:44	LiftoverVcf	Lifting variants over and sorting (not yet writing the output file.)
-INFO	2022-11-26 23:12:46	LiftoverVcf	Processed 84226 variants.
-INFO	2022-11-26 23:12:46	LiftoverVcf	43 variants failed to liftover.
-INFO	2022-11-26 23:12:46	LiftoverVcf	0 variants lifted over but had mismatching reference alleles after lift over.
-INFO	2022-11-26 23:12:46	LiftoverVcf	0.0511% of variants were not successfully lifted over and written to the output.
-INFO	2022-11-26 23:12:46	LiftoverVcf	liftover success by source contig:
-INFO	2022-11-26 23:12:46	LiftoverVcf	chr1: 6453 / 6467 (99.7835%)
-INFO	2022-11-26 23:12:46	LiftoverVcf	chr10: 3943 / 3943 (100.0000%)
-INFO	2022-11-26 23:12:46	LiftoverVcf	chr11: 3773 / 3777 (99.8941%)
-INFO	2022-11-26 23:12:46	LiftoverVcf	chr12: 4005 / 4005 (100.0000%)
-INFO	2022-11-26 23:12:46	LiftoverVcf	chr13: 3001 / 3001 (100.0000%)
-INFO	2022-11-26 23:12:46	LiftoverVcf	chr14: 2669 / 2669 (100.0000%)
-INFO	2022-11-26 23:12:46	LiftoverVcf	chr15: 2308 / 2308 (100.0000%)
-INFO	2022-11-26 23:12:46	LiftoverVcf	chr16: 2426 / 2430 (99.8354%)
-INFO	2022-11-26 23:12:46	LiftoverVcf	chr17: 2426 / 2426 (100.0000%)
-INFO	2022-11-26 23:12:46	LiftoverVcf	chr18: 2311 / 2311 (100.0000%)
-INFO	2022-11-26 23:12:46	LiftoverVcf	chr19: 1916 / 1916 (100.0000%)
-INFO	2022-11-26 23:12:46	LiftoverVcf	chr2: 6862 / 6862 (100.0000%)
-INFO	2022-11-26 23:12:46	LiftoverVcf	chr20: 1965 / 1965 (100.0000%)
-INFO	2022-11-26 23:12:46	LiftoverVcf	chr21: 1162 / 1162 (100.0000%)
-INFO	2022-11-26 23:12:46	LiftoverVcf	chr22: 1111 / 1111 (100.0000%)
-INFO	2022-11-26 23:12:46	LiftoverVcf	chr3: 5744 / 5747 (99.9478%)
-INFO	2022-11-26 23:12:46	LiftoverVcf	chr4: 5548 / 5548 (100.0000%)
-INFO	2022-11-26 23:12:46	LiftoverVcf	chr5: 5269 / 5269 (100.0000%)
-INFO	2022-11-26 23:12:46	LiftoverVcf	chr6: 5029 / 5029 (100.0000%)
-INFO	2022-11-26 23:12:46	LiftoverVcf	chr7: 4523 / 4523 (100.0000%)
-INFO	2022-11-26 23:12:46	LiftoverVcf	chr8: 4189 / 4204 (99.6432%)
-INFO	2022-11-26 23:12:46	LiftoverVcf	chr9: 3332 / 3332 (100.0000%)
-INFO	2022-11-26 23:12:46	LiftoverVcf	chrX: 4218 / 4221 (99.9289%)
-INFO	2022-11-26 23:12:46	LiftoverVcf	lifted variants by target contig:
-INFO	2022-11-26 23:12:46	LiftoverVcf	chr1: 6453
-INFO	2022-11-26 23:12:46	LiftoverVcf	chr10: 3943
-INFO	2022-11-26 23:12:46	LiftoverVcf	chr11: 3773
-INFO	2022-11-26 23:12:46	LiftoverVcf	chr12: 4005
-INFO	2022-11-26 23:12:46	LiftoverVcf	chr13: 3001
-INFO	2022-11-26 23:12:46	LiftoverVcf	chr14: 2669
-INFO	2022-11-26 23:12:46	LiftoverVcf	chr15: 2308
-INFO	2022-11-26 23:12:46	LiftoverVcf	chr16: 2426
-INFO	2022-11-26 23:12:46	LiftoverVcf	chr17: 2426
-INFO	2022-11-26 23:12:46	LiftoverVcf	chr18: 2311
-INFO	2022-11-26 23:12:46	LiftoverVcf	chr19: 1916
-INFO	2022-11-26 23:12:46	LiftoverVcf	chr2: 6862
-INFO	2022-11-26 23:12:46	LiftoverVcf	chr20: 1965
-INFO	2022-11-26 23:12:46	LiftoverVcf	chr21: 1162
-INFO	2022-11-26 23:12:46	LiftoverVcf	chr22: 1111
-INFO	2022-11-26 23:12:46	LiftoverVcf	chr3: 5744
-INFO	2022-11-26 23:12:46	LiftoverVcf	chr4: 5548
-INFO	2022-11-26 23:12:46	LiftoverVcf	chr5: 5269
-INFO	2022-11-26 23:12:46	LiftoverVcf	chr6: 5029
-INFO	2022-11-26 23:12:46	LiftoverVcf	chr7: 4523
-INFO	2022-11-26 23:12:46	LiftoverVcf	chr8: 4189
-INFO	2022-11-26 23:12:46	LiftoverVcf	chr9: 3332
-INFO	2022-11-26 23:12:46	LiftoverVcf	chrX: 4218
-INFO	2022-11-26 23:12:46	LiftoverVcf	0 variants were lifted by swapping REF/ALT alleles.
-INFO	2022-11-26 23:12:46	LiftoverVcf	Writing out sorted records to final VCF.
-[Sat Nov 26 23:12:46 EST 2022] picard.vcf.LiftoverVcf done. Elapsed time: 0.19 minutes.
-Runtime.totalMemory()=4828692480
+18:40:58.451 INFO  NativeLibraryLoader - Loading libgkl_compression.dylib from jar:file:/Users/weisburd/bin/gatk-package-4.2.0.0-local.jar!/com/intel/gkl/native/libgkl_compression.dylib
+[Mon Nov 28 18:40:58 EST 2022] LiftoverVcf --INPUT step4.STRs.found_in_chm13v2.vcf.gz --OUTPUT step5.STRs.lifted_back_to_38.vcf.gz --CHAIN ./ref/chm13v2-hg38.chain --REJECT step5.lifted_back_to_38_rejected.vcf.gz --WARN_ON_MISSING_CONTIG true --WRITE_ORIGINAL_POSITION true --WRITE_ORIGINAL_ALLELES true --LIFTOVER_MIN_MATCH 1.0E-5 --ALLOW_MISSING_FIELDS_IN_HEADER true --RECOVER_SWAPPED_REF_ALT true --VALIDATION_STRINGENCY LENIENT --REFERENCE_SEQUENCE ./ref/hg38.fa --LOG_FAILED_INTERVALS true --TAGS_TO_REVERSE AF --TAGS_TO_DROP MAX_AF --DISABLE_SORT false --VERBOSITY INFO --QUIET false --COMPRESSION_LEVEL 2 --MAX_RECORDS_IN_RAM 500000 --CREATE_INDEX false --CREATE_MD5_FILE false --GA4GH_CLIENT_SECRETS client_secrets.json --help false --version false --showHidden false --USE_JDK_DEFLATER false --USE_JDK_INFLATER false
+[Mon Nov 28 18:40:58 EST 2022] Executing as weisburd@wm103-772 on Mac OS X 10.16 x86_64; OpenJDK 64-Bit Server VM 1.8.0_322-b06; Deflater: Intel; Inflater: Intel; Provider GCS is available; Picard version: Version:4.2.0.0
+INFO	2022-11-28 18:40:59	LiftoverVcf	Loading up the target reference genome.
+INFO	2022-11-28 18:41:09	LiftoverVcf	Lifting variants over and sorting (not yet writing the output file.)
+INFO	2022-11-28 18:41:12	LiftoverVcf	Processed 84226 variants.
+INFO	2022-11-28 18:41:12	LiftoverVcf	43 variants failed to liftover.
+INFO	2022-11-28 18:41:12	LiftoverVcf	0 variants lifted over but had mismatching reference alleles after lift over.
+INFO	2022-11-28 18:41:12	LiftoverVcf	0.0511% of variants were not successfully lifted over and written to the output.
+INFO	2022-11-28 18:41:12	LiftoverVcf	liftover success by source contig:
+INFO	2022-11-28 18:41:12	LiftoverVcf	chr1: 6453 / 6467 (99.7835%)
+INFO	2022-11-28 18:41:12	LiftoverVcf	chr10: 3943 / 3943 (100.0000%)
+INFO	2022-11-28 18:41:12	LiftoverVcf	chr11: 3773 / 3777 (99.8941%)
+INFO	2022-11-28 18:41:12	LiftoverVcf	chr12: 4005 / 4005 (100.0000%)
+INFO	2022-11-28 18:41:12	LiftoverVcf	chr13: 3001 / 3001 (100.0000%)
+INFO	2022-11-28 18:41:12	LiftoverVcf	chr14: 2669 / 2669 (100.0000%)
+INFO	2022-11-28 18:41:12	LiftoverVcf	chr15: 2308 / 2308 (100.0000%)
+INFO	2022-11-28 18:41:12	LiftoverVcf	chr16: 2426 / 2430 (99.8354%)
+INFO	2022-11-28 18:41:12	LiftoverVcf	chr17: 2426 / 2426 (100.0000%)
+INFO	2022-11-28 18:41:12	LiftoverVcf	chr18: 2311 / 2311 (100.0000%)
+INFO	2022-11-28 18:41:12	LiftoverVcf	chr19: 1916 / 1916 (100.0000%)
+INFO	2022-11-28 18:41:12	LiftoverVcf	chr2: 6862 / 6862 (100.0000%)
+INFO	2022-11-28 18:41:12	LiftoverVcf	chr20: 1965 / 1965 (100.0000%)
+INFO	2022-11-28 18:41:12	LiftoverVcf	chr21: 1162 / 1162 (100.0000%)
+INFO	2022-11-28 18:41:12	LiftoverVcf	chr22: 1111 / 1111 (100.0000%)
+INFO	2022-11-28 18:41:12	LiftoverVcf	chr3: 5744 / 5747 (99.9478%)
+INFO	2022-11-28 18:41:12	LiftoverVcf	chr4: 5548 / 5548 (100.0000%)
+INFO	2022-11-28 18:41:12	LiftoverVcf	chr5: 5269 / 5269 (100.0000%)
+INFO	2022-11-28 18:41:13	LiftoverVcf	chr6: 5029 / 5029 (100.0000%)
+INFO	2022-11-28 18:41:13	LiftoverVcf	chr7: 4523 / 4523 (100.0000%)
+INFO	2022-11-28 18:41:13	LiftoverVcf	chr8: 4189 / 4204 (99.6432%)
+INFO	2022-11-28 18:41:13	LiftoverVcf	chr9: 3332 / 3332 (100.0000%)
+INFO	2022-11-28 18:41:13	LiftoverVcf	chrX: 4218 / 4221 (99.9289%)
+INFO	2022-11-28 18:41:13	LiftoverVcf	lifted variants by target contig:
+INFO	2022-11-28 18:41:13	LiftoverVcf	chr1: 6453
+INFO	2022-11-28 18:41:13	LiftoverVcf	chr10: 3943
+INFO	2022-11-28 18:41:13	LiftoverVcf	chr11: 3773
+INFO	2022-11-28 18:41:13	LiftoverVcf	chr12: 4005
+INFO	2022-11-28 18:41:13	LiftoverVcf	chr13: 3001
+INFO	2022-11-28 18:41:13	LiftoverVcf	chr14: 2669
+INFO	2022-11-28 18:41:13	LiftoverVcf	chr15: 2308
+INFO	2022-11-28 18:41:13	LiftoverVcf	chr16: 2426
+INFO	2022-11-28 18:41:13	LiftoverVcf	chr17: 2426
+INFO	2022-11-28 18:41:13	LiftoverVcf	chr18: 2311
+INFO	2022-11-28 18:41:13	LiftoverVcf	chr19: 1916
+INFO	2022-11-28 18:41:13	LiftoverVcf	chr2: 6862
+INFO	2022-11-28 18:41:13	LiftoverVcf	chr20: 1965
+INFO	2022-11-28 18:41:13	LiftoverVcf	chr21: 1162
+INFO	2022-11-28 18:41:13	LiftoverVcf	chr22: 1111
+INFO	2022-11-28 18:41:13	LiftoverVcf	chr3: 5744
+INFO	2022-11-28 18:41:13	LiftoverVcf	chr4: 5548
+INFO	2022-11-28 18:41:13	LiftoverVcf	chr5: 5269
+INFO	2022-11-28 18:41:13	LiftoverVcf	chr6: 5029
+INFO	2022-11-28 18:41:13	LiftoverVcf	chr7: 4523
+INFO	2022-11-28 18:41:13	LiftoverVcf	chr8: 4189
+INFO	2022-11-28 18:41:13	LiftoverVcf	chr9: 3332
+INFO	2022-11-28 18:41:13	LiftoverVcf	chrX: 4218
+INFO	2022-11-28 18:41:13	LiftoverVcf	0 variants were lifted by swapping REF/ALT alleles.
+INFO	2022-11-28 18:41:13	LiftoverVcf	Writing out sorted records to final VCF.
+[Mon Nov 28 18:41:13 EST 2022] picard.vcf.LiftoverVcf done. Elapsed time: 0.26 minutes.
+Runtime.totalMemory()=5453119488
 Tool returned:
 0
 Using GATK jar /Users/weisburd/bin/gatk-package-4.2.0.0-local.jar
@@ -558,40 +558,40 @@ STEP #6: Restore deletions that were dropped in the 1st liftover (hg38 => chm13v
 + grep IndelStraddlesMultipleIntevals
 + awk '{ if ( length($4) > length($5) || index($5, ",") > 0) { print $0 } }'
 + gatk FixVcfHeader -I temp.vcf -O temp.fixed.vcf
-23:12:50.734 INFO  NativeLibraryLoader - Loading libgkl_compression.dylib from jar:file:/Users/weisburd/bin/gatk-package-4.2.0.0-local.jar!/com/intel/gkl/native/libgkl_compression.dylib
-[Sat Nov 26 23:12:50 EST 2022] FixVcfHeader --INPUT temp.vcf --OUTPUT temp.fixed.vcf --CHECK_FIRST_N_RECORDS -1 --ENFORCE_SAME_SAMPLES true --VERBOSITY INFO --QUIET false --VALIDATION_STRINGENCY STRICT --COMPRESSION_LEVEL 2 --MAX_RECORDS_IN_RAM 500000 --CREATE_INDEX false --CREATE_MD5_FILE false --GA4GH_CLIENT_SECRETS client_secrets.json --help false --version false --showHidden false --USE_JDK_DEFLATER false --USE_JDK_INFLATER false
-[Sat Nov 26 23:12:50 EST 2022] Executing as weisburd@wm103-772 on Mac OS X 10.16 x86_64; OpenJDK 64-Bit Server VM 1.8.0_322-b06; Deflater: Intel; Inflater: Intel; Provider GCS is available; Picard version: Version:4.2.0.0
-INFO	2022-11-26 23:12:50	FixVcfHeader	Reading in records to re-build the header.
-INFO	2022-11-26 23:12:50	FixVcfHeader	Will add an INFO line with id: NumRepeats1
-INFO	2022-11-26 23:12:50	FixVcfHeader	Will add an INFO line with id: NumRepeats2
-INFO	2022-11-26 23:12:50	FixVcfHeader	Will add an INFO line with id: Motif
-INFO	2022-11-26 23:12:51	FixVcfHeader	Will add an FILTER line with id: IndelStraddlesMultipleIntevals
-INFO	2022-11-26 23:12:51	FixVcfHeader	VCF header re-built.
-INFO	2022-11-26 23:12:51	FixVcfHeader	Writing the output VCF.
-[Sat Nov 26 23:12:53 EST 2022] picard.vcf.FixVcfHeader done. Elapsed time: 0.04 minutes.
-Runtime.totalMemory()=848297984
+18:41:19.105 INFO  NativeLibraryLoader - Loading libgkl_compression.dylib from jar:file:/Users/weisburd/bin/gatk-package-4.2.0.0-local.jar!/com/intel/gkl/native/libgkl_compression.dylib
+[Mon Nov 28 18:41:19 EST 2022] FixVcfHeader --INPUT temp.vcf --OUTPUT temp.fixed.vcf --CHECK_FIRST_N_RECORDS -1 --ENFORCE_SAME_SAMPLES true --VERBOSITY INFO --QUIET false --VALIDATION_STRINGENCY STRICT --COMPRESSION_LEVEL 2 --MAX_RECORDS_IN_RAM 500000 --CREATE_INDEX false --CREATE_MD5_FILE false --GA4GH_CLIENT_SECRETS client_secrets.json --help false --version false --showHidden false --USE_JDK_DEFLATER false --USE_JDK_INFLATER false
+[Mon Nov 28 18:41:19 EST 2022] Executing as weisburd@wm103-772 on Mac OS X 10.16 x86_64; OpenJDK 64-Bit Server VM 1.8.0_322-b06; Deflater: Intel; Inflater: Intel; Provider GCS is available; Picard version: Version:4.2.0.0
+INFO	2022-11-28 18:41:19	FixVcfHeader	Reading in records to re-build the header.
+INFO	2022-11-28 18:41:19	FixVcfHeader	Will add an INFO line with id: NumRepeats1
+INFO	2022-11-28 18:41:19	FixVcfHeader	Will add an INFO line with id: NumRepeats2
+INFO	2022-11-28 18:41:19	FixVcfHeader	Will add an INFO line with id: Motif
+INFO	2022-11-28 18:41:20	FixVcfHeader	Will add an FILTER line with id: IndelStraddlesMultipleIntevals
+INFO	2022-11-28 18:41:21	FixVcfHeader	VCF header re-built.
+INFO	2022-11-28 18:41:21	FixVcfHeader	Writing the output VCF.
+[Mon Nov 28 18:41:22 EST 2022] picard.vcf.FixVcfHeader done. Elapsed time: 0.06 minutes.
+Runtime.totalMemory()=535298048
 Tool returned:
 0
 Using GATK jar /Users/weisburd/bin/gatk-package-4.2.0.0-local.jar
 Running:
     java -Dsamjdk.use_async_io_read_samtools=false -Dsamjdk.use_async_io_write_samtools=true -Dsamjdk.use_async_io_write_tribble=false -Dsamjdk.compression_level=2 -jar /Users/weisburd/bin/gatk-package-4.2.0.0-local.jar FixVcfHeader -I temp.vcf -O temp.fixed.vcf
 + gatk SortVcf -I temp.fixed.vcf -O step6.STRs.restored_dels_that_failed_liftover.vcf.gz
-23:12:55.059 INFO  NativeLibraryLoader - Loading libgkl_compression.dylib from jar:file:/Users/weisburd/bin/gatk-package-4.2.0.0-local.jar!/com/intel/gkl/native/libgkl_compression.dylib
-[Sat Nov 26 23:12:55 EST 2022] SortVcf --INPUT temp.fixed.vcf --OUTPUT step6.STRs.restored_dels_that_failed_liftover.vcf.gz --VERBOSITY INFO --QUIET false --VALIDATION_STRINGENCY STRICT --COMPRESSION_LEVEL 2 --MAX_RECORDS_IN_RAM 500000 --CREATE_INDEX true --CREATE_MD5_FILE false --GA4GH_CLIENT_SECRETS client_secrets.json --help false --version false --showHidden false --USE_JDK_DEFLATER false --USE_JDK_INFLATER false
-[Sat Nov 26 23:12:55 EST 2022] Executing as weisburd@wm103-772 on Mac OS X 10.16 x86_64; OpenJDK 64-Bit Server VM 1.8.0_322-b06; Deflater: Intel; Inflater: Intel; Provider GCS is available; Picard version: Version:4.2.0.0
-INFO	2022-11-26 23:12:55	SortVcf	Reading entries from input file 1
-INFO	2022-11-26 23:12:55	SortVcf	read        25,000 records.  Elapsed time: 00:00:00s.  Time for last 25,000:    0s.  Last read position: chr15:63,134,812
-INFO	2022-11-26 23:12:55	SortVcf	read        50,000 records.  Elapsed time: 00:00:00s.  Time for last 25,000:    0s.  Last read position: chr3:130,479,419
-INFO	2022-11-26 23:12:55	SortVcf	read        75,000 records.  Elapsed time: 00:00:00s.  Time for last 25,000:    0s.  Last read position: chr8:90,968,657
-INFO	2022-11-26 23:12:55	SortVcf	read       100,000 records.  Elapsed time: 00:00:00s.  Time for last 25,000:    0s.  Last read position: chr4:89,307,269
-INFO	2022-11-26 23:12:56	SortVcf	read       125,000 records.  Elapsed time: 00:00:00s.  Time for last 25,000:    0s.  Last read position: chr12:64,684,013
-INFO	2022-11-26 23:12:56	SortVcf	wrote        25,000 records.  Elapsed time: 00:00:00s.  Time for last 25,000:    0s.  Last read position: chr12:4,105,959
-INFO	2022-11-26 23:12:56	SortVcf	wrote        50,000 records.  Elapsed time: 00:00:00s.  Time for last 25,000:    0s.  Last read position: chr17:3,519,904
-INFO	2022-11-26 23:12:56	SortVcf	wrote        75,000 records.  Elapsed time: 00:00:00s.  Time for last 25,000:    0s.  Last read position: chr20:38,855,982
-INFO	2022-11-26 23:12:56	SortVcf	wrote       100,000 records.  Elapsed time: 00:00:00s.  Time for last 25,000:    0s.  Last read position: chr5:6,278,480
-INFO	2022-11-26 23:12:56	SortVcf	wrote       125,000 records.  Elapsed time: 00:00:00s.  Time for last 25,000:    0s.  Last read position: chr8:3,602,716
-[Sat Nov 26 23:12:56 EST 2022] picard.vcf.SortVcf done. Elapsed time: 0.03 minutes.
-Runtime.totalMemory()=826277888
+18:41:25.378 INFO  NativeLibraryLoader - Loading libgkl_compression.dylib from jar:file:/Users/weisburd/bin/gatk-package-4.2.0.0-local.jar!/com/intel/gkl/native/libgkl_compression.dylib
+[Mon Nov 28 18:41:25 EST 2022] SortVcf --INPUT temp.fixed.vcf --OUTPUT step6.STRs.restored_dels_that_failed_liftover.vcf.gz --VERBOSITY INFO --QUIET false --VALIDATION_STRINGENCY STRICT --COMPRESSION_LEVEL 2 --MAX_RECORDS_IN_RAM 500000 --CREATE_INDEX true --CREATE_MD5_FILE false --GA4GH_CLIENT_SECRETS client_secrets.json --help false --version false --showHidden false --USE_JDK_DEFLATER false --USE_JDK_INFLATER false
+[Mon Nov 28 18:41:25 EST 2022] Executing as weisburd@wm103-772 on Mac OS X 10.16 x86_64; OpenJDK 64-Bit Server VM 1.8.0_322-b06; Deflater: Intel; Inflater: Intel; Provider GCS is available; Picard version: Version:4.2.0.0
+INFO	2022-11-28 18:41:25	SortVcf	Reading entries from input file 1
+INFO	2022-11-28 18:41:25	SortVcf	read        25,000 records.  Elapsed time: 00:00:00s.  Time for last 25,000:    0s.  Last read position: chr15:63,134,812
+INFO	2022-11-28 18:41:25	SortVcf	read        50,000 records.  Elapsed time: 00:00:00s.  Time for last 25,000:    0s.  Last read position: chr3:130,479,419
+INFO	2022-11-28 18:41:26	SortVcf	read        75,000 records.  Elapsed time: 00:00:00s.  Time for last 25,000:    0s.  Last read position: chr8:90,968,657
+INFO	2022-11-28 18:41:26	SortVcf	read       100,000 records.  Elapsed time: 00:00:00s.  Time for last 25,000:    0s.  Last read position: chr4:89,307,269
+INFO	2022-11-28 18:41:26	SortVcf	read       125,000 records.  Elapsed time: 00:00:01s.  Time for last 25,000:    0s.  Last read position: chr12:64,684,013
+INFO	2022-11-28 18:41:27	SortVcf	wrote        25,000 records.  Elapsed time: 00:00:00s.  Time for last 25,000:    0s.  Last read position: chr12:4,105,959
+INFO	2022-11-28 18:41:27	SortVcf	wrote        50,000 records.  Elapsed time: 00:00:00s.  Time for last 25,000:    0s.  Last read position: chr17:3,519,904
+INFO	2022-11-28 18:41:27	SortVcf	wrote        75,000 records.  Elapsed time: 00:00:00s.  Time for last 25,000:    0s.  Last read position: chr20:38,855,982
+INFO	2022-11-28 18:41:27	SortVcf	wrote       100,000 records.  Elapsed time: 00:00:00s.  Time for last 25,000:    0s.  Last read position: chr5:6,278,480
+INFO	2022-11-28 18:41:27	SortVcf	wrote       125,000 records.  Elapsed time: 00:00:00s.  Time for last 25,000:    0s.  Last read position: chr8:3,602,716
+[Mon Nov 28 18:41:27 EST 2022] picard.vcf.SortVcf done. Elapsed time: 0.04 minutes.
+Runtime.totalMemory()=819462144
 Tool returned:
 0
 Using GATK jar /Users/weisburd/bin/gatk-package-4.2.0.0-local.jar
@@ -693,63 +693,63 @@ VCF stats for the output vcf -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
 step8: Print stats and compute overlap with other catalogs.
          INPUT: step7.STRs.passed_liftover_checks.vcf.gz        144773 variants
 + python3 -u -m str_analysis.filter_vcf_to_STR_variants -R ./ref/hg38.fa --write-bed-file --min-fraction-of-variant-covered-by-repeat 1 --min-str-length 9 --min-str-repeats 3 --output-prefix step7.filtered_STRs step7.STRs.passed_liftover_checks.vcf.gz
-2022-11-26 23:13:26,385 INFO: --------------
-2022-11-26 23:13:26,386 INFO:    175,372 out of    175,372 (100.0%) STR allele counts: TOTAL
-2022-11-26 23:13:26,386 INFO:     88,331 out of    175,372 ( 50.4%) STR allele counts: DEL
-2022-11-26 23:13:26,386 INFO:     87,041 out of    175,372 ( 49.6%) STR allele counts: INS
-2022-11-26 23:13:26,386 INFO: --------------
-2022-11-26 23:13:26,386 INFO:     93,094 out of    175,372 ( 53.1%) STR allele delta: 1 repeats
-2022-11-26 23:13:26,386 INFO:     34,195 out of    175,372 ( 19.5%) STR allele delta: 2 repeats
-2022-11-26 23:13:26,386 INFO:     17,282 out of    175,372 (  9.9%) STR allele delta: 3 repeats
-2022-11-26 23:13:26,386 INFO:     10,110 out of    175,372 (  5.8%) STR allele delta: 4 repeats
-2022-11-26 23:13:26,386 INFO:      6,441 out of    175,372 (  3.7%) STR allele delta: 5 repeats
-2022-11-26 23:13:26,386 INFO:      5,276 out of    175,372 (  3.0%) STR allele delta: 9+ repeats
-2022-11-26 23:13:26,386 INFO:      4,159 out of    175,372 (  2.4%) STR allele delta: 6 repeats
-2022-11-26 23:13:26,386 INFO:      2,840 out of    175,372 (  1.6%) STR allele delta: 7 repeats
-2022-11-26 23:13:26,386 INFO:      1,975 out of    175,372 (  1.1%) STR allele delta: 8 repeats
-2022-11-26 23:13:26,386 INFO: --------------
-2022-11-26 23:13:26,386 INFO:    104,153 out of    175,372 ( 59.4%) STR allele motif size: 2 bp
-2022-11-26 23:13:26,386 INFO:     39,130 out of    175,372 ( 22.3%) STR allele motif size: 4 bp
-2022-11-26 23:13:26,386 INFO:     14,638 out of    175,372 (  8.3%) STR allele motif size: 3 bp
-2022-11-26 23:13:26,386 INFO:      9,479 out of    175,372 (  5.4%) STR allele motif size: 5 bp
-2022-11-26 23:13:26,386 INFO:      4,155 out of    175,372 (  2.4%) STR allele motif size: 9+ bp
-2022-11-26 23:13:26,386 INFO:      2,561 out of    175,372 (  1.5%) STR allele motif size: 6 bp
-2022-11-26 23:13:26,386 INFO:        720 out of    175,372 (  0.4%) STR allele motif size: 7 bp
-2022-11-26 23:13:26,386 INFO:        536 out of    175,372 (  0.3%) STR allele motif size: 8 bp
-2022-11-26 23:13:26,386 INFO: --------------
-2022-11-26 23:13:26,386 INFO:    175,372 out of    175,372 (100.0%) STR allele purity: perfect repeats
-2022-11-26 23:13:26,386 INFO: --------------
-2022-11-26 23:13:26,387 INFO:    174,756 out of    175,372 ( 99.6%) STR allele reference repeats: with right matching ref. repeat
-2022-11-26 23:13:26,387 INFO:        615 out of    175,372 (  0.4%) STR allele reference repeats: with no matching ref. repeat
-2022-11-26 23:13:26,387 INFO:          1 out of    175,372 (  0.0%) STR allele reference repeats: with both left and right matching ref. repeat
-2022-11-26 23:13:26,387 INFO: --------------
-2022-11-26 23:13:26,387 INFO:    170,237 out of    175,372 ( 97.1%) STR allele size: 0-25bp
-2022-11-26 23:13:26,387 INFO:      3,897 out of    175,372 (  2.2%) STR allele size: 25-50bp
-2022-11-26 23:13:26,387 INFO:        597 out of    175,372 (  0.3%) STR allele size: 50-75bp
-2022-11-26 23:13:26,387 INFO:        226 out of    175,372 (  0.1%) STR allele size: 75-100bp
-2022-11-26 23:13:26,387 INFO:        124 out of    175,372 (  0.1%) STR allele size: 100-125bp
-2022-11-26 23:13:26,387 INFO:         77 out of    175,372 (  0.0%) STR allele size: 125-150bp
-2022-11-26 23:13:26,387 INFO:         48 out of    175,372 (  0.0%) STR allele size: 150-175bp
-2022-11-26 23:13:26,387 INFO:         34 out of    175,372 (  0.0%) STR allele size: 175-200bp
-2022-11-26 23:13:26,387 INFO:         26 out of    175,372 (  0.0%) STR allele size: 200-225bp
-2022-11-26 23:13:26,387 INFO:         25 out of    175,372 (  0.0%) STR allele size: 225-250bp
-2022-11-26 23:13:26,387 INFO:         16 out of    175,372 (  0.0%) STR allele size: 250-275bp
-2022-11-26 23:13:26,387 INFO:         12 out of    175,372 (  0.0%) STR allele size: 500+bp
-2022-11-26 23:13:26,387 INFO:         11 out of    175,372 (  0.0%) STR allele size: 275-300bp
-2022-11-26 23:13:26,387 INFO:          9 out of    175,372 (  0.0%) STR allele size: 425-450bp
-2022-11-26 23:13:26,387 INFO:          8 out of    175,372 (  0.0%) STR allele size: 350-375bp
-2022-11-26 23:13:26,387 INFO:          7 out of    175,372 (  0.0%) STR allele size: 375-400bp
-2022-11-26 23:13:26,387 INFO:          6 out of    175,372 (  0.0%) STR allele size: 325-350bp
-2022-11-26 23:13:26,387 INFO:          4 out of    175,372 (  0.0%) STR allele size: 450-475bp
-2022-11-26 23:13:26,387 INFO:          3 out of    175,372 (  0.0%) STR allele size: 300-325bp
-2022-11-26 23:13:26,387 INFO:          3 out of    175,372 (  0.0%) STR allele size: 475-500bp
-2022-11-26 23:13:26,387 INFO:          2 out of    175,372 (  0.0%) STR allele size: 400-425bp
-2022-11-26 23:13:26,387 INFO: --------------
-2022-11-26 23:13:26,387 INFO:     93,094 out of    175,372 ( 53.1%) STR allele source: found by NoRepeatFoundInVariantBases
-2022-11-26 23:13:26,387 INFO:     82,278 out of    175,372 ( 46.9%) STR allele source: found by BruteForce
-2022-11-26 23:13:26,388 INFO: --------------
-2022-11-26 23:13:26,388 INFO:    144,773 out of    144,773 (100.0%) STR variant counts: TOTAL
-2022-11-26 23:13:26,388 INFO:     30,599 out of    144,773 ( 21.1%) STR variant counts: multi-allelic
+2022-11-28 18:42:05,354 INFO: --------------
+2022-11-28 18:42:05,354 INFO:    175,372 out of    175,372 (100.0%) STR allele counts: TOTAL
+2022-11-28 18:42:05,354 INFO:     88,331 out of    175,372 ( 50.4%) STR allele counts: DEL
+2022-11-28 18:42:05,354 INFO:     87,041 out of    175,372 ( 49.6%) STR allele counts: INS
+2022-11-28 18:42:05,354 INFO: --------------
+2022-11-28 18:42:05,354 INFO:     93,094 out of    175,372 ( 53.1%) STR allele delta: 1 repeats
+2022-11-28 18:42:05,354 INFO:     34,195 out of    175,372 ( 19.5%) STR allele delta: 2 repeats
+2022-11-28 18:42:05,354 INFO:     17,282 out of    175,372 (  9.9%) STR allele delta: 3 repeats
+2022-11-28 18:42:05,355 INFO:     10,110 out of    175,372 (  5.8%) STR allele delta: 4 repeats
+2022-11-28 18:42:05,355 INFO:      6,441 out of    175,372 (  3.7%) STR allele delta: 5 repeats
+2022-11-28 18:42:05,355 INFO:      5,276 out of    175,372 (  3.0%) STR allele delta: 9+ repeats
+2022-11-28 18:42:05,355 INFO:      4,159 out of    175,372 (  2.4%) STR allele delta: 6 repeats
+2022-11-28 18:42:05,355 INFO:      2,840 out of    175,372 (  1.6%) STR allele delta: 7 repeats
+2022-11-28 18:42:05,355 INFO:      1,975 out of    175,372 (  1.1%) STR allele delta: 8 repeats
+2022-11-28 18:42:05,355 INFO: --------------
+2022-11-28 18:42:05,355 INFO:    104,153 out of    175,372 ( 59.4%) STR allele motif size: 2 bp
+2022-11-28 18:42:05,355 INFO:     39,130 out of    175,372 ( 22.3%) STR allele motif size: 4 bp
+2022-11-28 18:42:05,355 INFO:     14,638 out of    175,372 (  8.3%) STR allele motif size: 3 bp
+2022-11-28 18:42:05,355 INFO:      9,479 out of    175,372 (  5.4%) STR allele motif size: 5 bp
+2022-11-28 18:42:05,355 INFO:      4,155 out of    175,372 (  2.4%) STR allele motif size: 9+ bp
+2022-11-28 18:42:05,355 INFO:      2,561 out of    175,372 (  1.5%) STR allele motif size: 6 bp
+2022-11-28 18:42:05,355 INFO:        720 out of    175,372 (  0.4%) STR allele motif size: 7 bp
+2022-11-28 18:42:05,356 INFO:        536 out of    175,372 (  0.3%) STR allele motif size: 8 bp
+2022-11-28 18:42:05,356 INFO: --------------
+2022-11-28 18:42:05,356 INFO:    175,372 out of    175,372 (100.0%) STR allele purity: perfect repeats
+2022-11-28 18:42:05,356 INFO: --------------
+2022-11-28 18:42:05,356 INFO:    174,756 out of    175,372 ( 99.6%) STR allele reference repeats: with right matching ref. repeat
+2022-11-28 18:42:05,356 INFO:        615 out of    175,372 (  0.4%) STR allele reference repeats: with no matching ref. repeat
+2022-11-28 18:42:05,356 INFO:          1 out of    175,372 (  0.0%) STR allele reference repeats: with both left and right matching ref. repeat
+2022-11-28 18:42:05,356 INFO: --------------
+2022-11-28 18:42:05,356 INFO:    170,237 out of    175,372 ( 97.1%) STR allele size: 0-25bp
+2022-11-28 18:42:05,356 INFO:      3,897 out of    175,372 (  2.2%) STR allele size: 25-50bp
+2022-11-28 18:42:05,356 INFO:        597 out of    175,372 (  0.3%) STR allele size: 50-75bp
+2022-11-28 18:42:05,356 INFO:        226 out of    175,372 (  0.1%) STR allele size: 75-100bp
+2022-11-28 18:42:05,356 INFO:        124 out of    175,372 (  0.1%) STR allele size: 100-125bp
+2022-11-28 18:42:05,356 INFO:         77 out of    175,372 (  0.0%) STR allele size: 125-150bp
+2022-11-28 18:42:05,356 INFO:         48 out of    175,372 (  0.0%) STR allele size: 150-175bp
+2022-11-28 18:42:05,357 INFO:         34 out of    175,372 (  0.0%) STR allele size: 175-200bp
+2022-11-28 18:42:05,357 INFO:         26 out of    175,372 (  0.0%) STR allele size: 200-225bp
+2022-11-28 18:42:05,357 INFO:         25 out of    175,372 (  0.0%) STR allele size: 225-250bp
+2022-11-28 18:42:05,357 INFO:         16 out of    175,372 (  0.0%) STR allele size: 250-275bp
+2022-11-28 18:42:05,357 INFO:         12 out of    175,372 (  0.0%) STR allele size: 500+bp
+2022-11-28 18:42:05,357 INFO:         11 out of    175,372 (  0.0%) STR allele size: 275-300bp
+2022-11-28 18:42:05,357 INFO:          9 out of    175,372 (  0.0%) STR allele size: 425-450bp
+2022-11-28 18:42:05,357 INFO:          8 out of    175,372 (  0.0%) STR allele size: 350-375bp
+2022-11-28 18:42:05,357 INFO:          7 out of    175,372 (  0.0%) STR allele size: 375-400bp
+2022-11-28 18:42:05,357 INFO:          6 out of    175,372 (  0.0%) STR allele size: 325-350bp
+2022-11-28 18:42:05,357 INFO:          4 out of    175,372 (  0.0%) STR allele size: 450-475bp
+2022-11-28 18:42:05,357 INFO:          3 out of    175,372 (  0.0%) STR allele size: 300-325bp
+2022-11-28 18:42:05,357 INFO:          3 out of    175,372 (  0.0%) STR allele size: 475-500bp
+2022-11-28 18:42:05,357 INFO:          2 out of    175,372 (  0.0%) STR allele size: 400-425bp
+2022-11-28 18:42:05,357 INFO: --------------
+2022-11-28 18:42:05,357 INFO:     93,094 out of    175,372 ( 53.1%) STR allele source: found by NoRepeatFoundInVariantBases
+2022-11-28 18:42:05,358 INFO:     82,278 out of    175,372 ( 46.9%) STR allele source: found by BruteForce
+2022-11-28 18:42:05,358 INFO: --------------
+2022-11-28 18:42:05,358 INFO:    144,773 out of    144,773 (100.0%) STR variant counts: TOTAL
+2022-11-28 18:42:05,358 INFO:     30,599 out of    144,773 ( 21.1%) STR variant counts: multi-allelic
 Finished writing to  step7.filtered_STRs.variants.tsv
 Finished writing to  step7.filtered_STRs.alleles.tsv
 Wrote 144773 to step7.filtered_STRs.variants.bed.gz
