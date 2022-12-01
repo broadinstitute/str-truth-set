@@ -148,7 +148,6 @@ output_vcf="${output_prefix}.vcf.gz"
 # reference start and end coordinates despite some of the repeat interruptions in the hg38 reference sequence at some
 # of these loci
 
-min_fraction_covered_by_repeat=1
 min_str_length=9
 min_str_repeats=3
 
@@ -158,7 +157,7 @@ set -x
 python3 -u -m str_analysis.filter_vcf_to_STR_variants \
   -R "${hg38_fasta_path}" \
   --write-bed-file \
-  --min-fraction-of-variant-covered-by-repeat "${min_fraction_covered_by_repeat}" \
+  --allow-interruptions \
   --min-str-length "${min_str_length}" \
   --min-str-repeats "${min_str_repeats}" \
   --output-prefix "${output_prefix}" \
@@ -280,11 +279,11 @@ set -x
 python3 -u -m str_analysis.filter_vcf_to_STR_variants \
   -R "${hg38_fasta_path}" \
   --write-bed-file \
-  --min-fraction-of-variant-covered-by-repeat "${min_fraction_covered_by_repeat}" \
+  --allow-interruptions \
   --min-str-length "${min_str_length}" \
   --min-str-repeats "${min_str_repeats}" \
   --output-prefix "${output_prefix}" \
-  $input_vcf
+  "${input_vcf}"
 
 
 # compute overlap with various reference annotations
