@@ -84,12 +84,13 @@ def main():
         s2.command(f"ln -s {local_path}")
 
     output_prefix = f"combined.{positive_or_negative_loci}"
-    s2.command(f"python3 -m str_analysis.combine_str_json_to_tsv "
-               f"--include-extra-expansion-hunter-fields --output-prefix {output_prefix}")
+    s2.command(f"python3 -m str_analysis.combine_str_json_to_tsv --include-extra-expansion-hunter-fields "
+               f"--output-prefix {output_prefix}")
+    s2.command("gzip *.tsv")
     s2.command("ls -lhrt")
 
-    s2.output(f"{output_prefix}.{len(step1_output_json_paths)}_json_files.variants.tsv", output_dir=output_dir)
-    s2.output(f"{output_prefix}.{len(step1_output_json_paths)}_json_files.alleles.tsv", output_dir=output_dir)
+    s2.output(f"{output_prefix}.{len(step1_output_json_paths)}_json_files.variants.tsv.gz", output_dir=output_dir)
+    s2.output(f"{output_prefix}.{len(step1_output_json_paths)}_json_files.alleles.tsv.gz", output_dir=output_dir)
 
     bp.run()
 
