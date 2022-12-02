@@ -18,11 +18,12 @@ DOCKER_IMAGE = "docker.io/weisburd/expansion-hunter-denovo:0.9"
 
 OUTPUT_BASE_DIR = "gs://str-truth-set/hg38/tool_results/expansion_hunter_denovo"
 
+MAX_REPEAT_UNIT_LENGTH = 50
 
 def main():
     bp = pipeline("run ExpansionHunterDenovo", backend=Backend.HAIL_BATCH_SERVICE, config_file_path="~/.step_pipeline")
 
-    s1 = bp.new_step(f"STR Truth Set: ExpansionHunter", image=DOCKER_IMAGE, cpu=2, output_dir=OUTPUT_BASE_DIR)
+    s1 = bp.new_step(f"STR Truth Set: ExpansionHunterDenovo", image=DOCKER_IMAGE, cpu=2, output_dir=OUTPUT_BASE_DIR)
     local_fasta, _ = s1.inputs(REFERENCE_FASTA_PATH, REFERENCE_FASTA_FAI_PATH, localize_by=Localize.HAIL_BATCH_CLOUDFUSE)
     local_bam, local_bai = s1.inputs(CHM1_CHM13_BAM_PATH, CHM1_CHM13_BAI_PATH, localize_by=Localize.HAIL_BATCH_CLOUDFUSE)
     s1.command("set -ex")
@@ -30,7 +31,7 @@ def main():
     output_prefix = re.sub(".bam$", "", local_bam.filename)
 
     s1.command(f"""time ExpansionHunterDenovo profile --reference {local_fasta} --reads {local_bam} \
-        --output-prefix {output_prefix} |& tee EHdn_command.log""")
+        --max-unit-len {MAX_REPEAT_UNIT_LENGTH} --output-prefix {output_prefix} |& tee EHdn_command.log""")
     s1.command("ls -lh")
     s1.output(f"{output_prefix}.str_profile.json")
     s1.output(f"{output_prefix}.locus.tsv")
