@@ -5,7 +5,9 @@ ref
 *.tar.gz
 *.vcf*
 *.bed*
-
+*.twb
+*.tsv.gz
+*.tsv
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

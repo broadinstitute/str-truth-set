@@ -1,0 +1,1693 @@
+nohup: ignoring input
++ python3 -m pip install -r requirements.txt -qq
++ set +x
+===============
+STEP #1: Filter SynDip truth set to SynDip high confidence regions
+         INPUT: ./ref/full.38.vcf.gz        5182765 variants
++ bedtools intersect -header -f 1 -wa -u -a ./ref/full.38.vcf.gz -b ./ref/full.38.bed.gz
++ bgzip
++ set +x
+         OUTPUT: step1.high_confidence_regions.vcf.gz         4085178 variants
+VCF stats for the input vcf -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --  ./ref/full.38.vcf.gz
+ 5,182,765 TOTAL variants
+ 5,362,620 TOTAL alleles (1.03 alleles per variant)
+--------------
+ 1,733,759 out of  5,182,765 ( 33.5%) genotype: 1|1
+ 1,504,467 out of  5,182,765 ( 29.0%) genotype: 0|1
+ 1,495,334 out of  5,182,765 ( 28.9%) genotype: 1|0
+   115,177 out of  5,182,765 (  2.2%) genotype: 1|.
+    89,241 out of  5,182,765 (  1.7%) genotype: 2|1
+    86,403 out of  5,182,765 (  1.7%) genotype: 1|2
+    58,317 out of  5,182,765 (  1.1%) genotype: .|1
+    43,013 out of  5,182,765 (  0.8%) genotype: .|.
+    33,528 out of  5,182,765 (  0.6%) genotype: .|0
+    22,555 out of  5,182,765 (  0.4%) genotype: 0|.
+       695 out of  5,182,765 (  0.0%) genotype: .|2
+       203 out of  5,182,765 (  0.0%) genotype: 2|.
+        52 out of  5,182,765 (  0.0%) genotype: .|3
+        21 out of  5,182,765 (  0.0%) genotype: 3|.
+--------------
+ 5,182,765 out of  5,182,765 (100.0%) TOTAL variants
+ 4,018,563 out of  5,182,765 ( 77.5%) SNV variants
+   505,154 out of  5,182,765 (  9.7%) DEL variants
+   479,474 out of  5,182,765 (  9.3%) INS variants
+    56,620 out of  5,182,765 (  1.1%) multiallelic INS variants
+    42,103 out of  5,182,765 (  0.8%) multiallelic DEL variants
+    41,097 out of  5,182,765 (  0.8%) mixed multiallelic INS/DEL variants
+    26,071 out of  5,182,765 (  0.5%) multiallelic SNV variants
+    11,384 out of  5,182,765 (  0.2%) mixed multiallelic INS/SNV variants
+     2,293 out of  5,182,765 (  0.0%) mixed multiallelic DEL/SNV variants
+         6 out of  5,182,765 (  0.0%) mixed multiallelic INS/DEL/SNV variants
+--------------
+ 5,362,620 out of  5,362,620 (100.0%) TOTAL alleles
+ 4,082,099 out of  5,362,620 ( 76.1%) SNV alleles
+   645,344 out of  5,362,620 ( 12.0%) INS alleles
+   632,876 out of  5,362,620 ( 11.8%) DEL alleles
+     2,301 out of  5,362,620 (  0.0%) MNV alleles
+VCF stats for the output vcf -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --  step1.high_confidence_regions.vcf.gz
+ 4,085,178 TOTAL variants
+ 4,152,492 TOTAL alleles (1.02 alleles per variant)
+--------------
+ 1,533,140 out of  4,085,178 ( 37.5%) genotype: 1|1
+ 1,247,174 out of  4,085,178 ( 30.5%) genotype: 1|0
+ 1,237,550 out of  4,085,178 ( 30.3%) genotype: 0|1
+    33,661 out of  4,085,178 (  0.8%) genotype: 1|2
+    33,653 out of  4,085,178 (  0.8%) genotype: 2|1
+--------------
+ 4,085,178 out of  4,085,178 (100.0%) TOTAL variants
+ 3,547,658 out of  4,085,178 ( 86.8%) SNV variants
+   236,881 out of  4,085,178 (  5.8%) INS variants
+   233,325 out of  4,085,178 (  5.7%) DEL variants
+    17,148 out of  4,085,178 (  0.4%) multiallelic INS variants
+    16,995 out of  4,085,178 (  0.4%) multiallelic DEL variants
+    15,775 out of  4,085,178 (  0.4%) multiallelic SNV variants
+    10,720 out of  4,085,178 (  0.3%) mixed multiallelic INS/DEL variants
+     5,585 out of  4,085,178 (  0.1%) mixed multiallelic INS/SNV variants
+     1,091 out of  4,085,178 (  0.0%) mixed multiallelic DEL/SNV variants
+--------------
+ 4,152,492 out of  4,152,492 (100.0%) TOTAL alleles
+ 3,584,793 out of  4,152,492 ( 86.3%) SNV alleles
+   287,482 out of  4,152,492 (  6.9%) INS alleles
+   279,126 out of  4,152,492 (  6.7%) DEL alleles
+     1,091 out of  4,152,492 (  0.0%) MNV alleles
+===============
+STEP #2: Filter variants to the subset that are actually STR expansion or contractions
+         INPUT: step1.high_confidence_regions.vcf.gz        4085178 variants
++ python3 -u -m str_analysis.filter_vcf_to_STR_variants -R ./ref/hg38.fa --write-bed-file --allow-interruptions --min-str-length 9 --min-str-repeats 3 --output-prefix step2.STRs step1.high_confidence_regions.vcf.gz
+WARNING: Multi-allelic STR INS:INS 10bp:CCCACACTCG:INS,INS:9=>11,13:MULTI has alleles with different RepeatUnits: CCCACACTCG, CCCACACTCC   Skipping...
+WARNING: Multi-allelic STR INS:INS 2bp:AC:INS,INS:0=>21,3:MULTI has alleles with different RepeatUnits: AC, ATAC   Skipping...
+WARNING: Multi-allelic STR INS:INS 6bp:ATATAT:INS,INS:10=>10,15:MULTI has alleles with different RepeatUnits: ATATAT, ATAT   Skipping...
+WARNING: Multi-allelic STR INS:INS 3bp:TAA:INS,INS:4=>8,10:MULTI has alleles with different RepeatUnits: TAA, TAG   Skipping...
+WARNING: Multi-allelic STR DEL:DEL 3bp:ATT:DEL,DEL:15=>0,12:MULTI has alleles with different RepeatUnits: ATT, ATA   Skipping...
+WARNING: Multi-allelic STR DEL:DEL 4bp:ATAC:DEL,DEL:18=>0,16:MULTI has alleles with different RepeatUnits: ATAC, AC   Skipping...
+WARNING: Multi-allelic STR INS:INS 2bp:TA:INS,INS:0=>13,6:MULTI has alleles with different RepeatUnits: TA, TGTA   Skipping...
+WARNING: Multi-allelic STR DEL:DEL 6bp:TGTATA:DEL,DEL:23=>0,21:MULTI has alleles with different RepeatUnits: TGTATA, TA   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:TTCT:INS,INS:3=>13,13:MULTI has alleles with different RepeatUnits: TTCT, TTCC   Skipping...
+WARNING: Multi-allelic STR DEL:DEL 5bp:TCCCC:DEL,DEL:7=>1,5:MULTI has alleles with different RepeatUnits: TCCCC, TCCCT   Skipping...
+WARNING: Multi-allelic STR DEL:DEL 4bp:ATAC:DEL,DEL:27=>1,20:MULTI has alleles with different RepeatUnits: ATAC, AT   Skipping...
+WARNING: Multi-allelic STR DEL:DEL 3bp:ATG:DEL,DEL:16=>0,11:MULTI has alleles with different RepeatUnits: ATG, TTG   Skipping...
+WARNING: Multi-allelic STR INS:INS 2bp:AT:INS,INS:0=>14,7:MULTI has alleles with different RepeatUnits: AT, ACAT   Skipping...
+WARNING: Multi-allelic STR INS:INS 5bp:TAAAA:INS,INS:5=>6,9:MULTI has alleles with different RepeatUnits: TAAAA, TAAAG   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:TATA:INS,INS:12=>13,23:MULTI has alleles with different RepeatUnits: TATA, TA   Skipping...
+WARNING: Multi-allelic STR INS:INS 2bp:GT:INS,INS:0=>19,4:MULTI has alleles with different RepeatUnits: GT, GCGT   Skipping...
+WARNING: Multi-allelic STR INS:INS 12bp:AAAAAAAGAAAG:INS,INS:0=>3,4:MULTI has alleles with different RepeatUnits: AAAAAAAGAAAG, AAAAAAAG   Skipping...
+WARNING: Multi-allelic STR DEL:INS 4bp:CCTC:DEL,INS:8=>9,9:MULTI has alleles with different RepeatUnits: CCTC, CCTT   Skipping...
+WARNING: Multi-allelic STR INS:INS 2bp:TA:INS,INS:6=>15,9:MULTI has alleles with different RepeatUnits: TA, TATA   Skipping...
+WARNING: Multi-allelic STR INS:INS 6bp:ACACAC:INS,INS:7=>6,11:MULTI has alleles with different RepeatUnits: ACACAC, ACAC   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:ACAC:INS,INS:6=>12,9:MULTI has alleles with different RepeatUnits: ACAC, ACACAC   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:TCTT:INS,INS:5=>3,7:MULTI has alleles with different RepeatUnits: TCTT, TCTC   Skipping...
+WARNING: Multi-allelic STR INS:INS 2bp:AC:INS,INS:0=>16,3:MULTI has alleles with different RepeatUnits: AC, ATAC   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:CTCA:INS,INS:14=>3,24:MULTI has alleles with different RepeatUnits: CTCA, CA   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:TATT:INS,INS:8=>3,10:MULTI has alleles with different RepeatUnits: TATT, TATG   Skipping...
+WARNING: Multi-allelic STR INS:INS 2bp:AT:INS,INS:0=>15,4:MULTI has alleles with different RepeatUnits: AT, ACAC   Skipping...
+WARNING: Multi-allelic STR INS:INS 2bp:AC:INS,INS:4=>15,7:MULTI has alleles with different RepeatUnits: AC, ACACAC   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:GTGT:INS,INS:15=>10,22:MULTI has alleles with different RepeatUnits: GTGT, GT   Skipping...
+WARNING: Multi-allelic STR DEL:DEL 4bp:TGTA:DEL,DEL:10=>0,8:MULTI has alleles with different RepeatUnits: TGTA, TTTA   Skipping...
+WARNING: Multi-allelic STR INS:INS 2bp:AC:INS,INS:10=>22,12:MULTI has alleles with different RepeatUnits: AC, ACAC   Skipping...
+WARNING: Multi-allelic STR DEL:INS 4bp:GAAG:DEL,INS:19=>1,20:MULTI has alleles with different RepeatUnits: GAAG, GAAA   Skipping...
+WARNING: Multi-allelic STR INS:INS 6bp:CTCACA:INS,INS:0=>3,4:MULTI has alleles with different RepeatUnits: CTCACA, CTCA   Skipping...
+WARNING: Multi-allelic STR DEL:DEL 4bp:TGTA:DEL,DEL:23=>0,20:MULTI has alleles with different RepeatUnits: TGTA, TA   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:ATAC:INS,INS:4=>4,8:MULTI has alleles with different RepeatUnits: ATAC, ATAT   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:AGAC:INS,INS:16=>8,21:MULTI has alleles with different RepeatUnits: AGAC, AGAT   Skipping...
+WARNING: Multi-allelic STR DEL:INS 4bp:CCTT:DEL,INS:9=>7,14:MULTI has alleles with different RepeatUnits: CCTT, CCTC   Skipping...
+WARNING: Multi-allelic STR DEL:INS 5bp:CGCCG:DEL,INS:2=>1,3:MULTI has alleles with different RepeatUnits: CGCCG, CGCCGCCCCG   Skipping...
+WARNING: Multi-allelic STR INS:INS 3bp:AAT:INS,INS:7=>3,9:MULTI has alleles with different RepeatUnits: AAT, AAC   Skipping...
+WARNING: Multi-allelic STR DEL:DEL 4bp:TCTG:DEL,DEL:15=>1,12:MULTI has alleles with different RepeatUnits: TCTG, TCTT   Skipping...
+WARNING: Multi-allelic STR INS:INS 3bp:TCT:INS,INS:5=>19,20:MULTI has alleles with different RepeatUnits: TCT, TCC   Skipping...
+WARNING: Multi-allelic STR DEL:INS 4bp:CCTT:DEL,INS:4=>10,9:MULTI has alleles with different RepeatUnits: CCTT, CCTC   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:GTCT:INS,INS:0=>4,3:MULTI has alleles with different RepeatUnits: GTCT, GTCTCT   Skipping...
+WARNING: Multi-allelic STR INS:INS 2bp:TG:INS,INS:8=>21,14:MULTI has alleles with different RepeatUnits: TG, TATG   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:TCCT:INS,INS:8=>15,14:MULTI has alleles with different RepeatUnits: TCCT, TCCC   Skipping...
+WARNING: Multi-allelic STR INS:INS 6bp:GCGCGG:INS,INS:1=>3,4:MULTI has alleles with different RepeatUnits: GCGCGG, GCGC   Skipping...
+WARNING: Multi-allelic STR DEL:INS 4bp:CCTT:DEL,INS:12=>2,16:MULTI has alleles with different RepeatUnits: CCTT, CCTC   Skipping...
+WARNING: Multi-allelic STR DEL:DEL 4bp:TATG:DEL,DEL:28=>0,25:MULTI has alleles with different RepeatUnits: TATG, TG   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:TATG:INS,INS:6=>4,9:MULTI has alleles with different RepeatUnits: TATG, TATA   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:TCTA:INS,INS:1=>12,3:MULTI has alleles with different RepeatUnits: TCTA, TCTG   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:AGAC:INS,INS:4=>3,11:MULTI has alleles with different RepeatUnits: AGAC, AGAT   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:TCTT:INS,INS:0=>10,3:MULTI has alleles with different RepeatUnits: TCTT, TCTC   Skipping...
+WARNING: Multi-allelic STR DEL:DEL 4bp:CGCA:DEL,DEL:24=>0,19:MULTI has alleles with different RepeatUnits: CGCA, CA   Skipping...
+WARNING: Multi-allelic STR INS:INS 2bp:AT:INS,INS:11=>21,15:MULTI has alleles with different RepeatUnits: AT, AAAT   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:TATG:INS,INS:17=>3,25:MULTI has alleles with different RepeatUnits: TATG, TG   Skipping...
+WARNING: Multi-allelic STR DEL:DEL 4bp:TCAC:DEL,DEL:24=>0,23:MULTI has alleles with different RepeatUnits: TCAC, AC   Skipping...
+WARNING: Multi-allelic STR INS:INS 2bp:CA:INS,INS:0=>12,3:MULTI has alleles with different RepeatUnits: CA, CTCA   Skipping...
+WARNING: Multi-allelic STR DEL:INS 34bp:ATAAAGAAATAAATATATATTTATTTATAAAGAA:DEL,INS:3=>3,5:MULTI has alleles with different RepeatUnits: ATAAAGAAATAAATATATATTTATTTATAAAGAA, ATAA   Skipping...
+WARNING: Multi-allelic STR INS:INS 3bp:AAT:INS,INS:6=>6,10:MULTI has alleles with different RepeatUnits: AAT, AAG   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:TGTA:INS,INS:11=>3,18:MULTI has alleles with different RepeatUnits: TGTA, TA   Skipping...
+WARNING: Multi-allelic STR INS:INS 2bp:TA:INS,INS:7=>24,12:MULTI has alleles with different RepeatUnits: TA, TATA   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:GGAG:INS,INS:4=>9,7:MULTI has alleles with different RepeatUnits: GGAG, GGAA   Skipping...
+WARNING: Multi-allelic STR INS:INS 2bp:GT:INS,INS:11=>24,13:MULTI has alleles with different RepeatUnits: GT, GTGT   Skipping...
+WARNING: Multi-allelic STR INS:INS 6bp:TGTATA:INS,INS:9=>5,25:MULTI has alleles with different RepeatUnits: TGTATA, TA   Skipping...
+WARNING: Multi-allelic STR DEL:DEL 4bp:TGTA:DEL,DEL:29=>0,12:MULTI has alleles with different RepeatUnits: TGTA, TA   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:CCTC:INS,INS:10=>5,13:MULTI has alleles with different RepeatUnits: CCTC, CCTT   Skipping...
+WARNING: Multi-allelic STR INS:INS 2bp:TA:INS,INS:2=>6,6:MULTI has alleles with different RepeatUnits: TA, TATA   Skipping...
+WARNING: Multi-allelic STR DEL:DEL 4bp:TGTA:DEL,DEL:18=>0,13:MULTI has alleles with different RepeatUnits: TGTA, TA   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:TTTA:INS,INS:1=>13,3:MULTI has alleles with different RepeatUnits: TTTA, TTTG   Skipping...
+WARNING: Multi-allelic STR INS:INS 3bp:ATG:INS,INS:13=>11,15:MULTI has alleles with different RepeatUnits: ATG, ATA   Skipping...
+WARNING: Multi-allelic STR DEL:INS 4bp:TATA:DEL,INS:11=>6,13:MULTI has alleles with different RepeatUnits: TATA, TATG   Skipping...
+WARNING: Multi-allelic STR DEL:DEL 6bp:TGTATA:DEL,DEL:25=>0,19:MULTI has alleles with different RepeatUnits: TGTATA, TA   Skipping...
+WARNING: Multi-allelic STR INS:INS 3bp:TAA:INS,INS:15=>9,23:MULTI has alleles with different RepeatUnits: TAA, TAC   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:AGAC:INS,INS:15=>10,17:MULTI has alleles with different RepeatUnits: AGAC, AGAT   Skipping...
+WARNING: Multi-allelic STR DEL:DEL 5bp:CTATC:DEL,DEL:12=>5,6:MULTI has alleles with different RepeatUnits: CTATC, CTATT   Skipping...
+WARNING: Multi-allelic STR DEL:DEL 4bp:TTTA:DEL,DEL:32=>0,25:MULTI has alleles with different RepeatUnits: TTTA, TA   Skipping...
+WARNING: Multi-allelic STR INS:INS 6bp:ATACAT:INS,INS:11=>5,23:MULTI has alleles with different RepeatUnits: ATACAT, AT   Skipping...
+WARNING: Multi-allelic STR INS:INS 2bp:AC:INS,INS:10=>23,14:MULTI has alleles with different RepeatUnits: AC, ACAA   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:AGGA:INS,INS:5=>6,8:MULTI has alleles with different RepeatUnits: AGGA, AGGG   Skipping...
+WARNING: Multi-allelic STR DEL:INS 4bp:GAAG:DEL,INS:0=>11,3:MULTI has alleles with different RepeatUnits: GAAG, GAAC   Skipping...
+WARNING: Multi-allelic STR DEL:DEL 4bp:TTCT:DEL,DEL:10=>2,6:MULTI has alleles with different RepeatUnits: TTCT, TTCC   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:AGAA:INS,INS:2=>15,5:MULTI has alleles with different RepeatUnits: AGAA, AGAG   Skipping...
+WARNING: Multi-allelic STR DEL:DEL 4bp:TCTA:DEL,DEL:21=>0,20:MULTI has alleles with different RepeatUnits: TCTA, TA   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:AAGA:INS,INS:16=>14,30:MULTI has alleles with different RepeatUnits: AAGA, AAGG   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:TTCC:INS,INS:0=>13,4:MULTI has alleles with different RepeatUnits: TTCC, TTCA   Skipping...
+WARNING: Multi-allelic STR DEL:INS 4bp:TTTC:DEL,INS:0=>15,4:MULTI has alleles with different RepeatUnits: TTTC, TCTC   Skipping...
+WARNING: Multi-allelic STR INS:INS 6bp:TATATA:INS,INS:7=>8,11:MULTI has alleles with different RepeatUnits: TATATA, TATA   Skipping...
+WARNING: Multi-allelic STR DEL:DEL 4bp:TTTA:DEL,DEL:29=>0,25:MULTI has alleles with different RepeatUnits: TTTA, TA   Skipping...
+WARNING: Multi-allelic STR DEL:DEL 4bp:TGTG:DEL,DEL:3=>8,0:MULTI has alleles with different RepeatUnits: TGTG, TGTGTA   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:TATA:INS,INS:0=>10,5:MULTI has alleles with different RepeatUnits: TATA, TATACA   Skipping...
+WARNING: Multi-allelic STR INS:INS 6bp:TGTATA:INS,INS:12=>8,22:MULTI has alleles with different RepeatUnits: TGTATA, TA   Skipping...
+WARNING: Multi-allelic STR INS:INS 6bp:TGTGTG:INS,INS:8=>8,12:MULTI has alleles with different RepeatUnits: TGTGTG, TGTG   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:ATAT:INS,INS:10=>10,20:MULTI has alleles with different RepeatUnits: ATAT, AT   Skipping...
+WARNING: Multi-allelic STR INS:INS 2bp:AT:INS,INS:0=>14,3:MULTI has alleles with different RepeatUnits: AT, ACATAT   Skipping...
+WARNING: Multi-allelic STR DEL:DEL 4bp:CCTC:DEL,DEL:19=>17,15:MULTI has alleles with different RepeatUnits: CCTC, CCTT   Skipping...
+WARNING: Multi-allelic STR INS:INS 5bp:AAATA:INS,INS:15=>25,26:MULTI has alleles with different RepeatUnits: AAATA, AAATG   Skipping...
+WARNING: Multi-allelic STR DEL:DEL 4bp:TCCT:DEL,DEL:8=>20,6:MULTI has alleles with different RepeatUnits: TCCT, TCCC   Skipping...
+WARNING: Multi-allelic STR DEL:INS 4bp:CTTG:DEL,INS:15=>1,16:MULTI has alleles with different RepeatUnits: CTTG, CTTT   Skipping...
+WARNING: Multi-allelic STR DEL:INS 4bp:TATG:DEL,INS:1=>0,7:MULTI has alleles with different RepeatUnits: TATG, TA   Skipping...
+WARNING: Multi-allelic STR INS:INS 3bp:CTA:INS,INS:16=>5,18:MULTI has alleles with different RepeatUnits: CTA, CTT   Skipping...
+WARNING: Multi-allelic STR INS:INS 2bp:CA:INS,INS:4=>18,7:MULTI has alleles with different RepeatUnits: CA, CACACA   Skipping...
+WARNING: Multi-allelic STR INS:INS 5bp:CCCTT:INS,INS:5=>4,12:MULTI has alleles with different RepeatUnits: CCCTT, CCCTC   Skipping...
+WARNING: Multi-allelic STR INS:INS 2bp:AC:INS,INS:6=>12,7:MULTI has alleles with different RepeatUnits: AC, ATAC   Skipping...
+WARNING: Multi-allelic STR DEL:DEL 4bp:ACAT:DEL,DEL:23=>0,19:MULTI has alleles with different RepeatUnits: ACAT, AT   Skipping...
+WARNING: Multi-allelic STR DEL:DEL 4bp:TTCT:DEL,DEL:14=>17,12:MULTI has alleles with different RepeatUnits: TTCT, TTCC   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:TTTC:INS,INS:3=>15,10:MULTI has alleles with different RepeatUnits: TTTC, TTTG   Skipping...
+WARNING: Multi-allelic STR INS:INS 3bp:ATT:INS,INS:6=>10,8:MULTI has alleles with different RepeatUnits: ATT, ATA   Skipping...
+WARNING: Multi-allelic STR INS:INS 2bp:CT:INS,INS:4=>9,7:MULTI has alleles with different RepeatUnits: CT, CTCC   Skipping...
+WARNING: Multi-allelic STR INS:INS 2bp:TG:INS,INS:0=>25,4:MULTI has alleles with different RepeatUnits: TG, TTTG   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:TTTG:INS,INS:24=>14,27:MULTI has alleles with different RepeatUnits: TTTG, TG   Skipping...
+WARNING: Multi-allelic STR DEL:DEL 4bp:TGTA:DEL,DEL:20=>0,13:MULTI has alleles with different RepeatUnits: TGTA, TA   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:GGAG:INS,INS:19=>10,22:MULTI has alleles with different RepeatUnits: GGAG, GGAA   Skipping...
+WARNING: Multi-allelic STR DEL:INS 4bp:AGGA:DEL,INS:7=>5,19:MULTI has alleles with different RepeatUnits: AGGA, AGGG   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:TCTC:INS,INS:0=>10,6:MULTI has alleles with different RepeatUnits: TCTC, TCTT   Skipping...
+WARNING: Multi-allelic STR DEL:DEL 4bp:TATG:DEL,DEL:18=>0,13:MULTI has alleles with different RepeatUnits: TATG, TG   Skipping...
+WARNING: Multi-allelic STR INS:INS 6bp:ATATAT:INS,INS:7=>10,14:MULTI has alleles with different RepeatUnits: ATATAT, ATAT   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:TGTG:INS,INS:0=>10,7:MULTI has alleles with different RepeatUnits: TGTG, TG   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:AGAG:INS,INS:5=>4,8:MULTI has alleles with different RepeatUnits: AGAG, AGAGAG   Skipping...
+WARNING: Multi-allelic STR INS:INS 2bp:GT:INS,INS:0=>15,3:MULTI has alleles with different RepeatUnits: GT, TTGTGT   Skipping...
+WARNING: Multi-allelic STR DEL:DEL 4bp:GAAG:DEL,DEL:17=>5,14:MULTI has alleles with different RepeatUnits: GAAG, GAAA   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:TTCC:INS,INS:2=>17,8:MULTI has alleles with different RepeatUnits: TTCC, TTCT   Skipping...
+WARNING: Multi-allelic STR INS:INS 2bp:CA:INS,INS:0=>14,3:MULTI has alleles with different RepeatUnits: CA, CGCA   Skipping...
+WARNING: Multi-allelic STR DEL:DEL 4bp:CTTC:DEL,DEL:21=>20,17:MULTI has alleles with different RepeatUnits: CTTC, CTTT   Skipping...
+WARNING: Multi-allelic STR DEL:DEL 4bp:TGTA:DEL,DEL:14=>0,10:MULTI has alleles with different RepeatUnits: TGTA, TA   Skipping...
+WARNING: Multi-allelic STR DEL:INS 2bp:TG:DEL,INS:0=>27,5:MULTI has alleles with different RepeatUnits: TG, TATG   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:TTCC:INS,INS:8=>6,10:MULTI has alleles with different RepeatUnits: TTCC, TTCT   Skipping...
+WARNING: Multi-allelic STR DEL:DEL 6bp:CGCACA:DEL,DEL:22=>0,14:MULTI has alleles with different RepeatUnits: CGCACA, CA   Skipping...
+WARNING: Multi-allelic STR INS:INS 2bp:TA:INS,INS:5=>16,6:MULTI has alleles with different RepeatUnits: TA, TGTA   Skipping...
+WARNING: Multi-allelic STR DEL:INS 2bp:AT:DEL,INS:6=>18,9:MULTI has alleles with different RepeatUnits: AT, ATATAT   Skipping...
+WARNING: Multi-allelic STR DEL:DEL 4bp:CGCA:DEL,DEL:29=>0,23:MULTI has alleles with different RepeatUnits: CGCA, CA   Skipping...
+WARNING: Multi-allelic STR DEL:DEL 4bp:ACAT:DEL,DEL:21=>0,18:MULTI has alleles with different RepeatUnits: ACAT, AT   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:TTTA:INS,INS:3=>10,5:MULTI has alleles with different RepeatUnits: TTTA, TTTG   Skipping...
+WARNING: Multi-allelic STR INS:INS 2bp:AT:INS,INS:2=>7,5:MULTI has alleles with different RepeatUnits: AT, ATATATATATATTTCACATAATGTGGAAT   Skipping...
+WARNING: Multi-allelic STR INS:INS 2bp:TA:INS,INS:0=>25,10:MULTI has alleles with different RepeatUnits: TA, TGTA   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:TATG:INS,INS:0=>3,3:MULTI has alleles with different RepeatUnits: TATG, TATGTG   Skipping...
+WARNING: Multi-allelic STR INS:INS 2bp:GT:INS,INS:4=>11,7:MULTI has alleles with different RepeatUnits: GT, GTGT   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:TATG:INS,INS:0=>3,3:MULTI has alleles with different RepeatUnits: TATG, TATGTG   Skipping...
+WARNING: Multi-allelic STR DEL:DEL 4bp:TCTA:DEL,DEL:24=>0,17:MULTI has alleles with different RepeatUnits: TCTA, TA   Skipping...
+WARNING: Multi-allelic STR INS:INS 2bp:TG:INS,INS:1=>16,3:MULTI has alleles with different RepeatUnits: TG, TGTT   Skipping...
+WARNING: Multi-allelic STR DEL:DEL 4bp:CTTC:DEL,DEL:21=>2,16:MULTI has alleles with different RepeatUnits: CTTC, CTTT   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:TATC:INS,INS:0=>14,4:MULTI has alleles with different RepeatUnits: TATC, TCTC   Skipping...
+WARNING: Multi-allelic STR INS:INS 2bp:TA:INS,INS:5=>13,8:MULTI has alleles with different RepeatUnits: TA, TGTG   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:CTTC:INS,INS:16=>13,19:MULTI has alleles with different RepeatUnits: CTTC, CTTT   Skipping...
+WARNING: Multi-allelic STR INS:INS 6bp:TTTTTA:INS,INS:8=>3,14:MULTI has alleles with different RepeatUnits: TTTTTA, TTA   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:TTTA:INS,INS:5=>7,13:MULTI has alleles with different RepeatUnits: TTTA, TA   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:TGTA:INS,INS:0=>3,3:MULTI has alleles with different RepeatUnits: TGTA, TGTATA   Skipping...
+WARNING: Multi-allelic STR INS:INS 6bp:CTTCTC:INS,INS:21=>5,25:MULTI has alleles with different RepeatUnits: CTTCTC, CTT   Skipping...
+WARNING: Multi-allelic STR INS:INS 2bp:AT:INS,INS:1=>17,9:MULTI has alleles with different RepeatUnits: AT, ATAC   Skipping...
+WARNING: Multi-allelic STR DEL:INS 2bp:CA:DEL,INS:0=>15,4:MULTI has alleles with different RepeatUnits: CA, CTCA   Skipping...
+WARNING: Multi-allelic STR INS:INS 2bp:TG:INS,INS:0=>16,4:MULTI has alleles with different RepeatUnits: TG, TCTG   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:TTCC:INS,INS:11=>16,15:MULTI has alleles with different RepeatUnits: TTCC, TTTC   Skipping...
+WARNING: Multi-allelic STR DEL:DEL 4bp:TATA:DEL,DEL:10=>7,5:MULTI has alleles with different RepeatUnits: TATA, TATATA   Skipping...
+WARNING: Multi-allelic STR INS:INS 2bp:TG:INS,INS:6=>13,11:MULTI has alleles with different RepeatUnits: TG, TGTG   Skipping...
+WARNING: Multi-allelic STR DEL:DEL 6bp:ACAGAC:DEL,DEL:4=>0,0:MULTI has alleles with different RepeatUnits: ACAGAC, AGAC   Skipping...
+WARNING: Multi-allelic STR DEL:INS 4bp:AAGA:DEL,INS:3=>12,9:MULTI has alleles with different RepeatUnits: AAGA, AAGC   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:TTTA:INS,INS:0=>5,5:MULTI has alleles with different RepeatUnits: TTTA, TTTATA   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:AAGG:INS,INS:22=>3,25:MULTI has alleles with different RepeatUnits: AAGG, AAGA   Skipping...
+WARNING: Multi-allelic STR DEL:DEL 4bp:ACAT:DEL,DEL:32=>1,24:MULTI has alleles with different RepeatUnits: ACAT, AC   Skipping...
+WARNING: Multi-allelic STR INS:INS 6bp:ACACAT:INS,INS:7=>7,9:MULTI has alleles with different RepeatUnits: ACACAT, ACAC   Skipping...
+WARNING: Multi-allelic STR DEL:INS 5bp:TTTTA:DEL,INS:9=>9,10:MULTI has alleles with different RepeatUnits: TTTTA, TTTTG   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:TCTG:INS,INS:9=>13,13:MULTI has alleles with different RepeatUnits: TCTG, TCTA   Skipping...
+WARNING: Multi-allelic STR INS:INS 2bp:TA:INS,INS:0=>14,3:MULTI has alleles with different RepeatUnits: TA, GATA   Skipping...
+WARNING: Multi-allelic STR DEL:INS 13bp:AGGAGGAGAGAGG:DEL,INS:2=>1,3:MULTI has alleles with different RepeatUnits: AGGAGGAGAGAGG, AGG   Skipping...
+WARNING: Multi-allelic STR INS:INS 2bp:AC:INS,INS:6=>10,7:MULTI has alleles with different RepeatUnits: AC, ATAC   Skipping...
+WARNING: Multi-allelic STR INS:INS 6bp:ATATAT:INS,INS:6=>7,10:MULTI has alleles with different RepeatUnits: ATATAT, ATAT   Skipping...
+WARNING: Multi-allelic STR INS:INS 2bp:CA:INS,INS:0=>18,3:MULTI has alleles with different RepeatUnits: CA, CGCA   Skipping...
+WARNING: Multi-allelic STR DEL:INS 4bp:AAGA:DEL,INS:7=>16,14:MULTI has alleles with different RepeatUnits: AAGA, AAGG   Skipping...
+WARNING: Multi-allelic STR DEL:DEL 4bp:TCTG:DEL,DEL:28=>0,15:MULTI has alleles with different RepeatUnits: TCTG, TG   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:GTGT:INS,INS:22=>13,29:MULTI has alleles with different RepeatUnits: GTGT, GT   Skipping...
+WARNING: Multi-allelic STR INS:INS 2bp:AC:INS,INS:0=>20,3:MULTI has alleles with different RepeatUnits: AC, AAAC   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:TAGG:INS,INS:5=>11,9:MULTI has alleles with different RepeatUnits: TAGG, TAGA   Skipping...
+WARNING: Multi-allelic STR DEL:DEL 4bp:TGTA:DEL,DEL:19=>0,13:MULTI has alleles with different RepeatUnits: TGTA, TA   Skipping...
+WARNING: Multi-allelic STR DEL:DEL 4bp:AGAC:DEL,DEL:28=>0,25:MULTI has alleles with different RepeatUnits: AGAC, AC   Skipping...
+WARNING: Multi-allelic STR DEL:INS 4bp:TATT:DEL,INS:1=>6,5:MULTI has alleles with different RepeatUnits: TATT, TATG   Skipping...
+WARNING: Multi-allelic STR INS:INS 5bp:GGAAT:INS,INS:13=>11,24:MULTI has alleles with different RepeatUnits: GGAAT, GGAAA   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:AGGA:INS,INS:6=>14,10:MULTI has alleles with different RepeatUnits: AGGA, AGGC   Skipping...
+WARNING: Multi-allelic STR DEL:DEL 4bp:ACAT:DEL,DEL:23=>0,20:MULTI has alleles with different RepeatUnits: ACAT, AT   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:AAGG:INS,INS:11=>18,16:MULTI has alleles with different RepeatUnits: AAGG, AAGA   Skipping...
+WARNING: Multi-allelic STR INS:INS 2bp:TA:INS,INS:0=>13,3:MULTI has alleles with different RepeatUnits: TA, TGTATA   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:AGGG:INS,INS:9=>11,18:MULTI has alleles with different RepeatUnits: AGGG, AGGA   Skipping...
+WARNING: Multi-allelic STR DEL:DEL 4bp:AGGA:DEL,DEL:9=>2,7:MULTI has alleles with different RepeatUnits: AGGA, AGGG   Skipping...
+WARNING: Multi-allelic STR DEL:DEL 4bp:TCCT:DEL,DEL:5=>3,4:MULTI has alleles with different RepeatUnits: TCCT, TCCA   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:AGGA:INS,INS:16=>18,21:MULTI has alleles with different RepeatUnits: AGGA, AGGG   Skipping...
+WARNING: Multi-allelic STR INS:INS 6bp:ACACAC:INS,INS:8=>10,15:MULTI has alleles with different RepeatUnits: ACACAC, ACAC   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:TATG:INS,INS:0=>10,7:MULTI has alleles with different RepeatUnits: TATG, TATGTG   Skipping...
+WARNING: Multi-allelic STR DEL:INS 2bp:TA:DEL,INS:0=>19,3:MULTI has alleles with different RepeatUnits: TA, TGTA   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:ATAG:INS,INS:12=>11,16:MULTI has alleles with different RepeatUnits: ATAG, ATAT   Skipping...
+WARNING: Multi-allelic STR DEL:INS 2bp:AT:DEL,INS:0=>8,3:MULTI has alleles with different RepeatUnits: AT, ACAT   Skipping...
+WARNING: Multi-allelic STR INS:INS 2bp:AC:INS,INS:2=>16,5:MULTI has alleles with different RepeatUnits: AC, ACACAC   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:TTCC:INS,INS:0=>11,3:MULTI has alleles with different RepeatUnits: TTCC, TTCA   Skipping...
+WARNING: Multi-allelic STR INS:INS 2bp:TA:INS,INS:7=>21,15:MULTI has alleles with different RepeatUnits: TA, TATA   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:TTCT:INS,INS:29=>20,34:MULTI has alleles with different RepeatUnits: TTCT, TTCC   Skipping...
+WARNING: Multi-allelic STR DEL:DEL 4bp:TTCG:DEL,DEL:14=>1,12:MULTI has alleles with different RepeatUnits: TTCG, TTCC   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:TCTT:INS,INS:0=>17,4:MULTI has alleles with different RepeatUnits: TCTT, TCTC   Skipping...
+WARNING: Multi-allelic STR DEL:DEL 4bp:TTTC:DEL,DEL:19=>14,0:MULTI has alleles with different RepeatUnits: TTTC, TTCC   Skipping...
+WARNING: Multi-allelic STR DEL:DEL 18bp:TCAGCTCGGTGTGCGTGG:DEL,DEL:5=>1,0:MULTI has alleles with different RepeatUnits: TCAGCTCGGTGTGCGTGG, TCAGCTTGGTGTGCGTGG   Skipping...
+WARNING: Multi-allelic STR INS:INS 2bp:AC:INS,INS:0=>19,3:MULTI has alleles with different RepeatUnits: AC, TCAC   Skipping...
+WARNING: Multi-allelic STR INS:INS 2bp:TA:INS,INS:0=>16,5:MULTI has alleles with different RepeatUnits: TA, TTTA   Skipping...
+WARNING: Multi-allelic STR INS:INS 6bp:GTGTGT:INS,INS:6=>7,10:MULTI has alleles with different RepeatUnits: GTGTGT, GTGT   Skipping...
+WARNING: Multi-allelic STR INS:INS 6bp:CACACA:INS,INS:5=>6,9:MULTI has alleles with different RepeatUnits: CACACA, CACA   Skipping...
+WARNING: Multi-allelic STR DEL:DEL 4bp:ATAC:DEL,DEL:21=>1,14:MULTI has alleles with different RepeatUnits: ATAC, AT   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:CCTT:INS,INS:3=>14,9:MULTI has alleles with different RepeatUnits: CCTT, CCTG   Skipping...
+WARNING: Multi-allelic STR DEL:DEL 4bp:ATGT:DEL,DEL:20=>0,15:MULTI has alleles with different RepeatUnits: ATGT, GT   Skipping...
+WARNING: Multi-allelic STR DEL:DEL 4bp:TTTA:DEL,DEL:24=>0,22:MULTI has alleles with different RepeatUnits: TTTA, TA   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:TTTC:INS,INS:0=>18,13:MULTI has alleles with different RepeatUnits: TTTC, TCTC   Skipping...
+WARNING: Multi-allelic STR DEL:DEL 4bp:GAAG:DEL,DEL:10=>19,8:MULTI has alleles with different RepeatUnits: GAAG, GAAA   Skipping...
+WARNING: Multi-allelic STR INS:INS 2bp:CA:INS,INS:4=>13,7:MULTI has alleles with different RepeatUnits: CA, CACACA   Skipping...
+WARNING: Multi-allelic STR INS:INS 2bp:TA:INS,INS:0=>13,5:MULTI has alleles with different RepeatUnits: TA, TTTATA   Skipping...
+WARNING: Multi-allelic STR DEL:DEL 4bp:TGTA:DEL,DEL:22=>0,17:MULTI has alleles with different RepeatUnits: TGTA, TA   Skipping...
+WARNING: Multi-allelic STR DEL:DEL 4bp:TGTA:DEL,DEL:27=>0,17:MULTI has alleles with different RepeatUnits: TGTA, TA   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:TAGA:INS,INS:2=>13,6:MULTI has alleles with different RepeatUnits: TAGA, TAGG   Skipping...
+WARNING: Multi-allelic STR INS:INS 2bp:AG:INS,INS:0=>16,5:MULTI has alleles with different RepeatUnits: AG, ATAG   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:TGTG:INS,INS:5=>12,8:MULTI has alleles with different RepeatUnits: TGTG, TGTGTG   Skipping...
+WARNING: Multi-allelic STR DEL:DEL 6bp:TTTATA:DEL,DEL:26=>0,18:MULTI has alleles with different RepeatUnits: TTTATA, TA   Skipping...
+WARNING: Multi-allelic STR DEL:DEL 4bp:GTGA:DEL,DEL:18=>0,11:MULTI has alleles with different RepeatUnits: GTGA, GA   Skipping...
+WARNING: Multi-allelic STR DEL:DEL 4bp:GGGT:DEL,DEL:23=>0,19:MULTI has alleles with different RepeatUnits: GGGT, GT   Skipping...
+WARNING: Multi-allelic STR INS:INS 2bp:TA:INS,INS:0=>10,5:MULTI has alleles with different RepeatUnits: TA, TGTA   Skipping...
+WARNING: Multi-allelic STR DEL:DEL 4bp:ATAG:DEL,DEL:28=>0,15:MULTI has alleles with different RepeatUnits: ATAG, AG   Skipping...
+WARNING: Multi-allelic STR DEL:DEL 4bp:CCTG:DEL,DEL:16=>6,13:MULTI has alleles with different RepeatUnits: CCTG, CCTT   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:GGAA:INS,INS:4=>15,13:MULTI has alleles with different RepeatUnits: GGAA, GGAG   Skipping...
+WARNING: Multi-allelic STR DEL:DEL 4bp:CACT:DEL,DEL:24=>0,19:MULTI has alleles with different RepeatUnits: CACT, CT   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:TCTA:INS,INS:1=>12,3:MULTI has alleles with different RepeatUnits: TCTA, TCTG   Skipping...
+WARNING: Multi-allelic STR INS:INS 2bp:AT:INS,INS:3=>21,8:MULTI has alleles with different RepeatUnits: AT, ATATAT   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:TCTG:INS,INS:25=>4,31:MULTI has alleles with different RepeatUnits: TCTG, TCTT   Skipping...
+WARNING: Multi-allelic STR INS:INS 6bp:TATGTG:INS,INS:12=>6,15:MULTI has alleles with different RepeatUnits: TATGTG, TG   Skipping...
+WARNING: Multi-allelic STR DEL:INS 2bp:GA:DEL,INS:0=>25,3:MULTI has alleles with different RepeatUnits: GA, GTGAGA   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:CTTT:INS,INS:1=>8,3:MULTI has alleles with different RepeatUnits: CTTT, CTTC   Skipping...
+WARNING: Multi-allelic STR INS:INS 32bp:GTCTTTCATCTGGTCTGGATGAAAGACCAGAT:INS,INS:0=>16,4:MULTI has alleles with different RepeatUnits: GTCTTTCATCTGGTCTGGATGAAAGACCAGAT, GTCTTTCATCTGGTCTGGATGAAAGACCGGAT   Skipping...
+WARNING: Multi-allelic STR DEL:DEL 6bp:GAGTGT:DEL,DEL:21=>0,19:MULTI has alleles with different RepeatUnits: GAGTGT, GT   Skipping...
+WARNING: Multi-allelic STR DEL:DEL 4bp:TGTC:DEL,DEL:7=>0,4:MULTI has alleles with different RepeatUnits: TGTC, TATC   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:TTCC:INS,INS:0=>10,5:MULTI has alleles with different RepeatUnits: TTCC, TCCC   Skipping...
+WARNING: Multi-allelic STR INS:INS 20bp:CTCCCTCCCTCCCTCTCTCT:INS,INS:8=>3,13:MULTI has alleles with different RepeatUnits: CTCCCTCCCTCCCTCTCTCT, CTCC   Skipping...
+WARNING: Multi-allelic STR INS:INS 6bp:TATATA:INS,INS:8=>8,13:MULTI has alleles with different RepeatUnits: TATATA, TATA   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:CATC:INS,INS:0=>8,3:MULTI has alleles with different RepeatUnits: CATC, CATT   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:AGGC:INS,INS:15=>11,20:MULTI has alleles with different RepeatUnits: AGGC, AGGA   Skipping...
+WARNING: Multi-allelic STR DEL:DEL 4bp:TGTA:DEL,DEL:16=>11,13:MULTI has alleles with different RepeatUnits: TGTA, TA   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:AAAT:INS,INS:0=>10,7:MULTI has alleles with different RepeatUnits: AAAT, AGAT   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:TCAT:INS,INS:17=>19,19:MULTI has alleles with different RepeatUnits: TCAT, TCAC   Skipping...
+WARNING: Multi-allelic STR INS:INS 2bp:TA:INS,INS:0=>12,9:MULTI has alleles with different RepeatUnits: TA, CATA   Skipping...
+WARNING: Multi-allelic STR DEL:DEL 3bp:GAA:DEL,DEL:16=>35,9:MULTI has alleles with different RepeatUnits: GAA, GAG   Skipping...
+WARNING: Multi-allelic STR DEL:INS 2bp:TA:DEL,INS:0=>9,4:MULTI has alleles with different RepeatUnits: TA, TGTA   Skipping...
+WARNING: Multi-allelic STR DEL:DEL 4bp:TGTA:DEL,DEL:23=>0,15:MULTI has alleles with different RepeatUnits: TGTA, TA   Skipping...
+WARNING: Multi-allelic STR INS:INS 2bp:AT:INS,INS:4=>23,12:MULTI has alleles with different RepeatUnits: AT, ATAT   Skipping...
+WARNING: Multi-allelic STR INS:INS 2bp:GT:INS,INS:0=>14,4:MULTI has alleles with different RepeatUnits: GT, GTGC   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:AGGA:INS,INS:13=>16,15:MULTI has alleles with different RepeatUnits: AGGA, AGAA   Skipping...
+WARNING: Multi-allelic STR INS:INS 6bp:TATCTA:INS,INS:0=>3,3:MULTI has alleles with different RepeatUnits: TATCTA, TATA   Skipping...
+WARNING: Multi-allelic STR DEL:DEL 4bp:CTCA:DEL,DEL:16=>6,13:MULTI has alleles with different RepeatUnits: CTCA, CA   Skipping...
+WARNING: Multi-allelic STR INS:INS 5bp:ATACC:INS,INS:3=>10,6:MULTI has alleles with different RepeatUnits: ATACC, ATACT   Skipping...
+WARNING: Multi-allelic STR DEL:DEL 4bp:AAGA:DEL,DEL:13=>10,10:MULTI has alleles with different RepeatUnits: AAGA, AAGG   Skipping...
+WARNING: Multi-allelic STR DEL:INS 2bp:AG:DEL,INS:0=>20,3:MULTI has alleles with different RepeatUnits: AG, ATAGAG   Skipping...
+WARNING: Multi-allelic STR INS:INS 2bp:TG:INS,INS:4=>11,6:MULTI has alleles with different RepeatUnits: TG, TATA   Skipping...
+WARNING: Multi-allelic STR INS:INS 2bp:CA:INS,INS:11=>22,13:MULTI has alleles with different RepeatUnits: CA, CACT   Skipping...
+WARNING: Multi-allelic STR INS:INS 3bp:TTA:INS,INS:12=>14,18:MULTI has alleles with different RepeatUnits: TTA, TTG   Skipping...
+WARNING: Multi-allelic STR DEL:DEL 4bp:TGTA:DEL,DEL:15=>0,12:MULTI has alleles with different RepeatUnits: TGTA, TA   Skipping...
+WARNING: Multi-allelic STR DEL:INS 4bp:CTTC:DEL,INS:20=>1,21:MULTI has alleles with different RepeatUnits: CTTC, CTTT   Skipping...
+WARNING: Multi-allelic STR INS:INS 2bp:AC:INS,INS:4=>5,7:MULTI has alleles with different RepeatUnits: AC, ACAC   Skipping...
+WARNING: Multi-allelic STR DEL:INS 2bp:GT:DEL,INS:0=>14,3:MULTI has alleles with different RepeatUnits: GT, GCGT   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:CACT:INS,INS:1=>16,3:MULTI has alleles with different RepeatUnits: CACT, CACTCACC   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:AACT:INS,INS:6=>8,8:MULTI has alleles with different RepeatUnits: AACT, AACA   Skipping...
+WARNING: Multi-allelic STR INS:INS 3bp:CTC:INS,INS:9=>19,13:MULTI has alleles with different RepeatUnits: CTC, CTTCTC   Skipping...
+WARNING: Multi-allelic STR INS:INS 2bp:TA:INS,INS:0=>21,4:MULTI has alleles with different RepeatUnits: TA, TATG   Skipping...
+WARNING: Multi-allelic STR DEL:DEL 4bp:GAGA:DEL,DEL:16=>0,11:MULTI has alleles with different RepeatUnits: GAGA, GATA   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:CTTT:INS,INS:7=>10,13:MULTI has alleles with different RepeatUnits: CTTT, CTTC   Skipping...
+WARNING: Multi-allelic STR DEL:DEL 4bp:TGTA:DEL,DEL:21=>0,15:MULTI has alleles with different RepeatUnits: TGTA, TA   Skipping...
+WARNING: Multi-allelic STR INS:INS 2bp:TA:INS,INS:0=>23,5:MULTI has alleles with different RepeatUnits: TA, TGTA   Skipping...
+WARNING: Multi-allelic STR DEL:DEL 4bp:GTCT:DEL,DEL:25=>0,21:MULTI has alleles with different RepeatUnits: GTCT, CT   Skipping...
+WARNING: Multi-allelic STR DEL:INS 4bp:GATA:DEL,INS:4=>6,5:MULTI has alleles with different RepeatUnits: GATA, GGTA   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:TCTT:INS,INS:7=>9,14:MULTI has alleles with different RepeatUnits: TCTT, TCTC   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:AGAC:INS,INS:4=>7,10:MULTI has alleles with different RepeatUnits: AGAC, AGAT   Skipping...
+WARNING: Multi-allelic STR DEL:DEL 4bp:ATAC:DEL,DEL:24=>0,11:MULTI has alleles with different RepeatUnits: ATAC, AC   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:GAAG:INS,INS:28=>14,35:MULTI has alleles with different RepeatUnits: GAAG, GAAA   Skipping...
+WARNING: Multi-allelic STR DEL:INS 4bp:CATA:DEL,INS:6=>3,9:MULTI has alleles with different RepeatUnits: CATA, TATA   Skipping...
+WARNING: Multi-allelic STR DEL:DEL 4bp:TTTA:DEL,DEL:28=>0,25:MULTI has alleles with different RepeatUnits: TTTA, TA   Skipping...
+WARNING: Multi-allelic STR INS:INS 2bp:AT:INS,INS:0=>32,3:MULTI has alleles with different RepeatUnits: AT, ATACAT   Skipping...
+WARNING: Multi-allelic STR DEL:INS 4bp:AGGA:DEL,INS:8=>13,9:MULTI has alleles with different RepeatUnits: AGGA, AGGG   Skipping...
+WARNING: Multi-allelic STR INS:INS 3bp:CTT:INS,INS:5=>6,9:MULTI has alleles with different RepeatUnits: CTT, CTC   Skipping...
+WARNING: Multi-allelic STR DEL:DEL 3bp:GAA:DEL,DEL:17=>22,7:MULTI has alleles with different RepeatUnits: GAA, GAG   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:CTTC:INS,INS:5=>18,12:MULTI has alleles with different RepeatUnits: CTTC, CTTT   Skipping...
+WARNING: Multi-allelic STR DEL:INS 4bp:TGGA:DEL,INS:4=>0,6:MULTI has alleles with different RepeatUnits: TGGA, TAGA   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:TCTA:INS,INS:1=>10,4:MULTI has alleles with different RepeatUnits: TCTA, TCTG   Skipping...
+WARNING: Multi-allelic STR INS:INS 3bp:ATT:INS,INS:8=>6,9:MULTI has alleles with different RepeatUnits: ATT, GTT   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:CTAC:INS,INS:15=>3,17:MULTI has alleles with different RepeatUnits: CTAC, CTAT   Skipping...
+WARNING: Multi-allelic STR INS:INS 2bp:AT:INS,INS:3=>11,8:MULTI has alleles with different RepeatUnits: AT, ATATAT   Skipping...
+WARNING: Multi-allelic STR INS:INS 5bp:TTATA:INS,INS:0=>8,3:MULTI has alleles with different RepeatUnits: TTATA, TTTTA   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:TTCC:INS,INS:16=>3,17:MULTI has alleles with different RepeatUnits: TTCC, TTTC   Skipping...
+WARNING: Multi-allelic STR INS:INS 2bp:AT:INS,INS:0=>25,3:MULTI has alleles with different RepeatUnits: AT, ATACAT   Skipping...
+WARNING: Multi-allelic STR DEL:DEL 6bp:TATGTA:DEL,DEL:25=>0,22:MULTI has alleles with different RepeatUnits: TATGTA, TA   Skipping...
+WARNING: Multi-allelic STR INS:INS 2bp:AC:INS,INS:0=>19,3:MULTI has alleles with different RepeatUnits: AC, ACACGC   Skipping...
+WARNING: Multi-allelic STR INS:INS 2bp:CA:INS,INS:0=>22,3:MULTI has alleles with different RepeatUnits: CA, CCCA   Skipping...
+WARNING: Multi-allelic STR DEL:DEL 6bp:ATATAA:DEL,DEL:7=>0,0:MULTI has alleles with different RepeatUnits: ATATAA, ATAA   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:TGTA:INS,INS:0=>13,3:MULTI has alleles with different RepeatUnits: TGTA, TGTATG   Skipping...
+WARNING: Multi-allelic STR INS:INS 2bp:AC:INS,INS:13=>19,16:MULTI has alleles with different RepeatUnits: AC, ACAG   Skipping...
+WARNING: Multi-allelic STR INS:INS 6bp:ATATAT:INS,INS:4=>7,13:MULTI has alleles with different RepeatUnits: ATATAT, ATAT   Skipping...
+WARNING: Multi-allelic STR INS:INS 5bp:ATAAA:INS,INS:12=>3,14:MULTI has alleles with different RepeatUnits: ATAAA, ATAAC   Skipping...
+WARNING: Multi-allelic STR DEL:DEL 4bp:GGTG:DEL,DEL:17=>0,10:MULTI has alleles with different RepeatUnits: GGTG, TG   Skipping...
+WARNING: Multi-allelic STR INS:INS 2bp:AT:INS,INS:6=>13,13:MULTI has alleles with different RepeatUnits: AT, ATAT   Skipping...
+WARNING: Multi-allelic STR DEL:INS 5bp:CAAGA:DEL,INS:2=>3,3:MULTI has alleles with different RepeatUnits: CAAGA, CAAGAGAAGA   Skipping...
+WARNING: Multi-allelic STR INS:INS 2bp:TA:INS,INS:0=>18,3:MULTI has alleles with different RepeatUnits: TA, TTTA   Skipping...
+WARNING: Multi-allelic STR DEL:INS 4bp:TTCC:DEL,INS:0=>27,3:MULTI has alleles with different RepeatUnits: TTCC, TTCT   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:TCTT:INS,INS:0=>21,3:MULTI has alleles with different RepeatUnits: TCTT, CCTT   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:ACAT:INS,INS:14=>6,23:MULTI has alleles with different RepeatUnits: ACAT, AT   Skipping...
+WARNING: Multi-allelic STR DEL:INS 4bp:TTTA:DEL,INS:2=>4,3:MULTI has alleles with different RepeatUnits: TTTA, TTTATTTC   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:TCTA:INS,INS:1=>13,7:MULTI has alleles with different RepeatUnits: TCTA, TCTT   Skipping...
+WARNING: Multi-allelic STR DEL:DEL 6bp:ATACAT:DEL,DEL:7=>0,0:MULTI has alleles with different RepeatUnits: ATACAT, ACAT   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:TATC:INS,INS:2=>12,4:MULTI has alleles with different RepeatUnits: TATC, TATG   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:TTTC:INS,INS:0=>8,3:MULTI has alleles with different RepeatUnits: TTTC, TTTTTTTC   Skipping...
+WARNING: Multi-allelic STR DEL:INS 2bp:CA:DEL,INS:0=>14,4:MULTI has alleles with different RepeatUnits: CA, CGCA   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:AGGA:INS,INS:0=>9,7:MULTI has alleles with different RepeatUnits: AGGA, AGAA   Skipping...
+WARNING: Multi-allelic STR INS:INS 2bp:TA:INS,INS:0=>20,3:MULTI has alleles with different RepeatUnits: TA, TTTA   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:CCTG:INS,INS:9=>9,15:MULTI has alleles with different RepeatUnits: CCTG, CCTT   Skipping...
+WARNING: Multi-allelic STR INS:INS 2bp:AC:INS,INS:0=>15,3:MULTI has alleles with different RepeatUnits: AC, ACAT   Skipping...
+WARNING: Multi-allelic STR DEL:DEL 4bp:TGTA:DEL,DEL:23=>0,15:MULTI has alleles with different RepeatUnits: TGTA, TA   Skipping...
+WARNING: Multi-allelic STR INS:INS 2bp:TA:INS,INS:0=>25,4:MULTI has alleles with different RepeatUnits: TA, TTTA   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:TTTA:INS,INS:12=>3,25:MULTI has alleles with different RepeatUnits: TTTA, TA   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:CCTC:INS,INS:3=>8,6:MULTI has alleles with different RepeatUnits: CCTC, CCTT   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:CATA:INS,INS:12=>8,15:MULTI has alleles with different RepeatUnits: CATA, CATG   Skipping...
+WARNING: Multi-allelic STR INS:INS 2bp:TC:INS,INS:8=>9,10:MULTI has alleles with different RepeatUnits: TC, TCTT   Skipping...
+WARNING: Multi-allelic STR DEL:DEL 4bp:GTGC:DEL,DEL:20=>1,15:MULTI has alleles with different RepeatUnits: GTGC, GT   Skipping...
+WARNING: Multi-allelic STR INS:INS 7bp:TATATAT:INS,INS:4=>8,8:MULTI has alleles with different RepeatUnits: TATATAT, TATATAA   Skipping...
+WARNING: Multi-allelic STR DEL:DEL 4bp:ATAC:DEL,DEL:3=>1,0:MULTI has alleles with different RepeatUnits: ATAC, ACATAT   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:CCTG:INS,INS:7=>4,11:MULTI has alleles with different RepeatUnits: CCTG, CCTT   Skipping...
+WARNING: Multi-allelic STR INS:INS 2bp:AT:INS,INS:0=>12,7:MULTI has alleles with different RepeatUnits: AT, ACAT   Skipping...
+WARNING: Multi-allelic STR INS:INS 2bp:TA:INS,INS:0=>18,5:MULTI has alleles with different RepeatUnits: TA, TGTATA   Skipping...
+WARNING: Multi-allelic STR INS:INS 2bp:TA:INS,INS:0=>12,7:MULTI has alleles with different RepeatUnits: TA, TATT   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:AGAT:INS,INS:12=>11,15:MULTI has alleles with different RepeatUnits: AGAT, AGAC   Skipping...
+WARNING: Multi-allelic STR INS:INS 2bp:AC:INS,INS:4=>6,6:MULTI has alleles with different RepeatUnits: AC, ATAT   Skipping...
+WARNING: Multi-allelic STR DEL:DEL 4bp:TATT:DEL,DEL:13=>2,11:MULTI has alleles with different RepeatUnits: TATT, TATC   Skipping...
+WARNING: Multi-allelic STR INS:INS 6bp:TGTATA:INS,INS:0=>5,6:MULTI has alleles with different RepeatUnits: TGTATA, TGTA   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:CATC:INS,INS:9=>3,12:MULTI has alleles with different RepeatUnits: CATC, TATC   Skipping...
+WARNING: Multi-allelic STR INS:INS 2bp:TA:INS,INS:0=>23,5:MULTI has alleles with different RepeatUnits: TA, TTTA   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:ATAC:INS,INS:6=>3,10:MULTI has alleles with different RepeatUnits: ATAC, AT   Skipping...
+WARNING: Multi-allelic STR INS:INS 6bp:TGTATA:INS,INS:0=>5,9:MULTI has alleles with different RepeatUnits: TGTATA, TGTA   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:TCCG:INS,INS:13=>5,17:MULTI has alleles with different RepeatUnits: TCCG, TCCT   Skipping...
+WARNING: Multi-allelic STR INS:INS 2bp:AT:INS,INS:1=>10,6:MULTI has alleles with different RepeatUnits: AT, ATAC   Skipping...
+WARNING: Multi-allelic STR INS:INS 2bp:TA:INS,INS:14=>11,18:MULTI has alleles with different RepeatUnits: TA, TATC   Skipping...
+WARNING: Multi-allelic STR INS:INS 2bp:AG:INS,INS:8=>8,11:MULTI has alleles with different RepeatUnits: AG, ACAC   Skipping...
+WARNING: Multi-allelic STR DEL:INS 4bp:AGGA:DEL,INS:12=>1,13:MULTI has alleles with different RepeatUnits: AGGA, AGGG   Skipping...
+WARNING: Multi-allelic STR DEL:DEL 3bp:ATC:DEL,DEL:20=>0,15:MULTI has alleles with different RepeatUnits: ATC, ATT   Skipping...
+WARNING: Multi-allelic STR INS:INS 2bp:TA:INS,INS:0=>12,3:MULTI has alleles with different RepeatUnits: TA, TGTA   Skipping...
+WARNING: Multi-allelic STR INS:INS 2bp:CA:INS,INS:1=>17,5:MULTI has alleles with different RepeatUnits: CA, CACG   Skipping...
+WARNING: Multi-allelic STR INS:INS 3bp:ATC:INS,INS:6=>8,17:MULTI has alleles with different RepeatUnits: ATC, ATT   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:TTCC:INS,INS:0=>17,4:MULTI has alleles with different RepeatUnits: TTCC, TTCT   Skipping...
+WARNING: Multi-allelic STR INS:INS 6bp:ACACAC:INS,INS:8=>8,12:MULTI has alleles with different RepeatUnits: ACACAC, ACAC   Skipping...
+WARNING: Multi-allelic STR DEL:DEL 4bp:ATAC:DEL,DEL:16=>0,12:MULTI has alleles with different RepeatUnits: ATAC, AC   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:CTTC:INS,INS:22=>9,27:MULTI has alleles with different RepeatUnits: CTTC, CTTT   Skipping...
+WARNING: Multi-allelic STR INS:INS 2bp:CA:INS,INS:5=>13,12:MULTI has alleles with different RepeatUnits: CA, CACA   Skipping...
+WARNING: Multi-allelic STR INS:INS 2bp:TA:INS,INS:5=>25,10:MULTI has alleles with different RepeatUnits: TA, TATATA   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:ATAT:INS,INS:9=>4,15:MULTI has alleles with different RepeatUnits: ATAT, ATATAC   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:CCTG:INS,INS:6=>4,15:MULTI has alleles with different RepeatUnits: CCTG, CCTC   Skipping...
+WARNING: Multi-allelic STR INS:INS 12bp:CCTCCCTTCCTC:INS,INS:18=>4,23:MULTI has alleles with different RepeatUnits: CCTCCCTTCCTC, CCTC   Skipping...
+WARNING: Multi-allelic STR DEL:INS 2bp:TA:DEL,INS:8=>13,13:MULTI has alleles with different RepeatUnits: TA, TGTA   Skipping...
+WARNING: Multi-allelic STR DEL:INS 2bp:TG:DEL,INS:0=>18,3:MULTI has alleles with different RepeatUnits: TG, TCTG   Skipping...
+WARNING: Multi-allelic STR DEL:DEL 4bp:TCTT:DEL,DEL:15=>0,13:MULTI has alleles with different RepeatUnits: TCTT, TCTA   Skipping...
+WARNING: Multi-allelic STR INS:INS 2bp:GT:INS,INS:0=>27,3:MULTI has alleles with different RepeatUnits: GT, GGGT   Skipping...
+WARNING: Multi-allelic STR DEL:INS 2bp:AC:DEL,INS:1=>16,4:MULTI has alleles with different RepeatUnits: AC, ACACAG   Skipping...
+WARNING: Multi-allelic STR INS:INS 6bp:TGTATA:INS,INS:0=>3,4:MULTI has alleles with different RepeatUnits: TGTATA, TGTA   Skipping...
+WARNING: Multi-allelic STR DEL:DEL 4bp:TTTA:DEL,DEL:28=>0,23:MULTI has alleles with different RepeatUnits: TTTA, TA   Skipping...
+WARNING: Multi-allelic STR DEL:INS 2bp:AT:DEL,INS:5=>9,15:MULTI has alleles with different RepeatUnits: AT, ATAT   Skipping...
+WARNING: Multi-allelic STR INS:INS 2bp:AC:INS,INS:0=>19,3:MULTI has alleles with different RepeatUnits: AC, ATAC   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:ATAC:INS,INS:11=>3,20:MULTI has alleles with different RepeatUnits: ATAC, AC   Skipping...
+WARNING: Multi-allelic STR INS:INS 5bp:AGGGA:INS,INS:6=>11,11:MULTI has alleles with different RepeatUnits: AGGGA, AGGGG   Skipping...
+WARNING: Multi-allelic STR DEL:DEL 4bp:TATG:DEL,DEL:24=>0,13:MULTI has alleles with different RepeatUnits: TATG, TG   Skipping...
+WARNING: Multi-allelic STR INS:INS 3bp:ATG:INS,INS:10=>6,14:MULTI has alleles with different RepeatUnits: ATG, ATA   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:AAGA:INS,INS:1=>13,10:MULTI has alleles with different RepeatUnits: AAGA, AAGG   Skipping...
+WARNING: Multi-allelic STR INS:INS 5bp:AGGGT:INS,INS:3=>5,4:MULTI has alleles with different RepeatUnits: AGGGT, GGGGT   Skipping...
+WARNING: Multi-allelic STR DEL:INS 2bp:AT:DEL,INS:5=>9,7:MULTI has alleles with different RepeatUnits: AT, ATAT   Skipping...
+WARNING: Multi-allelic STR INS:INS 6bp:ATACAC:INS,INS:13=>3,21:MULTI has alleles with different RepeatUnits: ATACAC, AC   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:CTGG:INS,INS:3=>8,6:MULTI has alleles with different RepeatUnits: CTGG, CTGT   Skipping...
+WARNING: Multi-allelic STR DEL:DEL 4bp:TTTA:DEL,DEL:15=>0,9:MULTI has alleles with different RepeatUnits: TTTA, TTTC   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:CCAC:INS,INS:2=>5,3:MULTI has alleles with different RepeatUnits: CCAC, CCACCCACCCACCATCCATCCAC   Skipping...
+WARNING: Multi-allelic STR INS:INS 3bp:ATA:INS,INS:0=>25,7:MULTI has alleles with different RepeatUnits: ATA, ATT   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:GAAA:INS,INS:6=>15,9:MULTI has alleles with different RepeatUnits: GAAA, GAAG   Skipping...
+WARNING: Multi-allelic STR INS:INS 2bp:TA:INS,INS:0=>21,3:MULTI has alleles with different RepeatUnits: TA, TGTA   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:ATAG:INS,INS:10=>11,13:MULTI has alleles with different RepeatUnits: ATAG, ATAT   Skipping...
+WARNING: Multi-allelic STR INS:INS 2bp:GT:INS,INS:0=>22,3:MULTI has alleles with different RepeatUnits: GT, ATGT   Skipping...
+WARNING: Multi-allelic STR DEL:INS 4bp:AGGA:DEL,INS:2=>7,13:MULTI has alleles with different RepeatUnits: AGGA, AGGG   Skipping...
+WARNING: Multi-allelic STR DEL:DEL 4bp:TCTC:DEL,DEL:28=>4,13:MULTI has alleles with different RepeatUnits: TCTC, TC   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:AGAC:INS,INS:2=>8,4:MULTI has alleles with different RepeatUnits: AGAC, AGAGAC   Skipping...
+WARNING: Multi-allelic STR DEL:DEL 3bp:ACT:DEL,DEL:16=>0,14:MULTI has alleles with different RepeatUnits: ACT, ATT   Skipping...
+WARNING: Multi-allelic STR INS:INS 2bp:TC:INS,INS:0=>12,3:MULTI has alleles with different RepeatUnits: TC, TGTC   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:CTTC:INS,INS:18=>6,24:MULTI has alleles with different RepeatUnits: CTTC, CTTT   Skipping...
+WARNING: Multi-allelic STR DEL:INS 5bp:CCTCC:DEL,INS:0=>9,6:MULTI has alleles with different RepeatUnits: CCTCC, CTTCC   Skipping...
+WARNING: Multi-allelic STR INS:INS 14bp:TAAACAGTGCAGTG:INS,INS:2=>3,17:MULTI has alleles with different RepeatUnits: TAAACAGTGCAGTG, TAAACAGTGCAGTA   Skipping...
+WARNING: Multi-allelic STR INS:INS 2bp:AC:INS,INS:8=>19,12:MULTI has alleles with different RepeatUnits: AC, ACAC   Skipping...
+WARNING: Multi-allelic STR INS:INS 6bp:GTGTGT:INS,INS:6=>7,11:MULTI has alleles with different RepeatUnits: GTGTGT, GTGT   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:TCCC:INS,INS:14=>4,18:MULTI has alleles with different RepeatUnits: TCCC, TCCT   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:TTCC:INS,INS:5=>20,8:MULTI has alleles with different RepeatUnits: TTCC, TTCTTTCC   Skipping...
+WARNING: Multi-allelic STR DEL:INS 6bp:AGAAGG:DEL,INS:29=>5,32:MULTI has alleles with different RepeatUnits: AGAAGG, AGG   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:AGGA:INS,INS:1=>13,6:MULTI has alleles with different RepeatUnits: AGGA, AGGG   Skipping...
+WARNING: Multi-allelic STR DEL:DEL 4bp:TTTA:DEL,DEL:17=>0,10:MULTI has alleles with different RepeatUnits: TTTA, TA   Skipping...
+WARNING: Multi-allelic STR INS:INS 2bp:AT:INS,INS:0=>10,3:MULTI has alleles with different RepeatUnits: AT, AGAT   Skipping...
+WARNING: Multi-allelic STR INS:INS 32bp:AGGGGAGGGGAAGGGCAGGAGAGGGGAAGGGC:INS,INS:1=>3,3:MULTI has alleles with different RepeatUnits: AGGGGAGGGGAAGGGCAGGAGAGGGGAAGGGC, AGGGGAGGGGAAGGGC   Skipping...
+WARNING: Multi-allelic STR DEL:DEL 6bp:CACACA:DEL,DEL:13=>5,9:MULTI has alleles with different RepeatUnits: CACACA, CACA   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:AGAC:INS,INS:12=>3,15:MULTI has alleles with different RepeatUnits: AGAC, AGAT   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:AGGA:INS,INS:2=>22,8:MULTI has alleles with different RepeatUnits: AGGA, AGGT   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:GAGA:INS,INS:0=>5,10:MULTI has alleles with different RepeatUnits: GAGA, GA   Skipping...
+WARNING: Multi-allelic STR DEL:DEL 30bp:CGGCGGCGGCGGCGGGCAGGGCGGGGCCGG:DEL,DEL:5=>9,4:MULTI has alleles with different RepeatUnits: CGGCGGCGGCGGCGGGCAGGGCGGGGCCGG, CGG   Skipping...
+WARNING: Multi-allelic STR DEL:INS 2bp:TA:DEL,INS:0=>9,3:MULTI has alleles with different RepeatUnits: TA, TATACA   Skipping...
+WARNING: Multi-allelic STR DEL:INS 4bp:CCTT:DEL,INS:10=>7,19:MULTI has alleles with different RepeatUnits: CCTT, CCTC   Skipping...
+WARNING: Multi-allelic STR DEL:DEL 4bp:TCTG:DEL,DEL:21=>8,14:MULTI has alleles with different RepeatUnits: TCTG, TCTA   Skipping...
+WARNING: Multi-allelic STR INS:INS 12bp:ATATATATATGA:INS,INS:8=>5,10:MULTI has alleles with different RepeatUnits: ATATATATATGA, ATATATATATGG   Skipping...
+WARNING: Multi-allelic STR DEL:INS 4bp:TGTG:DEL,INS:3=>5,5:MULTI has alleles with different RepeatUnits: TGTG, TG   Skipping...
+WARNING: Multi-allelic STR INS:INS 2bp:AC:INS,INS:0=>17,4:MULTI has alleles with different RepeatUnits: AC, ATAC   Skipping...
+WARNING: Multi-allelic STR INS:INS 2bp:AC:INS,INS:4=>20,7:MULTI has alleles with different RepeatUnits: AC, ACACAC   Skipping...
+WARNING: Multi-allelic STR INS:INS 6bp:GCACAC:INS,INS:0=>3,5:MULTI has alleles with different RepeatUnits: GCACAC, GCAC   Skipping...
+WARNING: Multi-allelic STR DEL:INS 2bp:AT:DEL,INS:0=>17,5:MULTI has alleles with different RepeatUnits: AT, ATTTAT   Skipping...
+WARNING: Multi-allelic STR DEL:DEL 4bp:TCTC:DEL,DEL:7=>24,5:MULTI has alleles with different RepeatUnits: TCTC, TC   Skipping...
+WARNING: Multi-allelic STR DEL:INS 19bp:AGAGTGGCGTACCCAGCGG:DEL,INS:0=>3,6:MULTI has alleles with different RepeatUnits: AGAGTGGCGTACCCAGCGG, AGAGTGGCGCACCCAGCGG   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:TGTG:INS,INS:3=>10,6:MULTI has alleles with different RepeatUnits: TGTG, TGTGTG   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:TATC:INS,INS:2=>8,3:MULTI has alleles with different RepeatUnits: TATC, TATCTATCTATA   Skipping...
+WARNING: Multi-allelic STR DEL:INS 2bp:AT:DEL,INS:0=>8,6:MULTI has alleles with different RepeatUnits: AT, ACAT   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:TCTA:INS,INS:0=>11,4:MULTI has alleles with different RepeatUnits: TCTA, TTTA   Skipping...
+WARNING: Multi-allelic STR DEL:INS 2bp:AT:DEL,INS:8=>10,14:MULTI has alleles with different RepeatUnits: AT, ATAT   Skipping...
+WARNING: Multi-allelic STR INS:INS 5bp:TCTCT:INS,INS:0=>24,9:MULTI has alleles with different RepeatUnits: TCTCT, TCTTT   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:TATA:INS,INS:3=>10,8:MULTI has alleles with different RepeatUnits: TATA, TATATA   Skipping...
+WARNING: Multi-allelic STR DEL:DEL 4bp:GAGA:DEL,DEL:3=>8,0:MULTI has alleles with different RepeatUnits: GAGA, GGGA   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:AGAA:INS,INS:5=>14,7:MULTI has alleles with different RepeatUnits: AGAA, AGAG   Skipping...
+WARNING: Multi-allelic STR INS:INS 2bp:AT:INS,INS:1=>14,8:MULTI has alleles with different RepeatUnits: AT, ATAT   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:TATT:INS,INS:1=>9,5:MULTI has alleles with different RepeatUnits: TATT, TATC   Skipping...
+WARNING: Multi-allelic STR DEL:INS 4bp:GAAA:DEL,INS:0=>12,5:MULTI has alleles with different RepeatUnits: GAAA, GAAT   Skipping...
+WARNING: Multi-allelic STR INS:INS 2bp:GT:INS,INS:0=>24,5:MULTI has alleles with different RepeatUnits: GT, GGGTGT   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:AGAA:INS,INS:1=>16,4:MULTI has alleles with different RepeatUnits: AGAA, AGAC   Skipping...
+WARNING: Multi-allelic STR INS:INS 2bp:TA:INS,INS:0=>23,3:MULTI has alleles with different RepeatUnits: TA, TGTA   Skipping...
+WARNING: Multi-allelic STR INS:INS 2bp:TA:INS,INS:4=>10,6:MULTI has alleles with different RepeatUnits: TA, TGTA   Skipping...
+WARNING: Multi-allelic STR DEL:DEL 4bp:TAGA:DEL,DEL:21=>0,14:MULTI has alleles with different RepeatUnits: TAGA, TA   Skipping...
+WARNING: Multi-allelic STR INS:INS 6bp:TTTATA:INS,INS:14=>3,23:MULTI has alleles with different RepeatUnits: TTTATA, TA   Skipping...
+WARNING: Multi-allelic STR INS:INS 6bp:TGTATA:INS,INS:0=>3,5:MULTI has alleles with different RepeatUnits: TGTATA, TGTA   Skipping...
+WARNING: Multi-allelic STR DEL:DEL 4bp:TGTA:DEL,DEL:21=>0,19:MULTI has alleles with different RepeatUnits: TGTA, TA   Skipping...
+WARNING: Multi-allelic STR DEL:INS 5bp:GGAAT:DEL,INS:16=>5,17:MULTI has alleles with different RepeatUnits: GGAAT, GGAAC   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:TTCC:INS,INS:12=>21,19:MULTI has alleles with different RepeatUnits: TTCC, TTCT   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:TCTT:INS,INS:0=>9,4:MULTI has alleles with different RepeatUnits: TCTT, CCTT   Skipping...
+WARNING: Multi-allelic STR INS:INS 5bp:CCCTC:INS,INS:3=>10,11:MULTI has alleles with different RepeatUnits: CCCTC, CCCTT   Skipping...
+WARNING: Multi-allelic STR DEL:DEL 4bp:TTCT:DEL,DEL:13=>3,8:MULTI has alleles with different RepeatUnits: TTCT, TTCC   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:TTCT:INS,INS:9=>13,16:MULTI has alleles with different RepeatUnits: TTCT, TTCC   Skipping...
+WARNING: Multi-allelic STR INS:INS 2bp:AC:INS,INS:0=>18,3:MULTI has alleles with different RepeatUnits: AC, ACAT   Skipping...
+WARNING: Multi-allelic STR DEL:INS 2bp:TG:DEL,INS:9=>17,13:MULTI has alleles with different RepeatUnits: TG, TGTG   Skipping...
+WARNING: Multi-allelic STR DEL:INS 9bp:AGTAGTAGA:DEL,INS:15=>2,17:MULTI has alleles with different RepeatUnits: AGTAGTAGA, AGT   Skipping...
+WARNING: Multi-allelic STR INS:INS 2bp:GA:INS,INS:3=>17,8:MULTI has alleles with different RepeatUnits: GA, GAGG   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:CTTT:INS,INS:13=>7,18:MULTI has alleles with different RepeatUnits: CTTT, CTTC   Skipping...
+WARNING: Multi-allelic STR INS:INS 2bp:TG:INS,INS:0=>21,4:MULTI has alleles with different RepeatUnits: TG, TCTG   Skipping...
+WARNING: Multi-allelic STR DEL:INS 4bp:TCTG:DEL,INS:11=>3,13:MULTI has alleles with different RepeatUnits: TCTG, TCTA   Skipping...
+WARNING: Multi-allelic STR INS:INS 5bp:TTATA:INS,INS:8=>11,11:MULTI has alleles with different RepeatUnits: TTATA, TTATT   Skipping...
+WARNING: Multi-allelic STR INS:INS 2bp:AT:INS,INS:0=>28,5:MULTI has alleles with different RepeatUnits: AT, ATAGAT   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:TTCT:INS,INS:1=>10,6:MULTI has alleles with different RepeatUnits: TTCT, TTCC   Skipping...
+WARNING: Multi-allelic STR DEL:DEL 6bp:GAGGGA:DEL,DEL:4=>0,0:MULTI has alleles with different RepeatUnits: GAGGGA, GGGA   Skipping...
+WARNING: Multi-allelic STR DEL:INS 2bp:GT:DEL,INS:11=>17,14:MULTI has alleles with different RepeatUnits: GT, GTGT   Skipping...
+WARNING: Multi-allelic STR DEL:DEL 4bp:ACAT:DEL,DEL:23=>5,19:MULTI has alleles with different RepeatUnits: ACAT, AC   Skipping...
+WARNING: Multi-allelic STR DEL:DEL 4bp:AGAC:DEL,DEL:6=>5,5:MULTI has alleles with different RepeatUnits: AGAC, AGAT   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:CATC:INS,INS:2=>8,4:MULTI has alleles with different RepeatUnits: CATC, CATG   Skipping...
+WARNING: Multi-allelic STR INS:INS 2bp:AC:INS,INS:0=>18,4:MULTI has alleles with different RepeatUnits: AC, ACAT   Skipping...
+WARNING: Multi-allelic STR DEL:DEL 4bp:ACAT:DEL,DEL:26=>0,23:MULTI has alleles with different RepeatUnits: ACAT, AT   Skipping...
+WARNING: Multi-allelic STR INS:INS 2bp:TA:INS,INS:7=>15,9:MULTI has alleles with different RepeatUnits: TA, TATG   Skipping...
+WARNING: Multi-allelic STR INS:INS 2bp:TA:INS,INS:4=>12,5:MULTI has alleles with different RepeatUnits: TA, TGTA   Skipping...
+WARNING: Multi-allelic STR INS:INS 6bp:ACACAC:INS,INS:4=>6,8:MULTI has alleles with different RepeatUnits: ACACAC, ACAC   Skipping...
+WARNING: Multi-allelic STR DEL:DEL 4bp:CCTT:DEL,DEL:11=>3,9:MULTI has alleles with different RepeatUnits: CCTT, CCTC   Skipping...
+WARNING: Multi-allelic STR INS:INS 2bp:TG:INS,INS:0=>26,3:MULTI has alleles with different RepeatUnits: TG, TATG   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:TCTT:INS,INS:1=>9,11:MULTI has alleles with different RepeatUnits: TCTT, TCTC   Skipping...
+WARNING: Multi-allelic STR DEL:DEL 4bp:AGAT:DEL,DEL:37=>0,34:MULTI has alleles with different RepeatUnits: AGAT, AT   Skipping...
+WARNING: Multi-allelic STR INS:INS 6bp:TATAAA:INS,INS:6=>3,11:MULTI has alleles with different RepeatUnits: TATAAA, TATA   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:AGGC:INS,INS:24=>14,26:MULTI has alleles with different RepeatUnits: AGGC, AGGA   Skipping...
+WARNING: Multi-allelic STR INS:INS 4bp:AAGA:INS,INS:5=>20,9:MULTI has alleles with different RepeatUnits: AAGA, AAGC   Skipping...
+WARNING: Multi-allelic STR INS:INS 2bp:AT:INS,INS:7=>16,10:MULTI has alleles with different RepeatUnits: AT, ATAT   Skipping...
+WARNING: Multi-allelic STR DEL:INS 3bp:TCT:DEL,INS:52=>14,65:MULTI has alleles with different RepeatUnits: TCT, TCC   Skipping...
+WARNING: Multi-allelic STR INS:INS 2bp:TA:INS,INS:3=>5,4:MULTI has alleles with different RepeatUnits: TA, TGTA   Skipping...
+Finished writing to  step2.STRs.variants.tsv
+Finished writing to  step2.STRs.alleles.tsv
+2022-11-30 21:40:15,289 INFO: --------------
+2022-11-30 21:40:15,295 INFO:     12,135 out of    181,064 (  6.7%) STR allele counts (interruptions allowed): TOTAL
+2022-11-30 21:40:15,295 INFO:      6,427 out of    181,064 (  3.5%) STR allele counts (interruptions allowed): INS
+2022-11-30 21:40:15,296 INFO:      5,708 out of    181,064 (  3.2%) STR allele counts (interruptions allowed): DEL
+2022-11-30 21:40:15,296 INFO: --------------
+2022-11-30 21:40:15,296 INFO:    181,064 out of    181,064 (100.0%) STR allele counts: TOTAL
+2022-11-30 21:40:15,296 INFO:     90,780 out of    181,064 ( 50.1%) STR allele counts: DEL
+2022-11-30 21:40:15,296 INFO:     90,284 out of    181,064 ( 49.9%) STR allele counts: INS
+2022-11-30 21:40:15,296 INFO: --------------
+2022-11-30 21:40:15,296 INFO:      3,222 out of    181,064 (  1.8%) STR allele delta (interruptions allowed): 2 repeats
+2022-11-30 21:40:15,296 INFO:      2,619 out of    181,064 (  1.4%) STR allele delta (interruptions allowed): 1 repeats
+2022-11-30 21:40:15,296 INFO:      2,365 out of    181,064 (  1.3%) STR allele delta (interruptions allowed): 3 repeats
+2022-11-30 21:40:15,296 INFO:      1,240 out of    181,064 (  0.7%) STR allele delta (interruptions allowed): 4 repeats
+2022-11-30 21:40:15,296 INFO:        920 out of    181,064 (  0.5%) STR allele delta (interruptions allowed): 5 repeats
+2022-11-30 21:40:15,296 INFO:        629 out of    181,064 (  0.3%) STR allele delta (interruptions allowed): 9+ repeats
+2022-11-30 21:40:15,296 INFO:        552 out of    181,064 (  0.3%) STR allele delta (interruptions allowed): 6 repeats
+2022-11-30 21:40:15,296 INFO:        362 out of    181,064 (  0.2%) STR allele delta (interruptions allowed): 7 repeats
+2022-11-30 21:40:15,296 INFO:        226 out of    181,064 (  0.1%) STR allele delta (interruptions allowed): 8 repeats
+2022-11-30 21:40:15,296 INFO: --------------
+2022-11-30 21:40:15,296 INFO:     95,675 out of    181,064 ( 52.8%) STR allele delta: 1 repeats
+2022-11-30 21:40:15,296 INFO:     35,335 out of    181,064 ( 19.5%) STR allele delta: 2 repeats
+2022-11-30 21:40:15,296 INFO:     17,893 out of    181,064 (  9.9%) STR allele delta: 3 repeats
+2022-11-30 21:40:15,296 INFO:     10,536 out of    181,064 (  5.8%) STR allele delta: 4 repeats
+2022-11-30 21:40:15,296 INFO:      6,691 out of    181,064 (  3.7%) STR allele delta: 5 repeats
+2022-11-30 21:40:15,296 INFO:      5,535 out of    181,064 (  3.1%) STR allele delta: 9+ repeats
+2022-11-30 21:40:15,296 INFO:      4,348 out of    181,064 (  2.4%) STR allele delta: 6 repeats
+2022-11-30 21:40:15,297 INFO:      2,985 out of    181,064 (  1.6%) STR allele delta: 7 repeats
+2022-11-30 21:40:15,297 INFO:      2,066 out of    181,064 (  1.1%) STR allele delta: 8 repeats
+2022-11-30 21:40:15,297 INFO: --------------
+2022-11-30 21:40:15,297 INFO:      8,138 out of    181,064 (  4.5%) STR allele motif size (interruptions allowed): 4 bp
+2022-11-30 21:40:15,297 INFO:      2,054 out of    181,064 (  1.1%) STR allele motif size (interruptions allowed): 3 bp
+2022-11-30 21:40:15,297 INFO:        753 out of    181,064 (  0.4%) STR allele motif size (interruptions allowed): 6 bp
+2022-11-30 21:40:15,297 INFO:        644 out of    181,064 (  0.4%) STR allele motif size (interruptions allowed): 5 bp
+2022-11-30 21:40:15,297 INFO:        412 out of    181,064 (  0.2%) STR allele motif size (interruptions allowed): 9+ bp
+2022-11-30 21:40:15,297 INFO:         75 out of    181,064 (  0.0%) STR allele motif size (interruptions allowed): 8 bp
+2022-11-30 21:40:15,297 INFO:         59 out of    181,064 (  0.0%) STR allele motif size (interruptions allowed): 7 bp
+2022-11-30 21:40:15,297 INFO: --------------
+2022-11-30 21:40:15,297 INFO:    107,594 out of    181,064 ( 59.4%) STR allele motif size: 2 bp
+2022-11-30 21:40:15,297 INFO:     40,439 out of    181,064 ( 22.3%) STR allele motif size: 4 bp
+2022-11-30 21:40:15,297 INFO:     14,888 out of    181,064 (  8.2%) STR allele motif size: 3 bp
+2022-11-30 21:40:15,297 INFO:      9,685 out of    181,064 (  5.3%) STR allele motif size: 5 bp
+2022-11-30 21:40:15,297 INFO:      4,538 out of    181,064 (  2.5%) STR allele motif size: 9+ bp
+2022-11-30 21:40:15,297 INFO:      2,627 out of    181,064 (  1.5%) STR allele motif size: 6 bp
+2022-11-30 21:40:15,297 INFO:        735 out of    181,064 (  0.4%) STR allele motif size: 7 bp
+2022-11-30 21:40:15,297 INFO:        558 out of    181,064 (  0.3%) STR allele motif size: 8 bp
+2022-11-30 21:40:15,297 INFO: --------------
+2022-11-30 21:40:15,297 INFO:      4,601 out of    181,064 (  2.5%) STR allele reference repeats (interruptions allowed): with right matching ref. repeat
+2022-11-30 21:40:15,297 INFO:      3,650 out of    181,064 (  2.0%) STR allele reference repeats (interruptions allowed): with both left and right matching ref. repeat
+2022-11-30 21:40:15,297 INFO:      2,908 out of    181,064 (  1.6%) STR allele reference repeats (interruptions allowed): with left matching ref. repeat
+2022-11-30 21:40:15,297 INFO:        976 out of    181,064 (  0.5%) STR allele reference repeats (interruptions allowed): with no matching ref. repeat
+2022-11-30 21:40:15,298 INFO: --------------
+2022-11-30 21:40:15,298 INFO:    180,316 out of    181,064 ( 99.6%) STR allele reference repeats: with right matching ref. repeat
+2022-11-30 21:40:15,298 INFO:        747 out of    181,064 (  0.4%) STR allele reference repeats: with no matching ref. repeat
+2022-11-30 21:40:15,298 INFO:          1 out of    181,064 (  0.0%) STR allele reference repeats: with both left and right matching ref. repeat
+2022-11-30 21:40:15,298 INFO: --------------
+2022-11-30 21:40:15,298 INFO:     10,605 out of    181,064 (  5.9%) STR allele size (interruptions allowed): 0-25bp
+2022-11-30 21:40:15,298 INFO:      1,252 out of    181,064 (  0.7%) STR allele size (interruptions allowed): 25-50bp
+2022-11-30 21:40:15,298 INFO:        180 out of    181,064 (  0.1%) STR allele size (interruptions allowed): 50-75bp
+2022-11-30 21:40:15,298 INFO:         50 out of    181,064 (  0.0%) STR allele size (interruptions allowed): 75-100bp
+2022-11-30 21:40:15,298 INFO:         16 out of    181,064 (  0.0%) STR allele size (interruptions allowed): 100-125bp
+2022-11-30 21:40:15,298 INFO:         10 out of    181,064 (  0.0%) STR allele size (interruptions allowed): 125-150bp
+2022-11-30 21:40:15,298 INFO:          8 out of    181,064 (  0.0%) STR allele size (interruptions allowed): 200-225bp
+2022-11-30 21:40:15,298 INFO:          5 out of    181,064 (  0.0%) STR allele size (interruptions allowed): 150-175bp
+2022-11-30 21:40:15,298 INFO:          4 out of    181,064 (  0.0%) STR allele size (interruptions allowed): 175-200bp
+2022-11-30 21:40:15,298 INFO:          2 out of    181,064 (  0.0%) STR allele size (interruptions allowed): 250-275bp
+2022-11-30 21:40:15,298 INFO:          1 out of    181,064 (  0.0%) STR allele size (interruptions allowed): 225-250bp
+2022-11-30 21:40:15,298 INFO:          1 out of    181,064 (  0.0%) STR allele size (interruptions allowed): 300-325bp
+2022-11-30 21:40:15,298 INFO:          1 out of    181,064 (  0.0%) STR allele size (interruptions allowed): 350-375bp
+2022-11-30 21:40:15,298 INFO: --------------
+2022-11-30 21:40:15,298 INFO:    175,498 out of    181,064 ( 96.9%) STR allele size: 0-25bp
+2022-11-30 21:40:15,298 INFO:      4,142 out of    181,064 (  2.3%) STR allele size: 25-50bp
+2022-11-30 21:40:15,298 INFO:        664 out of    181,064 (  0.4%) STR allele size: 50-75bp
+2022-11-30 21:40:15,298 INFO:        255 out of    181,064 (  0.1%) STR allele size: 75-100bp
+2022-11-30 21:40:15,298 INFO:        144 out of    181,064 (  0.1%) STR allele size: 100-125bp
+2022-11-30 21:40:15,299 INFO:         93 out of    181,064 (  0.1%) STR allele size: 125-150bp
+2022-11-30 21:40:15,299 INFO:         66 out of    181,064 (  0.0%) STR allele size: 150-175bp
+2022-11-30 21:40:15,299 INFO:         44 out of    181,064 (  0.0%) STR allele size: 175-200bp
+2022-11-30 21:40:15,299 INFO:         33 out of    181,064 (  0.0%) STR allele size: 200-225bp
+2022-11-30 21:40:15,299 INFO:         30 out of    181,064 (  0.0%) STR allele size: 225-250bp
+2022-11-30 21:40:15,299 INFO:         19 out of    181,064 (  0.0%) STR allele size: 250-275bp
+2022-11-30 21:40:15,299 INFO:         14 out of    181,064 (  0.0%) STR allele size: 275-300bp
+2022-11-30 21:40:15,299 INFO:         14 out of    181,064 (  0.0%) STR allele size: 500+bp
+2022-11-30 21:40:15,299 INFO:         11 out of    181,064 (  0.0%) STR allele size: 350-375bp
+2022-11-30 21:40:15,299 INFO:          9 out of    181,064 (  0.0%) STR allele size: 425-450bp
+2022-11-30 21:40:15,299 INFO:          7 out of    181,064 (  0.0%) STR allele size: 325-350bp
+2022-11-30 21:40:15,299 INFO:          7 out of    181,064 (  0.0%) STR allele size: 375-400bp
+2022-11-30 21:40:15,299 INFO:          5 out of    181,064 (  0.0%) STR allele size: 450-475bp
+2022-11-30 21:40:15,299 INFO:          3 out of    181,064 (  0.0%) STR allele size: 300-325bp
+2022-11-30 21:40:15,299 INFO:          3 out of    181,064 (  0.0%) STR allele size: 400-425bp
+2022-11-30 21:40:15,299 INFO:          3 out of    181,064 (  0.0%) STR allele size: 475-500bp
+2022-11-30 21:40:15,299 INFO: --------------
+2022-11-30 21:40:15,299 INFO:    157,175 out of    157,175 (100.0%) STR variant counts: TOTAL
+2022-11-30 21:40:15,299 INFO:    146,618 out of    157,175 ( 93.3%) STR variant counts: pure repeats
+2022-11-30 21:40:15,299 INFO:     31,125 out of    157,175 ( 19.8%) STR variant counts: multi-allelic
+2022-11-30 21:40:15,299 INFO: --------------
+2022-11-30 21:40:15,299 INFO:  3,570,342 out of  4,133,158 ( 86.4%) non-STR allele: SNV
+2022-11-30 21:40:15,299 INFO:  3,570,342 out of  4,133,158 ( 86.4%) non-STR allele: SNV (interruptions allowed)
+2022-11-30 21:40:15,299 INFO:    177,733 out of  4,133,158 (  4.3%) non-STR allele: allele repeat sequence is too short
+2022-11-30 21:40:15,300 INFO:    165,598 out of  4,133,158 (  4.0%) non-STR allele: allele repeat sequence is too short (interruptions allowed)
+2022-11-30 21:40:15,300 INFO:     93,930 out of  4,133,158 (  2.3%) non-STR allele: 1bp INS
+2022-11-30 21:40:15,300 INFO:     93,930 out of  4,133,158 (  2.3%) non-STR allele: 1bp INS (interruptions allowed)
+2022-11-30 21:40:15,300 INFO:     87,908 out of  4,133,158 (  2.1%) non-STR allele: 1bp DEL
+2022-11-30 21:40:15,300 INFO:     87,908 out of  4,133,158 (  2.1%) non-STR allele: 1bp DEL (interruptions allowed)
+2022-11-30 21:40:15,300 INFO:     21,090 out of  4,133,158 (  0.5%) non-STR allele: homopolymer
+2022-11-30 21:40:15,300 INFO:     21,090 out of  4,133,158 (  0.5%) non-STR allele: homopolymer (interruptions allowed)
+2022-11-30 21:40:15,300 INFO:      2,182 out of  4,133,158 (  0.1%) non-STR allele: MNV
+2022-11-30 21:40:15,300 INFO: --------------
+2022-11-30 21:40:15,300 INFO:  3,923,567 out of  4,085,178 ( 96.0%) skipped variant: no repeat units found in variant
+2022-11-30 21:40:15,300 INFO:      3,973 out of  4,085,178 (  0.1%) skipped variant: mixed STR/non-STR multi-allelic variant
+2022-11-30 21:40:15,300 INFO:        463 out of  4,085,178 (  0.0%) skipped variant: multi-allelic with different RepeatUnits
+Wrote 157167 to step2.STRs.variants.bed.gz
++ python3 -u scripts/compute_overlap_with_other_catalogs.py step2.STRs.variants.tsv.gz step2.STRs.variants.with_overlap_columns.tsv.gz -c IlluminaSTRCatalog -c GangSTRCatalog17 -c KnownDiseaseAssociatedSTRs
+Parsed    174,300 intervals from IlluminaSTRCatalog                       ./ref/other/illumina_variant_catalog.sorted.bed.gz
+Parsed  1,340,266 intervals from GangSTRCatalog17                         ./ref/other/hg38_ver17.fixed.bed.gz
+Parsed         60 intervals from KnownDiseaseAssociatedSTRs               ./ref/other/known_disease_associated_STR_loci.GRCh38.bed.gz
+Processing rows from step2.STRs.variants.tsv.gz
+Wrote 157,175 rows to the output tsv: step2.STRs.variants.with_overlap_columns.tsv.gz
+GangSTRCatalog17              :     81,876 out of    157,175 ( 52.1%) truth set loci, and out of  1,340,266 (  6.1%) GangSTRCatalog17 loci:     STR locus has exact same coordinates as truth set STR locus   and has same motif
+GangSTRCatalog17              :         97 out of    157,175 (  0.1%) truth set loci, and out of  1,340,266 (  0.0%) GangSTRCatalog17 loci:     STR locus has exact same coordinates as truth set STR locus   and has different motif
+GangSTRCatalog17              :      1,074 out of    157,175 (  0.7%) truth set loci, and out of  1,340,266 (  0.1%) GangSTRCatalog17 loci:     STR locus is contained within truth set STR locus             and has same motif after normalization
+GangSTRCatalog17              :        281 out of    157,175 (  0.2%) truth set loci, and out of  1,340,266 (  0.0%) GangSTRCatalog17 loci:     STR locus is contained within truth set STR locus             and has same motif
+GangSTRCatalog17              :        260 out of    157,175 (  0.2%) truth set loci, and out of  1,340,266 (  0.0%) GangSTRCatalog17 loci:     STR locus is contained within truth set STR locus             and has different motif
+GangSTRCatalog17              :        389 out of    157,175 (  0.2%) truth set loci, and out of  1,340,266 (  0.0%) GangSTRCatalog17 loci:     STR locus contains truth set STR locus                        and has different motif
+GangSTRCatalog17              :        162 out of    157,175 (  0.1%) truth set loci, and out of  1,340,266 (  0.0%) GangSTRCatalog17 loci:     STR locus contains truth set STR locus                        and has same motif after normalization
+GangSTRCatalog17              :          2 out of    157,175 (  0.0%) truth set loci, and out of  1,340,266 (  0.0%) GangSTRCatalog17 loci:     STR locus contains truth set STR locus                        and has same motif
+GangSTRCatalog17              :      2,948 out of    157,175 (  1.9%) truth set loci, and out of  1,340,266 (  0.2%) GangSTRCatalog17 loci:     STR loci overlap                                              and has different motif
+GangSTRCatalog17              :      1,789 out of    157,175 (  1.1%) truth set loci, and out of  1,340,266 (  0.1%) GangSTRCatalog17 loci:     STR loci overlap                                              and has same motif after normalization
+GangSTRCatalog17              :          3 out of    157,175 (  0.0%) truth set loci, and out of  1,340,266 (  0.0%) GangSTRCatalog17 loci:     STR loci overlap                                              and has same motif
+GangSTRCatalog17              :     68,294 out of    157,175 ( 43.5%) truth set loci:     no overlap                                                  
+IlluminaSTRCatalog            :     87,694 out of    157,175 ( 55.8%) truth set loci, and out of    174,300 ( 50.3%) IlluminaSTRCatalog loci:     STR locus has exact same coordinates as truth set STR locus   and has same motif
+IlluminaSTRCatalog            :         92 out of    157,175 (  0.1%) truth set loci, and out of    174,300 (  0.1%) IlluminaSTRCatalog loci:     STR locus has exact same coordinates as truth set STR locus   and has different motif
+IlluminaSTRCatalog            :      1,005 out of    157,175 (  0.6%) truth set loci, and out of    174,300 (  0.6%) IlluminaSTRCatalog loci:     STR locus is contained within truth set STR locus             and has same motif
+IlluminaSTRCatalog            :        242 out of    157,175 (  0.2%) truth set loci, and out of    174,300 (  0.1%) IlluminaSTRCatalog loci:     STR locus is contained within truth set STR locus             and has different motif
+IlluminaSTRCatalog            :         52 out of    157,175 (  0.0%) truth set loci, and out of    174,300 (  0.0%) IlluminaSTRCatalog loci:     STR locus is contained within truth set STR locus             and has same motif after normalization
+IlluminaSTRCatalog            :      3,400 out of    157,175 (  2.2%) truth set loci, and out of    174,300 (  2.0%) IlluminaSTRCatalog loci:     STR locus contains truth set STR locus                        and has same motif
+IlluminaSTRCatalog            :        416 out of    157,175 (  0.3%) truth set loci, and out of    174,300 (  0.2%) IlluminaSTRCatalog loci:     STR locus contains truth set STR locus                        and has different motif
+IlluminaSTRCatalog            :        263 out of    157,175 (  0.2%) truth set loci, and out of    174,300 (  0.2%) IlluminaSTRCatalog loci:     STR locus contains truth set STR locus                        and has same motif after normalization
+IlluminaSTRCatalog            :        698 out of    157,175 (  0.4%) truth set loci, and out of    174,300 (  0.4%) IlluminaSTRCatalog loci:     STR loci overlap                                              and has different motif
+IlluminaSTRCatalog            :        445 out of    157,175 (  0.3%) truth set loci, and out of    174,300 (  0.3%) IlluminaSTRCatalog loci:     STR loci overlap                                              and has same motif after normalization
+IlluminaSTRCatalog            :         62 out of    157,175 (  0.0%) truth set loci, and out of    174,300 (  0.0%) IlluminaSTRCatalog loci:     STR loci overlap                                              and has same motif
+IlluminaSTRCatalog            :     62,806 out of    157,175 ( 40.0%) truth set loci:     no overlap                                                  
+KnownDiseaseAssociatedSTRs    :         10 out of    157,175 (  0.0%) truth set loci, and out of         60 ( 16.7%) KnownDiseaseAssociatedSTRs loci:     STR locus has exact same coordinates as truth set STR locus   and has same motif
+KnownDiseaseAssociatedSTRs    :          3 out of    157,175 (  0.0%) truth set loci, and out of         60 (  5.0%) KnownDiseaseAssociatedSTRs loci:     STR locus is contained within truth set STR locus             and has same motif
+KnownDiseaseAssociatedSTRs    :          3 out of    157,175 (  0.0%) truth set loci, and out of         60 (  5.0%) KnownDiseaseAssociatedSTRs loci:     STR locus is contained within truth set STR locus             and has same motif after normalization
+KnownDiseaseAssociatedSTRs    :          1 out of    157,175 (  0.0%) truth set loci, and out of         60 (  1.7%) KnownDiseaseAssociatedSTRs loci:     STR locus is contained within truth set STR locus             and has different motif
+KnownDiseaseAssociatedSTRs    :          4 out of    157,175 (  0.0%) truth set loci, and out of         60 (  6.7%) KnownDiseaseAssociatedSTRs loci:     STR locus contains truth set STR locus                        and has same motif
+KnownDiseaseAssociatedSTRs    :          3 out of    157,175 (  0.0%) truth set loci, and out of         60 (  5.0%) KnownDiseaseAssociatedSTRs loci:     STR locus contains truth set STR locus                        and has same motif after normalization
+KnownDiseaseAssociatedSTRs    :          1 out of    157,175 (  0.0%) truth set loci, and out of         60 (  1.7%) KnownDiseaseAssociatedSTRs loci:     STR locus contains truth set STR locus                        and has different motif
+KnownDiseaseAssociatedSTRs    :          5 out of    157,175 (  0.0%) truth set loci, and out of         60 (  8.3%) KnownDiseaseAssociatedSTRs loci:     STR loci overlap                                              and has same motif after normalization
+KnownDiseaseAssociatedSTRs    :          3 out of    157,175 (  0.0%) truth set loci, and out of         60 (  5.0%) KnownDiseaseAssociatedSTRs loci:     STR loci overlap                                              and has different motif
+KnownDiseaseAssociatedSTRs    :    157,142 out of    157,175 (100.0%) truth set loci:     no overlap                                                  
+Done
++ set +x
+         OUTPUT: step2.STRs.vcf.gz         157175 variants
+VCF stats for the input vcf -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --  step1.high_confidence_regions.vcf.gz
+ 4,085,178 TOTAL variants
+ 4,152,492 TOTAL alleles (1.02 alleles per variant)
+--------------
+ 1,533,140 out of  4,085,178 ( 37.5%) genotype: 1|1
+ 1,247,174 out of  4,085,178 ( 30.5%) genotype: 1|0
+ 1,237,550 out of  4,085,178 ( 30.3%) genotype: 0|1
+    33,661 out of  4,085,178 (  0.8%) genotype: 1|2
+    33,653 out of  4,085,178 (  0.8%) genotype: 2|1
+--------------
+ 4,085,178 out of  4,085,178 (100.0%) TOTAL variants
+ 3,547,658 out of  4,085,178 ( 86.8%) SNV variants
+   236,881 out of  4,085,178 (  5.8%) INS variants
+   233,325 out of  4,085,178 (  5.7%) DEL variants
+    17,148 out of  4,085,178 (  0.4%) multiallelic INS variants
+    16,995 out of  4,085,178 (  0.4%) multiallelic DEL variants
+    15,775 out of  4,085,178 (  0.4%) multiallelic SNV variants
+    10,720 out of  4,085,178 (  0.3%) mixed multiallelic INS/DEL variants
+     5,585 out of  4,085,178 (  0.1%) mixed multiallelic INS/SNV variants
+     1,091 out of  4,085,178 (  0.0%) mixed multiallelic DEL/SNV variants
+--------------
+ 4,152,492 out of  4,152,492 (100.0%) TOTAL alleles
+ 3,584,793 out of  4,152,492 ( 86.3%) SNV alleles
+   287,482 out of  4,152,492 (  6.9%) INS alleles
+   279,126 out of  4,152,492 (  6.7%) DEL alleles
+     1,091 out of  4,152,492 (  0.0%) MNV alleles
+VCF stats for the output vcf -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --  step2.STRs.vcf.gz
+   157,175 TOTAL variants
+   188,300 TOTAL alleles (1.20 alleles per variant)
+--------------
+    44,641 out of    157,175 ( 28.4%) genotype: 1|1
+    40,972 out of    157,175 ( 26.1%) genotype: 0|1
+    40,437 out of    157,175 ( 25.7%) genotype: 1|0
+    15,767 out of    157,175 ( 10.0%) genotype: 1|2
+    15,358 out of    157,175 (  9.8%) genotype: 2|1
+--------------
+   157,175 out of    157,175 (100.0%) TOTAL variants
+    63,692 out of    157,175 ( 40.5%) DEL variants
+    62,358 out of    157,175 ( 39.7%) INS variants
+    10,879 out of    157,175 (  6.9%) multiallelic DEL variants
+    10,606 out of    157,175 (  6.7%) multiallelic INS variants
+     9,640 out of    157,175 (  6.1%) mixed multiallelic INS/DEL variants
+--------------
+   188,300 out of    188,300 (100.0%) TOTAL alleles
+    95,090 out of    188,300 ( 50.5%) DEL alleles
+    93,210 out of    188,300 ( 49.5%) INS alleles
+===============
+STEP #3: Liftover variants from hg38 to the T2T reference (chm13v2.0)
+         INPUT: step2.STRs.vcf.gz        157175 variants
++ gatk --java-options -Xmx7g LiftoverVcf -R ./ref/chm13v2.0.fa -C ./ref/hg38-chm13v2.chain -I step2.STRs.vcf.gz -O step3.STRs.lifted_to_chm13v2.vcf.gz --REJECT step3.lifted_to_chm13v2_rejected.vcf.gz --VALIDATION_STRINGENCY LENIENT --RECOVER_SWAPPED_REF_ALT --WARN_ON_MISSING_CONTIG --LIFTOVER_MIN_MATCH 0.00001 --WRITE_ORIGINAL_POSITION --WRITE_ORIGINAL_ALLELES --ALLOW_MISSING_FIELDS_IN_HEADER
+21:42:56.000 INFO  NativeLibraryLoader - Loading libgkl_compression.dylib from jar:file:/Users/weisburd/bin/gatk-package-4.2.0.0-local.jar!/com/intel/gkl/native/libgkl_compression.dylib
+[Wed Nov 30 21:42:56 EST 2022] LiftoverVcf --INPUT step2.STRs.vcf.gz --OUTPUT step3.STRs.lifted_to_chm13v2.vcf.gz --CHAIN ./ref/hg38-chm13v2.chain --REJECT step3.lifted_to_chm13v2_rejected.vcf.gz --WARN_ON_MISSING_CONTIG true --WRITE_ORIGINAL_POSITION true --WRITE_ORIGINAL_ALLELES true --LIFTOVER_MIN_MATCH 1.0E-5 --ALLOW_MISSING_FIELDS_IN_HEADER true --RECOVER_SWAPPED_REF_ALT true --VALIDATION_STRINGENCY LENIENT --REFERENCE_SEQUENCE ./ref/chm13v2.0.fa --LOG_FAILED_INTERVALS true --TAGS_TO_REVERSE AF --TAGS_TO_DROP MAX_AF --DISABLE_SORT false --VERBOSITY INFO --QUIET false --COMPRESSION_LEVEL 2 --MAX_RECORDS_IN_RAM 500000 --CREATE_INDEX false --CREATE_MD5_FILE false --GA4GH_CLIENT_SECRETS client_secrets.json --help false --version false --showHidden false --USE_JDK_DEFLATER false --USE_JDK_INFLATER false
+[Wed Nov 30 21:42:56 EST 2022] Executing as weisburd@wm103-772 on Mac OS X 10.16 x86_64; OpenJDK 64-Bit Server VM 1.8.0_322-b06; Deflater: Intel; Inflater: Intel; Provider GCS is available; Picard version: Version:4.2.0.0
+INFO	2022-11-30 21:42:57	LiftoverVcf	Loading up the target reference genome.
+INFO	2022-11-30 21:43:13	LiftoverVcf	Lifting variants over and sorting (not yet writing the output file.)
+INFO	2022-11-30 21:43:18	LiftoverVcf	Processed 157175 variants.
+INFO	2022-11-30 21:43:18	LiftoverVcf	65492 variants failed to liftover.
+INFO	2022-11-30 21:43:18	LiftoverVcf	927 variants lifted over but had mismatching reference alleles after lift over.
+INFO	2022-11-30 21:43:18	LiftoverVcf	42.2580% of variants were not successfully lifted over and written to the output.
+INFO	2022-11-30 21:43:18	LiftoverVcf	liftover success by source contig:
+INFO	2022-11-30 21:43:18	LiftoverVcf	chr1: 6975 / 12316 (56.6336%)
+INFO	2022-11-30 21:43:18	LiftoverVcf	chr10: 4266 / 7480 (57.0321%)
+INFO	2022-11-30 21:43:18	LiftoverVcf	chr11: 4107 / 7251 (56.6405%)
+INFO	2022-11-30 21:43:18	LiftoverVcf	chr12: 4343 / 7586 (57.2502%)
+INFO	2022-11-30 21:43:18	LiftoverVcf	chr13: 3213 / 5717 (56.2008%)
+INFO	2022-11-30 21:43:18	LiftoverVcf	chr14: 2872 / 5002 (57.4170%)
+INFO	2022-11-30 21:43:18	LiftoverVcf	chr15: 2498 / 4327 (57.7305%)
+INFO	2022-11-30 21:43:18	LiftoverVcf	chr16: 2655 / 4605 (57.6547%)
+INFO	2022-11-30 21:43:18	LiftoverVcf	chr17: 2613 / 4545 (57.4917%)
+INFO	2022-11-30 21:43:18	LiftoverVcf	chr18: 2447 / 4315 (56.7092%)
+INFO	2022-11-30 21:43:18	LiftoverVcf	chr19: 2065 / 3510 (58.8319%)
+INFO	2022-11-30 21:43:18	LiftoverVcf	chr2: 7396 / 12876 (57.4402%)
+INFO	2022-11-30 21:43:18	LiftoverVcf	chr20: 2124 / 3534 (60.1019%)
+INFO	2022-11-30 21:43:18	LiftoverVcf	chr21: 1260 / 2114 (59.6026%)
+INFO	2022-11-30 21:43:18	LiftoverVcf	chr22: 1215 / 2028 (59.9112%)
+INFO	2022-11-30 21:43:18	LiftoverVcf	chr3: 6139 / 10551 (58.1841%)
+INFO	2022-11-30 21:43:18	LiftoverVcf	chr4: 5968 / 10503 (56.8219%)
+INFO	2022-11-30 21:43:18	LiftoverVcf	chr5: 5646 / 9554 (59.0957%)
+INFO	2022-11-30 21:43:18	LiftoverVcf	chr6: 5424 / 9260 (58.5745%)
+INFO	2022-11-30 21:43:18	LiftoverVcf	chr7: 4904 / 8544 (57.3970%)
+INFO	2022-11-30 21:43:18	LiftoverVcf	chr8: 4566 / 7836 (58.2695%)
+INFO	2022-11-30 21:43:18	LiftoverVcf	chr9: 3579 / 6088 (58.7878%)
+INFO	2022-11-30 21:43:18	LiftoverVcf	chrX: 4481 / 7633 (58.7056%)
+INFO	2022-11-30 21:43:18	LiftoverVcf	lifted variants by target contig:
+INFO	2022-11-30 21:43:18	LiftoverVcf	chr1: 6975
+INFO	2022-11-30 21:43:18	LiftoverVcf	chr10: 4266
+INFO	2022-11-30 21:43:18	LiftoverVcf	chr11: 4107
+INFO	2022-11-30 21:43:18	LiftoverVcf	chr12: 4343
+INFO	2022-11-30 21:43:18	LiftoverVcf	chr13: 3213
+INFO	2022-11-30 21:43:18	LiftoverVcf	chr14: 2872
+INFO	2022-11-30 21:43:18	LiftoverVcf	chr15: 2498
+INFO	2022-11-30 21:43:18	LiftoverVcf	chr16: 2655
+INFO	2022-11-30 21:43:18	LiftoverVcf	chr17: 2613
+INFO	2022-11-30 21:43:18	LiftoverVcf	chr18: 2447
+INFO	2022-11-30 21:43:18	LiftoverVcf	chr19: 2065
+INFO	2022-11-30 21:43:18	LiftoverVcf	chr2: 7396
+INFO	2022-11-30 21:43:18	LiftoverVcf	chr20: 2124
+INFO	2022-11-30 21:43:18	LiftoverVcf	chr21: 1260
+INFO	2022-11-30 21:43:18	LiftoverVcf	chr22: 1215
+INFO	2022-11-30 21:43:18	LiftoverVcf	chr3: 6139
+INFO	2022-11-30 21:43:18	LiftoverVcf	chr4: 5968
+INFO	2022-11-30 21:43:18	LiftoverVcf	chr5: 5646
+INFO	2022-11-30 21:43:18	LiftoverVcf	chr6: 5424
+INFO	2022-11-30 21:43:18	LiftoverVcf	chr7: 4904
+INFO	2022-11-30 21:43:18	LiftoverVcf	chr8: 4566
+INFO	2022-11-30 21:43:18	LiftoverVcf	chr9: 3579
+INFO	2022-11-30 21:43:18	LiftoverVcf	chrX: 4481
+INFO	2022-11-30 21:43:18	LiftoverVcf	0 variants were lifted by swapping REF/ALT alleles.
+INFO	2022-11-30 21:43:18	LiftoverVcf	Writing out sorted records to final VCF.
+[Wed Nov 30 21:43:18 EST 2022] picard.vcf.LiftoverVcf done. Elapsed time: 0.38 minutes.
+Runtime.totalMemory()=4722786304
+Tool returned:
+0
+Using GATK jar /Users/weisburd/bin/gatk-package-4.2.0.0-local.jar
+Running:
+    java -Dsamjdk.use_async_io_read_samtools=false -Dsamjdk.use_async_io_write_samtools=true -Dsamjdk.use_async_io_write_tribble=false -Dsamjdk.compression_level=2 -Xmx7g -jar /Users/weisburd/bin/gatk-package-4.2.0.0-local.jar LiftoverVcf -R ./ref/chm13v2.0.fa -C ./ref/hg38-chm13v2.chain -I step2.STRs.vcf.gz -O step3.STRs.lifted_to_chm13v2.vcf.gz --REJECT step3.lifted_to_chm13v2_rejected.vcf.gz --VALIDATION_STRINGENCY LENIENT --RECOVER_SWAPPED_REF_ALT --WARN_ON_MISSING_CONTIG --LIFTOVER_MIN_MATCH 0.00001 --WRITE_ORIGINAL_POSITION --WRITE_ORIGINAL_ALLELES --ALLOW_MISSING_FIELDS_IN_HEADER
++ set +x
+         OUTPUT: step3.STRs.lifted_to_chm13v2.vcf.gz         90756 variants
+VCF stats for the input vcf -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --  step2.STRs.vcf.gz
+   157,175 TOTAL variants
+   188,300 TOTAL alleles (1.20 alleles per variant)
+--------------
+    44,641 out of    157,175 ( 28.4%) genotype: 1|1
+    40,972 out of    157,175 ( 26.1%) genotype: 0|1
+    40,437 out of    157,175 ( 25.7%) genotype: 1|0
+    15,767 out of    157,175 ( 10.0%) genotype: 1|2
+    15,358 out of    157,175 (  9.8%) genotype: 2|1
+--------------
+   157,175 out of    157,175 (100.0%) TOTAL variants
+    63,692 out of    157,175 ( 40.5%) DEL variants
+    62,358 out of    157,175 ( 39.7%) INS variants
+    10,879 out of    157,175 (  6.9%) multiallelic DEL variants
+    10,606 out of    157,175 (  6.7%) multiallelic INS variants
+     9,640 out of    157,175 (  6.1%) mixed multiallelic INS/DEL variants
+--------------
+   188,300 out of    188,300 (100.0%) TOTAL alleles
+    95,090 out of    188,300 ( 50.5%) DEL alleles
+    93,210 out of    188,300 ( 49.5%) INS alleles
+VCF stats for the output vcf -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --  step3.STRs.lifted_to_chm13v2.vcf.gz
+    90,756 TOTAL variants
+   101,562 TOTAL alleles (1.12 alleles per variant)
+--------------
+    38,781 out of     90,756 ( 42.7%) genotype: 1|0
+    21,836 out of     90,756 ( 24.1%) genotype: 0|1
+    19,333 out of     90,756 ( 21.3%) genotype: 1|1
+     5,525 out of     90,756 (  6.1%) genotype: 1|2
+     5,281 out of     90,756 (  5.8%) genotype: 2|1
+--------------
+    90,756 out of     90,756 (100.0%) TOTAL variants
+    61,754 out of     90,756 ( 68.0%) INS variants
+    18,196 out of     90,756 ( 20.0%) DEL variants
+    10,590 out of     90,756 ( 11.7%) multiallelic INS variants
+       148 out of     90,756 (  0.2%) mixed multiallelic INS/DEL variants
+        68 out of     90,756 (  0.1%) multiallelic DEL variants
+--------------
+   101,562 out of    101,562 (100.0%) TOTAL alleles
+    83,082 out of    101,562 ( 81.8%) INS alleles
+    18,480 out of    101,562 ( 18.2%) DEL alleles
+VCF stats for  -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --  step3.lifted_to_chm13v2_rejected.vcf.gz
+    66,419 TOTAL variants
+    86,738 TOTAL alleles (1.31 alleles per variant)
+--------------
+    25,308 out of     66,419 ( 38.1%) genotype: 1|1
+    19,136 out of     66,419 ( 28.8%) genotype: 0|1
+    10,242 out of     66,419 ( 15.4%) genotype: 1|2
+    10,077 out of     66,419 ( 15.2%) genotype: 2|1
+     1,656 out of     66,419 (  2.5%) genotype: 1|0
+--------------
+    66,419 out of     66,419 (100.0%) TOTAL variants
+    45,496 out of     66,419 ( 68.5%) DEL variants
+    10,811 out of     66,419 ( 16.3%) multiallelic DEL variants
+     9,492 out of     66,419 ( 14.3%) mixed multiallelic INS/DEL variants
+       604 out of     66,419 (  0.9%) INS variants
+        16 out of     66,419 (  0.0%) multiallelic INS variants
+--------------
+    86,738 out of     86,738 (100.0%) TOTAL alleles
+    76,610 out of     86,738 ( 88.3%) DEL alleles
+    10,128 out of     86,738 ( 11.7%) INS alleles
+Reasons for Liftover failure:
+      3 CannotLiftOver
+  64376 IndelStraddlesMultipleIntevals
+    927 MismatchedRefAllele
+   1113 NoTarget
+===============
+STEP #4: Filter out variants that are true homozygous alt or multi-allelic after liftover since this means neither allele matches the T2T reference (chm13v2.0)
+         INPUT: step3.STRs.lifted_to_chm13v2.vcf.gz        90756 variants
++ python3 -u scripts/filter_out_discordant_variants_after_liftover.py --reference-fasta ./ref/chm13v2.0.fa step3.STRs.lifted_to_chm13v2.vcf.gz step4.STRs.found_in_chm13v2.vcf.gz
+Wrote 90756 out of 90795 (100.0%) lines to step4.STRs.found_in_chm13v2.vcf.gz
+Stats: 
+     90756 (100.0%) total variants
+     60617 ( 66.8%) kept variants: heterozygous reference genotype
+     29797 ( 32.8%) kept variants: insertion matches the adjacent reference sequence
+       120 (  0.1%) filtered out variants: DEL 1/1
+        89 (  0.1%) filtered out variants: INS 1/1
+        50 (  0.1%) filtered out variants: DEL 1/2
+        34 (  0.0%) filtered out variants: INS 1/2
+        23 (  0.0%) filtered out variants: INS 2/1
+        18 (  0.0%) filtered out variants: DEL 2/1
+         6 (  0.0%) filtered out variants: DEL,INS 2/1
+         2 (  0.0%) filtered out variants: DEL,INS 1/2
++ set +x
+         OUTPUT: step4.STRs.found_in_chm13v2.vcf.gz         90414 variants
+VCF stats for the input vcf -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --  step3.STRs.lifted_to_chm13v2.vcf.gz
+    90,756 TOTAL variants
+   101,562 TOTAL alleles (1.12 alleles per variant)
+--------------
+    38,781 out of     90,756 ( 42.7%) genotype: 1|0
+    21,836 out of     90,756 ( 24.1%) genotype: 0|1
+    19,333 out of     90,756 ( 21.3%) genotype: 1|1
+     5,525 out of     90,756 (  6.1%) genotype: 1|2
+     5,281 out of     90,756 (  5.8%) genotype: 2|1
+--------------
+    90,756 out of     90,756 (100.0%) TOTAL variants
+    61,754 out of     90,756 ( 68.0%) INS variants
+    18,196 out of     90,756 ( 20.0%) DEL variants
+    10,590 out of     90,756 ( 11.7%) multiallelic INS variants
+       148 out of     90,756 (  0.2%) mixed multiallelic INS/DEL variants
+        68 out of     90,756 (  0.1%) multiallelic DEL variants
+--------------
+   101,562 out of    101,562 (100.0%) TOTAL alleles
+    83,082 out of    101,562 ( 81.8%) INS alleles
+    18,480 out of    101,562 ( 18.2%) DEL alleles
+VCF stats for the output vcf -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --  step4.STRs.found_in_chm13v2.vcf.gz
+    90,414 TOTAL variants
+   101,087 TOTAL alleles (1.12 alleles per variant)
+--------------
+    38,781 out of     90,414 ( 42.9%) genotype: 1|0
+    21,836 out of     90,414 ( 24.2%) genotype: 0|1
+    19,124 out of     90,414 ( 21.2%) genotype: 1|1
+     5,439 out of     90,414 (  6.0%) genotype: 1|2
+     5,234 out of     90,414 (  5.8%) genotype: 2|1
+--------------
+    90,414 out of     90,414 (100.0%) TOTAL variants
+    61,665 out of     90,414 ( 68.2%) INS variants
+    18,076 out of     90,414 ( 20.0%) DEL variants
+    10,533 out of     90,414 ( 11.6%) multiallelic INS variants
+       140 out of     90,414 (  0.2%) mixed multiallelic INS/DEL variants
+--------------
+   101,087 out of    101,087 (100.0%) TOTAL alleles
+    82,871 out of    101,087 ( 82.0%) INS alleles
+    18,216 out of    101,087 ( 18.0%) DEL alleles
+===============
+STEP #5: Liftover the truth variants that passed all checks back to hg38
+         INPUT: step4.STRs.found_in_chm13v2.vcf.gz        90414 variants
++ gatk --java-options -Xmx7g LiftoverVcf -R ./ref/hg38.fa -C ./ref/chm13v2-hg38.chain -I step4.STRs.found_in_chm13v2.vcf.gz -O step5.STRs.lifted_back_to_38.vcf.gz --REJECT step5.lifted_back_to_38_rejected.vcf.gz --VALIDATION_STRINGENCY LENIENT --RECOVER_SWAPPED_REF_ALT --WARN_ON_MISSING_CONTIG --LIFTOVER_MIN_MATCH 0.00001 --WRITE_ORIGINAL_POSITION --WRITE_ORIGINAL_ALLELES --ALLOW_MISSING_FIELDS_IN_HEADER
+21:43:29.807 INFO  NativeLibraryLoader - Loading libgkl_compression.dylib from jar:file:/Users/weisburd/bin/gatk-package-4.2.0.0-local.jar!/com/intel/gkl/native/libgkl_compression.dylib
+[Wed Nov 30 21:43:29 EST 2022] LiftoverVcf --INPUT step4.STRs.found_in_chm13v2.vcf.gz --OUTPUT step5.STRs.lifted_back_to_38.vcf.gz --CHAIN ./ref/chm13v2-hg38.chain --REJECT step5.lifted_back_to_38_rejected.vcf.gz --WARN_ON_MISSING_CONTIG true --WRITE_ORIGINAL_POSITION true --WRITE_ORIGINAL_ALLELES true --LIFTOVER_MIN_MATCH 1.0E-5 --ALLOW_MISSING_FIELDS_IN_HEADER true --RECOVER_SWAPPED_REF_ALT true --VALIDATION_STRINGENCY LENIENT --REFERENCE_SEQUENCE ./ref/hg38.fa --LOG_FAILED_INTERVALS true --TAGS_TO_REVERSE AF --TAGS_TO_DROP MAX_AF --DISABLE_SORT false --VERBOSITY INFO --QUIET false --COMPRESSION_LEVEL 2 --MAX_RECORDS_IN_RAM 500000 --CREATE_INDEX false --CREATE_MD5_FILE false --GA4GH_CLIENT_SECRETS client_secrets.json --help false --version false --showHidden false --USE_JDK_DEFLATER false --USE_JDK_INFLATER false
+[Wed Nov 30 21:43:30 EST 2022] Executing as weisburd@wm103-772 on Mac OS X 10.16 x86_64; OpenJDK 64-Bit Server VM 1.8.0_322-b06; Deflater: Intel; Inflater: Intel; Provider GCS is available; Picard version: Version:4.2.0.0
+INFO	2022-11-30 21:43:30	LiftoverVcf	Loading up the target reference genome.
+INFO	2022-11-30 21:43:39	LiftoverVcf	Lifting variants over and sorting (not yet writing the output file.)
+INFO	2022-11-30 21:44:09	LiftoverVcf	Processed 90414 variants.
+INFO	2022-11-30 21:44:09	LiftoverVcf	46 variants failed to liftover.
+INFO	2022-11-30 21:44:09	LiftoverVcf	0 variants lifted over but had mismatching reference alleles after lift over.
+INFO	2022-11-30 21:44:09	LiftoverVcf	0.0509% of variants were not successfully lifted over and written to the output.
+INFO	2022-11-30 21:44:09	LiftoverVcf	liftover success by source contig:
+INFO	2022-11-30 21:44:09	LiftoverVcf	chr1: 6935 / 6950 (99.7842%)
+INFO	2022-11-30 21:44:09	LiftoverVcf	chr10: 4250 / 4250 (100.0000%)
+INFO	2022-11-30 21:44:09	LiftoverVcf	chr11: 4089 / 4093 (99.9023%)
+INFO	2022-11-30 21:44:09	LiftoverVcf	chr12: 4334 / 4334 (100.0000%)
+INFO	2022-11-30 21:44:09	LiftoverVcf	chr13: 3204 / 3204 (100.0000%)
+INFO	2022-11-30 21:44:09	LiftoverVcf	chr14: 2866 / 2866 (100.0000%)
+INFO	2022-11-30 21:44:09	LiftoverVcf	chr15: 2490 / 2490 (100.0000%)
+INFO	2022-11-30 21:44:09	LiftoverVcf	chr16: 2631 / 2635 (99.8482%)
+INFO	2022-11-30 21:44:09	LiftoverVcf	chr17: 2610 / 2610 (100.0000%)
+INFO	2022-11-30 21:44:09	LiftoverVcf	chr18: 2444 / 2444 (100.0000%)
+INFO	2022-11-30 21:44:09	LiftoverVcf	chr19: 2061 / 2061 (100.0000%)
+INFO	2022-11-30 21:44:09	LiftoverVcf	chr2: 7379 / 7379 (100.0000%)
+INFO	2022-11-30 21:44:09	LiftoverVcf	chr20: 2118 / 2118 (100.0000%)
+INFO	2022-11-30 21:44:09	LiftoverVcf	chr21: 1257 / 1257 (100.0000%)
+INFO	2022-11-30 21:44:09	LiftoverVcf	chr22: 1209 / 1209 (100.0000%)
+INFO	2022-11-30 21:44:09	LiftoverVcf	chr3: 6114 / 6117 (99.9510%)
+INFO	2022-11-30 21:44:09	LiftoverVcf	chr4: 5950 / 5950 (100.0000%)
+INFO	2022-11-30 21:44:09	LiftoverVcf	chr5: 5627 / 5627 (100.0000%)
+INFO	2022-11-30 21:44:09	LiftoverVcf	chr6: 5405 / 5405 (100.0000%)
+INFO	2022-11-30 21:44:09	LiftoverVcf	chr7: 4890 / 4890 (100.0000%)
+INFO	2022-11-30 21:44:09	LiftoverVcf	chr8: 4475 / 4492 (99.6215%)
+INFO	2022-11-30 21:44:09	LiftoverVcf	chr9: 3571 / 3571 (100.0000%)
+INFO	2022-11-30 21:44:09	LiftoverVcf	chrX: 4459 / 4462 (99.9328%)
+INFO	2022-11-30 21:44:09	LiftoverVcf	lifted variants by target contig:
+INFO	2022-11-30 21:44:09	LiftoverVcf	chr1: 6935
+INFO	2022-11-30 21:44:09	LiftoverVcf	chr10: 4250
+INFO	2022-11-30 21:44:09	LiftoverVcf	chr11: 4089
+INFO	2022-11-30 21:44:09	LiftoverVcf	chr12: 4334
+INFO	2022-11-30 21:44:09	LiftoverVcf	chr13: 3204
+INFO	2022-11-30 21:44:09	LiftoverVcf	chr14: 2866
+INFO	2022-11-30 21:44:09	LiftoverVcf	chr15: 2490
+INFO	2022-11-30 21:44:09	LiftoverVcf	chr16: 2631
+INFO	2022-11-30 21:44:09	LiftoverVcf	chr17: 2610
+INFO	2022-11-30 21:44:09	LiftoverVcf	chr18: 2444
+INFO	2022-11-30 21:44:09	LiftoverVcf	chr19: 2061
+INFO	2022-11-30 21:44:09	LiftoverVcf	chr2: 7379
+INFO	2022-11-30 21:44:09	LiftoverVcf	chr20: 2118
+INFO	2022-11-30 21:44:09	LiftoverVcf	chr21: 1257
+INFO	2022-11-30 21:44:09	LiftoverVcf	chr22: 1209
+INFO	2022-11-30 21:44:09	LiftoverVcf	chr3: 6114
+INFO	2022-11-30 21:44:09	LiftoverVcf	chr4: 5950
+INFO	2022-11-30 21:44:09	LiftoverVcf	chr5: 5627
+INFO	2022-11-30 21:44:09	LiftoverVcf	chr6: 5405
+INFO	2022-11-30 21:44:09	LiftoverVcf	chr7: 4890
+INFO	2022-11-30 21:44:09	LiftoverVcf	chr8: 4475
+INFO	2022-11-30 21:44:09	LiftoverVcf	chr9: 3571
+INFO	2022-11-30 21:44:09	LiftoverVcf	chrX: 4459
+INFO	2022-11-30 21:44:09	LiftoverVcf	0 variants were lifted by swapping REF/ALT alleles.
+INFO	2022-11-30 21:44:09	LiftoverVcf	Writing out sorted records to final VCF.
+[Wed Nov 30 21:44:10 EST 2022] picard.vcf.LiftoverVcf done. Elapsed time: 0.68 minutes.
+Runtime.totalMemory()=5519179776
+Tool returned:
+0
+Using GATK jar /Users/weisburd/bin/gatk-package-4.2.0.0-local.jar
+Running:
+    java -Dsamjdk.use_async_io_read_samtools=false -Dsamjdk.use_async_io_write_samtools=true -Dsamjdk.use_async_io_write_tribble=false -Dsamjdk.compression_level=2 -Xmx7g -jar /Users/weisburd/bin/gatk-package-4.2.0.0-local.jar LiftoverVcf -R ./ref/hg38.fa -C ./ref/chm13v2-hg38.chain -I step4.STRs.found_in_chm13v2.vcf.gz -O step5.STRs.lifted_back_to_38.vcf.gz --REJECT step5.lifted_back_to_38_rejected.vcf.gz --VALIDATION_STRINGENCY LENIENT --RECOVER_SWAPPED_REF_ALT --WARN_ON_MISSING_CONTIG --LIFTOVER_MIN_MATCH 0.00001 --WRITE_ORIGINAL_POSITION --WRITE_ORIGINAL_ALLELES --ALLOW_MISSING_FIELDS_IN_HEADER
++ set +x
+         OUTPUT: step5.STRs.lifted_back_to_38.vcf.gz         90368 variants
+VCF stats for the input vcf -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --  step4.STRs.found_in_chm13v2.vcf.gz
+    90,414 TOTAL variants
+   101,087 TOTAL alleles (1.12 alleles per variant)
+--------------
+    38,781 out of     90,414 ( 42.9%) genotype: 1|0
+    21,836 out of     90,414 ( 24.2%) genotype: 0|1
+    19,124 out of     90,414 ( 21.2%) genotype: 1|1
+     5,439 out of     90,414 (  6.0%) genotype: 1|2
+     5,234 out of     90,414 (  5.8%) genotype: 2|1
+--------------
+    90,414 out of     90,414 (100.0%) TOTAL variants
+    61,665 out of     90,414 ( 68.2%) INS variants
+    18,076 out of     90,414 ( 20.0%) DEL variants
+    10,533 out of     90,414 ( 11.6%) multiallelic INS variants
+       140 out of     90,414 (  0.2%) mixed multiallelic INS/DEL variants
+--------------
+   101,087 out of    101,087 (100.0%) TOTAL alleles
+    82,871 out of    101,087 ( 82.0%) INS alleles
+    18,216 out of    101,087 ( 18.0%) DEL alleles
+VCF stats for the output vcf -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --  step5.STRs.lifted_back_to_38.vcf.gz
+    90,368 TOTAL variants
+   101,041 TOTAL alleles (1.12 alleles per variant)
+--------------
+    38,781 out of     90,368 ( 42.9%) genotype: 1|0
+    21,790 out of     90,368 ( 24.1%) genotype: 0|1
+    19,124 out of     90,368 ( 21.2%) genotype: 1|1
+     5,439 out of     90,368 (  6.0%) genotype: 1|2
+     5,234 out of     90,368 (  5.8%) genotype: 2|1
+--------------
+    90,368 out of     90,368 (100.0%) TOTAL variants
+    61,619 out of     90,368 ( 68.2%) INS variants
+    18,076 out of     90,368 ( 20.0%) DEL variants
+    10,533 out of     90,368 ( 11.7%) multiallelic INS variants
+       140 out of     90,368 (  0.2%) mixed multiallelic INS/DEL variants
+--------------
+   101,041 out of    101,041 (100.0%) TOTAL alleles
+    82,825 out of    101,041 ( 82.0%) INS alleles
+    18,216 out of    101,041 ( 18.0%) DEL alleles
+VCF stats for  -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --  step5.lifted_back_to_38_rejected.vcf.gz
+        46 TOTAL variants
+        46 TOTAL alleles (1.00 alleles per variant)
+--------------
+        46 out of         46 (100.0%) genotype: 0|1
+--------------
+        46 out of         46 (100.0%) INS variants
+        46 out of         46 (100.0%) TOTAL variants
+--------------
+        46 out of         46 (100.0%) INS alleles
+        46 out of         46 (100.0%) TOTAL alleles
+Reasons for Liftover failure:
+     46 NoTarget
+===============
+STEP #6: Restore deletions that were dropped in the 1st liftover (hg38 => chm13v2.0) due to IndelStraddlesMultipleIntevals flag in picard LiftoverVcf. See https://github.com/broadinstitute/picard/blob/master/src/main/java/picard/vcf/LiftoverVcf.java#L424-L431 for more details on IndelStraddlesMultipleIntevals
+         INPUT: step5.STRs.lifted_back_to_38.vcf.gz        90368 variants
++ gunzip -c step5.STRs.lifted_back_to_38.vcf.gz
++ gunzip -c step3.lifted_to_chm13v2_rejected.vcf.gz
++ grep -v '^#'
++ grep IndelStraddlesMultipleIntevals
++ awk '{ if ( length($4) > length($5) || index($5, ",") > 0) { print $0 } }'
++ gatk FixVcfHeader -I temp.vcf -O temp.fixed.vcf
+21:44:16.837 INFO  NativeLibraryLoader - Loading libgkl_compression.dylib from jar:file:/Users/weisburd/bin/gatk-package-4.2.0.0-local.jar!/com/intel/gkl/native/libgkl_compression.dylib
+[Wed Nov 30 21:44:16 EST 2022] FixVcfHeader --INPUT temp.vcf --OUTPUT temp.fixed.vcf --CHECK_FIRST_N_RECORDS -1 --ENFORCE_SAME_SAMPLES true --VERBOSITY INFO --QUIET false --VALIDATION_STRINGENCY STRICT --COMPRESSION_LEVEL 2 --MAX_RECORDS_IN_RAM 500000 --CREATE_INDEX false --CREATE_MD5_FILE false --GA4GH_CLIENT_SECRETS client_secrets.json --help false --version false --showHidden false --USE_JDK_DEFLATER false --USE_JDK_INFLATER false
+[Wed Nov 30 21:44:17 EST 2022] Executing as weisburd@wm103-772 on Mac OS X 10.16 x86_64; OpenJDK 64-Bit Server VM 1.8.0_322-b06; Deflater: Intel; Inflater: Intel; Provider GCS is available; Picard version: Version:4.2.0.0
+INFO	2022-11-30 21:44:17	FixVcfHeader	Reading in records to re-build the header.
+INFO	2022-11-30 21:44:17	FixVcfHeader	Will add an INFO line with id: NumRepeats1
+INFO	2022-11-30 21:44:17	FixVcfHeader	Will add an INFO line with id: NumRepeats2
+INFO	2022-11-30 21:44:17	FixVcfHeader	Will add an INFO line with id: Motif
+INFO	2022-11-30 21:44:17	FixVcfHeader	Will add an FILTER line with id: IndelStraddlesMultipleIntevals
+INFO	2022-11-30 21:44:18	FixVcfHeader	VCF header re-built.
+INFO	2022-11-30 21:44:18	FixVcfHeader	Writing the output VCF.
+[Wed Nov 30 21:44:20 EST 2022] picard.vcf.FixVcfHeader done. Elapsed time: 0.06 minutes.
+Runtime.totalMemory()=887095296
+Tool returned:
+0
+Using GATK jar /Users/weisburd/bin/gatk-package-4.2.0.0-local.jar
+Running:
+    java -Dsamjdk.use_async_io_read_samtools=false -Dsamjdk.use_async_io_write_samtools=true -Dsamjdk.use_async_io_write_tribble=false -Dsamjdk.compression_level=2 -jar /Users/weisburd/bin/gatk-package-4.2.0.0-local.jar FixVcfHeader -I temp.vcf -O temp.fixed.vcf
++ gatk SortVcf -I temp.fixed.vcf -O step6.STRs.restored_dels_that_failed_liftover.vcf.gz
+21:44:22.845 INFO  NativeLibraryLoader - Loading libgkl_compression.dylib from jar:file:/Users/weisburd/bin/gatk-package-4.2.0.0-local.jar!/com/intel/gkl/native/libgkl_compression.dylib
+[Wed Nov 30 21:44:22 EST 2022] SortVcf --INPUT temp.fixed.vcf --OUTPUT step6.STRs.restored_dels_that_failed_liftover.vcf.gz --VERBOSITY INFO --QUIET false --VALIDATION_STRINGENCY STRICT --COMPRESSION_LEVEL 2 --MAX_RECORDS_IN_RAM 500000 --CREATE_INDEX true --CREATE_MD5_FILE false --GA4GH_CLIENT_SECRETS client_secrets.json --help false --version false --showHidden false --USE_JDK_DEFLATER false --USE_JDK_INFLATER false
+[Wed Nov 30 21:44:23 EST 2022] Executing as weisburd@wm103-772 on Mac OS X 10.16 x86_64; OpenJDK 64-Bit Server VM 1.8.0_322-b06; Deflater: Intel; Inflater: Intel; Provider GCS is available; Picard version: Version:4.2.0.0
+INFO	2022-11-30 21:44:23	SortVcf	Reading entries from input file 1
+INFO	2022-11-30 21:44:23	SortVcf	read        25,000 records.  Elapsed time: 00:00:00s.  Time for last 25,000:    0s.  Last read position: chr14:87,284,471
+INFO	2022-11-30 21:44:23	SortVcf	read        50,000 records.  Elapsed time: 00:00:00s.  Time for last 25,000:    0s.  Last read position: chr3:3,011,877
+INFO	2022-11-30 21:44:23	SortVcf	read        75,000 records.  Elapsed time: 00:00:00s.  Time for last 25,000:    0s.  Last read position: chr7:68,730,080
+INFO	2022-11-30 21:44:23	SortVcf	read       100,000 records.  Elapsed time: 00:00:00s.  Time for last 25,000:    0s.  Last read position: chr2:208,173,626
+INFO	2022-11-30 21:44:23	SortVcf	read       125,000 records.  Elapsed time: 00:00:00s.  Time for last 25,000:    0s.  Last read position: chr9:84,152,820
+INFO	2022-11-30 21:44:24	SortVcf	read       150,000 records.  Elapsed time: 00:00:00s.  Time for last 25,000:    0s.  Last read position: chr20:59,986,616
+INFO	2022-11-30 21:44:24	SortVcf	wrote        25,000 records.  Elapsed time: 00:00:00s.  Time for last 25,000:    0s.  Last read position: chr11:105,058,557
+INFO	2022-11-30 21:44:24	SortVcf	wrote        50,000 records.  Elapsed time: 00:00:00s.  Time for last 25,000:    0s.  Last read position: chr16:18,000,647
+INFO	2022-11-30 21:44:25	SortVcf	wrote        75,000 records.  Elapsed time: 00:00:00s.  Time for last 25,000:    0s.  Last read position: chr2:186,213,505
+INFO	2022-11-30 21:44:25	SortVcf	wrote       100,000 records.  Elapsed time: 00:00:00s.  Time for last 25,000:    0s.  Last read position: chr4:67,319,779
+INFO	2022-11-30 21:44:25	SortVcf	wrote       125,000 records.  Elapsed time: 00:00:00s.  Time for last 25,000:    0s.  Last read position: chr6:166,507,367
+INFO	2022-11-30 21:44:25	SortVcf	wrote       150,000 records.  Elapsed time: 00:00:00s.  Time for last 25,000:    0s.  Last read position: chrX:51,949,274
+[Wed Nov 30 21:44:25 EST 2022] picard.vcf.SortVcf done. Elapsed time: 0.04 minutes.
+Runtime.totalMemory()=894959616
+Tool returned:
+0
+Using GATK jar /Users/weisburd/bin/gatk-package-4.2.0.0-local.jar
+Running:
+    java -Dsamjdk.use_async_io_read_samtools=false -Dsamjdk.use_async_io_write_samtools=true -Dsamjdk.use_async_io_write_tribble=false -Dsamjdk.compression_level=2 -jar /Users/weisburd/bin/gatk-package-4.2.0.0-local.jar SortVcf -I temp.fixed.vcf -O step6.STRs.restored_dels_that_failed_liftover.vcf.gz
++ rm temp.vcf temp.fixed.vcf temp.fixed.vcf.idx
++ set +x
+         OUTPUT: step6.STRs.restored_dels_that_failed_liftover.vcf.gz         154744 variants
+VCF stats for the input vcf -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --  step5.STRs.lifted_back_to_38.vcf.gz
+    90,368 TOTAL variants
+   101,041 TOTAL alleles (1.12 alleles per variant)
+--------------
+    38,781 out of     90,368 ( 42.9%) genotype: 1|0
+    21,790 out of     90,368 ( 24.1%) genotype: 0|1
+    19,124 out of     90,368 ( 21.2%) genotype: 1|1
+     5,439 out of     90,368 (  6.0%) genotype: 1|2
+     5,234 out of     90,368 (  5.8%) genotype: 2|1
+--------------
+    90,368 out of     90,368 (100.0%) TOTAL variants
+    61,619 out of     90,368 ( 68.2%) INS variants
+    18,076 out of     90,368 ( 20.0%) DEL variants
+    10,533 out of     90,368 ( 11.7%) multiallelic INS variants
+       140 out of     90,368 (  0.2%) mixed multiallelic INS/DEL variants
+--------------
+   101,041 out of    101,041 (100.0%) TOTAL alleles
+    82,825 out of    101,041 ( 82.0%) INS alleles
+    18,216 out of    101,041 ( 18.0%) DEL alleles
+VCF stats for the output vcf -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --  step6.STRs.restored_dels_that_failed_liftover.vcf.gz
+   154,744 TOTAL variants
+   185,696 TOTAL alleles (1.20 alleles per variant)
+--------------
+    43,324 out of    154,744 ( 28.0%) genotype: 1|1
+    40,732 out of    154,744 ( 26.3%) genotype: 0|1
+    39,736 out of    154,744 ( 25.7%) genotype: 1|0
+    15,662 out of    154,744 ( 10.1%) genotype: 1|2
+    15,290 out of    154,744 (  9.9%) genotype: 2|1
+--------------
+   154,744 out of    154,744 (100.0%) TOTAL variants
+    62,173 out of    154,744 ( 40.2%) DEL variants
+    61,619 out of    154,744 ( 39.8%) INS variants
+    10,794 out of    154,744 (  7.0%) multiallelic DEL variants
+    10,533 out of    154,744 (  6.8%) multiallelic INS variants
+     9,625 out of    154,744 (  6.2%) mixed multiallelic INS/DEL variants
+--------------
+   185,696 out of    185,696 (100.0%) TOTAL alleles
+    93,386 out of    185,696 ( 50.3%) DEL alleles
+    92,310 out of    185,696 ( 49.7%) INS alleles
+===============
+STEP #7: Check VCF positions before vs. after liftover to confirm concordance.
+         INPUT: step6.STRs.restored_dels_that_failed_liftover.vcf.gz        154744 variants
++ python3 -u scripts/check_vcf_concordance_before_vs_after_liftover.py -o step7.STRs.passed_liftover_checks.vcf.gz step2.STRs.vcf.gz step6.STRs.restored_dels_that_failed_liftover.vcf.gz
+Parsed 157,175 variants from step2.STRs.vcf.gz
+Parsed 154,744 variants from step6.STRs.restored_dels_that_failed_liftover.vcf.gz
+Wrote 154,743 out of 157,175 (98.5%) variants to step7.STRs.passed_liftover_checks.vcf.gz
+     1 variants had a different position after hg38 => T2T => hg38
++ set +x
+         OUTPUT: step7.STRs.passed_liftover_checks.vcf.gz         154743 variants
+VCF stats for the input vcf -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --  step6.STRs.restored_dels_that_failed_liftover.vcf.gz
+   154,744 TOTAL variants
+   185,696 TOTAL alleles (1.20 alleles per variant)
+--------------
+    43,324 out of    154,744 ( 28.0%) genotype: 1|1
+    40,732 out of    154,744 ( 26.3%) genotype: 0|1
+    39,736 out of    154,744 ( 25.7%) genotype: 1|0
+    15,662 out of    154,744 ( 10.1%) genotype: 1|2
+    15,290 out of    154,744 (  9.9%) genotype: 2|1
+--------------
+   154,744 out of    154,744 (100.0%) TOTAL variants
+    62,173 out of    154,744 ( 40.2%) DEL variants
+    61,619 out of    154,744 ( 39.8%) INS variants
+    10,794 out of    154,744 (  7.0%) multiallelic DEL variants
+    10,533 out of    154,744 (  6.8%) multiallelic INS variants
+     9,625 out of    154,744 (  6.2%) mixed multiallelic INS/DEL variants
+--------------
+   185,696 out of    185,696 (100.0%) TOTAL alleles
+    93,386 out of    185,696 ( 50.3%) DEL alleles
+    92,310 out of    185,696 ( 49.7%) INS alleles
+VCF stats for the output vcf -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --  step7.STRs.passed_liftover_checks.vcf.gz
+   154,743 TOTAL variants
+   185,695 TOTAL alleles (1.20 alleles per variant)
+--------------
+    43,324 out of    154,743 ( 28.0%) genotype: 1|1
+    40,732 out of    154,743 ( 26.3%) genotype: 0|1
+    39,735 out of    154,743 ( 25.7%) genotype: 1|0
+    15,662 out of    154,743 ( 10.1%) genotype: 1|2
+    15,290 out of    154,743 (  9.9%) genotype: 2|1
+--------------
+   154,743 out of    154,743 (100.0%) TOTAL variants
+    62,173 out of    154,743 ( 40.2%) DEL variants
+    61,618 out of    154,743 ( 39.8%) INS variants
+    10,794 out of    154,743 (  7.0%) multiallelic DEL variants
+    10,533 out of    154,743 (  6.8%) multiallelic INS variants
+     9,625 out of    154,743 (  6.2%) mixed multiallelic INS/DEL variants
+--------------
+   185,695 out of    185,695 (100.0%) TOTAL alleles
+    93,386 out of    185,695 ( 50.3%) DEL alleles
+    92,309 out of    185,695 ( 49.7%) INS alleles
+===============
+step8: Print stats and compute overlap with other catalogs.
+         INPUT: step7.STRs.passed_liftover_checks.vcf.gz        154743 variants
++ python3 -u -m str_analysis.filter_vcf_to_STR_variants -R ./ref/hg38.fa --write-bed-file --allow-interruptions --min-str-length 9 --min-str-repeats 3 --output-prefix step7.filtered_STRs step7.STRs.passed_liftover_checks.vcf.gz
+Finished writing to  step7.filtered_STRs.variants.tsv
+Finished writing to  step7.filtered_STRs.alleles.tsv
+2022-11-30 21:45:50,305 INFO: --------------
+2022-11-30 21:45:50,306 INFO:     10,238 out of    175,457 (  5.8%) STR allele counts (interruptions allowed): TOTAL
+2022-11-30 21:45:50,306 INFO:      5,201 out of    175,457 (  3.0%) STR allele counts (interruptions allowed): INS
+2022-11-30 21:45:50,306 INFO:      5,037 out of    175,457 (  2.9%) STR allele counts (interruptions allowed): DEL
+2022-11-30 21:45:50,306 INFO: --------------
+2022-11-30 21:45:50,306 INFO:    175,457 out of    175,457 (100.0%) STR allele counts: TOTAL
+2022-11-30 21:45:50,306 INFO:     88,349 out of    175,457 ( 50.4%) STR allele counts: DEL
+2022-11-30 21:45:50,306 INFO:     87,108 out of    175,457 ( 49.6%) STR allele counts: INS
+2022-11-30 21:45:50,306 INFO: --------------
+2022-11-30 21:45:50,306 INFO:      2,816 out of    175,457 (  1.6%) STR allele delta (interruptions allowed): 2 repeats
+2022-11-30 21:45:50,306 INFO:      2,443 out of    175,457 (  1.4%) STR allele delta (interruptions allowed): 1 repeats
+2022-11-30 21:45:50,306 INFO:      1,861 out of    175,457 (  1.1%) STR allele delta (interruptions allowed): 3 repeats
+2022-11-30 21:45:50,306 INFO:        977 out of    175,457 (  0.6%) STR allele delta (interruptions allowed): 4 repeats
+2022-11-30 21:45:50,306 INFO:        724 out of    175,457 (  0.4%) STR allele delta (interruptions allowed): 5 repeats
+2022-11-30 21:45:50,306 INFO:        514 out of    175,457 (  0.3%) STR allele delta (interruptions allowed): 9+ repeats
+2022-11-30 21:45:50,306 INFO:        443 out of    175,457 (  0.3%) STR allele delta (interruptions allowed): 6 repeats
+2022-11-30 21:45:50,306 INFO:        277 out of    175,457 (  0.2%) STR allele delta (interruptions allowed): 7 repeats
+2022-11-30 21:45:50,306 INFO:        183 out of    175,457 (  0.1%) STR allele delta (interruptions allowed): 8 repeats
+2022-11-30 21:45:50,307 INFO: --------------
+2022-11-30 21:45:50,307 INFO:     93,121 out of    175,457 ( 53.1%) STR allele delta: 1 repeats
+2022-11-30 21:45:50,307 INFO:     34,214 out of    175,457 ( 19.5%) STR allele delta: 2 repeats
+2022-11-30 21:45:50,307 INFO:     17,297 out of    175,457 (  9.9%) STR allele delta: 3 repeats
+2022-11-30 21:45:50,307 INFO:     10,120 out of    175,457 (  5.8%) STR allele delta: 4 repeats
+2022-11-30 21:45:50,307 INFO:      6,443 out of    175,457 (  3.7%) STR allele delta: 5 repeats
+2022-11-30 21:45:50,307 INFO:      5,278 out of    175,457 (  3.0%) STR allele delta: 9+ repeats
+2022-11-30 21:45:50,307 INFO:      4,163 out of    175,457 (  2.4%) STR allele delta: 6 repeats
+2022-11-30 21:45:50,307 INFO:      2,845 out of    175,457 (  1.6%) STR allele delta: 7 repeats
+2022-11-30 21:45:50,307 INFO:      1,976 out of    175,457 (  1.1%) STR allele delta: 8 repeats
+2022-11-30 21:45:50,307 INFO: --------------
+2022-11-30 21:45:50,307 INFO:      6,710 out of    175,457 (  3.8%) STR allele motif size (interruptions allowed): 4 bp
+2022-11-30 21:45:50,307 INFO:      1,922 out of    175,457 (  1.1%) STR allele motif size (interruptions allowed): 3 bp
+2022-11-30 21:45:50,307 INFO:        568 out of    175,457 (  0.3%) STR allele motif size (interruptions allowed): 6 bp
+2022-11-30 21:45:50,307 INFO:        562 out of    175,457 (  0.3%) STR allele motif size (interruptions allowed): 5 bp
+2022-11-30 21:45:50,307 INFO:        359 out of    175,457 (  0.2%) STR allele motif size (interruptions allowed): 9+ bp
+2022-11-30 21:45:50,307 INFO:         62 out of    175,457 (  0.0%) STR allele motif size (interruptions allowed): 8 bp
+2022-11-30 21:45:50,307 INFO:         55 out of    175,457 (  0.0%) STR allele motif size (interruptions allowed): 7 bp
+2022-11-30 21:45:50,307 INFO: --------------
+2022-11-30 21:45:50,307 INFO:    104,153 out of    175,457 ( 59.4%) STR allele motif size: 2 bp
+2022-11-30 21:45:50,308 INFO:     39,192 out of    175,457 ( 22.3%) STR allele motif size: 4 bp
+2022-11-30 21:45:50,308 INFO:     14,649 out of    175,457 (  8.3%) STR allele motif size: 3 bp
+2022-11-30 21:45:50,308 INFO:      9,486 out of    175,457 (  5.4%) STR allele motif size: 5 bp
+2022-11-30 21:45:50,308 INFO:      4,157 out of    175,457 (  2.4%) STR allele motif size: 9+ bp
+2022-11-30 21:45:50,308 INFO:      2,563 out of    175,457 (  1.5%) STR allele motif size: 6 bp
+2022-11-30 21:45:50,308 INFO:        720 out of    175,457 (  0.4%) STR allele motif size: 7 bp
+2022-11-30 21:45:50,308 INFO:        537 out of    175,457 (  0.3%) STR allele motif size: 8 bp
+2022-11-30 21:45:50,308 INFO: --------------
+2022-11-30 21:45:50,308 INFO:      4,195 out of    175,457 (  2.4%) STR allele reference repeats (interruptions allowed): with right matching ref. repeat
+2022-11-30 21:45:50,308 INFO:      3,174 out of    175,457 (  1.8%) STR allele reference repeats (interruptions allowed): with both left and right matching ref. repeat
+2022-11-30 21:45:50,308 INFO:      2,278 out of    175,457 (  1.3%) STR allele reference repeats (interruptions allowed): with left matching ref. repeat
+2022-11-30 21:45:50,308 INFO:        591 out of    175,457 (  0.3%) STR allele reference repeats (interruptions allowed): with no matching ref. repeat
+2022-11-30 21:45:50,308 INFO: --------------
+2022-11-30 21:45:50,308 INFO:    174,829 out of    175,457 ( 99.6%) STR allele reference repeats: with right matching ref. repeat
+2022-11-30 21:45:50,308 INFO:        627 out of    175,457 (  0.4%) STR allele reference repeats: with no matching ref. repeat
+2022-11-30 21:45:50,308 INFO:          1 out of    175,457 (  0.0%) STR allele reference repeats: with both left and right matching ref. repeat
+2022-11-30 21:45:50,308 INFO: --------------
+2022-11-30 21:45:50,308 INFO:      9,020 out of    175,457 (  5.1%) STR allele size (interruptions allowed): 0-25bp
+2022-11-30 21:45:50,308 INFO:        986 out of    175,457 (  0.6%) STR allele size (interruptions allowed): 25-50bp
+2022-11-30 21:45:50,309 INFO:        151 out of    175,457 (  0.1%) STR allele size (interruptions allowed): 50-75bp
+2022-11-30 21:45:50,309 INFO:         45 out of    175,457 (  0.0%) STR allele size (interruptions allowed): 75-100bp
+2022-11-30 21:45:50,309 INFO:         10 out of    175,457 (  0.0%) STR allele size (interruptions allowed): 125-150bp
+2022-11-30 21:45:50,309 INFO:          8 out of    175,457 (  0.0%) STR allele size (interruptions allowed): 100-125bp
+2022-11-30 21:45:50,309 INFO:          6 out of    175,457 (  0.0%) STR allele size (interruptions allowed): 200-225bp
+2022-11-30 21:45:50,309 INFO:          5 out of    175,457 (  0.0%) STR allele size (interruptions allowed): 150-175bp
+2022-11-30 21:45:50,309 INFO:          2 out of    175,457 (  0.0%) STR allele size (interruptions allowed): 175-200bp
+2022-11-30 21:45:50,309 INFO:          2 out of    175,457 (  0.0%) STR allele size (interruptions allowed): 250-275bp
+2022-11-30 21:45:50,309 INFO:          1 out of    175,457 (  0.0%) STR allele size (interruptions allowed): 225-250bp
+2022-11-30 21:45:50,309 INFO:          1 out of    175,457 (  0.0%) STR allele size (interruptions allowed): 300-325bp
+2022-11-30 21:45:50,309 INFO:          1 out of    175,457 (  0.0%) STR allele size (interruptions allowed): 350-375bp
+2022-11-30 21:45:50,309 INFO: --------------
+2022-11-30 21:45:50,309 INFO:    170,312 out of    175,457 ( 97.1%) STR allele size: 0-25bp
+2022-11-30 21:45:50,309 INFO:      3,905 out of    175,457 (  2.2%) STR allele size: 25-50bp
+2022-11-30 21:45:50,309 INFO:        599 out of    175,457 (  0.3%) STR allele size: 50-75bp
+2022-11-30 21:45:50,309 INFO:        226 out of    175,457 (  0.1%) STR allele size: 75-100bp
+2022-11-30 21:45:50,309 INFO:        124 out of    175,457 (  0.1%) STR allele size: 100-125bp
+2022-11-30 21:45:50,309 INFO:         77 out of    175,457 (  0.0%) STR allele size: 125-150bp
+2022-11-30 21:45:50,309 INFO:         48 out of    175,457 (  0.0%) STR allele size: 150-175bp
+2022-11-30 21:45:50,309 INFO:         34 out of    175,457 (  0.0%) STR allele size: 175-200bp
+2022-11-30 21:45:50,309 INFO:         26 out of    175,457 (  0.0%) STR allele size: 200-225bp
+2022-11-30 21:45:50,309 INFO:         25 out of    175,457 (  0.0%) STR allele size: 225-250bp
+2022-11-30 21:45:50,310 INFO:         16 out of    175,457 (  0.0%) STR allele size: 250-275bp
+2022-11-30 21:45:50,310 INFO:         12 out of    175,457 (  0.0%) STR allele size: 500+bp
+2022-11-30 21:45:50,310 INFO:         11 out of    175,457 (  0.0%) STR allele size: 275-300bp
+2022-11-30 21:45:50,310 INFO:          9 out of    175,457 (  0.0%) STR allele size: 425-450bp
+2022-11-30 21:45:50,310 INFO:          8 out of    175,457 (  0.0%) STR allele size: 350-375bp
+2022-11-30 21:45:50,310 INFO:          7 out of    175,457 (  0.0%) STR allele size: 375-400bp
+2022-11-30 21:45:50,310 INFO:          6 out of    175,457 (  0.0%) STR allele size: 325-350bp
+2022-11-30 21:45:50,310 INFO:          4 out of    175,457 (  0.0%) STR allele size: 450-475bp
+2022-11-30 21:45:50,310 INFO:          3 out of    175,457 (  0.0%) STR allele size: 300-325bp
+2022-11-30 21:45:50,310 INFO:          3 out of    175,457 (  0.0%) STR allele size: 475-500bp
+2022-11-30 21:45:50,310 INFO:          2 out of    175,457 (  0.0%) STR allele size: 400-425bp
+2022-11-30 21:45:50,310 INFO: --------------
+2022-11-30 21:45:50,310 INFO:    154,743 out of    154,743 (100.0%) STR variant counts: TOTAL
+2022-11-30 21:45:50,310 INFO:    144,773 out of    154,743 ( 93.6%) STR variant counts: pure repeats
+2022-11-30 21:45:50,310 INFO:     30,952 out of    154,743 ( 20.0%) STR variant counts: multi-allelic
+2022-11-30 21:45:50,310 INFO: --------------
+2022-11-30 21:45:50,310 INFO:     10,238 out of    185,695 (  5.5%) non-STR allele: allele repeat sequence is too short
+Wrote 154735 to step7.filtered_STRs.variants.bed.gz
++ suffix=with_overlap_columns
++ wait
++ python3 -u scripts/compute_overlap_with_other_catalogs.py step7.filtered_STRs.alleles.tsv.gz step7.filtered_STRs.alleles.with_overlap_columns.tsv.gz
++ python3 -u scripts/compute_overlap_with_other_catalogs.py step7.filtered_STRs.variants.tsv.gz step7.filtered_STRs.variants.with_overlap_columns.tsv.gz
+Parsed    174,300 intervals from IlluminaSTRCatalog                       ./ref/other/illumina_variant_catalog.sorted.bed.gz
+Parsed    174,300 intervals from IlluminaSTRCatalog                       ./ref/other/illumina_variant_catalog.sorted.bed.gz
+Parsed  1,340,266 intervals from GangSTRCatalog17                         ./ref/other/hg38_ver17.fixed.bed.gz
+Parsed  1,340,266 intervals from GangSTRCatalog17                         ./ref/other/hg38_ver17.fixed.bed.gz
+Parsed    832,380 intervals from GangSTRCatalog13                         ./ref/other/hg38_ver13.fixed.bed.gz
+Parsed         60 intervals from KnownDiseaseAssociatedSTRs               ./ref/other/known_disease_associated_STR_loci.GRCh38.bed.gz
+Parsed    832,380 intervals from GangSTRCatalog13                         ./ref/other/hg38_ver13.fixed.bed.gz
+Parsed         60 intervals from KnownDiseaseAssociatedSTRs               ./ref/other/known_disease_associated_STR_loci.GRCh38.bed.gz
+Parsed    702,486 intervals from TRFPureRepeats15bp                       ./ref/other/repeat_specs_GRCh38_without_mismatches.sorted.trimmed.at_least_15bp.bed.gz
+Parsed    702,486 intervals from TRFPureRepeats15bp                       ./ref/other/repeat_specs_GRCh38_without_mismatches.sorted.trimmed.at_least_15bp.bed.gz
+Parsed  1,343,313 intervals from TRFPureRepeats12bp                       ./ref/other/repeat_specs_GRCh38_without_mismatches.sorted.trimmed.at_least_12bp.bed.gz
+Parsed  1,343,313 intervals from TRFPureRepeats12bp                       ./ref/other/repeat_specs_GRCh38_without_mismatches.sorted.trimmed.at_least_12bp.bed.gz
+Parsed  2,805,842 intervals from TRFPureRepeats9bp                        ./ref/other/repeat_specs_GRCh38_without_mismatches.sorted.trimmed.at_least_9bp.bed.gz
+Parsed  2,805,842 intervals from TRFPureRepeats9bp                        ./ref/other/repeat_specs_GRCh38_without_mismatches.sorted.trimmed.at_least_9bp.bed.gz
+Parsed  4,722,859 intervals from TRFPureRepeats6bp                        ./ref/other/repeat_specs_GRCh38_without_mismatches.sorted.trimmed.at_least_6bp.bed.gz
+Parsed     64,222 intervals from SegDupIntervals                          ./ref/other/GRCh38GenomicSuperDup.without_decoys.sorted.bed.gz
+Processing rows from step7.filtered_STRs.alleles.tsv.gz
+Parsed  4,722,859 intervals from TRFPureRepeats6bp                        ./ref/other/repeat_specs_GRCh38_without_mismatches.sorted.trimmed.at_least_6bp.bed.gz
+Parsed     64,222 intervals from SegDupIntervals                          ./ref/other/GRCh38GenomicSuperDup.without_decoys.sorted.bed.gz
+Processing rows from step7.filtered_STRs.variants.tsv.gz
+Wrote 154,743 rows to the output tsv: step7.filtered_STRs.variants.with_overlap_columns.tsv.gz
+GangSTRCatalog13              :     63,242 out of    154,743 ( 40.9%) truth set loci, and out of    832,380 (  7.6%) GangSTRCatalog13 loci:     STR locus has exact same coordinates as truth set STR locus   and has same motif
+GangSTRCatalog13              :         48 out of    154,743 (  0.0%) truth set loci, and out of    832,380 (  0.0%) GangSTRCatalog13 loci:     STR locus has exact same coordinates as truth set STR locus   and has different motif
+GangSTRCatalog13              :        681 out of    154,743 (  0.4%) truth set loci, and out of    832,380 (  0.1%) GangSTRCatalog13 loci:     STR locus is contained within truth set STR locus             and has same motif after normalization
+GangSTRCatalog13              :        131 out of    154,743 (  0.1%) truth set loci, and out of    832,380 (  0.0%) GangSTRCatalog13 loci:     STR locus is contained within truth set STR locus             and has same motif
+GangSTRCatalog13              :         95 out of    154,743 (  0.1%) truth set loci, and out of    832,380 (  0.0%) GangSTRCatalog13 loci:     STR locus is contained within truth set STR locus             and has different motif
+GangSTRCatalog13              :        233 out of    154,743 (  0.2%) truth set loci, and out of    832,380 (  0.0%) GangSTRCatalog13 loci:     STR locus contains truth set STR locus                        and has different motif
+GangSTRCatalog13              :        100 out of    154,743 (  0.1%) truth set loci, and out of    832,380 (  0.0%) GangSTRCatalog13 loci:     STR locus contains truth set STR locus                        and has same motif after normalization
+GangSTRCatalog13              :          1 out of    154,743 (  0.0%) truth set loci, and out of    832,380 (  0.0%) GangSTRCatalog13 loci:     STR locus contains truth set STR locus                        and has same motif
+GangSTRCatalog13              :      1,149 out of    154,743 (  0.7%) truth set loci, and out of    832,380 (  0.1%) GangSTRCatalog13 loci:     STR loci overlap                                              and has same motif after normalization
+GangSTRCatalog13              :      1,064 out of    154,743 (  0.7%) truth set loci, and out of    832,380 (  0.1%) GangSTRCatalog13 loci:     STR loci overlap                                              and has different motif
+GangSTRCatalog13              :          2 out of    154,743 (  0.0%) truth set loci, and out of    832,380 (  0.0%) GangSTRCatalog13 loci:     STR loci overlap                                              and has same motif
+GangSTRCatalog13              :     87,997 out of    154,743 ( 56.9%) truth set loci:     no overlap                                                  
+GangSTRCatalog17              :     81,148 out of    154,743 ( 52.4%) truth set loci, and out of  1,340,266 (  6.1%) GangSTRCatalog17 loci:     STR locus has exact same coordinates as truth set STR locus   and has same motif
+GangSTRCatalog17              :         91 out of    154,743 (  0.1%) truth set loci, and out of  1,340,266 (  0.0%) GangSTRCatalog17 loci:     STR locus has exact same coordinates as truth set STR locus   and has different motif
+GangSTRCatalog17              :      1,058 out of    154,743 (  0.7%) truth set loci, and out of  1,340,266 (  0.1%) GangSTRCatalog17 loci:     STR locus is contained within truth set STR locus             and has same motif after normalization
+GangSTRCatalog17              :        268 out of    154,743 (  0.2%) truth set loci, and out of  1,340,266 (  0.0%) GangSTRCatalog17 loci:     STR locus is contained within truth set STR locus             and has same motif
+GangSTRCatalog17              :        237 out of    154,743 (  0.2%) truth set loci, and out of  1,340,266 (  0.0%) GangSTRCatalog17 loci:     STR locus is contained within truth set STR locus             and has different motif
+GangSTRCatalog17              :        368 out of    154,743 (  0.2%) truth set loci, and out of  1,340,266 (  0.0%) GangSTRCatalog17 loci:     STR locus contains truth set STR locus                        and has different motif
+GangSTRCatalog17              :        159 out of    154,743 (  0.1%) truth set loci, and out of  1,340,266 (  0.0%) GangSTRCatalog17 loci:     STR locus contains truth set STR locus                        and has same motif after normalization
+GangSTRCatalog17              :          1 out of    154,743 (  0.0%) truth set loci, and out of  1,340,266 (  0.0%) GangSTRCatalog17 loci:     STR locus contains truth set STR locus                        and has same motif
+GangSTRCatalog17              :      2,827 out of    154,743 (  1.8%) truth set loci, and out of  1,340,266 (  0.2%) GangSTRCatalog17 loci:     STR loci overlap                                              and has different motif
+GangSTRCatalog17              :      1,750 out of    154,743 (  1.1%) truth set loci, and out of  1,340,266 (  0.1%) GangSTRCatalog17 loci:     STR loci overlap                                              and has same motif after normalization
+GangSTRCatalog17              :          3 out of    154,743 (  0.0%) truth set loci, and out of  1,340,266 (  0.0%) GangSTRCatalog17 loci:     STR loci overlap                                              and has same motif
+GangSTRCatalog17              :     66,833 out of    154,743 ( 43.2%) truth set loci:     no overlap                                                  
+IlluminaSTRCatalog            :     87,338 out of    154,743 ( 56.4%) truth set loci, and out of    174,300 ( 50.1%) IlluminaSTRCatalog loci:     STR locus has exact same coordinates as truth set STR locus   and has same motif
+IlluminaSTRCatalog            :         91 out of    154,743 (  0.1%) truth set loci, and out of    174,300 (  0.1%) IlluminaSTRCatalog loci:     STR locus has exact same coordinates as truth set STR locus   and has different motif
+IlluminaSTRCatalog            :      1,001 out of    154,743 (  0.6%) truth set loci, and out of    174,300 (  0.6%) IlluminaSTRCatalog loci:     STR locus is contained within truth set STR locus             and has same motif
+IlluminaSTRCatalog            :        234 out of    154,743 (  0.2%) truth set loci, and out of    174,300 (  0.1%) IlluminaSTRCatalog loci:     STR locus is contained within truth set STR locus             and has different motif
+IlluminaSTRCatalog            :         51 out of    154,743 (  0.0%) truth set loci, and out of    174,300 (  0.0%) IlluminaSTRCatalog loci:     STR locus is contained within truth set STR locus             and has same motif after normalization
+IlluminaSTRCatalog            :      3,390 out of    154,743 (  2.2%) truth set loci, and out of    174,300 (  1.9%) IlluminaSTRCatalog loci:     STR locus contains truth set STR locus                        and has same motif
+IlluminaSTRCatalog            :        397 out of    154,743 (  0.3%) truth set loci, and out of    174,300 (  0.2%) IlluminaSTRCatalog loci:     STR locus contains truth set STR locus                        and has different motif
+IlluminaSTRCatalog            :        249 out of    154,743 (  0.2%) truth set loci, and out of    174,300 (  0.1%) IlluminaSTRCatalog loci:     STR locus contains truth set STR locus                        and has same motif after normalization
+IlluminaSTRCatalog            :        672 out of    154,743 (  0.4%) truth set loci, and out of    174,300 (  0.4%) IlluminaSTRCatalog loci:     STR loci overlap                                              and has different motif
+IlluminaSTRCatalog            :        427 out of    154,743 (  0.3%) truth set loci, and out of    174,300 (  0.2%) IlluminaSTRCatalog loci:     STR loci overlap                                              and has same motif after normalization
+IlluminaSTRCatalog            :         61 out of    154,743 (  0.0%) truth set loci, and out of    174,300 (  0.0%) IlluminaSTRCatalog loci:     STR loci overlap                                              and has same motif
+IlluminaSTRCatalog            :     60,832 out of    154,743 ( 39.3%) truth set loci:     no overlap                                                  
+KnownDiseaseAssociatedSTRs    :         10 out of    154,743 (  0.0%) truth set loci, and out of         60 ( 16.7%) KnownDiseaseAssociatedSTRs loci:     STR locus has exact same coordinates as truth set STR locus   and has same motif
+KnownDiseaseAssociatedSTRs    :          3 out of    154,743 (  0.0%) truth set loci, and out of         60 (  5.0%) KnownDiseaseAssociatedSTRs loci:     STR locus is contained within truth set STR locus             and has same motif after normalization
+KnownDiseaseAssociatedSTRs    :          3 out of    154,743 (  0.0%) truth set loci, and out of         60 (  5.0%) KnownDiseaseAssociatedSTRs loci:     STR locus is contained within truth set STR locus             and has same motif
+KnownDiseaseAssociatedSTRs    :          1 out of    154,743 (  0.0%) truth set loci, and out of         60 (  1.7%) KnownDiseaseAssociatedSTRs loci:     STR locus is contained within truth set STR locus             and has different motif
+KnownDiseaseAssociatedSTRs    :          4 out of    154,743 (  0.0%) truth set loci, and out of         60 (  6.7%) KnownDiseaseAssociatedSTRs loci:     STR locus contains truth set STR locus                        and has same motif
+KnownDiseaseAssociatedSTRs    :          2 out of    154,743 (  0.0%) truth set loci, and out of         60 (  3.3%) KnownDiseaseAssociatedSTRs loci:     STR locus contains truth set STR locus                        and has same motif after normalization
+KnownDiseaseAssociatedSTRs    :          1 out of    154,743 (  0.0%) truth set loci, and out of         60 (  1.7%) KnownDiseaseAssociatedSTRs loci:     STR locus contains truth set STR locus                        and has different motif
+KnownDiseaseAssociatedSTRs    :          5 out of    154,743 (  0.0%) truth set loci, and out of         60 (  8.3%) KnownDiseaseAssociatedSTRs loci:     STR loci overlap                                              and has same motif after normalization
+KnownDiseaseAssociatedSTRs    :          2 out of    154,743 (  0.0%) truth set loci, and out of         60 (  3.3%) KnownDiseaseAssociatedSTRs loci:     STR loci overlap                                              and has different motif
+KnownDiseaseAssociatedSTRs    :    154,712 out of    154,743 (100.0%) truth set loci:     no overlap                                                  
+SegDupIntervals               :      3,317 out of    154,743 (  2.1%) truth set loci, and out of     64,222 (  5.2%) SegDupIntervals loci:     interval contains truth set STR locus                       
+SegDupIntervals               :         30 out of    154,743 (  0.0%) truth set loci, and out of     64,222 (  0.0%) SegDupIntervals loci:     interval overlaps truth set STR locus                       
+SegDupIntervals               :    151,396 out of    154,743 ( 97.8%) truth set loci:     no overlap                                                  
+TRFPureRepeats12bp            :    132,129 out of    154,743 ( 85.4%) truth set loci, and out of  1,343,313 (  9.8%) TRFPureRepeats12bp loci:     STR locus has exact same coordinates as truth set STR locus   and has same motif
+TRFPureRepeats12bp            :        165 out of    154,743 (  0.1%) truth set loci, and out of  1,343,313 (  0.0%) TRFPureRepeats12bp loci:     STR locus has exact same coordinates as truth set STR locus   and has different motif
+TRFPureRepeats12bp            :      1,802 out of    154,743 (  1.2%) truth set loci, and out of  1,343,313 (  0.1%) TRFPureRepeats12bp loci:     STR locus is contained within truth set STR locus             and has same motif
+TRFPureRepeats12bp            :      1,071 out of    154,743 (  0.7%) truth set loci, and out of  1,343,313 (  0.1%) TRFPureRepeats12bp loci:     STR locus is contained within truth set STR locus             and has different motif
+TRFPureRepeats12bp            :        125 out of    154,743 (  0.1%) truth set loci, and out of  1,343,313 (  0.0%) TRFPureRepeats12bp loci:     STR locus is contained within truth set STR locus             and has same motif after normalization
+TRFPureRepeats12bp            :        934 out of    154,743 (  0.6%) truth set loci, and out of  1,343,313 (  0.1%) TRFPureRepeats12bp loci:     STR locus contains truth set STR locus                        and has different motif
+TRFPureRepeats12bp            :        393 out of    154,743 (  0.3%) truth set loci, and out of  1,343,313 (  0.0%) TRFPureRepeats12bp loci:     STR locus contains truth set STR locus                        and has same motif after normalization
+TRFPureRepeats12bp            :          6 out of    154,743 (  0.0%) truth set loci, and out of  1,343,313 (  0.0%) TRFPureRepeats12bp loci:     STR locus contains truth set STR locus                        and has same motif
+TRFPureRepeats12bp            :      2,578 out of    154,743 (  1.7%) truth set loci, and out of  1,343,313 (  0.2%) TRFPureRepeats12bp loci:     STR loci overlap                                              and has different motif
+TRFPureRepeats12bp            :      1,245 out of    154,743 (  0.8%) truth set loci, and out of  1,343,313 (  0.1%) TRFPureRepeats12bp loci:     STR loci overlap                                              and has same motif after normalization
+TRFPureRepeats12bp            :         26 out of    154,743 (  0.0%) truth set loci, and out of  1,343,313 (  0.0%) TRFPureRepeats12bp loci:     STR loci overlap                                              and has same motif
+TRFPureRepeats12bp            :     14,269 out of    154,743 (  9.2%) truth set loci:     no overlap                                                  
+TRFPureRepeats15bp            :    120,392 out of    154,743 ( 77.8%) truth set loci, and out of    702,486 ( 17.1%) TRFPureRepeats15bp loci:     STR locus has exact same coordinates as truth set STR locus   and has same motif
+TRFPureRepeats15bp            :        146 out of    154,743 (  0.1%) truth set loci, and out of    702,486 (  0.0%) TRFPureRepeats15bp loci:     STR locus has exact same coordinates as truth set STR locus   and has different motif
+TRFPureRepeats15bp            :      1,544 out of    154,743 (  1.0%) truth set loci, and out of    702,486 (  0.2%) TRFPureRepeats15bp loci:     STR locus is contained within truth set STR locus             and has same motif
+TRFPureRepeats15bp            :        916 out of    154,743 (  0.6%) truth set loci, and out of    702,486 (  0.1%) TRFPureRepeats15bp loci:     STR locus is contained within truth set STR locus             and has different motif
+TRFPureRepeats15bp            :        104 out of    154,743 (  0.1%) truth set loci, and out of    702,486 (  0.0%) TRFPureRepeats15bp loci:     STR locus is contained within truth set STR locus             and has same motif after normalization
+TRFPureRepeats15bp            :        974 out of    154,743 (  0.6%) truth set loci, and out of    702,486 (  0.1%) TRFPureRepeats15bp loci:     STR locus contains truth set STR locus                        and has different motif
+TRFPureRepeats15bp            :        364 out of    154,743 (  0.2%) truth set loci, and out of    702,486 (  0.1%) TRFPureRepeats15bp loci:     STR locus contains truth set STR locus                        and has same motif after normalization
+TRFPureRepeats15bp            :          6 out of    154,743 (  0.0%) truth set loci, and out of    702,486 (  0.0%) TRFPureRepeats15bp loci:     STR locus contains truth set STR locus                        and has same motif
+TRFPureRepeats15bp            :      2,877 out of    154,743 (  1.9%) truth set loci, and out of    702,486 (  0.4%) TRFPureRepeats15bp loci:     STR loci overlap                                              and has different motif
+TRFPureRepeats15bp            :      1,175 out of    154,743 (  0.8%) truth set loci, and out of    702,486 (  0.2%) TRFPureRepeats15bp loci:     STR loci overlap                                              and has same motif after normalization
+TRFPureRepeats15bp            :         20 out of    154,743 (  0.0%) truth set loci, and out of    702,486 (  0.0%) TRFPureRepeats15bp loci:     STR loci overlap                                              and has same motif
+TRFPureRepeats15bp            :     26,225 out of    154,743 ( 16.9%) truth set loci:     no overlap                                                  
+TRFPureRepeats6bp             :    138,215 out of    154,743 ( 89.3%) truth set loci, and out of  4,722,859 (  2.9%) TRFPureRepeats6bp loci:     STR locus has exact same coordinates as truth set STR locus   and has same motif
+TRFPureRepeats6bp             :        172 out of    154,743 (  0.1%) truth set loci, and out of  4,722,859 (  0.0%) TRFPureRepeats6bp loci:     STR locus has exact same coordinates as truth set STR locus   and has different motif
+TRFPureRepeats6bp             :      1,874 out of    154,743 (  1.2%) truth set loci, and out of  4,722,859 (  0.0%) TRFPureRepeats6bp loci:     STR locus is contained within truth set STR locus             and has same motif
+TRFPureRepeats6bp             :      1,758 out of    154,743 (  1.1%) truth set loci, and out of  4,722,859 (  0.0%) TRFPureRepeats6bp loci:     STR locus is contained within truth set STR locus             and has different motif
+TRFPureRepeats6bp             :        131 out of    154,743 (  0.1%) truth set loci, and out of  4,722,859 (  0.0%) TRFPureRepeats6bp loci:     STR locus is contained within truth set STR locus             and has same motif after normalization
+TRFPureRepeats6bp             :        806 out of    154,743 (  0.5%) truth set loci, and out of  4,722,859 (  0.0%) TRFPureRepeats6bp loci:     STR locus contains truth set STR locus                        and has different motif
+TRFPureRepeats6bp             :        396 out of    154,743 (  0.3%) truth set loci, and out of  4,722,859 (  0.0%) TRFPureRepeats6bp loci:     STR locus contains truth set STR locus                        and has same motif after normalization
+TRFPureRepeats6bp             :          6 out of    154,743 (  0.0%) truth set loci, and out of  4,722,859 (  0.0%) TRFPureRepeats6bp loci:     STR locus contains truth set STR locus                        and has same motif
+TRFPureRepeats6bp             :      2,407 out of    154,743 (  1.6%) truth set loci, and out of  4,722,859 (  0.1%) TRFPureRepeats6bp loci:     STR loci overlap                                              and has different motif
+TRFPureRepeats6bp             :      1,262 out of    154,743 (  0.8%) truth set loci, and out of  4,722,859 (  0.0%) TRFPureRepeats6bp loci:     STR loci overlap                                              and has same motif after normalization
+TRFPureRepeats6bp             :         29 out of    154,743 (  0.0%) truth set loci, and out of  4,722,859 (  0.0%) TRFPureRepeats6bp loci:     STR loci overlap                                              and has same motif
+TRFPureRepeats6bp             :      7,687 out of    154,743 (  5.0%) truth set loci:     no overlap                                                  
+TRFPureRepeats9bp             :    137,036 out of    154,743 ( 88.6%) truth set loci, and out of  2,805,842 (  4.9%) TRFPureRepeats9bp loci:     STR locus has exact same coordinates as truth set STR locus   and has same motif
+TRFPureRepeats9bp             :        165 out of    154,743 (  0.1%) truth set loci, and out of  2,805,842 (  0.0%) TRFPureRepeats9bp loci:     STR locus has exact same coordinates as truth set STR locus   and has different motif
+TRFPureRepeats9bp             :      1,874 out of    154,743 (  1.2%) truth set loci, and out of  2,805,842 (  0.1%) TRFPureRepeats9bp loci:     STR locus is contained within truth set STR locus             and has same motif
+TRFPureRepeats9bp             :      1,303 out of    154,743 (  0.8%) truth set loci, and out of  2,805,842 (  0.0%) TRFPureRepeats9bp loci:     STR locus is contained within truth set STR locus             and has different motif
+TRFPureRepeats9bp             :        131 out of    154,743 (  0.1%) truth set loci, and out of  2,805,842 (  0.0%) TRFPureRepeats9bp loci:     STR locus is contained within truth set STR locus             and has same motif after normalization
+TRFPureRepeats9bp             :        846 out of    154,743 (  0.5%) truth set loci, and out of  2,805,842 (  0.0%) TRFPureRepeats9bp loci:     STR locus contains truth set STR locus                        and has different motif
+TRFPureRepeats9bp             :        396 out of    154,743 (  0.3%) truth set loci, and out of  2,805,842 (  0.0%) TRFPureRepeats9bp loci:     STR locus contains truth set STR locus                        and has same motif after normalization
+TRFPureRepeats9bp             :          6 out of    154,743 (  0.0%) truth set loci, and out of  2,805,842 (  0.0%) TRFPureRepeats9bp loci:     STR locus contains truth set STR locus                        and has same motif
+TRFPureRepeats9bp             :      2,371 out of    154,743 (  1.5%) truth set loci, and out of  2,805,842 (  0.1%) TRFPureRepeats9bp loci:     STR loci overlap                                              and has different motif
+TRFPureRepeats9bp             :      1,262 out of    154,743 (  0.8%) truth set loci, and out of  2,805,842 (  0.0%) TRFPureRepeats9bp loci:     STR loci overlap                                              and has same motif after normalization
+TRFPureRepeats9bp             :         29 out of    154,743 (  0.0%) truth set loci, and out of  2,805,842 (  0.0%) TRFPureRepeats9bp loci:     STR loci overlap                                              and has same motif
+TRFPureRepeats9bp             :      9,324 out of    154,743 (  6.0%) truth set loci:     no overlap                                                  
+Done
+Wrote 185,695 rows to the output tsv: step7.filtered_STRs.alleles.with_overlap_columns.tsv.gz
+GangSTRCatalog13              :     79,762 out of    185,695 ( 43.0%) truth set loci, and out of    832,380 (  9.6%) GangSTRCatalog13 loci:     STR locus has exact same coordinates as truth set STR locus   and has same motif
+GangSTRCatalog13              :         51 out of    185,695 (  0.0%) truth set loci, and out of    832,380 (  0.0%) GangSTRCatalog13 loci:     STR locus has exact same coordinates as truth set STR locus   and has different motif
+GangSTRCatalog13              :        806 out of    185,695 (  0.4%) truth set loci, and out of    832,380 (  0.1%) GangSTRCatalog13 loci:     STR locus is contained within truth set STR locus             and has same motif after normalization
+GangSTRCatalog13              :        131 out of    185,695 (  0.1%) truth set loci, and out of    832,380 (  0.0%) GangSTRCatalog13 loci:     STR locus is contained within truth set STR locus             and has same motif
+GangSTRCatalog13              :         96 out of    185,695 (  0.1%) truth set loci, and out of    832,380 (  0.0%) GangSTRCatalog13 loci:     STR locus is contained within truth set STR locus             and has different motif
+GangSTRCatalog13              :        243 out of    185,695 (  0.1%) truth set loci, and out of    832,380 (  0.0%) GangSTRCatalog13 loci:     STR locus contains truth set STR locus                        and has different motif
+GangSTRCatalog13              :        117 out of    185,695 (  0.1%) truth set loci, and out of    832,380 (  0.0%) GangSTRCatalog13 loci:     STR locus contains truth set STR locus                        and has same motif after normalization
+GangSTRCatalog13              :          1 out of    185,695 (  0.0%) truth set loci, and out of    832,380 (  0.0%) GangSTRCatalog13 loci:     STR locus contains truth set STR locus                        and has same motif
+GangSTRCatalog13              :      1,289 out of    185,695 (  0.7%) truth set loci, and out of    832,380 (  0.2%) GangSTRCatalog13 loci:     STR loci overlap                                              and has same motif after normalization
+GangSTRCatalog13              :      1,118 out of    185,695 (  0.6%) truth set loci, and out of    832,380 (  0.1%) GangSTRCatalog13 loci:     STR loci overlap                                              and has different motif
+GangSTRCatalog13              :          2 out of    185,695 (  0.0%) truth set loci, and out of    832,380 (  0.0%) GangSTRCatalog13 loci:     STR loci overlap                                              and has same motif
+GangSTRCatalog13              :    102,079 out of    185,695 ( 55.0%) truth set loci:     no overlap                                                  
+GangSTRCatalog17              :    101,726 out of    185,695 ( 54.8%) truth set loci, and out of  1,340,266 (  7.6%) GangSTRCatalog17 loci:     STR locus has exact same coordinates as truth set STR locus   and has same motif
+GangSTRCatalog17              :         97 out of    185,695 (  0.1%) truth set loci, and out of  1,340,266 (  0.0%) GangSTRCatalog17 loci:     STR locus has exact same coordinates as truth set STR locus   and has different motif
+GangSTRCatalog17              :      1,279 out of    185,695 (  0.7%) truth set loci, and out of  1,340,266 (  0.1%) GangSTRCatalog17 loci:     STR locus is contained within truth set STR locus             and has same motif after normalization
+GangSTRCatalog17              :        275 out of    185,695 (  0.1%) truth set loci, and out of  1,340,266 (  0.0%) GangSTRCatalog17 loci:     STR locus is contained within truth set STR locus             and has same motif
+GangSTRCatalog17              :        245 out of    185,695 (  0.1%) truth set loci, and out of  1,340,266 (  0.0%) GangSTRCatalog17 loci:     STR locus is contained within truth set STR locus             and has different motif
+GangSTRCatalog17              :        378 out of    185,695 (  0.2%) truth set loci, and out of  1,340,266 (  0.0%) GangSTRCatalog17 loci:     STR locus contains truth set STR locus                        and has different motif
+GangSTRCatalog17              :        180 out of    185,695 (  0.1%) truth set loci, and out of  1,340,266 (  0.0%) GangSTRCatalog17 loci:     STR locus contains truth set STR locus                        and has same motif after normalization
+GangSTRCatalog17              :          1 out of    185,695 (  0.0%) truth set loci, and out of  1,340,266 (  0.0%) GangSTRCatalog17 loci:     STR locus contains truth set STR locus                        and has same motif
+GangSTRCatalog17              :      3,029 out of    185,695 (  1.6%) truth set loci, and out of  1,340,266 (  0.2%) GangSTRCatalog17 loci:     STR loci overlap                                              and has different motif
+GangSTRCatalog17              :      1,987 out of    185,695 (  1.1%) truth set loci, and out of  1,340,266 (  0.1%) GangSTRCatalog17 loci:     STR loci overlap                                              and has same motif after normalization
+GangSTRCatalog17              :          3 out of    185,695 (  0.0%) truth set loci, and out of  1,340,266 (  0.0%) GangSTRCatalog17 loci:     STR loci overlap                                              and has same motif
+GangSTRCatalog17              :     76,495 out of    185,695 ( 41.2%) truth set loci:     no overlap                                                  
+IlluminaSTRCatalog            :    109,340 out of    185,695 ( 58.9%) truth set loci, and out of    174,300 ( 62.7%) IlluminaSTRCatalog loci:     STR locus has exact same coordinates as truth set STR locus   and has same motif
+IlluminaSTRCatalog            :         97 out of    185,695 (  0.1%) truth set loci, and out of    174,300 (  0.1%) IlluminaSTRCatalog loci:     STR locus has exact same coordinates as truth set STR locus   and has different motif
+IlluminaSTRCatalog            :      1,158 out of    185,695 (  0.6%) truth set loci, and out of    174,300 (  0.7%) IlluminaSTRCatalog loci:     STR locus is contained within truth set STR locus             and has same motif
+IlluminaSTRCatalog            :        238 out of    185,695 (  0.1%) truth set loci, and out of    174,300 (  0.1%) IlluminaSTRCatalog loci:     STR locus is contained within truth set STR locus             and has different motif
+IlluminaSTRCatalog            :         63 out of    185,695 (  0.0%) truth set loci, and out of    174,300 (  0.0%) IlluminaSTRCatalog loci:     STR locus is contained within truth set STR locus             and has same motif after normalization
+IlluminaSTRCatalog            :      3,995 out of    185,695 (  2.2%) truth set loci, and out of    174,300 (  2.3%) IlluminaSTRCatalog loci:     STR locus contains truth set STR locus                        and has same motif
+IlluminaSTRCatalog            :        412 out of    185,695 (  0.2%) truth set loci, and out of    174,300 (  0.2%) IlluminaSTRCatalog loci:     STR locus contains truth set STR locus                        and has different motif
+IlluminaSTRCatalog            :        286 out of    185,695 (  0.2%) truth set loci, and out of    174,300 (  0.2%) IlluminaSTRCatalog loci:     STR locus contains truth set STR locus                        and has same motif after normalization
+IlluminaSTRCatalog            :        674 out of    185,695 (  0.4%) truth set loci, and out of    174,300 (  0.4%) IlluminaSTRCatalog loci:     STR loci overlap                                              and has different motif
+IlluminaSTRCatalog            :        472 out of    185,695 (  0.3%) truth set loci, and out of    174,300 (  0.3%) IlluminaSTRCatalog loci:     STR loci overlap                                              and has same motif after normalization
+IlluminaSTRCatalog            :         64 out of    185,695 (  0.0%) truth set loci, and out of    174,300 (  0.0%) IlluminaSTRCatalog loci:     STR loci overlap                                              and has same motif
+IlluminaSTRCatalog            :     68,896 out of    185,695 ( 37.1%) truth set loci:     no overlap                                                  
+KnownDiseaseAssociatedSTRs    :         14 out of    185,695 (  0.0%) truth set loci, and out of         60 ( 23.3%) KnownDiseaseAssociatedSTRs loci:     STR locus has exact same coordinates as truth set STR locus   and has same motif
+KnownDiseaseAssociatedSTRs    :          5 out of    185,695 (  0.0%) truth set loci, and out of         60 (  8.3%) KnownDiseaseAssociatedSTRs loci:     STR locus is contained within truth set STR locus             and has same motif after normalization
+KnownDiseaseAssociatedSTRs    :          3 out of    185,695 (  0.0%) truth set loci, and out of         60 (  5.0%) KnownDiseaseAssociatedSTRs loci:     STR locus is contained within truth set STR locus             and has same motif
+KnownDiseaseAssociatedSTRs    :          1 out of    185,695 (  0.0%) truth set loci, and out of         60 (  1.7%) KnownDiseaseAssociatedSTRs loci:     STR locus is contained within truth set STR locus             and has different motif
+KnownDiseaseAssociatedSTRs    :          5 out of    185,695 (  0.0%) truth set loci, and out of         60 (  8.3%) KnownDiseaseAssociatedSTRs loci:     STR locus contains truth set STR locus                        and has same motif
+KnownDiseaseAssociatedSTRs    :          3 out of    185,695 (  0.0%) truth set loci, and out of         60 (  5.0%) KnownDiseaseAssociatedSTRs loci:     STR locus contains truth set STR locus                        and has same motif after normalization
+KnownDiseaseAssociatedSTRs    :          1 out of    185,695 (  0.0%) truth set loci, and out of         60 (  1.7%) KnownDiseaseAssociatedSTRs loci:     STR locus contains truth set STR locus                        and has different motif
+KnownDiseaseAssociatedSTRs    :          6 out of    185,695 (  0.0%) truth set loci, and out of         60 ( 10.0%) KnownDiseaseAssociatedSTRs loci:     STR loci overlap                                              and has same motif after normalization
+KnownDiseaseAssociatedSTRs    :          2 out of    185,695 (  0.0%) truth set loci, and out of         60 (  3.3%) KnownDiseaseAssociatedSTRs loci:     STR loci overlap                                              and has different motif
+KnownDiseaseAssociatedSTRs    :    185,655 out of    185,695 (100.0%) truth set loci:     no overlap                                                  
+SegDupIntervals               :      3,893 out of    185,695 (  2.1%) truth set loci, and out of     64,222 (  6.1%) SegDupIntervals loci:     interval contains truth set STR locus                       
+SegDupIntervals               :         36 out of    185,695 (  0.0%) truth set loci, and out of     64,222 (  0.1%) SegDupIntervals loci:     interval overlaps truth set STR locus                       
+SegDupIntervals               :    181,766 out of    185,695 ( 97.9%) truth set loci:     no overlap                                                  
+TRFPureRepeats12bp            :    162,544 out of    185,695 ( 87.5%) truth set loci, and out of  1,343,313 ( 12.1%) TRFPureRepeats12bp loci:     STR locus has exact same coordinates as truth set STR locus   and has same motif
+TRFPureRepeats12bp            :        173 out of    185,695 (  0.1%) truth set loci, and out of  1,343,313 (  0.0%) TRFPureRepeats12bp loci:     STR locus has exact same coordinates as truth set STR locus   and has different motif
+TRFPureRepeats12bp            :      1,868 out of    185,695 (  1.0%) truth set loci, and out of  1,343,313 (  0.1%) TRFPureRepeats12bp loci:     STR locus is contained within truth set STR locus             and has same motif
+TRFPureRepeats12bp            :      1,084 out of    185,695 (  0.6%) truth set loci, and out of  1,343,313 (  0.1%) TRFPureRepeats12bp loci:     STR locus is contained within truth set STR locus             and has different motif
+TRFPureRepeats12bp            :        128 out of    185,695 (  0.1%) truth set loci, and out of  1,343,313 (  0.0%) TRFPureRepeats12bp loci:     STR locus is contained within truth set STR locus             and has same motif after normalization
+TRFPureRepeats12bp            :        961 out of    185,695 (  0.5%) truth set loci, and out of  1,343,313 (  0.1%) TRFPureRepeats12bp loci:     STR locus contains truth set STR locus                        and has different motif
+TRFPureRepeats12bp            :        443 out of    185,695 (  0.2%) truth set loci, and out of  1,343,313 (  0.0%) TRFPureRepeats12bp loci:     STR locus contains truth set STR locus                        and has same motif after normalization
+TRFPureRepeats12bp            :          8 out of    185,695 (  0.0%) truth set loci, and out of  1,343,313 (  0.0%) TRFPureRepeats12bp loci:     STR locus contains truth set STR locus                        and has same motif
+TRFPureRepeats12bp            :      2,595 out of    185,695 (  1.4%) truth set loci, and out of  1,343,313 (  0.2%) TRFPureRepeats12bp loci:     STR loci overlap                                              and has different motif
+TRFPureRepeats12bp            :      1,290 out of    185,695 (  0.7%) truth set loci, and out of  1,343,313 (  0.1%) TRFPureRepeats12bp loci:     STR loci overlap                                              and has same motif after normalization
+TRFPureRepeats12bp            :         27 out of    185,695 (  0.0%) truth set loci, and out of  1,343,313 (  0.0%) TRFPureRepeats12bp loci:     STR loci overlap                                              and has same motif
+TRFPureRepeats12bp            :     14,574 out of    185,695 (  7.8%) truth set loci:     no overlap                                                  
+TRFPureRepeats15bp            :    150,486 out of    185,695 ( 81.0%) truth set loci, and out of    702,486 ( 21.4%) TRFPureRepeats15bp loci:     STR locus has exact same coordinates as truth set STR locus   and has same motif
+TRFPureRepeats15bp            :        153 out of    185,695 (  0.1%) truth set loci, and out of    702,486 (  0.0%) TRFPureRepeats15bp loci:     STR locus has exact same coordinates as truth set STR locus   and has different motif
+TRFPureRepeats15bp            :      1,605 out of    185,695 (  0.9%) truth set loci, and out of    702,486 (  0.2%) TRFPureRepeats15bp loci:     STR locus is contained within truth set STR locus             and has same motif
+TRFPureRepeats15bp            :        929 out of    185,695 (  0.5%) truth set loci, and out of    702,486 (  0.1%) TRFPureRepeats15bp loci:     STR locus is contained within truth set STR locus             and has different motif
+TRFPureRepeats15bp            :        107 out of    185,695 (  0.1%) truth set loci, and out of    702,486 (  0.0%) TRFPureRepeats15bp loci:     STR locus is contained within truth set STR locus             and has same motif after normalization
+TRFPureRepeats15bp            :        999 out of    185,695 (  0.5%) truth set loci, and out of    702,486 (  0.1%) TRFPureRepeats15bp loci:     STR locus contains truth set STR locus                        and has different motif
+TRFPureRepeats15bp            :        410 out of    185,695 (  0.2%) truth set loci, and out of    702,486 (  0.1%) TRFPureRepeats15bp loci:     STR locus contains truth set STR locus                        and has same motif after normalization
+TRFPureRepeats15bp            :          8 out of    185,695 (  0.0%) truth set loci, and out of    702,486 (  0.0%) TRFPureRepeats15bp loci:     STR locus contains truth set STR locus                        and has same motif
+TRFPureRepeats15bp            :      2,905 out of    185,695 (  1.6%) truth set loci, and out of    702,486 (  0.4%) TRFPureRepeats15bp loci:     STR loci overlap                                              and has different motif
+TRFPureRepeats15bp            :      1,223 out of    185,695 (  0.7%) truth set loci, and out of    702,486 (  0.2%) TRFPureRepeats15bp loci:     STR loci overlap                                              and has same motif after normalization
+TRFPureRepeats15bp            :         20 out of    185,695 (  0.0%) truth set loci, and out of    702,486 (  0.0%) TRFPureRepeats15bp loci:     STR loci overlap                                              and has same motif
+TRFPureRepeats15bp            :     26,850 out of    185,695 ( 14.5%) truth set loci:     no overlap                                                  
+TRFPureRepeats6bp             :    168,707 out of    185,695 ( 90.9%) truth set loci, and out of  4,722,859 (  3.6%) TRFPureRepeats6bp loci:     STR locus has exact same coordinates as truth set STR locus   and has same motif
+TRFPureRepeats6bp             :        180 out of    185,695 (  0.1%) truth set loci, and out of  4,722,859 (  0.0%) TRFPureRepeats6bp loci:     STR locus has exact same coordinates as truth set STR locus   and has different motif
+TRFPureRepeats6bp             :      1,940 out of    185,695 (  1.0%) truth set loci, and out of  4,722,859 (  0.0%) TRFPureRepeats6bp loci:     STR locus is contained within truth set STR locus             and has same motif
+TRFPureRepeats6bp             :      1,786 out of    185,695 (  1.0%) truth set loci, and out of  4,722,859 (  0.0%) TRFPureRepeats6bp loci:     STR locus is contained within truth set STR locus             and has different motif
+TRFPureRepeats6bp             :        134 out of    185,695 (  0.1%) truth set loci, and out of  4,722,859 (  0.0%) TRFPureRepeats6bp loci:     STR locus is contained within truth set STR locus             and has same motif after normalization
+TRFPureRepeats6bp             :        834 out of    185,695 (  0.4%) truth set loci, and out of  4,722,859 (  0.0%) TRFPureRepeats6bp loci:     STR locus contains truth set STR locus                        and has different motif
+TRFPureRepeats6bp             :        446 out of    185,695 (  0.2%) truth set loci, and out of  4,722,859 (  0.0%) TRFPureRepeats6bp loci:     STR locus contains truth set STR locus                        and has same motif after normalization
+TRFPureRepeats6bp             :          8 out of    185,695 (  0.0%) truth set loci, and out of  4,722,859 (  0.0%) TRFPureRepeats6bp loci:     STR locus contains truth set STR locus                        and has same motif
+TRFPureRepeats6bp             :      2,424 out of    185,695 (  1.3%) truth set loci, and out of  4,722,859 (  0.1%) TRFPureRepeats6bp loci:     STR loci overlap                                              and has different motif
+TRFPureRepeats6bp             :      1,307 out of    185,695 (  0.7%) truth set loci, and out of  4,722,859 (  0.0%) TRFPureRepeats6bp loci:     STR loci overlap                                              and has same motif after normalization
+TRFPureRepeats6bp             :         30 out of    185,695 (  0.0%) truth set loci, and out of  4,722,859 (  0.0%) TRFPureRepeats6bp loci:     STR loci overlap                                              and has same motif
+TRFPureRepeats6bp             :      7,899 out of    185,695 (  4.3%) truth set loci:     no overlap                                                  
+TRFPureRepeats9bp             :    167,504 out of    185,695 ( 90.2%) truth set loci, and out of  2,805,842 (  6.0%) TRFPureRepeats9bp loci:     STR locus has exact same coordinates as truth set STR locus   and has same motif
+TRFPureRepeats9bp             :        173 out of    185,695 (  0.1%) truth set loci, and out of  2,805,842 (  0.0%) TRFPureRepeats9bp loci:     STR locus has exact same coordinates as truth set STR locus   and has different motif
+TRFPureRepeats9bp             :      1,940 out of    185,695 (  1.0%) truth set loci, and out of  2,805,842 (  0.1%) TRFPureRepeats9bp loci:     STR locus is contained within truth set STR locus             and has same motif
+TRFPureRepeats9bp             :      1,320 out of    185,695 (  0.7%) truth set loci, and out of  2,805,842 (  0.0%) TRFPureRepeats9bp loci:     STR locus is contained within truth set STR locus             and has different motif
+TRFPureRepeats9bp             :        134 out of    185,695 (  0.1%) truth set loci, and out of  2,805,842 (  0.0%) TRFPureRepeats9bp loci:     STR locus is contained within truth set STR locus             and has same motif after normalization
+TRFPureRepeats9bp             :        872 out of    185,695 (  0.5%) truth set loci, and out of  2,805,842 (  0.0%) TRFPureRepeats9bp loci:     STR locus contains truth set STR locus                        and has different motif
+TRFPureRepeats9bp             :        446 out of    185,695 (  0.2%) truth set loci, and out of  2,805,842 (  0.0%) TRFPureRepeats9bp loci:     STR locus contains truth set STR locus                        and has same motif after normalization
+TRFPureRepeats9bp             :          8 out of    185,695 (  0.0%) truth set loci, and out of  2,805,842 (  0.0%) TRFPureRepeats9bp loci:     STR locus contains truth set STR locus                        and has same motif
+TRFPureRepeats9bp             :      2,388 out of    185,695 (  1.3%) truth set loci, and out of  2,805,842 (  0.1%) TRFPureRepeats9bp loci:     STR loci overlap                                              and has different motif
+TRFPureRepeats9bp             :      1,307 out of    185,695 (  0.7%) truth set loci, and out of  2,805,842 (  0.0%) TRFPureRepeats9bp loci:     STR loci overlap                                              and has same motif after normalization
+TRFPureRepeats9bp             :         30 out of    185,695 (  0.0%) truth set loci, and out of  2,805,842 (  0.0%) TRFPureRepeats9bp loci:     STR loci overlap                                              and has same motif
+TRFPureRepeats9bp             :      9,573 out of    185,695 (  5.2%) truth set loci:     no overlap                                                  
+Done
++ mv step7.filtered_STRs.variants.with_overlap_columns.tsv.gz step7.filtered_STRs.variants.tsv.gz
++ mv step7.filtered_STRs.alleles.with_overlap_columns.tsv.gz step7.filtered_STRs.alleles.tsv.gz
++ suffix=with_gencode_v42_columns
++ wait
++ python3 -u scripts/compute_overlap_with_gene_models.py ./ref/other/gencode.v42.annotation.gtf.gz step7.filtered_STRs.variants.tsv.gz step7.filtered_STRs.variants.with_gencode_v42_columns.tsv.gz
++ python3 -u scripts/compute_overlap_with_gene_models.py ./ref/other/gencode.v42.annotation.gtf.gz step7.filtered_STRs.alleles.tsv.gz step7.filtered_STRs.alleles.with_gencode_v42_columns.tsv.gz
+ 3,413,945 total
+ 1,643,237 exon
+   883,132 CDS
+   382,744 UTR
+   252,416 transcript
+   252,416 promoter
+ 3,413,945 total
+ 1,643,237 exon
+   883,132 CDS
+   382,744 UTR
+   252,416 transcript
+   252,416 promoter
+Processing rows from step7.filtered_STRs.variants.tsv.gz
+Processing rows from step7.filtered_STRs.alleles.tsv.gz
+Wrote 154,743 rows to the output tsv: step7.filtered_STRs.variants.with_gencode_v42_columns.tsv.gz
+Wrote 185,695 rows to the output tsv: step7.filtered_STRs.alleles.with_gencode_v42_columns.tsv.gz
++ mv step7.filtered_STRs.variants.with_gencode_v42_columns.tsv.gz step7.filtered_STRs.variants.tsv.gz
++ mv step7.filtered_STRs.alleles.with_gencode_v42_columns.tsv.gz step7.filtered_STRs.alleles.tsv.gz
++ suffix=with_MANE_columns
++ wait
++ python3 -u scripts/compute_overlap_with_gene_models.py ./ref/other/MANE.v1.0.ensembl_genomic.gtf.gz step7.filtered_STRs.variants.tsv.gz step7.filtered_STRs.variants.with_MANE_columns.tsv.gz
++ python3 -u scripts/compute_overlap_with_gene_models.py ./ref/other/MANE.v1.0.ensembl_genomic.gtf.gz step7.filtered_STRs.alleles.tsv.gz step7.filtered_STRs.alleles.with_MANE_columns.tsv.gz
+   481,072 total
+   202,525 exon
+   192,285 CDS
+    48,022 UTR
+    19,120 transcript
+    19,120 promoter
+   481,072 total
+   202,525 exon
+   192,285 CDS
+    48,022 UTR
+    19,120 transcript
+    19,120 promoter
+Processing rows from step7.filtered_STRs.variants.tsv.gz
+Processing rows from step7.filtered_STRs.alleles.tsv.gz
+Wrote 154,743 rows to the output tsv: step7.filtered_STRs.variants.with_MANE_columns.tsv.gz
+Wrote 185,695 rows to the output tsv: step7.filtered_STRs.alleles.with_MANE_columns.tsv.gz
++ mv step7.filtered_STRs.variants.with_MANE_columns.tsv.gz step7.filtered_STRs.variants.tsv.gz
++ mv step7.filtered_STRs.alleles.with_MANE_columns.tsv.gz step7.filtered_STRs.alleles.tsv.gz
++ final_output_prefix=STR_truthset.v1
++ mv step7.filtered_STRs.variants.tsv.gz STR_truthset.v1.variants.tsv.gz
++ mv step7.filtered_STRs.alleles.tsv.gz STR_truthset.v1.alleles.tsv.gz
++ mv step7.filtered_STRs.variants.bed.gz STR_truthset.v1.variants.bed.gz
++ mv step7.filtered_STRs.variants.bed.gz.tbi STR_truthset.v1.variants.bed.gz.tbi
++ mv step7.filtered_STRs.vcf.gz STR_truthset.v1.vcf.gz
++ mv step7.filtered_STRs.vcf.gz.tbi STR_truthset.v1.vcf.gz.tbi
++ python3 tool_comparison/scripts/convert_truth_set_to_variant_catalogs.py --expansion-hunter-loci-per-run 500 --gangstr-loci-per-run 10000 --output-dir ./tool_comparison/variant_catalogs --high-confidence-regions-bed ./ref/full.38.bed.gz --all-repeats-bed ./ref/other/repeat_specs_GRCh38_without_mismatches.sorted.trimmed.at_least_9bp.bed.gz STR_truthset.v1.variants.tsv.gz
+Parsed 154743 records from STR_truthset.v1.variants.tsv.gz
+Discarded 758 loci without matching repeats in the reference
+Generated 153,797 positive loci
+Loaded 2,527,207 STRs in hg38 within the SynDip high-confidence regions
+Generated 152,072 negative loci
+Wrote 308 ExpansionHunter variant catalogs to ./tool_comparison/variant_catalogs/expansion_hunter/positive_loci.EHv5*.json
+Wrote 16 GangSTR repeat spec bed files to ./tool_comparison/variant_catalogs/gangstr/positive_loci.GangSTR*.bed
+Wrote 16 GangSTR repeat spec bed files to ./tool_comparison/variant_catalogs/hipstr/positive_loci.HipSTR*.bed
+Wrote 153,797 loci to ./tool_comparison/variant_catalogs/positive_loci.bed.gz
+Wrote 305 ExpansionHunter variant catalogs to ./tool_comparison/variant_catalogs/expansion_hunter/negative_loci.EHv5*.json
+Wrote 16 GangSTR repeat spec bed files to ./tool_comparison/variant_catalogs/gangstr/negative_loci.GangSTR*.bed
+Wrote 16 GangSTR repeat spec bed files to ./tool_comparison/variant_catalogs/hipstr/negative_loci.HipSTR*.bed
+Wrote 152,072 loci to ./tool_comparison/variant_catalogs/negative_loci.bed.gz
+Done
++ negative_loci_bed_path=tool_comparison/variant_catalogs/negative_loci.bed.gz
++ output_prefix=tool_comparison/variant_catalogs/negative_loci
++ suffix=with_overlap_columns
++ python3 -u scripts/compute_overlap_with_other_catalogs.py tool_comparison/variant_catalogs/negative_loci.bed.gz tool_comparison/variant_catalogs/negative_loci.with_overlap_columns.tsv.gz
+scripts/compute_overlap_with_other_catalogs.py:298: DtypeWarning: Columns (0) have mixed types.Specify dtype option on import or set low_memory=False.
+  main()
+Parsed    174,300 intervals from IlluminaSTRCatalog                       ./ref/other/illumina_variant_catalog.sorted.bed.gz
+Parsed  1,340,266 intervals from GangSTRCatalog17                         ./ref/other/hg38_ver17.fixed.bed.gz
+Parsed    832,380 intervals from GangSTRCatalog13                         ./ref/other/hg38_ver13.fixed.bed.gz
+Parsed         60 intervals from KnownDiseaseAssociatedSTRs               ./ref/other/known_disease_associated_STR_loci.GRCh38.bed.gz
+Parsed    702,486 intervals from TRFPureRepeats15bp                       ./ref/other/repeat_specs_GRCh38_without_mismatches.sorted.trimmed.at_least_15bp.bed.gz
+Parsed  1,343,313 intervals from TRFPureRepeats12bp                       ./ref/other/repeat_specs_GRCh38_without_mismatches.sorted.trimmed.at_least_12bp.bed.gz
+Parsed  2,805,842 intervals from TRFPureRepeats9bp                        ./ref/other/repeat_specs_GRCh38_without_mismatches.sorted.trimmed.at_least_9bp.bed.gz
+Parsed  4,722,859 intervals from TRFPureRepeats6bp                        ./ref/other/repeat_specs_GRCh38_without_mismatches.sorted.trimmed.at_least_6bp.bed.gz
+Parsed     64,222 intervals from SegDupIntervals                          ./ref/other/GRCh38GenomicSuperDup.without_decoys.sorted.bed.gz
+Processing rows from tool_comparison/variant_catalogs/negative_loci.bed.gz
+Wrote 152,072 rows to the output tsv: tool_comparison/variant_catalogs/negative_loci.with_overlap_columns.tsv.gz
+GangSTRCatalog13              :     43,193 out of    152,072 ( 28.4%) truth set loci, and out of    832,380 (  5.2%) GangSTRCatalog13 loci:     STR locus has exact same coordinates as truth set STR locus   and has same motif
+GangSTRCatalog13              :         73 out of    152,072 (  0.0%) truth set loci, and out of    832,380 (  0.0%) GangSTRCatalog13 loci:     STR locus has exact same coordinates as truth set STR locus   and has different motif
+GangSTRCatalog13              :          1 out of    152,072 (  0.0%) truth set loci, and out of    832,380 (  0.0%) GangSTRCatalog13 loci:     STR locus has exact same coordinates as truth set STR locus   and has same motif after normalization
+GangSTRCatalog13              :        892 out of    152,072 (  0.6%) truth set loci, and out of    832,380 (  0.1%) GangSTRCatalog13 loci:     STR locus is contained within truth set STR locus             and has same motif after normalization
+GangSTRCatalog13              :          1 out of    152,072 (  0.0%) truth set loci, and out of    832,380 (  0.0%) GangSTRCatalog13 loci:     STR locus is contained within truth set STR locus             and has different motif
+GangSTRCatalog13              :         19 out of    152,072 (  0.0%) truth set loci, and out of    832,380 (  0.0%) GangSTRCatalog13 loci:     STR locus contains truth set STR locus                        and has different motif
+GangSTRCatalog13              :        932 out of    152,072 (  0.6%) truth set loci, and out of    832,380 (  0.1%) GangSTRCatalog13 loci:     STR loci overlap                                              and has different motif
+GangSTRCatalog13              :        723 out of    152,072 (  0.5%) truth set loci, and out of    832,380 (  0.1%) GangSTRCatalog13 loci:     STR loci overlap                                              and has same motif after normalization
+GangSTRCatalog13              :    106,238 out of    152,072 ( 69.9%) truth set loci:     no overlap                                                  
+GangSTRCatalog17              :     56,399 out of    152,072 ( 37.1%) truth set loci, and out of  1,340,266 (  4.2%) GangSTRCatalog17 loci:     STR locus has exact same coordinates as truth set STR locus   and has same motif
+GangSTRCatalog17              :         73 out of    152,072 (  0.0%) truth set loci, and out of  1,340,266 (  0.0%) GangSTRCatalog17 loci:     STR locus has exact same coordinates as truth set STR locus   and has different motif
+GangSTRCatalog17              :          1 out of    152,072 (  0.0%) truth set loci, and out of  1,340,266 (  0.0%) GangSTRCatalog17 loci:     STR locus has exact same coordinates as truth set STR locus   and has same motif after normalization
+GangSTRCatalog17              :        429 out of    152,072 (  0.3%) truth set loci, and out of  1,340,266 (  0.0%) GangSTRCatalog17 loci:     STR locus is contained within truth set STR locus             and has same motif after normalization
+GangSTRCatalog17              :         55 out of    152,072 (  0.0%) truth set loci, and out of  1,340,266 (  0.0%) GangSTRCatalog17 loci:     STR locus is contained within truth set STR locus             and has different motif
+GangSTRCatalog17              :         58 out of    152,072 (  0.0%) truth set loci, and out of  1,340,266 (  0.0%) GangSTRCatalog17 loci:     STR locus contains truth set STR locus                        and has different motif
+GangSTRCatalog17              :      1,920 out of    152,072 (  1.3%) truth set loci, and out of  1,340,266 (  0.1%) GangSTRCatalog17 loci:     STR loci overlap                                              and has different motif
+GangSTRCatalog17              :      1,017 out of    152,072 (  0.7%) truth set loci, and out of  1,340,266 (  0.1%) GangSTRCatalog17 loci:     STR loci overlap                                              and has same motif after normalization
+GangSTRCatalog17              :          1 out of    152,072 (  0.0%) truth set loci, and out of  1,340,266 (  0.0%) GangSTRCatalog17 loci:     STR loci overlap                                              and has same motif
+GangSTRCatalog17              :     92,119 out of    152,072 ( 60.6%) truth set loci:     no overlap                                                  
+IlluminaSTRCatalog            :      9,904 out of    152,072 (  6.5%) truth set loci, and out of    174,300 (  5.7%) IlluminaSTRCatalog loci:     STR locus has exact same coordinates as truth set STR locus   and has same motif
+IlluminaSTRCatalog            :         77 out of    152,072 (  0.1%) truth set loci, and out of    174,300 (  0.0%) IlluminaSTRCatalog loci:     STR locus has exact same coordinates as truth set STR locus   and has different motif
+IlluminaSTRCatalog            :        100 out of    152,072 (  0.1%) truth set loci, and out of    174,300 (  0.1%) IlluminaSTRCatalog loci:     STR locus is contained within truth set STR locus             and has same motif after normalization
+IlluminaSTRCatalog            :         55 out of    152,072 (  0.0%) truth set loci, and out of    174,300 (  0.0%) IlluminaSTRCatalog loci:     STR locus is contained within truth set STR locus             and has same motif
+IlluminaSTRCatalog            :         10 out of    152,072 (  0.0%) truth set loci, and out of    174,300 (  0.0%) IlluminaSTRCatalog loci:     STR locus is contained within truth set STR locus             and has different motif
+IlluminaSTRCatalog            :        318 out of    152,072 (  0.2%) truth set loci, and out of    174,300 (  0.2%) IlluminaSTRCatalog loci:     STR locus contains truth set STR locus                        and has same motif
+IlluminaSTRCatalog            :         47 out of    152,072 (  0.0%) truth set loci, and out of    174,300 (  0.0%) IlluminaSTRCatalog loci:     STR locus contains truth set STR locus                        and has same motif after normalization
+IlluminaSTRCatalog            :          7 out of    152,072 (  0.0%) truth set loci, and out of    174,300 (  0.0%) IlluminaSTRCatalog loci:     STR locus contains truth set STR locus                        and has different motif
+IlluminaSTRCatalog            :        474 out of    152,072 (  0.3%) truth set loci, and out of    174,300 (  0.3%) IlluminaSTRCatalog loci:     STR loci overlap                                              and has different motif
+IlluminaSTRCatalog            :        224 out of    152,072 (  0.1%) truth set loci, and out of    174,300 (  0.1%) IlluminaSTRCatalog loci:     STR loci overlap                                              and has same motif after normalization
+IlluminaSTRCatalog            :          8 out of    152,072 (  0.0%) truth set loci, and out of    174,300 (  0.0%) IlluminaSTRCatalog loci:     STR loci overlap                                              and has same motif
+IlluminaSTRCatalog            :    140,848 out of    152,072 ( 92.6%) truth set loci:     no overlap                                                  
+KnownDiseaseAssociatedSTRs    :         74 out of    152,072 (  0.0%) truth set loci, and out of         60 (123.3%) KnownDiseaseAssociatedSTRs loci:     STR locus has exact same coordinates as truth set STR locus   and has different motif
+KnownDiseaseAssociatedSTRs    :          1 out of    152,072 (  0.0%) truth set loci, and out of         60 (  1.7%) KnownDiseaseAssociatedSTRs loci:     STR locus has exact same coordinates as truth set STR locus   and has same motif
+KnownDiseaseAssociatedSTRs    :          1 out of    152,072 (  0.0%) truth set loci, and out of         60 (  1.7%) KnownDiseaseAssociatedSTRs loci:     STR locus has exact same coordinates as truth set STR locus   and has same motif after normalization
+KnownDiseaseAssociatedSTRs    :          1 out of    152,072 (  0.0%) truth set loci, and out of         60 (  1.7%) KnownDiseaseAssociatedSTRs loci:     STR locus contains truth set STR locus                        and has same motif after normalization
+KnownDiseaseAssociatedSTRs    :    151,995 out of    152,072 ( 99.9%) truth set loci:     no overlap                                                  
+SegDupIntervals               :      3,691 out of    152,072 (  2.4%) truth set loci, and out of     64,222 (  5.7%) SegDupIntervals loci:     interval contains truth set STR locus                       
+SegDupIntervals               :         21 out of    152,072 (  0.0%) truth set loci, and out of     64,222 (  0.0%) SegDupIntervals loci:     interval overlaps truth set STR locus                       
+SegDupIntervals               :    148,360 out of    152,072 ( 97.6%) truth set loci:     no overlap                                                  
+TRFPureRepeats12bp            :     99,103 out of    152,072 ( 65.2%) truth set loci, and out of  1,343,313 (  7.4%) TRFPureRepeats12bp loci:     STR locus has exact same coordinates as truth set STR locus   and has same motif
+TRFPureRepeats12bp            :        454 out of    152,072 (  0.3%) truth set loci, and out of  1,343,313 (  0.0%) TRFPureRepeats12bp loci:     STR locus contains truth set STR locus                        and has different motif
+TRFPureRepeats12bp            :      1,265 out of    152,072 (  0.8%) truth set loci, and out of  1,343,313 (  0.1%) TRFPureRepeats12bp loci:     STR loci overlap                                              and has different motif
+TRFPureRepeats12bp            :          2 out of    152,072 (  0.0%) truth set loci, and out of  1,343,313 (  0.0%) TRFPureRepeats12bp loci:     STR loci overlap                                              and has same motif after normalization
+TRFPureRepeats12bp            :     51,248 out of    152,072 ( 33.7%) truth set loci:     no overlap                                                  
+TRFPureRepeats15bp            :     45,959 out of    152,072 ( 30.2%) truth set loci, and out of    702,486 (  6.5%) TRFPureRepeats15bp loci:     STR locus has exact same coordinates as truth set STR locus   and has same motif
+TRFPureRepeats15bp            :        721 out of    152,072 (  0.5%) truth set loci, and out of    702,486 (  0.1%) TRFPureRepeats15bp loci:     STR locus contains truth set STR locus                        and has different motif
+TRFPureRepeats15bp            :      2,366 out of    152,072 (  1.6%) truth set loci, and out of    702,486 (  0.3%) TRFPureRepeats15bp loci:     STR loci overlap                                              and has different motif
+TRFPureRepeats15bp            :         39 out of    152,072 (  0.0%) truth set loci, and out of    702,486 (  0.0%) TRFPureRepeats15bp loci:     STR loci overlap                                              and has same motif after normalization
+TRFPureRepeats15bp            :         10 out of    152,072 (  0.0%) truth set loci, and out of    702,486 (  0.0%) TRFPureRepeats15bp loci:     STR loci overlap                                              and has same motif
+TRFPureRepeats15bp            :    102,977 out of    152,072 ( 67.7%) truth set loci:     no overlap                                                  
+TRFPureRepeats6bp             :    152,072 out of    152,072 (100.0%) truth set loci, and out of  4,722,859 (  3.2%) TRFPureRepeats6bp loci:     STR locus has exact same coordinates as truth set STR locus   and has same motif
+TRFPureRepeats9bp             :    152,072 out of    152,072 (100.0%) truth set loci, and out of  2,805,842 (  5.4%) TRFPureRepeats9bp loci:     STR locus has exact same coordinates as truth set STR locus   and has same motif
+Done
++ mv tool_comparison/variant_catalogs/negative_loci.with_overlap_columns.tsv.gz tool_comparison/variant_catalogs/negative_loci.tsv.gz
++ suffix=with_gencode_v42_columns
++ python3 -u scripts/compute_overlap_with_gene_models.py ./ref/other/gencode.v42.annotation.gtf.gz tool_comparison/variant_catalogs/negative_loci.tsv.gz tool_comparison/variant_catalogs/negative_loci.with_gencode_v42_columns.tsv.gz
+ 3,413,945 total
+ 1,643,237 exon
+   883,132 CDS
+   382,744 UTR
+   252,416 transcript
+   252,416 promoter
+scripts/compute_overlap_with_gene_models.py:234: DtypeWarning: Columns (0,13) have mixed types.Specify dtype option on import or set low_memory=False.
+  main()
+Processing rows from tool_comparison/variant_catalogs/negative_loci.tsv.gz
+Wrote 152,072 rows to the output tsv: tool_comparison/variant_catalogs/negative_loci.with_gencode_v42_columns.tsv.gz
++ mv tool_comparison/variant_catalogs/negative_loci.with_gencode_v42_columns.tsv.gz tool_comparison/variant_catalogs/negative_loci.tsv.gz
++ suffix=with_MANE_columns
++ python3 -u scripts/compute_overlap_with_gene_models.py ./ref/other/MANE.v1.0.ensembl_genomic.gtf.gz tool_comparison/variant_catalogs/negative_loci.tsv.gz tool_comparison/variant_catalogs/negative_loci.with_MANE_columns.tsv.gz
+   481,072 total
+   202,525 exon
+   192,285 CDS
+    48,022 UTR
+    19,120 transcript
+    19,120 promoter
+scripts/compute_overlap_with_gene_models.py:234: DtypeWarning: Columns (0,13) have mixed types.Specify dtype option on import or set low_memory=False.
+  main()
+Processing rows from tool_comparison/variant_catalogs/negative_loci.tsv.gz
+Wrote 152,072 rows to the output tsv: tool_comparison/variant_catalogs/negative_loci.with_MANE_columns.tsv.gz
++ mv tool_comparison/variant_catalogs/negative_loci.with_MANE_columns.tsv.gz tool_comparison/variant_catalogs/negative_loci.tsv.gz
++ set +x
+===============
