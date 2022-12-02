@@ -5,7 +5,7 @@ import re
 
 from step_pipeline import pipeline, Backend, Localize, Delocalize
 
-DOCKER_IMAGE = "weisburd/expansion-hunter:v5"
+DOCKER_IMAGE = "weisburd/gangstr:2.5.0"
 
 REFERENCE_FASTA_PATH = "gs://gcp-public-data--broad-references/hg38/v0/Homo_sapiens_assembly38.fasta"
 REFERENCE_FASTA_FAI_PATH = "gs://gcp-public-data--broad-references/hg38/v0/Homo_sapiens_assembly38.fasta.fai"
@@ -13,14 +13,14 @@ REFERENCE_FASTA_FAI_PATH = "gs://gcp-public-data--broad-references/hg38/v0/Homo_
 CHM1_CHM13_BAM_PATH = "gs://str-truth-set/hg38/CHM1_CHM13_2.bam"
 CHM1_CHM13_BAI_PATH = "gs://str-truth-set/hg38/CHM1_CHM13_2.bam.bai"
 
-VARIANT_CATALOG_POSITIVE_LOCI = "gs://str-truth-set/hg38/variant_catalogs/expansion_hunter/positive_loci.EHv5.*_of_308.json"
-VARIANT_CATALOG_NEGATIVE_LOCI = "gs://str-truth-set/hg38/variant_catalogs/expansion_hunter/negative_loci.EHv5.*_of_305.json"
+REPEAT_SPECS_POSITIVE_LOCI = "gs://str-truth-set/hg38/variant_catalogs/gangstr/positive_loci.GangSTR.*_of_016.bed"
+REPEAT_SPECS_NEGATIVE_LOCI = "gs://str-truth-set/hg38/variant_catalogs/gangstr/negative_loci.GangSTR.*_of_016.bed"
 
-OUTPUT_BASE_DIR = "gs://str-truth-set/hg38/tool_results/expansion_hunter"
+OUTPUT_BASE_DIR = "gs://str-truth-set/hg38/tool_results/gangstr"
 
 
 def main():
-    bp = pipeline("STR Truth Set: ExpansionHunter", backend=Backend.HAIL_BATCH_SERVICE, config_file_path="~/.step_pipeline")
+    bp = pipeline("STR Truth Set: GangSTR", backend=Backend.HAIL_BATCH_SERVICE, config_file_path="~/.step_pipeline")
 
     parser = bp.get_config_arg_parser()
     parser_group = parser.add_mutually_exclusive_group(required=True)
@@ -34,10 +34,10 @@ def main():
     args = bp.parse_known_args()
 
     if args.positive_loci:
-        variant_catalog_paths = VARIANT_CATALOG_POSITIVE_LOCI
+        repeat_spec_paths = REPEAT_SPECS_POSITIVE_LOCI
         positive_or_negative_loci = "positive_loci"
     elif args.negative_loci:
-        variant_catalog_paths = VARIANT_CATALOG_NEGATIVE_LOCI
+        repeat_spec_paths = REPEAT_SPECS_NEGATIVE_LOCI
         positive_or_negative_loci = "negative_loci"
     else:
         parser.error("Must specify either --positive-loci or --negative-loci")
@@ -49,10 +49,12 @@ def main():
 
     step1s = []
     step1_output_json_paths = []
-    for catalog_i, variant_catalog_file_stats in enumerate(hl.hadoop_ls(variant_catalog_paths)):
-        variant_catalog_path = variant_catalog_file_stats["path"]
+    for repeat_spec_i, repeat_spec_file_stats in enumerate(hl.hadoop_ls(repeat_spec_paths)):
+        #if repeat_spec_i >= 3:
+        #    break
+        repeat_spec_path = repeat_spec_file_stats["path"]
 
-        s1 = bp.new_step(f"Run EHv5 #{catalog_i}", arg_suffix=f"eh", step_number=1, image=DOCKER_IMAGE, cpu=1)
+        s1 = bp.new_step(f"Run GangSTR #{repeat_spec_i}", arg_suffix=f"gangstr", step_number=1, image=DOCKER_IMAGE, cpu=1)
         step1s.append(s1)
 
         local_fasta = s1.input(args.reference_fasta, localize_by=Localize.HAIL_BATCH_CLOUDFUSE)
@@ -63,25 +65,25 @@ def main():
         if args.input_bai:
             s1.input(args.input_bai, localize_by=Localize.HAIL_BATCH_CLOUDFUSE)
 
-        local_variant_catalog = s1.input(variant_catalog_path)
+        local_repeat_spec = s1.input(repeat_spec_path)
 
-        output_prefix = re.sub(".json$", "", local_variant_catalog.filename)
+        output_prefix = re.sub(".json$", "", local_repeat_spec.filename)
         s1.command("set -ex")
 
-        s1.command(f"""time ExpansionHunter \
-                --reference {local_fasta} \
-                --reads {local_bam} \
-                --variant-catalog {local_variant_catalog} \
-                --cache-mates \
-                --output-prefix {output_prefix}""")
+        s1.command(f"""GangSTR \
+            --ref {local_fasta} \
+            --bam {local_bam} \
+            --regions {local_repeat_spec} \
+            --out {output_prefix}""")
 
         s1.command("ls -lhrt")
+        s1.command(f"python3 -m str_analysis.convert_gangstr_vcf_to_expansion_hunter_json {output_prefix}.vcf")
         s1.output(f"{output_prefix}.json", output_dir=os.path.join(output_dir, f"json"))
 
         step1_output_json_paths.append(os.path.join(output_dir, f"json", f"{output_prefix}.json"))
 
     # step2: combine json files
-    s2 = bp.new_step(name="Combine EHv5 outputs", step_number=2, image=DOCKER_IMAGE, storage="20Gi", cpu=1)
+    s2 = bp.new_step(name="Combine GangSTR outputs", step_number=2, image=DOCKER_IMAGE, storage="20Gi", cpu=1)
     for step1 in step1s:
         s2.depends_on(step1)
 
@@ -91,7 +93,7 @@ def main():
         s2.command(f"ln -s {local_path}")
 
     output_prefix = f"combined.{positive_or_negative_loci}"
-    s2.command(f"python3 -m str_analysis.combine_str_json_to_tsv --include-extra-expansion-hunter-fields "
+    s2.command(f"python3 -m str_analysis.combine_str_json_to_tsv --include-extra-gangstr-fields "
                f"--output-prefix {output_prefix}")
     s2.command("gzip *.tsv")
     s2.command("ls -lhrt")
