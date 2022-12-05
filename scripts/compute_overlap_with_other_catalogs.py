@@ -30,6 +30,8 @@ GENOMIC_REGIONS = {
     "SegDupIntervals": "./ref/other/GRCh38GenomicSuperDup.without_decoys.sorted.bed.gz",
 }
 
+MAX_NO_OVERLAP_EXAMPLES = 10
+
 
 def parse_bed_row(line_i, line, is_STR_catalog):
     fields = line.strip().split("\t")
@@ -71,7 +73,16 @@ def create_interval_trees(other_catalogs, counters, show_progress_bar=False, n=N
     return all_other_catalog_interval_trees
 
 
-def process_truth_set_row(truth_set_df, truth_set_row_idx, truth_set_row, other_catalogs, interval_trees, counters, write_beds=False):
+def process_truth_set_row(
+        truth_set_df,
+        truth_set_row_idx,
+        truth_set_row,
+        other_catalogs,
+        interval_trees,
+        counters,
+        write_beds=False,
+        no_overlap_examples=None,
+):
     """This method is called for each row in the truth set, and does overlap checks with the interval trees"""
     truth_set_repeat_unit = truth_set_row.Motif
     truth_set_canonical_repeat_unit = compute_canonical_motif(truth_set_repeat_unit, include_reverse_complement=True)
@@ -81,14 +92,16 @@ def process_truth_set_row(truth_set_df, truth_set_row_idx, truth_set_row, other_
     a2 = int(truth_set_locus_interval.end)
     counters["total:TruthSetLoci"] += 1
     for other_catalog_label, is_STR_catalog, _ in other_catalogs:
-        final_locus_similarity = None
-        final_motif_similarity = None
+        final_locus_similarity = "no overlap"
+        final_motif_similarity = ""
         previous_similarity_rank = 10**6
+
+        # Determine which column names to use
+        motif_similarity_column_name = f"Overlaps{other_catalog_label}: Motif"
         if is_STR_catalog:
             locus_similarity_column_name = f"Overlaps{other_catalog_label}: Locus"
         else:
             locus_similarity_column_name = f"Overlaps{other_catalog_label}"
-        motif_similarity_column_name = f"Overlaps{other_catalog_label}: Motif"
 
         # The truth set STR may overlap more than one entry in the other catalog.
         # Look for the entry with the most similarity.
@@ -102,7 +115,7 @@ def process_truth_set_row(truth_set_df, truth_set_row_idx, truth_set_row, other_
             # compute similarity
             other_catalog_repeat_unit = overlapping_interval_from_other_catalog.data
             if other_catalog_repeat_unit is None:
-                # check similarity with interval that is not an STR locus
+                # check similarity with interval from a non-STR bed file
                 motif_similarity = None
                 if overlapping_interval_from_other_catalog.contains_interval(truth_set_locus_interval):
                     locus_similarity = "interval contains truth set STR locus"
@@ -114,7 +127,7 @@ def process_truth_set_row(truth_set_df, truth_set_row_idx, truth_set_row, other_
                     locus_similarity = "interval overlaps truth set STR locus"
                     similarity_rank = 2
             else:
-                # check similarity with STR from another catalog
+                # check similarity with STR from another STR catalog
                 b1 = int(overlapping_interval_from_other_catalog.begin)
                 b2 = int(overlapping_interval_from_other_catalog.end)
 
@@ -146,31 +159,30 @@ def process_truth_set_row(truth_set_df, truth_set_row_idx, truth_set_row, other_
 
             if similarity_rank < previous_similarity_rank:
                 previous_similarity_rank = similarity_rank
-                final_motif_similarity = motif_similarity
                 final_locus_similarity = locus_similarity
+                final_motif_similarity = motif_similarity
                 if similarity_rank == 0:
                     # can't do any better than this
                     break
 
         if is_STR_catalog:
-
-            if final_locus_similarity is None:
-                final_locus_similarity = "no overlap"
-                final_motif_similarity = ""
-
             truth_set_df.at[truth_set_row_idx, locus_similarity_column_name] = final_locus_similarity
             truth_set_df.at[truth_set_row_idx, motif_similarity_column_name] = final_motif_similarity
-
             counters[f"overlap:{is_STR_catalog}|{other_catalog_label}|{final_locus_similarity}|{final_motif_similarity}"] += 1
-
             bed_filename = f"STR_{other_catalog_label}_{final_locus_similarity}.bed"
         else:
-            truth_set_df.at[truth_set_row_idx, locus_similarity_column_name] = "No" if final_locus_similarity is None else "Yes"
-            final_locus_similarity = "no overlap" if final_locus_similarity is None else final_locus_similarity
-            final_motif_similarity = ""
-
+            truth_set_df.at[truth_set_row_idx, locus_similarity_column_name] = "No" if final_locus_similarity == "no overlap" else "Yes"
             counters[f"overlap:{is_STR_catalog}|{other_catalog_label}|{final_locus_similarity}|"] += 1
             bed_filename = f"region_{other_catalog_label}_{final_locus_similarity}.bed"
+
+        if final_locus_similarity == "no overlap":
+            if (no_overlap_examples is not None
+                    and len(no_overlap_examples[other_catalog_label]) < MAX_NO_OVERLAP_EXAMPLES
+                    and truth_set_row.End1Based - truth_set_row.Start1Based >= 0  # exclude loci that are not in hg38
+            ):
+                no_overlap_locus = f"{truth_set_row.Chrom}:{truth_set_row.Start1Based}-{truth_set_row.End1Based}"
+                no_overlap_locus += "\t" + truth_set_row.Motif
+                no_overlap_examples[other_catalog_label].append(no_overlap_locus)
 
         if write_beds and final_locus_similarity != "no overlap" and motif_similarity == "different motif" and any(
                 k.lower() in other_catalog_label.lower() for k in ("known", "GangSTR", "Illumina")):
@@ -179,7 +191,7 @@ def process_truth_set_row(truth_set_df, truth_set_row_idx, truth_set_row, other_
                 f.write("\t".join(map(str, [truth_set_chrom, a1, a2, bed_row_name, "."])) + "\n")
 
 
-def print_counters(counters):
+def print_counters(counters, no_overlap_examples=None):
     truth_set_total_loci = counters[f"total:TruthSetLoci"]
 
     def counter_sort_order(x):
@@ -222,10 +234,17 @@ def print_counters(counters):
         else:
             print(s)
 
+        if no_overlap_examples and locus_overlap == "no overlap":
+            print(f"Examples of loci that are missing from {other_catalog_label}:")
+            for example_locus in no_overlap_examples[other_catalog_label]:
+                print(f"\t{example_locus}")
+
 
 def main():
     p = argparse.ArgumentParser()
     p.add_argument("-n", help="Process only the 1st N rows of the truth set TSV. Useful for testing.", type=int)
+    p.add_argument("--show-examples", action="store_true", help="Show examples of truth set loci that don't overlap "
+                                                                "each catalog")
     p.add_argument("--show-progress-bar", help="Show a progress bar in the terminal when processing variants.",
                    action="store_true")
     p.add_argument("--write-beds",
@@ -246,12 +265,6 @@ def main():
         truth_set_or_bed_df.loc[:, "Start1Based"] = truth_set_or_bed_df.Start0Based + 1
     else:
         truth_set_or_bed_df = pd.read_table(args.truth_set_tsv_or_bed_path)
-
-
-    # filter out non-ref rows
-    #len_before = len(truth_set_or_bed_df)
-    #truth_set_or_bed_df = truth_set_or_bed_df[truth_set_or_bed_df.End1Based - truth_set_or_bed_df.Start1Based > 0]
-    #print(f"Skipped {len_before - len(truth_set_or_bed_df)} loci without matching reference repeats")
 
     if args.output_tsv:
         output_tsv_path = args.output_tsv
@@ -283,14 +296,16 @@ def main():
     else:
         truth_set_or_bed_df_row_iterator = truth_set_or_bed_df.iterrows()
 
+    no_overlap_examples = collections.defaultdict(list) if args.show_examples else None
     for truth_set_row_idx, truth_set_row in truth_set_or_bed_df_row_iterator:
         process_truth_set_row(truth_set_or_bed_df, truth_set_row_idx, truth_set_row,
-                              other_catalogs, interval_trees, counters, write_beds=args.write_beds)
+                              other_catalogs, interval_trees, counters, write_beds=args.write_beds,
+                              no_overlap_examples=no_overlap_examples)
 
     truth_set_or_bed_df.to_csv(output_tsv_path, sep="\t", index=False, header=True)
     print(f"Wrote {len(truth_set_or_bed_df):,d} rows to the output tsv: {output_tsv_path}")
 
-    print_counters(counters)
+    print_counters(counters, no_overlap_examples=no_overlap_examples)
     print("Done")
 
 
