@@ -61,7 +61,6 @@ RUN wget -q https://github.com/Illumina/REViewer/releases/download/${REVIEWER_VE
     && mv /REViewer-${REVIEWER_VERSION}-linux_x86_64 /usr/local/bin/REViewer \
     && chmod 777 /usr/local/bin/REViewer
 
-ARG NO_CACHE=1
-RUN echo $NO_CACHE && python3 -m pip install str_analysis
+RUN python3 -m pip install str_analysis==0.9.15
 
 ENTRYPOINT ["/bin/bash"]

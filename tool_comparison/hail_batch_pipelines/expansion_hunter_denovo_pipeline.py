@@ -8,8 +8,8 @@ REFERENCE_FASTA_FAI_PATH = "gs://gcp-public-data--broad-references/hg38/v0/Homo_
 CHM1_CHM13_BAM_PATH = "gs://str-truth-set/hg38/CHM1_CHM13_2.bam"
 CHM1_CHM13_BAI_PATH = "gs://str-truth-set/hg38/CHM1_CHM13_2.bam.bai"
 
-EXPANSION_HUNTER_DENOVO_DOCKER_IMAGE = "weisburd/expansion-hunter-denovo@sha256:cead33bcfe04b726ee57786297a6218005e14b8c973ce5fe80ff6d785e6e6f08"
-EXPANSION_HUNTER_DOCKER_IMAGE = "weisburd/expansion-hunter@sha256:a95df79e08611e35eeda641384277af7a5c50f67af5bc89735d9aba791753b64"
+EXPANSION_HUNTER_DENOVO_DOCKER_IMAGE = "weisburd/expansion-hunter-denovo@sha256:2b68da96ed3bff60f1d47ec971776083cc5e5a07c673ceff5741a9bc6b8bc0f6"
+EXPANSION_HUNTER_DOCKER_IMAGE = "weisburd/expansion-hunter@sha256:a2b3dc962c33733cb0e293e72bbba10449f0eadeaf665adec71debc4b1b7255d"
 
 OUTPUT_BASE_DIR = "gs://str-truth-set/hg38/tool_results/expansion_hunter_denovo"
 
@@ -25,7 +25,7 @@ def main():
     parser.add_argument("--output-dir", default=OUTPUT_BASE_DIR)
     args = bp.parse_known_args()
 
-    s1 = bp.new_step(image=EXPANSION_HUNTER_DENOVO_DOCKER_IMAGE, cpu=2, output_dir=args.output_dir)
+    s1 = bp.new_step(image=EXPANSION_HUNTER_DENOVO_DOCKER_IMAGE, step_number=1, cpu=2, output_dir=args.output_dir)
     local_fasta = s1.input(args.reference_fasta, localize_by=Localize.HAIL_BATCH_CLOUDFUSE)
     if args.reference_fasta_fai:
         s1.input(args.reference_fasta_fai, localize_by=Localize.HAIL_BATCH_CLOUDFUSE)
@@ -45,7 +45,7 @@ def main():
     s1.output(f"{output_prefix}.motif.tsv")
     s1.output("EHdn_command.log")
 
-    s2 = bp.new_step("Convert to bed", image=EXPANSION_HUNTER_DOCKER_IMAGE, cpu=2, output_dir=args.output_dir)
+    s2 = bp.new_step("Convert to bed", step_number=2, image=EXPANSION_HUNTER_DOCKER_IMAGE, cpu=2, output_dir=args.output_dir)
     s2.command("set -ex")
     local_input_tsv = s2.input(os.path.join(args.output_dir, f"{output_prefix}.locus.tsv"))
     s2.command(f"python3 -m str_analysis.convert_expansion_hunter_denovo_locus_tsv_to_bed "
@@ -53,13 +53,12 @@ def main():
                f"{output_prefix}.expansion_hunter_denovo.bed")
 
     s2.command("ls -lh")
-
+    s2.command(f"bgzip {output_prefix}.expansion_hunter_denovo.bed")
+    s2.command(f"tabix {output_prefix}.expansion_hunter_denovo.bed.gz")
     s2.output(f"{output_prefix}.expansion_hunter_denovo.bed.gz")
     s2.output(f"{output_prefix}.expansion_hunter_denovo.bed.gz.tbi")
 
     bp.run()
-
-
 
 
 if __name__ == "__main__":
