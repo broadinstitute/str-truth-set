@@ -42,6 +42,9 @@ RUN mkdir build \
     && cp thirdparty/htslib/lib/libhts.so.3 /usr/local/lib/ \
     && rm -rf /GangSTR-${GANGSTR_VERSION}
 
+ARG NO_CACHE=1
+RUN echo $NO_CACHE && python3 -m pip install str_analysis
+
 RUN python3 -m pip install str_analysis
 
 ENTRYPOINT ["/bin/bash"]

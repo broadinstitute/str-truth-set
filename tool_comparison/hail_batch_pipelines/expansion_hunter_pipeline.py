@@ -81,7 +81,8 @@ def main():
         step1_output_json_paths.append(os.path.join(output_dir, f"json", f"{output_prefix}.json"))
 
     # step2: combine json files
-    s2 = bp.new_step(name="Combine EHv5 outputs", step_number=2, image=DOCKER_IMAGE, storage="20Gi", cpu=1)
+    s2 = bp.new_step(name="Combine EHv5 outputs", step_number=2, image=DOCKER_IMAGE, storage="20Gi", cpu=1,
+                     output_dir=output_dir)
     for step1 in step1s:
         s2.depends_on(step1)
 
@@ -93,11 +94,15 @@ def main():
     output_prefix = f"combined.{positive_or_negative_loci}"
     s2.command(f"python3 -m str_analysis.combine_str_json_to_tsv --include-extra-expansion-hunter-fields "
                f"--output-prefix {output_prefix}")
+    s2.command(f"bgzip {output_prefix}.{len(step1_output_json_paths)}_json_files.bed")
+    s2.command(f"tabix {output_prefix}.{len(step1_output_json_paths)}_json_files.bed.gz")
     s2.command("gzip *.tsv")
     s2.command("ls -lhrt")
+    s2.output(f"{output_prefix}.{len(step1_output_json_paths)}_json_files.variants.tsv.gz")
+    s2.output(f"{output_prefix}.{len(step1_output_json_paths)}_json_files.alleles.tsv.gz")
+    s2.output(f"{output_prefix}.{len(step1_output_json_paths)}_json_files.bed.gz")
+    s2.output(f"{output_prefix}.{len(step1_output_json_paths)}_json_files.bed.gz.tbi")
 
-    s2.output(f"{output_prefix}.{len(step1_output_json_paths)}_json_files.variants.tsv.gz", output_dir=output_dir)
-    s2.output(f"{output_prefix}.{len(step1_output_json_paths)}_json_files.alleles.tsv.gz", output_dir=output_dir)
 
     bp.run()
 
