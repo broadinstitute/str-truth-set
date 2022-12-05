@@ -8,8 +8,8 @@ REFERENCE_FASTA_FAI_PATH = "gs://gcp-public-data--broad-references/hg38/v0/Homo_
 CHM1_CHM13_BAM_PATH = "gs://str-truth-set/hg38/CHM1_CHM13_2.bam"
 CHM1_CHM13_BAI_PATH = "gs://str-truth-set/hg38/CHM1_CHM13_2.bam.bai"
 
-EXPANSION_HUNTER_DENOVO_DOCKER_IMAGE = "docker.io/weisburd/expansion-hunter-denovo:0.9"
-EXPANSION_HUNTER_DOCKER_IMAGE = "docker.io/weisburd/expansion-hunter:v5"
+EXPANSION_HUNTER_DENOVO_DOCKER_IMAGE = "weisburd/expansion-hunter-denovo@sha256:cead33bcfe04b726ee57786297a6218005e14b8c973ce5fe80ff6d785e6e6f08"
+EXPANSION_HUNTER_DOCKER_IMAGE = "weisburd/expansion-hunter@sha256:a95df79e08611e35eeda641384277af7a5c50f67af5bc89735d9aba791753b64"
 
 OUTPUT_BASE_DIR = "gs://str-truth-set/hg38/tool_results/expansion_hunter_denovo"
 
