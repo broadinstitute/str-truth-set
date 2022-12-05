@@ -42,9 +42,17 @@ RUN mkdir build \
     && cp thirdparty/htslib/lib/libhts.so.3 /usr/local/lib/ \
     && rm -rf /GangSTR-${GANGSTR_VERSION}
 
+ENV SAMTOOLS_VERSION="1.9"
+RUN wget https://github.com/samtools/htslib/releases/download/${SAMTOOLS_VERSION}/htslib-${SAMTOOLS_VERSION}.tar.bz2 \
+	&& tar xjf htslib-${SAMTOOLS_VERSION}.tar.bz2 \
+	&& rm htslib-${SAMTOOLS_VERSION}.tar.bz2 \
+	&& cd htslib-${SAMTOOLS_VERSION} \
+	&& ./configure \
+	&& make \
+	&& make install \
+	&& make clean
+
 ARG NO_CACHE=1
 RUN echo $NO_CACHE && python3 -m pip install str_analysis
-
-RUN python3 -m pip install str_analysis
 
 ENTRYPOINT ["/bin/bash"]
