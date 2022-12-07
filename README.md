@@ -2,6 +2,7 @@
 
 A genome-wide short tandem repeat (STR) truth set based on the 
 [Synthetic Diploid Benchmark](https://github.com/lh3/CHM-eval) [[Li et al. 2018](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6341484/)]
+
 ---
 
 ### Downloads
