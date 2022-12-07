@@ -5,10 +5,10 @@ from step_pipeline import pipeline, Backend, Localize, Delocalize
 REFERENCE_FASTA_PATH = "gs://gcp-public-data--broad-references/hg38/v0/Homo_sapiens_assembly38.fasta"
 REFERENCE_FASTA_FAI_PATH = "gs://gcp-public-data--broad-references/hg38/v0/Homo_sapiens_assembly38.fasta.fai"
 
-CHM1_CHM13_BAM_PATH = "gs://str-truth-set/hg38/CHM1_CHM13_2.bam"
-CHM1_CHM13_BAI_PATH = "gs://str-truth-set/hg38/CHM1_CHM13_2.bam.bai"
+CHM1_CHM13_CRAM_PATH = "gs://broad-public-datasets/CHM1_CHM13_WGS2/CHM1_CHM13_WGS2.cram"
+CHM1_CHM13_CRAI_PATH = "gs://broad-public-datasets/CHM1_CHM13_WGS2/CHM1_CHM13_WGS2.cram.bai"
 
-CHM1_CHM13_BAM_COVERAGE = 40
+CHM1_CHM13_CRAM_COVERAGE = 40
 
 DOCKER_IMAGE = "docker.io/weisburd/gatk:4.3.0.0"
 
@@ -18,11 +18,11 @@ def main():
     parser = bp.get_config_arg_parser()
     parser.add_argument("--reference-fasta", default=REFERENCE_FASTA_PATH)
     parser.add_argument("--reference-fasta-fai")
-    parser.add_argument("--input-bam", default=CHM1_CHM13_BAM_PATH)
+    parser.add_argument("--input-bam", default=CHM1_CHM13_CRAM_PATH)
     parser.add_argument("--input-bai")
-    parser.add_argument("--input-coverage", default=CHM1_CHM13_BAM_COVERAGE, type=float, help="Input bam coverage.")
+    parser.add_argument("--input-coverage", default=CHM1_CHM13_CRAM_COVERAGE, type=float, help="Input bam coverage.")
     parser.add_argument("--target-coverage", default=30, type=float, help="Target coverage. Must be less than the input coverage.")
-    parser.add_argument("--output-dir", default=os.path.dirname(CHM1_CHM13_BAM_PATH))
+    parser.add_argument("--output-dir", required=True, help="Google storage directory for output file")
     args = bp.parse_known_args()
 
     pipeline_name = f"Downsample {os.path.basename(args.input_bam)} to {args.target_coverage}x"
@@ -50,7 +50,13 @@ def main():
 
     s1.command("set -ex")
     s1.command("cd /io/")
-    s1.command(f"time gatk DownsampleSam I={local_bam} O={output_bam_filename} P={fraction:0.3f} CREATE_INDEX=true")
+    s1.command(f"time gatk DownsampleSam "
+               f"REFERENCE_SEQUENCE={local_fasta} "
+               f"I={local_bam} "
+               f"O={output_bam_filename} "
+               f"P={fraction:0.3f} "
+               f"CREATE_INDEX=true")
+
     s1.command(f"mv {output_bam_filename.replace('.bam', '.bai')} {output_bam_filename}.bai")  # rename the .bai file
     s1.command("ls -lh")
 

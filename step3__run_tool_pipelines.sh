@@ -36,34 +36,36 @@ function run_pipelines {
 
 # Run pipelines on original bam
 run_pipelines \
-  "gs://str-truth-set/hg38/CHM1_CHM13_2.bam" \
+  "gs://broad-public-datasets/CHM1_CHM13_WGS2/CHM1_CHM13_WGS2.cram" \
   "gs://str-truth-set/hg38/tool_results" \
   "./tool_comparison/results"
 
 
 # Downsample to 30x
-python3 ./tool_comparison/hail_batch_pipelines/downsample_bam_pipeline.py --verbose --target-coverage 30
+python3 ./tool_comparison/hail_batch_pipelines/downsample_bam_pipeline.py --verbose --target-coverage 30 \
+	--output-dir gs://bw2-delete-after-5-days/ --input-bam gs://broad-public-datasets/CHM1_CHM13_WGS2/CHM1_CHM13_WGS2.cram
 
 # Rerun pipelines on downsampled bam
 run_pipelines \
-  "gs://str-truth-set/hg38/CHM1_CHM13_2.downsampled_to_30x.bam" \
+  "gs://bw2-delete-after-5-days/CHM1_CHM13_2.downsampled_to_30x.bam" \
   "gs://str-truth-set/hg38/tool_results_for_downsampled_30x_bam" \
   "./tool_comparison/results_for_downsampled_30x_bam"
 
 
 # Downsample to 20x
-python3 ./tool_comparison/hail_batch_pipelines/downsample_bam_pipeline.py --verbose --target-coverage 20
+python3 ./tool_comparison/hail_batch_pipelines/downsample_bam_pipeline.py --verbose --target-coverage 20 \
+	--output-dir gs://bw2-delete-after-5-days/ --input-bam gs://broad-public-datasets/CHM1_CHM13_WGS2/CHM1_CHM13_WGS2.cram
 
 # Rerun pipelines on downsampled bam
 run_pipelines \
-  "gs://str-truth-set/hg38/CHM1_CHM13_2.downsampled_to_20x.bam" \
+  "gs://bw2-delete-after-5-days/CHM1_CHM13_2.downsampled_to_20x.bam" \
   "gs://str-truth-set/hg38/tool_results_for_downsampled_20x_bam" \
   "./tool_comparison/results_for_downsampled_20x_bam"
 
 
 # Run pipelines on exome data
 run_pipelines \
-    "gs://bw-proj/CHMI_CHMI3_Nex1.cram" \
+    "gs://broad-public-datasets/CHM1_CHM13_WES/CHMI_CHMI3_Nex1.cram" \
     "gs://str-truth-set/hg38/tool_results_for_exome" \
     "./tool_comparison/results_for_exome"
 
