@@ -45,8 +45,16 @@ def main():
     s1.output(f"{output_prefix}.motif.tsv")
     s1.output("EHdn_command.log")
 
-    s2 = bp.new_step("Convert to bed", step_number=2, image=EXPANSION_HUNTER_DOCKER_IMAGE, cpu=2, output_dir=args.output_dir)
+    s2 = bp.new_step(
+        "Convert to bed",
+        step_number=2,
+        image=EXPANSION_HUNTER_DOCKER_IMAGE,
+        cpu=2,
+        output_dir=args.output_dir,
+        depends_on=s1,
+    )
     s2.command("set -ex")
+
     local_input_tsv = s2.input(os.path.join(args.output_dir, f"{output_prefix}.locus.tsv"))
     s2.command(f"python3 -m str_analysis.convert_expansion_hunter_denovo_locus_tsv_to_bed "
                f"{local_input_tsv} "
