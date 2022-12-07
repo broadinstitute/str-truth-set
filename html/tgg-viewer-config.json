@@ -130,15 +130,15 @@
         }, {
           "name": "40x coverage genome: EHdn",
           "description": "Results from running ExpansionHunterDenovo on the original CHM1-CHM13 WGS sample with 40x coverage",
-          "data": [{"type": "bed", "url": "gs://str-truth-set/hg38/tool_results/expansion_hunter_denovo/CHM1_CHM13_2.expansion_hunter_denovo.locus.bed.gz"}]
+          "data": [{"type": "bed", "url": "gs://str-truth-set/hg38/tool_results/expansion_hunter_denovo/CHM1_CHM13_WGS2.expansion_hunter_denovo.locus.bed.gz"}]
         }, {
           "name": "30x coverage genome: EHdn",
           "description": "Results from running ExpansionHunterDenovo on CHM1-CHM13 downsampled to 30x coverage",
-          "data": [{"type": "bed", "url": "gs://str-truth-set/hg38/tool_results_for_downsampled_30x_bam/expansion_hunter_denovo/CHM1_CHM13_2.downsampled_to_30x.expansion_hunter_denovo.bed.gz"}]
+          "data": [{"type": "bed", "url": "gs://str-truth-set/hg38/tool_results_for_downsampled_30x_bam/expansion_hunter_denovo/CHM1_CHM13_WGS2.downsampled_to_30x.expansion_hunter_denovo.bed.gz"}]
         }, {
           "name": "20x coverage genome: EHdn",
           "description": "Results from running ExpansionHunterDenovo on CHM1-CHM13 downsampled to 20x coverage",
-          "data": [{"type": "bed", "url": "gs://str-truth-set/hg38/tool_results_for_downsampled_20x_bam/expansion_hunter_denovo/CHM1_CHM13_2.downsampled_to_20x.expansion_hunter_denovo.bed.gz"}]
+          "data": [{"type": "bed", "url": "gs://str-truth-set/hg38/tool_results_for_downsampled_20x_bam/expansion_hunter_denovo/CHM1_CHM13_WGS2.downsampled_to_20x.expansion_hunter_denovo.bed.gz"}]
         }, {
           "name": "exome: EH",
           "description": "Results from running ExpansionHunter on the CHM1-CHM13 exome with 85x mean target coverage",

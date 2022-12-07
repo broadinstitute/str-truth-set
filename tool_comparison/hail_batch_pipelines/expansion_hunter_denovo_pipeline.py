@@ -32,7 +32,7 @@ def main():
     local_bam = s1.input(args.input_bam, localize_by=Localize.HAIL_BATCH_CLOUDFUSE)
     if args.input_bai:
         s1.input(args.input_bai, localize_by=Localize.HAIL_BATCH_CLOUDFUSE)
-    output_prefix = re.sub(".bam$", "", local_bam.filename)
+    output_prefix = re.sub("(.bam|.cram)$", "", local_bam.filename)
     s1.name = f"STR Truth Set: ExpansionHunterDenovo: {output_prefix}"
 
     s1.command("set -ex")

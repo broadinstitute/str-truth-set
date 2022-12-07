@@ -44,8 +44,8 @@ def main():
     if args.input_bai:
         s1.input(args.input_bai, localize_by=Localize.HAIL_BATCH_CLOUDFUSE)
 
-    bam_prefix = re.sub(".bam$", "", local_bam.filename)
-    output_bam_filename = f"{bam_prefix}.downsampled_to_{int(args.target_coverage)}x.bam"
+    bam_or_cram_prefix = re.sub("(.bam|.cram)$", "", local_bam.filename)
+    output_bam_filename = f"{bam_or_cram_prefix}.downsampled_to_{int(args.target_coverage)}x.bam"
     fraction = args.target_coverage / args.input_coverage
 
     s1.command("set -ex")
