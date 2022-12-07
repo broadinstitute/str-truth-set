@@ -40,11 +40,11 @@
           "data": [{"type": "bed", "url": "gs://str-truth-set/hg38/ref/full.38.bed.gz"}]
         }, {
           "name": "CHM1-CHM13 genome",
-          "data": [{"type": "alignment", "url": "gs://str-truth-set/hg38/CHM1_CHM13_2.bam"}]
+          "data": [{"type": "alignment", "url": "gs://broad-public-datasets/CHM1_CHM13_WGS2/CHM1_CHM13_WGS2.cram"}]
         },
         {
           "name": "CHM1-CHM13 exome",
-          "data": [{"type": "alignment", "url": "gs://str-truth-set/hg38/CHM1_CHM13_2.bam"}]
+          "data": [{"type": "alignment", "url": "gs://broad-public-datasets/CHM1_CHM13_WES/CHMI_CHMI3_Nex1.cram"}]
         }
       ]
     },
