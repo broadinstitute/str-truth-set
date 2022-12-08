@@ -22,7 +22,7 @@ function run_pipelines {
 
     # download results
     mkdir -p ${local_dir}/expansion_hunter_denovo
-    gsutil -m cp ${output_dir}/expansion_hunter_denovo/CHM1_CHM13_2*.locus.tsv ${local_dir}/expansion_hunter_denovo/
+    gsutil -m cp ${output_dir}/expansion_hunter_denovo/CHM*.locus.tsv ${local_dir}/expansion_hunter_denovo/
 
     mkdir -p ${local_dir}/expansion_hunter/positive_loci/      ${local_dir}/expansion_hunter/negative_loci/
     gsutil -m cp ${output_dir}/expansion_hunter/positive_loci/combined.positive_loci.*_json_files.*.tsv.gz ${local_dir}/expansion_hunter/positive_loci/
@@ -47,7 +47,7 @@ python3 ./tool_comparison/hail_batch_pipelines/downsample_bam_pipeline.py --verb
 
 # Rerun pipelines on downsampled bam
 run_pipelines \
-  "gs://bw2-delete-after-5-days/CHM1_CHM13_2.downsampled_to_30x.bam" \
+  "gs://bw2-delete-after-5-days/CHM1_CHM13_WGS2.downsampled_to_30x.bam" \
   "gs://str-truth-set/hg38/tool_results_for_downsampled_30x_bam" \
   "./tool_comparison/results_for_downsampled_30x_bam"
 
@@ -58,7 +58,7 @@ python3 ./tool_comparison/hail_batch_pipelines/downsample_bam_pipeline.py --verb
 
 # Rerun pipelines on downsampled bam
 run_pipelines \
-  "gs://bw2-delete-after-5-days/CHM1_CHM13_2.downsampled_to_20x.bam" \
+  "gs://bw2-delete-after-5-days/CHM1_CHM13_WGS2.downsampled_to_20x.bam" \
   "gs://str-truth-set/hg38/tool_results_for_downsampled_20x_bam" \
   "./tool_comparison/results_for_downsampled_20x_bam"
 
