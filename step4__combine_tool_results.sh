@@ -2,6 +2,10 @@ set -x
 set -e
 set -u
 
+# EHdn
+python3 ./tool_comparison/scripts/intersect_expansion_hunter_denovo_results_with_truth_set.py ./tool_comparison/results*/expansion_hunter_denovo/CHM1_CHM13_WGS2.*locus.tsv
+
+
 for results_folder in results_for_downsampled_10x_bam ; #results_for_exome  results  results_for_downsampled_30x_bam  results_for_downsampled_20x_bam  results_for_downsampled_10x_bam  results_for_downsampled_5x_bam
 do
   echo Processing $results_folder ...
@@ -56,3 +60,5 @@ do
   gunzip -f ./tool_comparison/${results_folder}/negative_loci.for_comparison.alleles.tsv.gz
 
 done
+
+python3 ./tool_comparison/scripts/combine_all_results_tables.py
