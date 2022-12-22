@@ -33,7 +33,7 @@ function run_pipelines {
     gsutil -m cp ${output_dir}/gangstr/negative_loci/combined.negative_loci.*_json_files.*.tsv.gz ${local_dir}/gangstr/negative_loci/
 }
 
-
+    
 # Run pipelines on original bam
 run_pipelines \
   "gs://broad-public-datasets/CHM1_CHM13_WGS2/CHM1_CHM13_WGS2.cram" \
@@ -41,31 +41,23 @@ run_pipelines \
   "./tool_comparison/results"
 
 
-# Downsample to 30x
-python3 ./tool_comparison/hail_batch_pipelines/downsample_bam_pipeline.py --verbose --target-coverage 30 \
-	--output-dir gs://bw2-delete-after-5-days/ --input-bam gs://broad-public-datasets/CHM1_CHM13_WGS2/CHM1_CHM13_WGS2.cram
-
-# Rerun pipelines on downsampled bam
-run_pipelines \
-  "gs://bw2-delete-after-5-days/CHM1_CHM13_WGS2.downsampled_to_30x.bam" \
-  "gs://str-truth-set/hg38/tool_results_for_downsampled_30x_bam" \
-  "./tool_comparison/results_for_downsampled_30x_bam"
-
-
-# Downsample to 20x
-python3 ./tool_comparison/hail_batch_pipelines/downsample_bam_pipeline.py --verbose --target-coverage 20 \
-	--output-dir gs://bw2-delete-after-5-days/ --input-bam gs://broad-public-datasets/CHM1_CHM13_WGS2/CHM1_CHM13_WGS2.cram
-
-# Rerun pipelines on downsampled bam
-run_pipelines \
-  "gs://bw2-delete-after-5-days/CHM1_CHM13_WGS2.downsampled_to_20x.bam" \
-  "gs://str-truth-set/hg38/tool_results_for_downsampled_20x_bam" \
-  "./tool_comparison/results_for_downsampled_20x_bam"
-
-
 # Run pipelines on exome data
 run_pipelines \
     "gs://broad-public-datasets/CHM1_CHM13_WES/CHMI_CHMI3_Nex1.cram" \
     "gs://str-truth-set/hg38/tool_results_for_exome" \
     "./tool_comparison/results_for_exome"
+
+
+
+# Downsample
+for coverage in 30 20 10 5; do 
+    python3 ./tool_comparison/hail_batch_pipelines/downsample_bam_pipeline.py --verbose --target-coverage ${coverage} \
+	--output-dir gs://bw2-delete-after-5-days/ --input-bam gs://broad-public-datasets/CHM1_CHM13_WGS2/CHM1_CHM13_WGS2.cram
+
+    # Rerun pipelines on downsampled bam
+    run_pipelines \
+	"gs://bw2-delete-after-5-days/CHM1_CHM13_WGS2.downsampled_to_${coverage}x.bam" \
+	"gs://str-truth-set/hg38/tool_results_for_downsampled_${coverage}x_bam" \
+	"./tool_comparison/results_for_downsampled_${coverage}x_bam"
+done
 
