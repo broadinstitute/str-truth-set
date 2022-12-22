@@ -78,25 +78,26 @@ def compute_distance_func_wrapper(column_suffix1="ExpansionHunter", column_suffi
             if pd.isna(row[f"NumRepeats: Allele {allele_number}: {column_suffix2}"]):
                 #print(f"NumRepeats: Allele {allele_number}: {column_suffix2} is NA")
                 continue
+
             num_repeats_tool1_minus_tool2 = int(row[f"NumRepeats: Allele {allele_number}: {column_suffix1}"]) - int(row[f"NumRepeats: Allele {allele_number}: {column_suffix2}"])
-            if int(row[f"DiffFromRefRepeats: Allele {allele_number}: {column_suffix1}"]) < 0 and int(row[f"DiffFromRefRepeats: Allele {allele_number}: {column_suffix2}"]) < 0:
-                num_repeats_tool1_minus_tool2 *= -1
-                #  T   EH   Ref     # want negative value for EH-T (ie. underestimated contraction)
-                #  |   |     |
-                #
-                #  EH  T    Ref     # want positive value for EH-T (ie. overestimated contraction)
-                #  |   |     |
-                #
-                #  EH  Ref   T     # want negative value for EH-T (ie. underestimated expansion)
-                #  |   |     |
-                #
-                #  T   Ref   EH     # want positive value for EH-T (ie. overestimated expansion)
-                #  |   |     |
+            #if int(row[f"DiffFromRefRepeats: Allele {allele_number}: {column_suffix1}"]) < 0 and int(row[f"DiffFromRefRepeats: Allele {allele_number}: {column_suffix2}"]) < 0:
+            #    num_repeats_tool1_minus_tool2 *= -1
+            #    #  T   EH   Ref     # want negative value for EH-T (ie. underestimated contraction)
+            #    #  |   |     |
+            #    #
+            #    #  EH  T    Ref     # want positive value for EH-T (ie. overestimated contraction)
+            #    #  |   |     |
+            #    #
+            #    #  EH  Ref   T     # want negative value for EH-T (ie. underestimated expansion)
+            #    #  |   |     |
+            #    #
+            #    #  T   Ref   EH     # want positive value for EH-T (ie. overestimated expansion)
+            #    #  |   |     |
 
             diffs.append(num_repeats_tool1_minus_tool2)
 
         if not diffs:
-            return None
+            return None, None, None, None
 
         diff1 = diffs[0]
         diff2 = diffs[1]
