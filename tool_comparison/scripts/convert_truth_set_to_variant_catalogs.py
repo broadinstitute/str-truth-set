@@ -158,12 +158,43 @@ def write_expansion_hunter_variant_catalogs(locus_set, output_path_prefix, loci_
         batches = [
             variant_catalog[i:i+loci_per_run] for i in range(0, len(variant_catalog), loci_per_run)
         ]
-    #repeat_spec_file_path = f"gs://gnomad-bw2/p1_iter3/2022_06_08__compare_EH_GangSTR_STRling_using_truthset/eh_variant_catalog/{label}_variant_catalog_{batch_i+1}_of_{len(batches)}.json"
     for batch_i, current_variant_catalog in enumerate(batches):
         with open(f"{output_path_prefix}.{batch_i+1:03d}_of_{len(batches):03d}.json", "wt") as f:
             json.dump(current_variant_catalog, f, indent=3)
 
     print(f"Wrote {len(batches):,d} ExpansionHunter variant catalogs to {output_path_prefix}*.json")
+
+
+def write_expansion_hunter_v2_variant_catalogs(locus_set, output_path_prefix, loci_per_run=None):
+    variant_catalog = []
+    for chrom, start_0based, end_1based, motif in locus_set:
+        chrom = chrom.replace("chr", "")
+        variant_catalog.append({
+            "RepeatId": f"{chrom}-{start_0based}-{end_1based}-{motif}",
+            "TargetRegion": f"chr{chrom}:{start_0based+1}-{end_1based}",
+            "RepeatUnit": motif,
+            "CommonUnit": "true",
+        })
+
+    if loci_per_run is None:
+        batches = [variant_catalog]
+    else:
+        batches = [
+            variant_catalog[i:i+loci_per_run] for i in range(0, len(variant_catalog), loci_per_run)
+        ]
+
+    for batch_i, current_variant_catalog in enumerate(batches):
+        output_dir = f"{output_path_prefix}.{batch_i+1:03d}_of_{len(batches):03d}"
+        if not os.path.isdir(output_dir):
+            os.mkdir(output_dir)
+        for repeat_spec in current_variant_catalog:
+            with open(os.path.join(output_dir, repeat_spec['RepeatId'][:100] + ".json"), "wt") as f:
+                json.dump(repeat_spec, f, indent=3)
+
+        output_dir_name = os.path.basename(output_dir)
+        os.system(f"cd {output_dir}/..; tar czf {output_dir_name}.tar.gz {output_dir_name} && rm -rf {output_dir_name}")
+
+    print(f"Wrote {len(batches):,d} batches for ExpansionHunter v2.")
 
 
 def write_gangstr_or_hipstr_repeat_specs(locus_set, output_path_prefix, gangstr=False, hipstr=False, loci_per_run=None):
@@ -216,12 +247,12 @@ def main():
 
     # Read in STR truth set
     truth_set_df = pd.read_table(args.truth_set_variants_tsv)
-    print(f"Parsed {len(truth_set_df)} records from {args.truth_set_variants_tsv}")
+    print(f"Parsed {len(truth_set_df):,d} records from {args.truth_set_variants_tsv}")
 
     # Must be found in reference for EH and GangSTR to work
     length_before = len(truth_set_df)
     truth_set_df = truth_set_df[truth_set_df["IsFoundInReference"] == "Yes"]
-    print(f"Discarded {length_before - len(truth_set_df)} loci without matching repeats in the reference")
+    print(f"Discarded {length_before - len(truth_set_df):,d} loci without matching repeats in the reference")
 
     # Generate positive (ie. variant) and negative (non-variant) loci for the variant catalogs
     positive_loci, positive_loci_counters, truth_set_loci_interval_trees = generate_set_of_positive_loci(truth_set_df)
@@ -238,7 +269,7 @@ def main():
     # Generate variant catalogs
     output_dir = args.output_dir
     for label, locus_set in [("positive", positive_loci), ("negative", negative_loci)]:
-        for subdir in "expansion_hunter", "gangstr", "hipstr":
+        for subdir in "expansion_hunter", "gangstr", "hipstr":  # "expansion_hunter_v2", 
             subdir_path = os.path.join(output_dir, subdir)
             if not os.path.isdir(subdir_path):
                 print(f"Creating directory {subdir_path}")
@@ -246,6 +277,8 @@ def main():
 
         write_expansion_hunter_variant_catalogs(locus_set, os.path.join(output_dir, f"expansion_hunter/{label}_loci.EHv5"),
                                                 loci_per_run=args.expansion_hunter_loci_per_run)
+        #write_expansion_hunter_v2_variant_catalogs(locus_set, os.path.join(output_dir, f"expansion_hunter_v2/{label}_loci.EHv2"),
+        #                                        loci_per_run=args.expansion_hunter_loci_per_run)
         write_gangstr_or_hipstr_repeat_specs(locus_set, os.path.join(output_dir, f"gangstr/{label}_loci.GangSTR"),
                                              gangstr=True, loci_per_run=args.gangstr_loci_per_run)
         write_gangstr_or_hipstr_repeat_specs(locus_set, os.path.join(output_dir, f"hipstr/{label}_loci.HipSTR"),
