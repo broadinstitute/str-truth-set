@@ -17,9 +17,10 @@ TSV_HEADER = [
     "IsHomRef",
     "IsRef: Allele 1",
     "IsRef: Allele 2",
+    "IsPureRepeat",
     "IsFoundInReference",
-    "SummaryString",
     "IsMultiallelic",
+    "SummaryString",
     "OverlapsIlluminaSTRCatalog: Locus",
     "OverlapsIlluminaSTRCatalog: Motif",
     "OverlapsTRFPureRepeats9bp: Locus",
@@ -99,8 +100,11 @@ def main():
 
     truth_set_variants_df = pd.read_table(args.truth_set_variants_tsv, low_memory=False, nrows=args.n, dtype={"Chrom": str})
     truth_set_variants_df.loc[:, "Start0Based"] = truth_set_variants_df["Start1Based"] - 1
-    truth_set_variants_df.loc[:, "TruthSetOrNegativeLocus"] = "TruthSet"
+    for column_name in "IsPureRepeat", "IsFoundInReference", "IsMultiallelic", "OverlapsSegDupIntervals":
+        truth_set_variants_df.loc[:, column_name] = truth_set_variants_df[column_name] == "Yes"
+
     truth_set_variants_df.loc[:, "LocusId"] = truth_set_variants_df["LocusId"].str.replace("^chr", "", regex=True)
+    truth_set_variants_df.loc[:, "TruthSetOrNegativeLocus"] = "TruthSet"
 
     output_path = os.path.basename(args.truth_set_variants_tsv).replace(".tsv", ".for_comparison.tsv")
     write_to_tsv(truth_set_variants_df, os.path.join(args.output_dir, output_path))
@@ -122,9 +126,10 @@ def main():
     negative_loci_df.loc[:, "NumRepeatsShortAllele"] = negative_loci_df.loc[:, "NumRepeatsInReference"]
     negative_loci_df.loc[:, "NumRepeatsLongAllele"] = negative_loci_df.loc[:, "NumRepeatsInReference"]
     negative_loci_df.loc[:, "HET_or_HOM"] = "HOM"
+    negative_loci_df.loc[:, "IsPureRepeat"] = True
     negative_loci_df.loc[:, "IsFoundInReference"] = True
-    negative_loci_df.loc[:, "SummaryString"] = ""
     negative_loci_df.loc[:, "IsMultiallelic"] = False
+    negative_loci_df.loc[:, "SummaryString"] = ""
     negative_loci_df.loc[:, "CanonicalMotif"] = negative_loci_df.Motif.apply(
         lambda m: compute_canonical_motif(m, include_reverse_complement=True))
     negative_loci_df.loc[:, "SummaryString"] = "RU" + negative_loci_df["MotifSize"].astype(str) + ":" + negative_loci_df["Motif"] + ":NEGATIVE-HOM-REF:" + negative_loci_df["NumRepeatsInReference"].astype(str)
