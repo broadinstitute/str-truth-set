@@ -100,6 +100,9 @@ def main():
 
     truth_set_variants_df = pd.read_table(args.truth_set_variants_tsv, low_memory=False, nrows=args.n, dtype={"Chrom": str})
     truth_set_variants_df.loc[:, "Start0Based"] = truth_set_variants_df["Start1Based"] - 1
+    trim_end_column(truth_set_variants_df)
+    
+    # convert "Yes"/"No" columns to boolean
     for column_name in "IsPureRepeat", "IsFoundInReference", "IsMultiallelic", "OverlapsSegDupIntervals":
         truth_set_variants_df.loc[:, column_name] = truth_set_variants_df[column_name] == "Yes"
 
@@ -110,6 +113,7 @@ def main():
     write_to_tsv(truth_set_variants_df, os.path.join(args.output_dir, output_path))
 
     negative_loci_df = pd.read_table(args.negative_loci_tsv, low_memory=False, nrows=args.n, dtype={"Chrom": str})
+    trim_end_column(negative_loci_df)
     negative_loci_df.loc[:, "TruthSetOrNegativeLocus"] = "NegativeLocus"
     negative_loci_df.loc[:, "MotifSize"] = negative_loci_df["Motif"].str.len()
     negative_loci_df.loc[:, "Start1Based"] = negative_loci_df["Start0Based"] + 1
@@ -139,7 +143,6 @@ def main():
 
 
 def write_to_tsv(df, output_path):
-    trim_end_column(df)
     add_extra_columns(df)
 
     df = df[TSV_HEADER]

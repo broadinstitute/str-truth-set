@@ -10,6 +10,7 @@ CONCORDANCE_PAIRS = [
 
 WARNING_COUNTER = 0
 
+
 def compute_concordance_label_func_wrapper(column_suffix1="ExpansionHunter", column_suffix2="GangSTR"):
     """Creates function for adding concordance columns"""
 
@@ -65,44 +66,22 @@ def compute_concordance_label_func_wrapper(column_suffix1="ExpansionHunter", col
     return compute_concordance_between_calls
 
 
-
 # function for adding concordance column
 def compute_distance_func_wrapper(column_suffix1="ExpansionHunter", column_suffix2="GangSTR"):
+    """Creates function for computing distance between two genotypes"""
 
     def compute_distance_between_calls(row):
         diffs = []
         for allele_number in 1, 2:
-            if pd.isna(row[f"NumRepeats: Allele {allele_number}: {column_suffix1}"]):
-                #print(f"NumRepeats: Allele {allele_number}: {column_suffix1} is NA")
-                continue
-            if pd.isna(row[f"NumRepeats: Allele {allele_number}: {column_suffix2}"]):
-                #print(f"NumRepeats: Allele {allele_number}: {column_suffix2} is NA")
-                continue
+            if pd.isna(row[f"NumRepeats: Allele {allele_number}: {column_suffix1}"]) or \
+               pd.isna(row[f"NumRepeats: Allele {allele_number}: {column_suffix2}"]):
+                return None, None, None, None
 
-            num_repeats_tool1_minus_tool2 = int(row[f"NumRepeats: Allele {allele_number}: {column_suffix1}"]) - int(row[f"NumRepeats: Allele {allele_number}: {column_suffix2}"])
-            #if int(row[f"DiffFromRefRepeats: Allele {allele_number}: {column_suffix1}"]) < 0 and int(row[f"DiffFromRefRepeats: Allele {allele_number}: {column_suffix2}"]) < 0:
-            #    num_repeats_tool1_minus_tool2 *= -1
-            #    #  T   EH   Ref     # want negative value for EH-T (ie. underestimated contraction)
-            #    #  |   |     |
-            #    #
-            #    #  EH  T    Ref     # want positive value for EH-T (ie. overestimated contraction)
-            #    #  |   |     |
-            #    #
-            #    #  EH  Ref   T     # want negative value for EH-T (ie. underestimated expansion)
-            #    #  |   |     |
-            #    #
-            #    #  T   Ref   EH     # want positive value for EH-T (ie. overestimated expansion)
-            #    #  |   |     |
-
+            num_repeats_tool1_minus_tool2 = int(row[f"NumRepeats: Allele {allele_number}: {column_suffix1}"]) - \
+                                            int(row[f"NumRepeats: Allele {allele_number}: {column_suffix2}"])
             diffs.append(num_repeats_tool1_minus_tool2)
 
-        if not diffs:
-            return None, None, None, None
-
-        diff1 = diffs[0]
-        diff2 = diffs[1]
-
-        return diff1, diff2, diff1 * row.MotifSize, diff2 * row.MotifSize
+        return diffs[0], diffs[1], diffs[0] * row.MotifSize, diffs[1] * row.MotifSize
 
     return compute_distance_between_calls
 

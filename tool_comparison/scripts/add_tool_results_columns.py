@@ -49,7 +49,7 @@ MERGE_KEY_COLUMNS = ["LocusId", "Motif", "MotifSize"]
 
 def parse_args():
     p = argparse.ArgumentParser()
-    p.add_argument("--debug", action="store_true", help="Whether to print additional info about input and output columns.")
+    p.add_argument("--verbose", action="store_true", help="Whether to print additional info about input and output columns.")
     p.add_argument("--output-tsv", help="Output path of combined tsv file")
     p.add_argument("--tool", choices={"ExpansionHunter", "GangSTR"})
     p.add_argument("tool_results_tsv", help="Path of the tool results combined tsv file.")
@@ -76,6 +76,7 @@ def main():
         raise ValueError(f"Unexpected tool: {args.tool}")
     
     truth_set_df = pd.read_table(args.truth_set_or_negative_loci_tsv)
+
     tool_df = pd.read_table(args.tool_results_tsv)
     tool_df.rename(columns={
         "RepeatUnit": "Motif",
@@ -114,7 +115,7 @@ def main():
         tool_df["LocusSize (bp)"] == tool_df["RepeatSize (bp): Allele 1"]
     )
 
-    if args.debug:
+    if args.verbose:
         print("="*100)
         for column in sorted(tool_df.columns):
             is_nan_count = sum(pd.isna(tool_df[column]))
