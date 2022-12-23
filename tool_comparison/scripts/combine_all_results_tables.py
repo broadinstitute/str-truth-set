@@ -17,7 +17,7 @@ for coverage_label, results_directory in [
 ]:
     print(f"Processing {results_directory}")
     for table_list, filename_suffix in [
-        (variants_tables, ""),
+        (variants_tables, ".variants"),
         (alleles_tables, ".alleles"),
     ]:
         positive_df = pd.read_table(os.path.join(
@@ -25,7 +25,7 @@ for coverage_label, results_directory in [
             dtype=str,
         )
         negative_df = pd.read_table(os.path.join(
-            tool_comparison_base_dir, results_directory, f"STR_truthset.v1.for_comparison{filename_suffix}.tsv"),
+            tool_comparison_base_dir, results_directory, f"negative_loci.for_comparison{filename_suffix}.tsv"),
             dtype=str,
         )
 

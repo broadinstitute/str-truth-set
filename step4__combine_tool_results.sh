@@ -10,9 +10,9 @@ for results_folder in results_for_exome  results  results_for_downsampled_30x_ba
 do
   echo Processing $results_folder ...
   python3 tool_comparison/scripts/compute_truth_set_tsv_for_comparisons.py \
-    --output-dir ./tool_comparison/${results_folder}/  \
-    STR_truthset.v1.variants.tsv.gz \
-    ./tool_comparison/variant_catalogs/negative_loci.tsv.gz
+      --output-dir ./tool_comparison/${results_folder}/  \
+      STR_truthset.v1.variants.tsv.gz \
+      ./tool_comparison/variant_catalogs/negative_loci.tsv.gz
 
   # ExpansionHunter
   python3 tool_comparison/scripts/add_tool_results_columns.py \
