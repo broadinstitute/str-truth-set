@@ -220,8 +220,13 @@ def write_gangstr_or_hipstr_repeat_specs(locus_set, output_path_prefix, gangstr=
                 if gangstr:
                     output_fields = [chrom, start_0based + 1, end_1based, len(motif), motif]
                 elif hipstr:
+                    if len(motif) > 9 or (end_1based - start_0based) <= 1:
+                        # HipSTR doesn't support motifs longer than 9bp or loci where start_1based == stop_1based
+                        # (https://github.com/tfwillems/HipSTR/blob/master/src/region.cpp#L33-L35)
+                        continue
+
                     output_fields = [
-                        chrom, start_0based + 1, end_1based, len(motif), (end_1based - start_0based)/len(motif),
+                        chrom, start_0based + 1, end_1based, len(motif), int((end_1based - start_0based)/len(motif)),
                         f"{chrom}-{start_0based}-{end_1based}-{motif}"
                     ]
                 else:
