@@ -31,6 +31,7 @@ def main():
     parser.add_argument("--input-bam", default=CHM1_CHM13_CRAM_PATH)
     parser.add_argument("--input-bai")
     parser.add_argument("--output-dir", default=OUTPUT_BASE_DIR)
+    parser.add_argument("-n", type=int, help="Only process the first n inputs. Useful for testing.")
     args = bp.parse_known_args()
 
     if args.positive_loci:
@@ -50,9 +51,10 @@ def main():
     step1s = []
     step1_output_json_paths = []
     for repeat_spec_i, repeat_spec_file_stats in enumerate(hl.hadoop_ls(repeat_spec_paths)):
-        #if repeat_spec_i >= 3:
-        #    break
         repeat_spec_path = repeat_spec_file_stats["path"]
+
+        if args.n and repeat_spec_i >= args.n:
+            break
 
         s1 = bp.new_step(f"Run GangSTR #{repeat_spec_i}", arg_suffix=f"gangstr", step_number=1, image=DOCKER_IMAGE, cpu=1)
         step1s.append(s1)

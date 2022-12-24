@@ -31,6 +31,7 @@ def main():
     parser.add_argument("--input-bam", default=CHM1_CHM13_CRAM_PATH)
     parser.add_argument("--input-bai")
     parser.add_argument("--output-dir", default=OUTPUT_BASE_DIR)
+    parser.add_argument("-n", type=int, help="Only process the first n inputs. Useful for testing.")
     args = bp.parse_known_args()
 
     if args.positive_loci:
@@ -51,6 +52,9 @@ def main():
     step1_output_json_paths = []
     for catalog_i, variant_catalog_file_stats in enumerate(hl.hadoop_ls(variant_catalog_paths)):
         variant_catalog_path = variant_catalog_file_stats["path"]
+
+        if args.n and catalog_i >= args.n:
+            break
 
         s1 = bp.new_step(f"Run EHv5 #{catalog_i}", arg_suffix=f"eh", step_number=1, image=DOCKER_IMAGE, cpu=1)
         step1s.append(s1)
