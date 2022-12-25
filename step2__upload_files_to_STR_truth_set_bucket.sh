@@ -2,12 +2,14 @@ set -ex
 
 gsutil -m cp STR_truthset.v1.*.bed.gz* STR_truthset.v1.*.tsv* STR_truthset.v1.vcf*   gs://str-truth-set/hg38/
 
-gsutil -m rm -rf gs://str-truth-set/hg38/variant_catalogs/
+#gsutil -m rm -rf gs://str-truth-set/hg38/variant_catalogs/
 gsutil -m cp tool_comparison/variant_catalogs/positive_loci.bed.gz* tool_comparison/variant_catalogs/negative_loci.bed.gz* gs://str-truth-set/hg38/
 
 gsutil -m cp -r tool_comparison/variant_catalogs/expansion_hunter  gs://str-truth-set/hg38/variant_catalogs/
 gsutil -m cp -r tool_comparison/variant_catalogs/gangstr           gs://str-truth-set/hg38/variant_catalogs/
 gsutil -m cp -r tool_comparison/variant_catalogs/hipstr            gs://str-truth-set/hg38/variant_catalogs/
+
+exit 0
 
 set +x
 

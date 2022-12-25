@@ -80,7 +80,7 @@ def main():
             --out {output_prefix}""")
 
         s1.command("ls -lhrt")
-        s1.command(f"python3 -m str_analysis.convert_gangstr_vcf_to_expansion_hunter_json {output_prefix}.vcf")
+        s1.command(f"python3.9 -m str_analysis.convert_gangstr_vcf_to_expansion_hunter_json {output_prefix}.vcf")
         s1.output(f"{output_prefix}.json", output_dir=os.path.join(output_dir, f"json"))
 
         step1_output_json_paths.append(os.path.join(output_dir, f"json", f"{output_prefix}.json"))
@@ -97,7 +97,7 @@ def main():
         s2.command(f"ln -s {local_path}")
 
     output_prefix = f"combined.{positive_or_negative_loci}"
-    s2.command(f"python3 -m str_analysis.combine_str_json_to_tsv --include-extra-gangstr-fields "
+    s2.command(f"python3.9 -m str_analysis.combine_str_json_to_tsv --include-extra-gangstr-fields "
                f"--output-prefix {output_prefix}")
     s2.command(f"bgzip {output_prefix}.{len(step1_output_json_paths)}_json_files.bed")
     s2.command(f"tabix {output_prefix}.{len(step1_output_json_paths)}_json_files.bed.gz")

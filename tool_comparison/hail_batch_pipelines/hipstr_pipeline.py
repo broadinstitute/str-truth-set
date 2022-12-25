@@ -5,7 +5,7 @@ import re
 
 from step_pipeline import pipeline, Backend, Localize, Delocalize
 
-DOCKER_IMAGE = "weisburd/hipstr@sha256:6a0e5b8f5753ec75ce99e6524432ac28e6639dcd76e01ab3e90efe88e74b2603"
+DOCKER_IMAGE = "weisburd/hipstr@sha256:31e6ac1aaf54cb13fef6d404cb01ee08221a636263f2350f8ca8734850997d27"
 
 REFERENCE_FASTA_PATH = "gs://gcp-public-data--broad-references/hg38/v0/Homo_sapiens_assembly38.fasta"
 REFERENCE_FASTA_FAI_PATH = "gs://gcp-public-data--broad-references/hg38/v0/Homo_sapiens_assembly38.fasta.fai"
@@ -46,11 +46,11 @@ def main():
     bp.set_name(f"STR Truth Set: HipSTR  {positive_or_negative_loci}")
     output_dir = os.path.join(args.output_dir, positive_or_negative_loci)
     if not args.force:
-        vcf_paths = bp.precache_file_paths(os.path.join(output_dir, f"**/*.vcf.gz"))
-        logging.info(f"Precached {len(vcf_paths)} vcf.gz files")
+        json_paths = bp.precache_file_paths(os.path.join(output_dir, f"**/*.json"))
+        logging.info(f"Precached {len(json_paths)} json files")
 
     step1s = []
-    step1_output_vcf_paths = []
+    step1_output_json_paths = []
     for repeat_spec_i, regions_bed_file_stats in enumerate(hl.hadoop_ls(regions_bed__paths)):
         regions_bed_path = regions_bed_file_stats["path"]
 
@@ -85,12 +85,12 @@ def main():
 
         s1.command("ls -lhrt")
 
-        s1.output(f"{output_prefix}.vcf.gz", output_dir=os.path.join(output_dir, f"vcf"))
+        s1.command(f"python3.9 -m str_analysis.convert_hipstr_vcf_to_expansion_hunter_json {output_prefix}.vcf.gz")
+        s1.output(f"{output_prefix}.json", output_dir=os.path.join(output_dir, f"json"))
         #s1.output(f"{output_prefix}.log", output_dir=os.path.join(output_dir, f"log"))
         #s1.output(f"{output_prefix}.viz.gz", output_dir=os.path.join(output_dir, f"viz"))
 
-        step1_output_vcf_paths.append(os.path.join(output_dir, f"vcf", f"{output_prefix}.vcf.gz"))
-
+        step1_output_json_paths.append(os.path.join(output_dir, f"json", f"{output_prefix}.json"))
 
     # step2: combine vcf files
     s2 = bp.new_step(name="Combine HipSTR outputs", step_number=2, image=DOCKER_IMAGE, storage="20Gi", cpu=1,
@@ -99,21 +99,21 @@ def main():
         s2.depends_on(step1)
 
     s2.command("mkdir /io/run_dir; cd /io/run_dir")
-    for vcf_path in step1_output_vcf_paths:
-        local_path = s2.input(vcf_path)
+    for json_path in step1_output_json_paths:
+        local_path = s2.input(json_path)
         s2.command(f"ln -s {local_path}")
 
     output_prefix = f"combined.{positive_or_negative_loci}"
-    s2.command(f"python3 -m str_analysis.combine_str_json_to_tsv --include-extra-expansion-hunter-fields "
+    s2.command(f"python3 -m str_analysis.combine_str_json_to_tsv --include-extra-hipstr-fields "
                f"--output-prefix {output_prefix}")
-    s2.command(f"bgzip {output_prefix}.{len(step1_output_vcf_paths)}_json_files.bed")
-    s2.command(f"tabix {output_prefix}.{len(step1_output_vcf_paths)}_json_files.bed.gz")
+    s2.command(f"bgzip {output_prefix}.{len(step1_output_json_paths)}_json_files.bed")
+    s2.command(f"tabix {output_prefix}.{len(step1_output_json_paths)}_json_files.bed.gz")
     s2.command("gzip *.tsv")
     s2.command("ls -lhrt")
-    s2.output(f"{output_prefix}.{len(step1_output_vcf_paths)}_json_files.variants.tsv.gz")
-    s2.output(f"{output_prefix}.{len(step1_output_vcf_paths)}_json_files.alleles.tsv.gz")
-    s2.output(f"{output_prefix}.{len(step1_output_vcf_paths)}_json_files.bed.gz")
-    s2.output(f"{output_prefix}.{len(step1_output_vcf_paths)}_json_files.bed.gz.tbi")
+    s2.output(f"{output_prefix}.{len(step1_output_json_paths)}_json_files.variants.tsv.gz")
+    s2.output(f"{output_prefix}.{len(step1_output_json_paths)}_json_files.alleles.tsv.gz")
+    s2.output(f"{output_prefix}.{len(step1_output_json_paths)}_json_files.bed.gz")
+    s2.output(f"{output_prefix}.{len(step1_output_json_paths)}_json_files.bed.gz.tbi")
 
 
     bp.run()

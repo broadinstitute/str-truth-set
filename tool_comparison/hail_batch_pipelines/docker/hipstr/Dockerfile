@@ -21,6 +21,7 @@ RUN git clone https://github.com/HipSTR-Tool/HipSTR \
     && cp /HipSTR/HipSTR /bin/HipSTR \
     && make clean
 
-RUN python3 -m pip install str_analysis
+
+RUN python3 -m pip install str_analysis==0.9.17
 
 ENTRYPOINT ["/bin/bash"]
