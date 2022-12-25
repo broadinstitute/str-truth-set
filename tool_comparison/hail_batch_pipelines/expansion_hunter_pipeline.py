@@ -20,7 +20,7 @@ OUTPUT_BASE_DIR = "gs://str-truth-set/hg38/tool_results/expansion_hunter"
 
 
 def main():
-    bp = pipeline("STR Truth Set: ExpansionHunter", backend=Backend.HAIL_BATCH_SERVICE, config_file_path="~/.step_pipeline")
+    bp = pipeline(backend=Backend.HAIL_BATCH_SERVICE, config_file_path="~/.step_pipeline")
 
     parser = bp.get_config_arg_parser()
     parser_group = parser.add_mutually_exclusive_group(required=True)
@@ -43,6 +43,7 @@ def main():
     else:
         parser.error("Must specify either --positive-loci or --negative-loci")
 
+    bp.set_name(f"STR Truth Set: ExpansionHunter  {positive_or_negative_loci}")
     output_dir = os.path.join(args.output_dir, positive_or_negative_loci)
     if not args.force:
         json_paths = bp.precache_file_paths(os.path.join(output_dir, f"**/*.json"))
