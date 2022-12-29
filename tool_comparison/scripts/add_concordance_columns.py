@@ -6,6 +6,7 @@ CONCORDANCE_PAIRS = [
     ("ExpansionHunter", "Truth"),
     ("GangSTR", "Truth"),
     ("ExpansionHunter", "GangSTR"),
+    ("HipSTR", "Truth"),
 ]
 
 WARNING_COUNTER = 0

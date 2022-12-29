@@ -31,7 +31,9 @@ COLUMNS_TO_KEEP = [
     "DiffFromRefRepeats: Allele 2",
     "DiffFromRefSize (bp): Allele 1",
     "DiffFromRefSize (bp): Allele 2",
-    
+]
+
+EH_AND_GANGSTR_COLUMNS = [
     "NumReadsTotal",
     "NumSpanningReads",
     "NumFlankingReads",
@@ -51,7 +53,7 @@ def parse_args():
     p = argparse.ArgumentParser()
     p.add_argument("--verbose", action="store_true", help="Whether to print additional info about input and output columns.")
     p.add_argument("--output-tsv", help="Output path of combined tsv file")
-    p.add_argument("--tool", choices={"ExpansionHunter", "GangSTR"})
+    p.add_argument("--tool", choices={"ExpansionHunter", "GangSTR", "HipSTR"})
     p.add_argument("tool_results_tsv", help="Path of the tool results combined tsv file.")
     p.add_argument("truth_set_or_negative_loci_tsv", help="Path of the truth set or negative_loci tsv")
 
@@ -69,9 +71,13 @@ def main():
 
     columns_to_keep = list(COLUMNS_TO_KEEP)
     if args.tool == "ExpansionHunter":
+        columns_to_keep += EH_AND_GANGSTR_COLUMNS
         columns_to_keep += ["NumAllelesSupportedTotal"]
     elif args.tool == "GangSTR":
+        columns_to_keep += EH_AND_GANGSTR_COLUMNS
         columns_to_keep += ["Q"]
+    elif args.tool == "HipSTR":
+        columns_to_keep += ["Q", "DP", "AB", "FS", "DFLANKINDEL", "DSTUTTER"]
     else:
         raise ValueError(f"Unexpected tool: {args.tool}")
     

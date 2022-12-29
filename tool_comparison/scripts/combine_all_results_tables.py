@@ -63,6 +63,7 @@ print(alleles_df.groupby(["coverage", "PositiveOrNegative"]).count()[[
     "LocusId",
     "DiffRepeats: Allele: ExpansionHunter - Truth",
     "DiffRepeats: Allele: GangSTR - Truth",
+    "DiffRepeats: Allele: HipSTR - Truth",
 ]])
 alleles_df = None
 
@@ -75,8 +76,10 @@ print(variants_df.groupby(["coverage", "PositiveOrNegative"]).count()[[
     "LocusId",
     "DiffRepeats: Allele 1: ExpansionHunter - Truth",
     "DiffRepeats: Allele 1: GangSTR - Truth",
+    "DiffRepeats: Allele 1: HipSTR - Truth",
     "DiffRepeats: Allele 2: ExpansionHunter - Truth",
     "DiffRepeats: Allele 2: GangSTR - Truth",
+    "DiffRepeats: Allele 2: HipSTR - Truth",
 ]])
 variants_df = None
 

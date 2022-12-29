@@ -18,6 +18,10 @@ function run_pipelines {
     python3 ./tool_comparison/hail_batch_pipelines/gangstr_pipeline.py  --positive-loci --input-bam ${input_bam} --output-dir ${output_dir}/gangstr &
     python3 ./tool_comparison/hail_batch_pipelines/gangstr_pipeline.py  --negative-loci --input-bam ${input_bam} --output-dir ${output_dir}/gangstr &
 
+    # HipSTR
+    python3 ./tool_comparison/hail_batch_pipelines/hipstr_pipeline.py  --positive-loci --input-bam ${input_bam} --output-dir ${output_dir}/hipstr &
+    python3 ./tool_comparison/hail_batch_pipelines/hipstr_pipeline.py  --negative-loci --input-bam ${input_bam} --output-dir ${output_dir}/hipstr &    
+
     wait
 
     # download results
@@ -31,6 +35,10 @@ function run_pipelines {
     mkdir -p ${local_dir}/gangstr/positive_loci/      ${local_dir}/gangstr/negative_loci/
     gsutil -m cp ${output_dir}/gangstr/positive_loci/combined.positive_loci.*_json_files.*.tsv.gz ${local_dir}/gangstr/positive_loci/
     gsutil -m cp ${output_dir}/gangstr/negative_loci/combined.negative_loci.*_json_files.*.tsv.gz ${local_dir}/gangstr/negative_loci/
+
+    mkdir -p ${local_dir}/hipstr/positive_loci/      ${local_dir}/hipstr/negative_loci/
+    gsutil -m cp ${output_dir}/hipstr/positive_loci/combined.positive_loci.*_json_files.*.tsv.gz ${local_dir}/hipstr/positive_loci/
+    gsutil -m cp ${output_dir}/hipstr/negative_loci/combined.negative_loci.*_json_files.*.tsv.gz ${local_dir}/hipstr/negative_loci/    
 }
 
     
@@ -60,4 +68,3 @@ for coverage in 30 20 10 5; do
 	"gs://str-truth-set/hg38/tool_results_for_downsampled_${coverage}x_bam" \
 	"./tool_comparison/results_for_downsampled_${coverage}x_bam"
 done
-

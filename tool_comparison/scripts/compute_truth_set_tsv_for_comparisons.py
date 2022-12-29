@@ -1,3 +1,7 @@
+"""This script takes the truth set tsv and the set of negative (non-variant) loci and harmonizes columns across the
+2 tables + adds some extra columns that will be useful for tool comparisons.
+"""
+
 import argparse
 import os
 import pandas as pd
