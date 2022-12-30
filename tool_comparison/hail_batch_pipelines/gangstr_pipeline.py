@@ -93,10 +93,11 @@ def main():
 
     s2.command("mkdir /io/run_dir; cd /io/run_dir")
     for json_path in step1_output_json_paths:
-        local_path = s2.input(json_path)
+        local_path = s2.input(json_path, localize_by=Localize.COPY)
         s2.command(f"ln -s {local_path}")
 
     output_prefix = f"combined.{positive_or_negative_loci}"
+    s2.command("set -x")
     s2.command(f"python3.9 -m str_analysis.combine_str_json_to_tsv --include-extra-gangstr-fields "
                f"--output-prefix {output_prefix}")
     s2.command(f"bgzip {output_prefix}.{len(step1_output_json_paths)}_json_files.bed")
