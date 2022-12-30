@@ -116,6 +116,14 @@
           "description": "Results from running ExpansionHunter on CHM1-CHM13 downsampled to 20x coverage",
           "data": [{"type": "bed", "url": "gs://str-truth-set/hg38/tool_results_for_downsampled_20x_bam/expansion_hunter/positive_loci/combined.positive_loci.308_json_files.bed.gz"}]
         }, {
+          "name": "10x coverage genome: EH",
+          "description": "Results from running ExpansionHunter on CHM1-CHM13 downsampled to 10x coverage",
+          "data": [{"type": "bed", "url": "gs://str-truth-set/hg38/tool_results_for_downsampled_10x_bam/expansion_hunter/positive_loci/combined.positive_loci.308_json_files.bed.gz"}]
+        }, {
+          "name": "5x coverage genome: EH",
+          "description": "Results from running ExpansionHunter on CHM1-CHM13 downsampled to 5x coverage",
+          "data": [{"type": "bed", "url": "gs://str-truth-set/hg38/tool_results_for_downsampled_5x_bam/expansion_hunter/positive_loci/combined.positive_loci.308_json_files.bed.gz"}]
+        }, {
           "name": "40x coverage genome: GangSTR",
           "description": "Results from running GangSTR on the original CHM1-CHM13 WGS sample with 40x coverage",
           "data": [{"type": "bed", "url": "gs://str-truth-set/hg38/tool_results/gangstr/positive_loci/combined.positive_loci.16_json_files.bed.gz"}]
@@ -127,6 +135,34 @@
           "name": "20x coverage genome: GangSTR",
           "description": "Results from running GangSTR on CHM1-CHM13 downsampled to 20x coverage",
           "data": [{"type": "bed", "url": "gs://str-truth-set/hg38/tool_results_for_downsampled_20x_bam/gangstr/positive_loci/combined.positive_loci.16_json_files.bed.gz"}]
+        }, {
+          "name": "10x coverage genome: GangSTR",
+          "description": "Results from running GangSTR on CHM1-CHM13 downsampled to 10x coverage",
+          "data": [{"type": "bed", "url": "gs://str-truth-set/hg38/tool_results_for_downsampled_10x_bam/gangstr/positive_loci/combined.positive_loci.16_json_files.bed.gz"}]
+        }, {
+          "name": "5x coverage genome: GangSTR",
+          "description": "Results from running GangSTR on CHM1-CHM13 downsampled to 5x coverage",
+          "data": [{"type": "bed", "url": "gs://str-truth-set/hg38/tool_results_for_downsampled_5x_bam/gangstr/positive_loci/combined.positive_loci.16_json_files.bed.gz"}]
+        }, {
+          "name": "40x coverage genome: HipSTR",
+          "description": "Results from running HipSTR on the original CHM1-CHM13 WGS sample with 40x coverage",
+          "data": [{"type": "bed", "url": "gs://str-truth-set/hg38/tool_results/hipstr/positive_loci/combined.positive_loci.16_json_files.bed.gz"}]
+        }, {
+          "name": "30x coverage genome: HipSTR",
+          "description": "Results from running HipSTR on CHM1-CHM13 downsampled to 30x coverage",
+          "data": [{"type": "bed", "url": "gs://str-truth-set/hg38/tool_results_for_downsampled_30x_bam/hipstr/positive_loci/combined.positive_loci.16_json_files.bed.gz"}]
+        }, {
+          "name": "20x coverage genome: HipSTR",
+          "description": "Results from running HipSTR on CHM1-CHM13 downsampled to 20x coverage",
+          "data": [{"type": "bed", "url": "gs://str-truth-set/hg38/tool_results_for_downsampled_20x_bam/hipstr/positive_loci/combined.positive_loci.16_json_files.bed.gz"}]
+        }, {
+          "name": "10x coverage genome: HipSTR",
+          "description": "Results from running HipSTR on CHM1-CHM13 downsampled to 10x coverage",
+          "data": [{"type": "bed", "url": "gs://str-truth-set/hg38/tool_results_for_downsampled_10x_bam/hipstr/positive_loci/combined.positive_loci.16_json_files.bed.gz"}]
+        }, {
+          "name": "5x coverage genome: HipSTR",
+          "description": "Results from running HipSTR on CHM1-CHM13 downsampled to 5x coverage",
+          "data": [{"type": "bed", "url": "gs://str-truth-set/hg38/tool_results_for_downsampled_5x_bam/hipstr/positive_loci/combined.positive_loci.16_json_files.bed.gz"}]
         }, {
           "name": "40x coverage genome: EHdn",
           "description": "Results from running ExpansionHunterDenovo on the original CHM1-CHM13 WGS sample with 40x coverage",
@@ -147,10 +183,13 @@
           "name": "exome: GangSTR",
           "description": "Results from running GangSTR on the CHM1-CHM13 exome with 85x mean target coverage",
           "data": [{"type": "bed", "url": "gs://str-truth-set/hg38/tool_results_for_exome/gangstr/positive_loci/combined.positive_loci.16_json_files.bed.gz"}]
+        }, {
+          "name": "exome: HipSTR",
+          "description": "Results from running HipSTR on the CHM1-CHM13 exome with 85x mean target coverage",
+          "data": [{"type": "bed", "url": "gs://str-truth-set/hg38/tool_results_for_exome/hipstr/positive_loci/combined.positive_loci.16_json_files.bed.gz"}]
         }
       ]
-    },
-    {
+    }, {
       "categoryName": "Gene Annotations",
       "rows": [
         {
