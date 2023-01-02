@@ -303,9 +303,13 @@ def compute_fraction_exactly_correct(df, tool):
         allowed_diff_to_still_be_considered_correct)].groupby("DiffFromRefRepeats: Allele: Truth (bin)").count()[["LocusId"]]
     total_counts = df.groupby("DiffFromRefRepeats: Allele: Truth (bin)").count()[["LocusId"]]
 
+    total_exact_match = sum(exact_match_counts.LocusId)
+    total = sum(total_counts.LocusId)
+    overall_fraction_exactly_correct = total_exact_match/total
+
     result_df = (exact_match_counts/total_counts).fillna(0).rename(columns={"LocusId": "FractionExactlyCorrect"})
 
-    return result_df
+    return result_df, overall_fraction_exactly_correct
 
 
 def compute_tables_for_fraction_exactly_right_plots(df, coverage_values=("40x", "20x", "10x",)):
@@ -313,13 +317,15 @@ def compute_tables_for_fraction_exactly_right_plots(df, coverage_values=("40x", 
     for coverage in coverage_values:
         for tool in ("ExpansionHunter", "GangSTR", "HipSTR",):
 
-            print(f"Processing {tool} {coverage}")
             df2 = df.copy()
             df2 = df2[df2["coverage"] == coverage]
 
-            df_tool = compute_fraction_exactly_correct(df2, tool)
+            df_tool, overall_fraction_exactly_correct = compute_fraction_exactly_correct(df2, tool)
             df_tool.loc[:, "tool"] = f"{tool}: {coverage} coverage" if len(coverage_values) > 1 else tool
             tables_by_coverage.append(df_tool)
+
+            print(f"Processed {tool:20s} --  {100*overall_fraction_exactly_correct:0.1f}% of calls by {tool} @ {coverage} coverage "
+                  f"were exactly correct for {len(df2):,d} alleles at {len(set(df2.LocusId)):,d} loci")
 
     return pd.concat(tables_by_coverage, axis=0)
 
