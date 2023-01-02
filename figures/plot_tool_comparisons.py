@@ -386,7 +386,7 @@ def generate_all_distribution_by_num_repeats_plots(df, output_image_dir, plot_co
                     output_image_filename += f".{coverage}"
 
                     tool = tool_label
-                    coverage_label = f"Exome Data" if coverage == "exome" else f"{coverage} Coverage WGS Data"
+                    coverage_label = f"Exome Data" if coverage == "exome" else f"{coverage} Coverage Genome Data"
                     if "GangSTR__Q_over_0.8" in tool_label:
                         tool = "GangSTR"
                         figure_title_line1 += f"{tool} Calls filtered to Q > 0.8"
@@ -396,7 +396,7 @@ def generate_all_distribution_by_num_repeats_plots(df, output_image_dir, plot_co
                         figure_title_line1 += f"{tool} Calls filtered"
                         output_image_filename += f".{tool}_filtered"
                     else:
-                        figure_title_line1 += f"{tool} Calls in {coverage_label}"
+                        figure_title_line1 += f"{tool} Calls for {coverage_label}"
                         output_image_filename += f".{tool}"
 
                     figure_title_line2 += f"Showing {len(df2):,d} total alleles at {len(set(df2.LocusId)):,d} loci (" + ", ".join(filter_description) + ")"
@@ -488,7 +488,7 @@ def generate_fraction_exactly_right_plot(df, output_image_dir, plot_counter, max
     else:
         raise ValueError(f"Unexpected motif_size value: {motif_size}")
 
-    df_fraction = compute_tables_for_fraction_exactly_right_plots(df, coverage_values=("40x", "20x", "10x"))
+    df_fraction = compute_tables_for_fraction_exactly_right_plots(df, coverage_values=("40x", "30x", "20x", "10x", "05x"))
 
     df_fraction = df_fraction.reset_index()
     df_fraction = df_fraction.sort_values(x_column, key=lambda c: c.str.split(" ").str[0].astype(int))
@@ -496,7 +496,12 @@ def generate_fraction_exactly_right_plot(df, output_image_dir, plot_counter, max
     for coverage in "40x", "all":
         df2 = df_fraction.copy()
         if coverage == "all":
-            df2 = df2[~df2.tool.str.contains("HipSTR")]  # exclude HipSTR to reduce clutter
+            # exclude HipSTR to reduce clutter, and also 30x and 5x coverage
+            df2 = df2[
+                ~df2.tool.str.contains("HipSTR") &
+                ~df2.tool.str.contains("30x") &
+                ~df2.tool.str.contains("05x")
+            ]
         else:
             df2 = df2[df2.tool.str.contains(coverage)]
             df2.loc[:, "tool"] = df2["tool"].apply(lambda s: s.split(":")[0])
@@ -566,7 +571,7 @@ def generate_fraction_exactly_right_plot(df, output_image_dir, plot_counter, max
         )
 
         ax.set_xlabel("True Allele Size Minus Number of Repeats in Reference Genome", fontsize=16)
-        ax.set_ylabel("Fraction of Calls That Exactly Match Truth", fontsize=16)
+        ax.set_ylabel("Fraction of Calls That Exactly Match True Allele Size", fontsize=16)
 
         ax.xaxis.labelpad = ax.yaxis.labelpad = 15
         ax.set_ylim((0, 1))
