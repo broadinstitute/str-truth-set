@@ -526,8 +526,7 @@ def generate_fraction_exactly_right_plot(df, output_image_dir, plot_counter, max
         figure_title += "\n\n"
         figure_title += f"at {len(set(df.LocusId)):,d} {motif_size} loci (" + ", ".join(filter_description) + ")"
 
-        print(figure_title)
-        print(filename_suffix)
+        print(figure_title.replace("\n", " "))
 
         num_gangstr_colors = len([h for h in set(df2[hue_column]) if h.lower().startswith("gangstr")])
         num_expansion_hunter_colors = len([h for h in set(df2[hue_column]) if h.lower().startswith("expansionhunter")])
