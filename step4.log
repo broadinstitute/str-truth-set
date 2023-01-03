@@ -1,0 +1,1064 @@
++ set -e
++ set -u
++ for results_folder in results_for_exome results results_for_downsampled_30x_bam results_for_downsampled_20x_bam results_for_downsampled_10x_bam results_for_downsampled_5x_bam
++ python3 tool_comparison/scripts/compute_truth_set_tsv_for_comparisons.py --output-dir ./tool_comparison/results_for_exome/ STR_truthset.v1.variants.tsv.gz ./tool_comparison/variant_catalogs/negative_loci.tsv.gz
+Output columns:
+	      0 of 154,743 (  0.0%) NaN values in CI end: Allele 1
+	      0 of 154,743 (  0.0%) NaN values in CI end: Allele 2
+	      0 of 154,743 (  0.0%) NaN values in CI size: Allele 1
+	      0 of 154,743 (  0.0%) NaN values in CI size: Allele 2
+	      0 of 154,743 (  0.0%) NaN values in CI start: Allele 1
+	      0 of 154,743 (  0.0%) NaN values in CI start: Allele 2
+	      0 of 154,743 (  0.0%) NaN values in DiffFromRefRepeats: Allele 1
+	      0 of 154,743 (  0.0%) NaN values in DiffFromRefRepeats: Allele 2
+	      0 of 154,743 (  0.0%) NaN values in DiffFromRefSize (bp): Allele 1
+	      0 of 154,743 (  0.0%) NaN values in DiffFromRefSize (bp): Allele 2
+	      0 of 154,743 (  0.0%) NaN values in GeneRegionFromGencode_V42
+	      0 of 154,743 (  0.0%) NaN values in GeneRegionFromMane_V1
+	      0 of 154,743 (  0.0%) NaN values in Genotype
+	      0 of 154,743 (  0.0%) NaN values in GenotypeConfidenceInterval
+	      0 of 154,743 (  0.0%) NaN values in HET_or_HOM
+	      0 of 154,743 (  0.0%) NaN values in IsFoundInReference
+	      0 of 154,743 (  0.0%) NaN values in IsHomRef
+	      0 of 154,743 (  0.0%) NaN values in IsMultiallelic
+	      0 of 154,743 (  0.0%) NaN values in IsPureRepeat
+	      0 of 154,743 (  0.0%) NaN values in IsRef: Allele 1
+	      0 of 154,743 (  0.0%) NaN values in IsRef: Allele 2
+	      0 of 154,743 (  0.0%) NaN values in LocusId
+	      0 of 154,743 (  0.0%) NaN values in LocusSize (bp)
+	      0 of 154,743 (  0.0%) NaN values in Motif
+	      0 of 154,743 (  0.0%) NaN values in MotifSize
+	      0 of 154,743 (  0.0%) NaN values in NumRepeats: Allele 1
+	      0 of 154,743 (  0.0%) NaN values in NumRepeats: Allele 2
+	      0 of 154,743 (  0.0%) NaN values in NumRepeatsInReference
+	      0 of 154,743 (  0.0%) NaN values in OverlapsIlluminaSTRCatalog: Locus
+	 60,832 of 154,743 ( 39.3%) NaN values in OverlapsIlluminaSTRCatalog: Motif
+	      0 of 154,743 (  0.0%) NaN values in OverlapsSegDupIntervals
+	      0 of 154,743 (  0.0%) NaN values in OverlapsTRFPureRepeats9bp: Locus
+	  9,324 of 154,743 (  6.0%) NaN values in OverlapsTRFPureRepeats9bp: Motif
+	      0 of 154,743 (  0.0%) NaN values in RepeatSize (bp): Allele 1
+	      0 of 154,743 (  0.0%) NaN values in RepeatSize (bp): Allele 2
+	      0 of 154,743 (  0.0%) NaN values in SummaryString
+	      0 of 154,743 (  0.0%) NaN values in TruthSetOrNegativeLocus
+Wrote 154,743 rows to ./tool_comparison/results_for_exome/STR_truthset.v1.variants.for_comparison.tsv.gz
+Output columns:
+	      0 of 152,072 (  0.0%) NaN values in CI end: Allele 1
+	      0 of 152,072 (  0.0%) NaN values in CI end: Allele 2
+	      0 of 152,072 (  0.0%) NaN values in CI size: Allele 1
+	      0 of 152,072 (  0.0%) NaN values in CI size: Allele 2
+	      0 of 152,072 (  0.0%) NaN values in CI start: Allele 1
+	      0 of 152,072 (  0.0%) NaN values in CI start: Allele 2
+	      0 of 152,072 (  0.0%) NaN values in DiffFromRefRepeats: Allele 1
+	      0 of 152,072 (  0.0%) NaN values in DiffFromRefRepeats: Allele 2
+	      0 of 152,072 (  0.0%) NaN values in DiffFromRefSize (bp): Allele 1
+	      0 of 152,072 (  0.0%) NaN values in DiffFromRefSize (bp): Allele 2
+	      0 of 152,072 (  0.0%) NaN values in GeneRegionFromGencode_V42
+	      0 of 152,072 (  0.0%) NaN values in GeneRegionFromMane_V1
+	      0 of 152,072 (  0.0%) NaN values in Genotype
+	      0 of 152,072 (  0.0%) NaN values in GenotypeConfidenceInterval
+	      0 of 152,072 (  0.0%) NaN values in HET_or_HOM
+	      0 of 152,072 (  0.0%) NaN values in IsFoundInReference
+	      0 of 152,072 (  0.0%) NaN values in IsHomRef
+	      0 of 152,072 (  0.0%) NaN values in IsMultiallelic
+	      0 of 152,072 (  0.0%) NaN values in IsPureRepeat
+	      0 of 152,072 (  0.0%) NaN values in IsRef: Allele 1
+	      0 of 152,072 (  0.0%) NaN values in IsRef: Allele 2
+	      0 of 152,072 (  0.0%) NaN values in LocusId
+	      0 of 152,072 (  0.0%) NaN values in LocusSize (bp)
+	      0 of 152,072 (  0.0%) NaN values in Motif
+	      0 of 152,072 (  0.0%) NaN values in MotifSize
+	      0 of 152,072 (  0.0%) NaN values in NumRepeats: Allele 1
+	      0 of 152,072 (  0.0%) NaN values in NumRepeats: Allele 2
+	      0 of 152,072 (  0.0%) NaN values in NumRepeatsInReference
+	      0 of 152,072 (  0.0%) NaN values in OverlapsIlluminaSTRCatalog: Locus
+	140,848 of 152,072 ( 92.6%) NaN values in OverlapsIlluminaSTRCatalog: Motif
+	      0 of 152,072 (  0.0%) NaN values in OverlapsSegDupIntervals
+	      0 of 152,072 (  0.0%) NaN values in OverlapsTRFPureRepeats9bp: Locus
+	      0 of 152,072 (  0.0%) NaN values in OverlapsTRFPureRepeats9bp: Motif
+	      0 of 152,072 (  0.0%) NaN values in RepeatSize (bp): Allele 1
+	      0 of 152,072 (  0.0%) NaN values in RepeatSize (bp): Allele 2
+	      0 of 152,072 (  0.0%) NaN values in SummaryString
+	      0 of 152,072 (  0.0%) NaN values in TruthSetOrNegativeLocus
+Wrote 152,072 rows to ./tool_comparison/results_for_exome/negative_loci.for_comparison.tsv.gz
++ for i in 1 2 3
++ '[' 1 == 1 ']'
++ tool=ExpansionHunter
++ subfolder=expansion_hunter
++ set +x
+============================================
+Processing results_for_exome ExpansionHunter results
++ python3 tool_comparison/scripts/add_tool_results_columns.py --tool ExpansionHunter ./tool_comparison/results_for_exome/expansion_hunter/positive_loci/combined.positive_loci.308_json_files.variants.tsv.gz ./tool_comparison/results_for_exome/STR_truthset.v1.variants.for_comparison.tsv.gz
+Merged table has the same number of rows (154,743) as the truth set.
+Output columns:
+	145,703 of 154,743 ( 94.2%) NaN values in CI end: Allele 1: ExpansionHunter
+	      0 of 154,743 (  0.0%) NaN values in CI end: Allele 1: Truth
+	145,703 of 154,743 ( 94.2%) NaN values in CI end: Allele 2: ExpansionHunter
+	      0 of 154,743 (  0.0%) NaN values in CI end: Allele 2: Truth
+	145,703 of 154,743 ( 94.2%) NaN values in CI size: Allele 1: ExpansionHunter
+	      0 of 154,743 (  0.0%) NaN values in CI size: Allele 1: Truth
+	145,703 of 154,743 ( 94.2%) NaN values in CI size: Allele 2: ExpansionHunter
+	      0 of 154,743 (  0.0%) NaN values in CI size: Allele 2: Truth
+	145,703 of 154,743 ( 94.2%) NaN values in CI start: Allele 1: ExpansionHunter
+	      0 of 154,743 (  0.0%) NaN values in CI start: Allele 1: Truth
+	145,703 of 154,743 ( 94.2%) NaN values in CI start: Allele 2: ExpansionHunter
+	      0 of 154,743 (  0.0%) NaN values in CI start: Allele 2: Truth
+	145,703 of 154,743 ( 94.2%) NaN values in Coverage: ExpansionHunter
+	145,703 of 154,743 ( 94.2%) NaN values in DiffFromRefRepeats: Allele 1: ExpansionHunter
+	      0 of 154,743 (  0.0%) NaN values in DiffFromRefRepeats: Allele 1: Truth
+	145,703 of 154,743 ( 94.2%) NaN values in DiffFromRefRepeats: Allele 2: ExpansionHunter
+	      0 of 154,743 (  0.0%) NaN values in DiffFromRefRepeats: Allele 2: Truth
+	145,703 of 154,743 ( 94.2%) NaN values in DiffFromRefSize (bp): Allele 1: ExpansionHunter
+	      0 of 154,743 (  0.0%) NaN values in DiffFromRefSize (bp): Allele 1: Truth
+	145,703 of 154,743 ( 94.2%) NaN values in DiffFromRefSize (bp): Allele 2: ExpansionHunter
+	      0 of 154,743 (  0.0%) NaN values in DiffFromRefSize (bp): Allele 2: Truth
+	145,703 of 154,743 ( 94.2%) NaN values in FractionOfReadsThatSupportsGenotype: Allele 1: ExpansionHunter
+	145,703 of 154,743 ( 94.2%) NaN values in FractionOfReadsThatSupportsGenotype: Allele 2: ExpansionHunter
+	      0 of 154,743 (  0.0%) NaN values in GeneRegionFromGencode_V42
+	      0 of 154,743 (  0.0%) NaN values in GeneRegionFromMane_V1
+	145,703 of 154,743 ( 94.2%) NaN values in Genotype: ExpansionHunter
+	      0 of 154,743 (  0.0%) NaN values in Genotype: Truth
+	145,703 of 154,743 ( 94.2%) NaN values in GenotypeConfidenceInterval: ExpansionHunter
+	      0 of 154,743 (  0.0%) NaN values in GenotypeConfidenceInterval: Truth
+	      0 of 154,743 (  0.0%) NaN values in HET_or_HOM
+	      0 of 154,743 (  0.0%) NaN values in IsFoundInReference
+	145,703 of 154,743 ( 94.2%) NaN values in IsHomRef: ExpansionHunter
+	      0 of 154,743 (  0.0%) NaN values in IsHomRef: Truth
+	      0 of 154,743 (  0.0%) NaN values in IsMultiallelic
+	      0 of 154,743 (  0.0%) NaN values in IsPureRepeat
+	145,703 of 154,743 ( 94.2%) NaN values in IsRef: Allele 1: ExpansionHunter
+	      0 of 154,743 (  0.0%) NaN values in IsRef: Allele 1: Truth
+	145,703 of 154,743 ( 94.2%) NaN values in IsRef: Allele 2: ExpansionHunter
+	      0 of 154,743 (  0.0%) NaN values in IsRef: Allele 2: Truth
+	      0 of 154,743 (  0.0%) NaN values in LocusId
+	      0 of 154,743 (  0.0%) NaN values in LocusSize (bp)
+	      0 of 154,743 (  0.0%) NaN values in Motif
+	      0 of 154,743 (  0.0%) NaN values in MotifSize
+	145,703 of 154,743 ( 94.2%) NaN values in NumAllelesSupportedTotal: ExpansionHunter
+	145,703 of 154,743 ( 94.2%) NaN values in NumFlankingReads: ExpansionHunter
+	145,703 of 154,743 ( 94.2%) NaN values in NumInrepeatReads: ExpansionHunter
+	145,703 of 154,743 ( 94.2%) NaN values in NumReadsTotal: ExpansionHunter
+	145,703 of 154,743 ( 94.2%) NaN values in NumReadsTotalThatSupportGenotype: Allele 1: ExpansionHunter
+	145,703 of 154,743 ( 94.2%) NaN values in NumReadsTotalThatSupportGenotype: Allele 2: ExpansionHunter
+	145,703 of 154,743 ( 94.2%) NaN values in NumRepeats: Allele 1: ExpansionHunter
+	      0 of 154,743 (  0.0%) NaN values in NumRepeats: Allele 1: Truth
+	145,703 of 154,743 ( 94.2%) NaN values in NumRepeats: Allele 2: ExpansionHunter
+	      0 of 154,743 (  0.0%) NaN values in NumRepeats: Allele 2: Truth
+	      0 of 154,743 (  0.0%) NaN values in NumRepeatsInReference
+	145,703 of 154,743 ( 94.2%) NaN values in NumSpanningReads: ExpansionHunter
+	145,703 of 154,743 ( 94.2%) NaN values in NumSpanningReadsThatSupportGenotype: Allele 1: ExpansionHunter
+	145,703 of 154,743 ( 94.2%) NaN values in NumSpanningReadsThatSupportGenotype: Allele 2: ExpansionHunter
+	      0 of 154,743 (  0.0%) NaN values in OverlapsIlluminaSTRCatalog: Locus
+	 60,832 of 154,743 ( 39.3%) NaN values in OverlapsIlluminaSTRCatalog: Motif
+	      0 of 154,743 (  0.0%) NaN values in OverlapsSegDupIntervals
+	      0 of 154,743 (  0.0%) NaN values in OverlapsTRFPureRepeats9bp: Locus
+	  9,324 of 154,743 (  6.0%) NaN values in OverlapsTRFPureRepeats9bp: Motif
+	145,703 of 154,743 ( 94.2%) NaN values in RepeatSize (bp): Allele 1: ExpansionHunter
+	      0 of 154,743 (  0.0%) NaN values in RepeatSize (bp): Allele 1: Truth
+	145,703 of 154,743 ( 94.2%) NaN values in RepeatSize (bp): Allele 2: ExpansionHunter
+	      0 of 154,743 (  0.0%) NaN values in RepeatSize (bp): Allele 2: Truth
+	      0 of 154,743 (  0.0%) NaN values in SummaryString
+	      0 of 154,743 (  0.0%) NaN values in TruthSetOrNegativeLocus
+Wrote 154,743 rows to ./tool_comparison/results_for_exome/STR_truthset.v1.variants.for_comparison.with_ExpansionHunter_results.tsv.gz
++ python3 tool_comparison/scripts/add_tool_results_columns.py --tool ExpansionHunter ./tool_comparison/results_for_exome/expansion_hunter/negative_loci/combined.negative_loci.305_json_files.variants.tsv.gz ./tool_comparison/results_for_exome/negative_loci.for_comparison.tsv.gz
+Merged table has the same number of rows (152,072) as the truth set.
+Output columns:
+	141,643 of 152,072 ( 93.1%) NaN values in CI end: Allele 1: ExpansionHunter
+	      0 of 152,072 (  0.0%) NaN values in CI end: Allele 1: Truth
+	141,643 of 152,072 ( 93.1%) NaN values in CI end: Allele 2: ExpansionHunter
+	      0 of 152,072 (  0.0%) NaN values in CI end: Allele 2: Truth
+	141,643 of 152,072 ( 93.1%) NaN values in CI size: Allele 1: ExpansionHunter
+	      0 of 152,072 (  0.0%) NaN values in CI size: Allele 1: Truth
+	141,643 of 152,072 ( 93.1%) NaN values in CI size: Allele 2: ExpansionHunter
+	      0 of 152,072 (  0.0%) NaN values in CI size: Allele 2: Truth
+	141,643 of 152,072 ( 93.1%) NaN values in CI start: Allele 1: ExpansionHunter
+	      0 of 152,072 (  0.0%) NaN values in CI start: Allele 1: Truth
+	141,643 of 152,072 ( 93.1%) NaN values in CI start: Allele 2: ExpansionHunter
+	      0 of 152,072 (  0.0%) NaN values in CI start: Allele 2: Truth
+	141,643 of 152,072 ( 93.1%) NaN values in Coverage: ExpansionHunter
+	141,643 of 152,072 ( 93.1%) NaN values in DiffFromRefRepeats: Allele 1: ExpansionHunter
+	      0 of 152,072 (  0.0%) NaN values in DiffFromRefRepeats: Allele 1: Truth
+	141,643 of 152,072 ( 93.1%) NaN values in DiffFromRefRepeats: Allele 2: ExpansionHunter
+	      0 of 152,072 (  0.0%) NaN values in DiffFromRefRepeats: Allele 2: Truth
+	141,643 of 152,072 ( 93.1%) NaN values in DiffFromRefSize (bp): Allele 1: ExpansionHunter
+	      0 of 152,072 (  0.0%) NaN values in DiffFromRefSize (bp): Allele 1: Truth
+	141,643 of 152,072 ( 93.1%) NaN values in DiffFromRefSize (bp): Allele 2: ExpansionHunter
+	      0 of 152,072 (  0.0%) NaN values in DiffFromRefSize (bp): Allele 2: Truth
+	141,643 of 152,072 ( 93.1%) NaN values in FractionOfReadsThatSupportsGenotype: Allele 1: ExpansionHunter
+	141,643 of 152,072 ( 93.1%) NaN values in FractionOfReadsThatSupportsGenotype: Allele 2: ExpansionHunter
+	      0 of 152,072 (  0.0%) NaN values in GeneRegionFromGencode_V42
+	      0 of 152,072 (  0.0%) NaN values in GeneRegionFromMane_V1
+	141,643 of 152,072 ( 93.1%) NaN values in Genotype: ExpansionHunter
+	      0 of 152,072 (  0.0%) NaN values in Genotype: Truth
+	141,643 of 152,072 ( 93.1%) NaN values in GenotypeConfidenceInterval: ExpansionHunter
+	      0 of 152,072 (  0.0%) NaN values in GenotypeConfidenceInterval: Truth
+	      0 of 152,072 (  0.0%) NaN values in HET_or_HOM
+	      0 of 152,072 (  0.0%) NaN values in IsFoundInReference
+	141,643 of 152,072 ( 93.1%) NaN values in IsHomRef: ExpansionHunter
+	      0 of 152,072 (  0.0%) NaN values in IsHomRef: Truth
+	      0 of 152,072 (  0.0%) NaN values in IsMultiallelic
+	      0 of 152,072 (  0.0%) NaN values in IsPureRepeat
+	141,643 of 152,072 ( 93.1%) NaN values in IsRef: Allele 1: ExpansionHunter
+	      0 of 152,072 (  0.0%) NaN values in IsRef: Allele 1: Truth
+	141,643 of 152,072 ( 93.1%) NaN values in IsRef: Allele 2: ExpansionHunter
+	      0 of 152,072 (  0.0%) NaN values in IsRef: Allele 2: Truth
+	      0 of 152,072 (  0.0%) NaN values in LocusId
+	      0 of 152,072 (  0.0%) NaN values in LocusSize (bp)
+	      0 of 152,072 (  0.0%) NaN values in Motif
+	      0 of 152,072 (  0.0%) NaN values in MotifSize
+	141,643 of 152,072 ( 93.1%) NaN values in NumAllelesSupportedTotal: ExpansionHunter
+	141,643 of 152,072 ( 93.1%) NaN values in NumFlankingReads: ExpansionHunter
+	141,643 of 152,072 ( 93.1%) NaN values in NumInrepeatReads: ExpansionHunter
+	141,643 of 152,072 ( 93.1%) NaN values in NumReadsTotal: ExpansionHunter
+	141,643 of 152,072 ( 93.1%) NaN values in NumReadsTotalThatSupportGenotype: Allele 1: ExpansionHunter
+	141,643 of 152,072 ( 93.1%) NaN values in NumReadsTotalThatSupportGenotype: Allele 2: ExpansionHunter
+	141,643 of 152,072 ( 93.1%) NaN values in NumRepeats: Allele 1: ExpansionHunter
+	      0 of 152,072 (  0.0%) NaN values in NumRepeats: Allele 1: Truth
+	141,643 of 152,072 ( 93.1%) NaN values in NumRepeats: Allele 2: ExpansionHunter
+	      0 of 152,072 (  0.0%) NaN values in NumRepeats: Allele 2: Truth
+	      0 of 152,072 (  0.0%) NaN values in NumRepeatsInReference
+	141,643 of 152,072 ( 93.1%) NaN values in NumSpanningReads: ExpansionHunter
+	141,643 of 152,072 ( 93.1%) NaN values in NumSpanningReadsThatSupportGenotype: Allele 1: ExpansionHunter
+	141,643 of 152,072 ( 93.1%) NaN values in NumSpanningReadsThatSupportGenotype: Allele 2: ExpansionHunter
+	      0 of 152,072 (  0.0%) NaN values in OverlapsIlluminaSTRCatalog: Locus
+	140,848 of 152,072 ( 92.6%) NaN values in OverlapsIlluminaSTRCatalog: Motif
+	      0 of 152,072 (  0.0%) NaN values in OverlapsSegDupIntervals
+	      0 of 152,072 (  0.0%) NaN values in OverlapsTRFPureRepeats9bp: Locus
+	      0 of 152,072 (  0.0%) NaN values in OverlapsTRFPureRepeats9bp: Motif
+	141,643 of 152,072 ( 93.1%) NaN values in RepeatSize (bp): Allele 1: ExpansionHunter
+	      0 of 152,072 (  0.0%) NaN values in RepeatSize (bp): Allele 1: Truth
+	141,643 of 152,072 ( 93.1%) NaN values in RepeatSize (bp): Allele 2: ExpansionHunter
+	      0 of 152,072 (  0.0%) NaN values in RepeatSize (bp): Allele 2: Truth
+	      0 of 152,072 (  0.0%) NaN values in SummaryString
+	      0 of 152,072 (  0.0%) NaN values in TruthSetOrNegativeLocus
+Wrote 152,072 rows to ./tool_comparison/results_for_exome/negative_loci.for_comparison.with_ExpansionHunter_results.tsv.gz
++ mv ./tool_comparison/results_for_exome/STR_truthset.v1.variants.for_comparison.with_ExpansionHunter_results.tsv.gz ./tool_comparison/results_for_exome/STR_truthset.v1.variants.for_comparison.tsv.gz
++ mv ./tool_comparison/results_for_exome/negative_loci.for_comparison.with_ExpansionHunter_results.tsv.gz ./tool_comparison/results_for_exome/negative_loci.for_comparison.tsv.gz
++ for i in 1 2 3
++ '[' 2 == 1 ']'
++ '[' 2 == 2 ']'
++ tool=GangSTR
++ subfolder=gangstr
++ set +x
+============================================
+Processing results_for_exome GangSTR results
++ python3 tool_comparison/scripts/add_tool_results_columns.py --tool GangSTR ./tool_comparison/results_for_exome/gangstr/positive_loci/combined.positive_loci.16_json_files.variants.tsv.gz ./tool_comparison/results_for_exome/STR_truthset.v1.variants.for_comparison.tsv.gz
+Merged table has the same number of rows (154,743) as the truth set.
+Output columns:
+	145,703 of 154,743 ( 94.2%) NaN values in CI end: Allele 1: ExpansionHunter
+	124,333 of 154,743 ( 80.3%) NaN values in CI end: Allele 1: GangSTR
+	      0 of 154,743 (  0.0%) NaN values in CI end: Allele 1: Truth
+	145,703 of 154,743 ( 94.2%) NaN values in CI end: Allele 2: ExpansionHunter
+	124,333 of 154,743 ( 80.3%) NaN values in CI end: Allele 2: GangSTR
+	      0 of 154,743 (  0.0%) NaN values in CI end: Allele 2: Truth
+	145,703 of 154,743 ( 94.2%) NaN values in CI size: Allele 1: ExpansionHunter
+	124,333 of 154,743 ( 80.3%) NaN values in CI size: Allele 1: GangSTR
+	      0 of 154,743 (  0.0%) NaN values in CI size: Allele 1: Truth
+	145,703 of 154,743 ( 94.2%) NaN values in CI size: Allele 2: ExpansionHunter
+	124,333 of 154,743 ( 80.3%) NaN values in CI size: Allele 2: GangSTR
+	      0 of 154,743 (  0.0%) NaN values in CI size: Allele 2: Truth
+	145,703 of 154,743 ( 94.2%) NaN values in CI start: Allele 1: ExpansionHunter
+	124,333 of 154,743 ( 80.3%) NaN values in CI start: Allele 1: GangSTR
+	      0 of 154,743 (  0.0%) NaN values in CI start: Allele 1: Truth
+	145,703 of 154,743 ( 94.2%) NaN values in CI start: Allele 2: ExpansionHunter
+	124,333 of 154,743 ( 80.3%) NaN values in CI start: Allele 2: GangSTR
+	      0 of 154,743 (  0.0%) NaN values in CI start: Allele 2: Truth
+	145,703 of 154,743 ( 94.2%) NaN values in Coverage: ExpansionHunter
+	124,333 of 154,743 ( 80.3%) NaN values in Coverage: GangSTR
+	145,703 of 154,743 ( 94.2%) NaN values in DiffFromRefRepeats: Allele 1: ExpansionHunter
+	124,333 of 154,743 ( 80.3%) NaN values in DiffFromRefRepeats: Allele 1: GangSTR
+	      0 of 154,743 (  0.0%) NaN values in DiffFromRefRepeats: Allele 1: Truth
+	145,703 of 154,743 ( 94.2%) NaN values in DiffFromRefRepeats: Allele 2: ExpansionHunter
+	124,333 of 154,743 ( 80.3%) NaN values in DiffFromRefRepeats: Allele 2: GangSTR
+	      0 of 154,743 (  0.0%) NaN values in DiffFromRefRepeats: Allele 2: Truth
+	145,703 of 154,743 ( 94.2%) NaN values in DiffFromRefSize (bp): Allele 1: ExpansionHunter
+	124,333 of 154,743 ( 80.3%) NaN values in DiffFromRefSize (bp): Allele 1: GangSTR
+	      0 of 154,743 (  0.0%) NaN values in DiffFromRefSize (bp): Allele 1: Truth
+	145,703 of 154,743 ( 94.2%) NaN values in DiffFromRefSize (bp): Allele 2: ExpansionHunter
+	124,333 of 154,743 ( 80.3%) NaN values in DiffFromRefSize (bp): Allele 2: GangSTR
+	      0 of 154,743 (  0.0%) NaN values in DiffFromRefSize (bp): Allele 2: Truth
+	145,703 of 154,743 ( 94.2%) NaN values in FractionOfReadsThatSupportsGenotype: Allele 1: ExpansionHunter
+	124,333 of 154,743 ( 80.3%) NaN values in FractionOfReadsThatSupportsGenotype: Allele 1: GangSTR
+	145,703 of 154,743 ( 94.2%) NaN values in FractionOfReadsThatSupportsGenotype: Allele 2: ExpansionHunter
+	124,333 of 154,743 ( 80.3%) NaN values in FractionOfReadsThatSupportsGenotype: Allele 2: GangSTR
+	      0 of 154,743 (  0.0%) NaN values in GeneRegionFromGencode_V42
+	      0 of 154,743 (  0.0%) NaN values in GeneRegionFromMane_V1
+	145,703 of 154,743 ( 94.2%) NaN values in Genotype: ExpansionHunter
+	124,333 of 154,743 ( 80.3%) NaN values in Genotype: GangSTR
+	      0 of 154,743 (  0.0%) NaN values in Genotype: Truth
+	145,703 of 154,743 ( 94.2%) NaN values in GenotypeConfidenceInterval: ExpansionHunter
+	124,333 of 154,743 ( 80.3%) NaN values in GenotypeConfidenceInterval: GangSTR
+	      0 of 154,743 (  0.0%) NaN values in GenotypeConfidenceInterval: Truth
+	      0 of 154,743 (  0.0%) NaN values in HET_or_HOM
+	      0 of 154,743 (  0.0%) NaN values in IsFoundInReference
+	145,703 of 154,743 ( 94.2%) NaN values in IsHomRef: ExpansionHunter
+	124,333 of 154,743 ( 80.3%) NaN values in IsHomRef: GangSTR
+	      0 of 154,743 (  0.0%) NaN values in IsHomRef: Truth
+	      0 of 154,743 (  0.0%) NaN values in IsMultiallelic
+	      0 of 154,743 (  0.0%) NaN values in IsPureRepeat
+	145,703 of 154,743 ( 94.2%) NaN values in IsRef: Allele 1: ExpansionHunter
+	124,333 of 154,743 ( 80.3%) NaN values in IsRef: Allele 1: GangSTR
+	      0 of 154,743 (  0.0%) NaN values in IsRef: Allele 1: Truth
+	145,703 of 154,743 ( 94.2%) NaN values in IsRef: Allele 2: ExpansionHunter
+	124,333 of 154,743 ( 80.3%) NaN values in IsRef: Allele 2: GangSTR
+	      0 of 154,743 (  0.0%) NaN values in IsRef: Allele 2: Truth
+	      0 of 154,743 (  0.0%) NaN values in LocusId
+	      0 of 154,743 (  0.0%) NaN values in LocusSize (bp)
+	      0 of 154,743 (  0.0%) NaN values in Motif
+	      0 of 154,743 (  0.0%) NaN values in MotifSize
+	145,703 of 154,743 ( 94.2%) NaN values in NumAllelesSupportedTotal: ExpansionHunter
+	145,703 of 154,743 ( 94.2%) NaN values in NumFlankingReads: ExpansionHunter
+	124,333 of 154,743 ( 80.3%) NaN values in NumFlankingReads: GangSTR
+	145,703 of 154,743 ( 94.2%) NaN values in NumInrepeatReads: ExpansionHunter
+	124,333 of 154,743 ( 80.3%) NaN values in NumInrepeatReads: GangSTR
+	145,703 of 154,743 ( 94.2%) NaN values in NumReadsTotal: ExpansionHunter
+	124,333 of 154,743 ( 80.3%) NaN values in NumReadsTotal: GangSTR
+	145,703 of 154,743 ( 94.2%) NaN values in NumReadsTotalThatSupportGenotype: Allele 1: ExpansionHunter
+	124,333 of 154,743 ( 80.3%) NaN values in NumReadsTotalThatSupportGenotype: Allele 1: GangSTR
+	145,703 of 154,743 ( 94.2%) NaN values in NumReadsTotalThatSupportGenotype: Allele 2: ExpansionHunter
+	124,333 of 154,743 ( 80.3%) NaN values in NumReadsTotalThatSupportGenotype: Allele 2: GangSTR
+	145,703 of 154,743 ( 94.2%) NaN values in NumRepeats: Allele 1: ExpansionHunter
+	124,333 of 154,743 ( 80.3%) NaN values in NumRepeats: Allele 1: GangSTR
+	      0 of 154,743 (  0.0%) NaN values in NumRepeats: Allele 1: Truth
+	145,703 of 154,743 ( 94.2%) NaN values in NumRepeats: Allele 2: ExpansionHunter
+	124,333 of 154,743 ( 80.3%) NaN values in NumRepeats: Allele 2: GangSTR
+	      0 of 154,743 (  0.0%) NaN values in NumRepeats: Allele 2: Truth
+	      0 of 154,743 (  0.0%) NaN values in NumRepeatsInReference
+	145,703 of 154,743 ( 94.2%) NaN values in NumSpanningReads: ExpansionHunter
+	124,333 of 154,743 ( 80.3%) NaN values in NumSpanningReads: GangSTR
+	145,703 of 154,743 ( 94.2%) NaN values in NumSpanningReadsThatSupportGenotype: Allele 1: ExpansionHunter
+	124,333 of 154,743 ( 80.3%) NaN values in NumSpanningReadsThatSupportGenotype: Allele 1: GangSTR
+	145,703 of 154,743 ( 94.2%) NaN values in NumSpanningReadsThatSupportGenotype: Allele 2: ExpansionHunter
+	124,333 of 154,743 ( 80.3%) NaN values in NumSpanningReadsThatSupportGenotype: Allele 2: GangSTR
+	      0 of 154,743 (  0.0%) NaN values in OverlapsIlluminaSTRCatalog: Locus
+	 60,832 of 154,743 ( 39.3%) NaN values in OverlapsIlluminaSTRCatalog: Motif
+	      0 of 154,743 (  0.0%) NaN values in OverlapsSegDupIntervals
+	      0 of 154,743 (  0.0%) NaN values in OverlapsTRFPureRepeats9bp: Locus
+	  9,324 of 154,743 (  6.0%) NaN values in OverlapsTRFPureRepeats9bp: Motif
+	124,333 of 154,743 ( 80.3%) NaN values in Q: GangSTR
+	145,703 of 154,743 ( 94.2%) NaN values in RepeatSize (bp): Allele 1: ExpansionHunter
+	124,333 of 154,743 ( 80.3%) NaN values in RepeatSize (bp): Allele 1: GangSTR
+	      0 of 154,743 (  0.0%) NaN values in RepeatSize (bp): Allele 1: Truth
+	145,703 of 154,743 ( 94.2%) NaN values in RepeatSize (bp): Allele 2: ExpansionHunter
+	124,333 of 154,743 ( 80.3%) NaN values in RepeatSize (bp): Allele 2: GangSTR
+	      0 of 154,743 (  0.0%) NaN values in RepeatSize (bp): Allele 2: Truth
+	      0 of 154,743 (  0.0%) NaN values in SummaryString
+	      0 of 154,743 (  0.0%) NaN values in TruthSetOrNegativeLocus
+Wrote 154,743 rows to ./tool_comparison/results_for_exome/STR_truthset.v1.variants.for_comparison.with_GangSTR_results.tsv.gz
++ python3 tool_comparison/scripts/add_tool_results_columns.py --tool GangSTR ./tool_comparison/results_for_exome/gangstr/negative_loci/combined.negative_loci.16_json_files.variants.tsv.gz ./tool_comparison/results_for_exome/negative_loci.for_comparison.tsv.gz
+Merged table has the same number of rows (152,072) as the truth set.
+Output columns:
+	141,643 of 152,072 ( 93.1%) NaN values in CI end: Allele 1: ExpansionHunter
+	122,848 of 152,072 ( 80.8%) NaN values in CI end: Allele 1: GangSTR
+	      0 of 152,072 (  0.0%) NaN values in CI end: Allele 1: Truth
+	141,643 of 152,072 ( 93.1%) NaN values in CI end: Allele 2: ExpansionHunter
+	122,848 of 152,072 ( 80.8%) NaN values in CI end: Allele 2: GangSTR
+	      0 of 152,072 (  0.0%) NaN values in CI end: Allele 2: Truth
+	141,643 of 152,072 ( 93.1%) NaN values in CI size: Allele 1: ExpansionHunter
+	122,848 of 152,072 ( 80.8%) NaN values in CI size: Allele 1: GangSTR
+	      0 of 152,072 (  0.0%) NaN values in CI size: Allele 1: Truth
+	141,643 of 152,072 ( 93.1%) NaN values in CI size: Allele 2: ExpansionHunter
+	122,848 of 152,072 ( 80.8%) NaN values in CI size: Allele 2: GangSTR
+	      0 of 152,072 (  0.0%) NaN values in CI size: Allele 2: Truth
+	141,643 of 152,072 ( 93.1%) NaN values in CI start: Allele 1: ExpansionHunter
+	122,848 of 152,072 ( 80.8%) NaN values in CI start: Allele 1: GangSTR
+	      0 of 152,072 (  0.0%) NaN values in CI start: Allele 1: Truth
+	141,643 of 152,072 ( 93.1%) NaN values in CI start: Allele 2: ExpansionHunter
+	122,848 of 152,072 ( 80.8%) NaN values in CI start: Allele 2: GangSTR
+	      0 of 152,072 (  0.0%) NaN values in CI start: Allele 2: Truth
+	141,643 of 152,072 ( 93.1%) NaN values in Coverage: ExpansionHunter
+	122,848 of 152,072 ( 80.8%) NaN values in Coverage: GangSTR
+	141,643 of 152,072 ( 93.1%) NaN values in DiffFromRefRepeats: Allele 1: ExpansionHunter
+	122,848 of 152,072 ( 80.8%) NaN values in DiffFromRefRepeats: Allele 1: GangSTR
+	      0 of 152,072 (  0.0%) NaN values in DiffFromRefRepeats: Allele 1: Truth
+	141,643 of 152,072 ( 93.1%) NaN values in DiffFromRefRepeats: Allele 2: ExpansionHunter
+	122,848 of 152,072 ( 80.8%) NaN values in DiffFromRefRepeats: Allele 2: GangSTR
+	      0 of 152,072 (  0.0%) NaN values in DiffFromRefRepeats: Allele 2: Truth
+	141,643 of 152,072 ( 93.1%) NaN values in DiffFromRefSize (bp): Allele 1: ExpansionHunter
+	122,848 of 152,072 ( 80.8%) NaN values in DiffFromRefSize (bp): Allele 1: GangSTR
+	      0 of 152,072 (  0.0%) NaN values in DiffFromRefSize (bp): Allele 1: Truth
+	141,643 of 152,072 ( 93.1%) NaN values in DiffFromRefSize (bp): Allele 2: ExpansionHunter
+	122,848 of 152,072 ( 80.8%) NaN values in DiffFromRefSize (bp): Allele 2: GangSTR
+	      0 of 152,072 (  0.0%) NaN values in DiffFromRefSize (bp): Allele 2: Truth
+	141,643 of 152,072 ( 93.1%) NaN values in FractionOfReadsThatSupportsGenotype: Allele 1: ExpansionHunter
+	122,848 of 152,072 ( 80.8%) NaN values in FractionOfReadsThatSupportsGenotype: Allele 1: GangSTR
+	141,643 of 152,072 ( 93.1%) NaN values in FractionOfReadsThatSupportsGenotype: Allele 2: ExpansionHunter
+	122,848 of 152,072 ( 80.8%) NaN values in FractionOfReadsThatSupportsGenotype: Allele 2: GangSTR
+	      0 of 152,072 (  0.0%) NaN values in GeneRegionFromGencode_V42
+	      0 of 152,072 (  0.0%) NaN values in GeneRegionFromMane_V1
+	141,643 of 152,072 ( 93.1%) NaN values in Genotype: ExpansionHunter
+	122,848 of 152,072 ( 80.8%) NaN values in Genotype: GangSTR
+	      0 of 152,072 (  0.0%) NaN values in Genotype: Truth
+	141,643 of 152,072 ( 93.1%) NaN values in GenotypeConfidenceInterval: ExpansionHunter
+	122,848 of 152,072 ( 80.8%) NaN values in GenotypeConfidenceInterval: GangSTR
+	      0 of 152,072 (  0.0%) NaN values in GenotypeConfidenceInterval: Truth
+	      0 of 152,072 (  0.0%) NaN values in HET_or_HOM
+	      0 of 152,072 (  0.0%) NaN values in IsFoundInReference
+	141,643 of 152,072 ( 93.1%) NaN values in IsHomRef: ExpansionHunter
+	122,848 of 152,072 ( 80.8%) NaN values in IsHomRef: GangSTR
+	      0 of 152,072 (  0.0%) NaN values in IsHomRef: Truth
+	      0 of 152,072 (  0.0%) NaN values in IsMultiallelic
+	      0 of 152,072 (  0.0%) NaN values in IsPureRepeat
+	141,643 of 152,072 ( 93.1%) NaN values in IsRef: Allele 1: ExpansionHunter
+	122,848 of 152,072 ( 80.8%) NaN values in IsRef: Allele 1: GangSTR
+	      0 of 152,072 (  0.0%) NaN values in IsRef: Allele 1: Truth
+	141,643 of 152,072 ( 93.1%) NaN values in IsRef: Allele 2: ExpansionHunter
+	122,848 of 152,072 ( 80.8%) NaN values in IsRef: Allele 2: GangSTR
+	      0 of 152,072 (  0.0%) NaN values in IsRef: Allele 2: Truth
+	      0 of 152,072 (  0.0%) NaN values in LocusId
+	      0 of 152,072 (  0.0%) NaN values in LocusSize (bp)
+	      0 of 152,072 (  0.0%) NaN values in Motif
+	      0 of 152,072 (  0.0%) NaN values in MotifSize
+	141,643 of 152,072 ( 93.1%) NaN values in NumAllelesSupportedTotal: ExpansionHunter
+	141,643 of 152,072 ( 93.1%) NaN values in NumFlankingReads: ExpansionHunter
+	122,848 of 152,072 ( 80.8%) NaN values in NumFlankingReads: GangSTR
+	141,643 of 152,072 ( 93.1%) NaN values in NumInrepeatReads: ExpansionHunter
+	122,848 of 152,072 ( 80.8%) NaN values in NumInrepeatReads: GangSTR
+	141,643 of 152,072 ( 93.1%) NaN values in NumReadsTotal: ExpansionHunter
+	122,848 of 152,072 ( 80.8%) NaN values in NumReadsTotal: GangSTR
+	141,643 of 152,072 ( 93.1%) NaN values in NumReadsTotalThatSupportGenotype: Allele 1: ExpansionHunter
+	122,848 of 152,072 ( 80.8%) NaN values in NumReadsTotalThatSupportGenotype: Allele 1: GangSTR
+	141,643 of 152,072 ( 93.1%) NaN values in NumReadsTotalThatSupportGenotype: Allele 2: ExpansionHunter
+	122,848 of 152,072 ( 80.8%) NaN values in NumReadsTotalThatSupportGenotype: Allele 2: GangSTR
+	141,643 of 152,072 ( 93.1%) NaN values in NumRepeats: Allele 1: ExpansionHunter
+	122,848 of 152,072 ( 80.8%) NaN values in NumRepeats: Allele 1: GangSTR
+	      0 of 152,072 (  0.0%) NaN values in NumRepeats: Allele 1: Truth
+	141,643 of 152,072 ( 93.1%) NaN values in NumRepeats: Allele 2: ExpansionHunter
+	122,848 of 152,072 ( 80.8%) NaN values in NumRepeats: Allele 2: GangSTR
+	      0 of 152,072 (  0.0%) NaN values in NumRepeats: Allele 2: Truth
+	      0 of 152,072 (  0.0%) NaN values in NumRepeatsInReference
+	141,643 of 152,072 ( 93.1%) NaN values in NumSpanningReads: ExpansionHunter
+	122,848 of 152,072 ( 80.8%) NaN values in NumSpanningReads: GangSTR
+	141,643 of 152,072 ( 93.1%) NaN values in NumSpanningReadsThatSupportGenotype: Allele 1: ExpansionHunter
+	122,848 of 152,072 ( 80.8%) NaN values in NumSpanningReadsThatSupportGenotype: Allele 1: GangSTR
+	141,643 of 152,072 ( 93.1%) NaN values in NumSpanningReadsThatSupportGenotype: Allele 2: ExpansionHunter
+	122,848 of 152,072 ( 80.8%) NaN values in NumSpanningReadsThatSupportGenotype: Allele 2: GangSTR
+	      0 of 152,072 (  0.0%) NaN values in OverlapsIlluminaSTRCatalog: Locus
+	140,848 of 152,072 ( 92.6%) NaN values in OverlapsIlluminaSTRCatalog: Motif
+	      0 of 152,072 (  0.0%) NaN values in OverlapsSegDupIntervals
+	      0 of 152,072 (  0.0%) NaN values in OverlapsTRFPureRepeats9bp: Locus
+	      0 of 152,072 (  0.0%) NaN values in OverlapsTRFPureRepeats9bp: Motif
+	122,848 of 152,072 ( 80.8%) NaN values in Q: GangSTR
+	141,643 of 152,072 ( 93.1%) NaN values in RepeatSize (bp): Allele 1: ExpansionHunter
+	122,848 of 152,072 ( 80.8%) NaN values in RepeatSize (bp): Allele 1: GangSTR
+	      0 of 152,072 (  0.0%) NaN values in RepeatSize (bp): Allele 1: Truth
+	141,643 of 152,072 ( 93.1%) NaN values in RepeatSize (bp): Allele 2: ExpansionHunter
+	122,848 of 152,072 ( 80.8%) NaN values in RepeatSize (bp): Allele 2: GangSTR
+	      0 of 152,072 (  0.0%) NaN values in RepeatSize (bp): Allele 2: Truth
+	      0 of 152,072 (  0.0%) NaN values in SummaryString
+	      0 of 152,072 (  0.0%) NaN values in TruthSetOrNegativeLocus
+Wrote 152,072 rows to ./tool_comparison/results_for_exome/negative_loci.for_comparison.with_GangSTR_results.tsv.gz
++ mv ./tool_comparison/results_for_exome/STR_truthset.v1.variants.for_comparison.with_GangSTR_results.tsv.gz ./tool_comparison/results_for_exome/STR_truthset.v1.variants.for_comparison.tsv.gz
++ mv ./tool_comparison/results_for_exome/negative_loci.for_comparison.with_GangSTR_results.tsv.gz ./tool_comparison/results_for_exome/negative_loci.for_comparison.tsv.gz
++ for i in 1 2 3
++ '[' 3 == 1 ']'
++ '[' 3 == 2 ']'
++ '[' 3 == 3 ']'
++ tool=HipSTR
++ subfolder=hipstr
++ set +x
+============================================
+Processing results_for_exome HipSTR results
++ python3 tool_comparison/scripts/add_tool_results_columns.py --tool HipSTR ./tool_comparison/results_for_exome/hipstr/positive_loci/combined.positive_loci.16_json_files.variants.tsv.gz ./tool_comparison/results_for_exome/STR_truthset.v1.variants.for_comparison.tsv.gz
+Merged table has the same number of rows (154,743) as the truth set.
+Output columns:
+	150,662 of 154,743 ( 97.4%) NaN values in AB: HipSTR
+	145,703 of 154,743 ( 94.2%) NaN values in CI end: Allele 1: ExpansionHunter
+	124,333 of 154,743 ( 80.3%) NaN values in CI end: Allele 1: GangSTR
+	150,662 of 154,743 ( 97.4%) NaN values in CI end: Allele 1: HipSTR
+	      0 of 154,743 (  0.0%) NaN values in CI end: Allele 1: Truth
+	145,703 of 154,743 ( 94.2%) NaN values in CI end: Allele 2: ExpansionHunter
+	124,333 of 154,743 ( 80.3%) NaN values in CI end: Allele 2: GangSTR
+	150,662 of 154,743 ( 97.4%) NaN values in CI end: Allele 2: HipSTR
+	      0 of 154,743 (  0.0%) NaN values in CI end: Allele 2: Truth
+	145,703 of 154,743 ( 94.2%) NaN values in CI size: Allele 1: ExpansionHunter
+	124,333 of 154,743 ( 80.3%) NaN values in CI size: Allele 1: GangSTR
+	150,662 of 154,743 ( 97.4%) NaN values in CI size: Allele 1: HipSTR
+	      0 of 154,743 (  0.0%) NaN values in CI size: Allele 1: Truth
+	145,703 of 154,743 ( 94.2%) NaN values in CI size: Allele 2: ExpansionHunter
+	124,333 of 154,743 ( 80.3%) NaN values in CI size: Allele 2: GangSTR
+	150,662 of 154,743 ( 97.4%) NaN values in CI size: Allele 2: HipSTR
+	      0 of 154,743 (  0.0%) NaN values in CI size: Allele 2: Truth
+	145,703 of 154,743 ( 94.2%) NaN values in CI start: Allele 1: ExpansionHunter
+	124,333 of 154,743 ( 80.3%) NaN values in CI start: Allele 1: GangSTR
+	150,662 of 154,743 ( 97.4%) NaN values in CI start: Allele 1: HipSTR
+	      0 of 154,743 (  0.0%) NaN values in CI start: Allele 1: Truth
+	145,703 of 154,743 ( 94.2%) NaN values in CI start: Allele 2: ExpansionHunter
+	124,333 of 154,743 ( 80.3%) NaN values in CI start: Allele 2: GangSTR
+	150,662 of 154,743 ( 97.4%) NaN values in CI start: Allele 2: HipSTR
+	      0 of 154,743 (  0.0%) NaN values in CI start: Allele 2: Truth
+	145,703 of 154,743 ( 94.2%) NaN values in Coverage: ExpansionHunter
+	124,333 of 154,743 ( 80.3%) NaN values in Coverage: GangSTR
+	150,662 of 154,743 ( 97.4%) NaN values in Coverage: HipSTR
+	150,662 of 154,743 ( 97.4%) NaN values in DFLANKINDEL: HipSTR
+	150,662 of 154,743 ( 97.4%) NaN values in DP: HipSTR
+	150,662 of 154,743 ( 97.4%) NaN values in DSTUTTER: HipSTR
+	145,703 of 154,743 ( 94.2%) NaN values in DiffFromRefRepeats: Allele 1: ExpansionHunter
+	124,333 of 154,743 ( 80.3%) NaN values in DiffFromRefRepeats: Allele 1: GangSTR
+	150,662 of 154,743 ( 97.4%) NaN values in DiffFromRefRepeats: Allele 1: HipSTR
+	      0 of 154,743 (  0.0%) NaN values in DiffFromRefRepeats: Allele 1: Truth
+	145,703 of 154,743 ( 94.2%) NaN values in DiffFromRefRepeats: Allele 2: ExpansionHunter
+	124,333 of 154,743 ( 80.3%) NaN values in DiffFromRefRepeats: Allele 2: GangSTR
+	150,662 of 154,743 ( 97.4%) NaN values in DiffFromRefRepeats: Allele 2: HipSTR
+	      0 of 154,743 (  0.0%) NaN values in DiffFromRefRepeats: Allele 2: Truth
+	145,703 of 154,743 ( 94.2%) NaN values in DiffFromRefSize (bp): Allele 1: ExpansionHunter
+	124,333 of 154,743 ( 80.3%) NaN values in DiffFromRefSize (bp): Allele 1: GangSTR
+	150,662 of 154,743 ( 97.4%) NaN values in DiffFromRefSize (bp): Allele 1: HipSTR
+	      0 of 154,743 (  0.0%) NaN values in DiffFromRefSize (bp): Allele 1: Truth
+	145,703 of 154,743 ( 94.2%) NaN values in DiffFromRefSize (bp): Allele 2: ExpansionHunter
+	124,333 of 154,743 ( 80.3%) NaN values in DiffFromRefSize (bp): Allele 2: GangSTR
+	150,662 of 154,743 ( 97.4%) NaN values in DiffFromRefSize (bp): Allele 2: HipSTR
+	      0 of 154,743 (  0.0%) NaN values in DiffFromRefSize (bp): Allele 2: Truth
+	150,662 of 154,743 ( 97.4%) NaN values in FS: HipSTR
+	145,703 of 154,743 ( 94.2%) NaN values in FractionOfReadsThatSupportsGenotype: Allele 1: ExpansionHunter
+	124,333 of 154,743 ( 80.3%) NaN values in FractionOfReadsThatSupportsGenotype: Allele 1: GangSTR
+	145,703 of 154,743 ( 94.2%) NaN values in FractionOfReadsThatSupportsGenotype: Allele 2: ExpansionHunter
+	124,333 of 154,743 ( 80.3%) NaN values in FractionOfReadsThatSupportsGenotype: Allele 2: GangSTR
+	      0 of 154,743 (  0.0%) NaN values in GeneRegionFromGencode_V42
+	      0 of 154,743 (  0.0%) NaN values in GeneRegionFromMane_V1
+	145,703 of 154,743 ( 94.2%) NaN values in Genotype: ExpansionHunter
+	124,333 of 154,743 ( 80.3%) NaN values in Genotype: GangSTR
+	150,662 of 154,743 ( 97.4%) NaN values in Genotype: HipSTR
+	      0 of 154,743 (  0.0%) NaN values in Genotype: Truth
+	145,703 of 154,743 ( 94.2%) NaN values in GenotypeConfidenceInterval: ExpansionHunter
+	124,333 of 154,743 ( 80.3%) NaN values in GenotypeConfidenceInterval: GangSTR
+	150,662 of 154,743 ( 97.4%) NaN values in GenotypeConfidenceInterval: HipSTR
+	      0 of 154,743 (  0.0%) NaN values in GenotypeConfidenceInterval: Truth
+	      0 of 154,743 (  0.0%) NaN values in HET_or_HOM
+	      0 of 154,743 (  0.0%) NaN values in IsFoundInReference
+	145,703 of 154,743 ( 94.2%) NaN values in IsHomRef: ExpansionHunter
+	124,333 of 154,743 ( 80.3%) NaN values in IsHomRef: GangSTR
+	150,662 of 154,743 ( 97.4%) NaN values in IsHomRef: HipSTR
+	      0 of 154,743 (  0.0%) NaN values in IsHomRef: Truth
+	      0 of 154,743 (  0.0%) NaN values in IsMultiallelic
+	      0 of 154,743 (  0.0%) NaN values in IsPureRepeat
+	145,703 of 154,743 ( 94.2%) NaN values in IsRef: Allele 1: ExpansionHunter
+	124,333 of 154,743 ( 80.3%) NaN values in IsRef: Allele 1: GangSTR
+	150,662 of 154,743 ( 97.4%) NaN values in IsRef: Allele 1: HipSTR
+	      0 of 154,743 (  0.0%) NaN values in IsRef: Allele 1: Truth
+	145,703 of 154,743 ( 94.2%) NaN values in IsRef: Allele 2: ExpansionHunter
+	124,333 of 154,743 ( 80.3%) NaN values in IsRef: Allele 2: GangSTR
+	150,662 of 154,743 ( 97.4%) NaN values in IsRef: Allele 2: HipSTR
+	      0 of 154,743 (  0.0%) NaN values in IsRef: Allele 2: Truth
+	      0 of 154,743 (  0.0%) NaN values in LocusId
+	      0 of 154,743 (  0.0%) NaN values in LocusSize (bp)
+	      0 of 154,743 (  0.0%) NaN values in Motif
+	      0 of 154,743 (  0.0%) NaN values in MotifSize
+	145,703 of 154,743 ( 94.2%) NaN values in NumAllelesSupportedTotal: ExpansionHunter
+	145,703 of 154,743 ( 94.2%) NaN values in NumFlankingReads: ExpansionHunter
+	124,333 of 154,743 ( 80.3%) NaN values in NumFlankingReads: GangSTR
+	145,703 of 154,743 ( 94.2%) NaN values in NumInrepeatReads: ExpansionHunter
+	124,333 of 154,743 ( 80.3%) NaN values in NumInrepeatReads: GangSTR
+	145,703 of 154,743 ( 94.2%) NaN values in NumReadsTotal: ExpansionHunter
+	124,333 of 154,743 ( 80.3%) NaN values in NumReadsTotal: GangSTR
+	145,703 of 154,743 ( 94.2%) NaN values in NumReadsTotalThatSupportGenotype: Allele 1: ExpansionHunter
+	124,333 of 154,743 ( 80.3%) NaN values in NumReadsTotalThatSupportGenotype: Allele 1: GangSTR
+	145,703 of 154,743 ( 94.2%) NaN values in NumReadsTotalThatSupportGenotype: Allele 2: ExpansionHunter
+	124,333 of 154,743 ( 80.3%) NaN values in NumReadsTotalThatSupportGenotype: Allele 2: GangSTR
+	145,703 of 154,743 ( 94.2%) NaN values in NumRepeats: Allele 1: ExpansionHunter
+	124,333 of 154,743 ( 80.3%) NaN values in NumRepeats: Allele 1: GangSTR
+	150,662 of 154,743 ( 97.4%) NaN values in NumRepeats: Allele 1: HipSTR
+	      0 of 154,743 (  0.0%) NaN values in NumRepeats: Allele 1: Truth
+	145,703 of 154,743 ( 94.2%) NaN values in NumRepeats: Allele 2: ExpansionHunter
+	124,333 of 154,743 ( 80.3%) NaN values in NumRepeats: Allele 2: GangSTR
+	150,662 of 154,743 ( 97.4%) NaN values in NumRepeats: Allele 2: HipSTR
+	      0 of 154,743 (  0.0%) NaN values in NumRepeats: Allele 2: Truth
+	      0 of 154,743 (  0.0%) NaN values in NumRepeatsInReference
+	145,703 of 154,743 ( 94.2%) NaN values in NumSpanningReads: ExpansionHunter
+	124,333 of 154,743 ( 80.3%) NaN values in NumSpanningReads: GangSTR
+	145,703 of 154,743 ( 94.2%) NaN values in NumSpanningReadsThatSupportGenotype: Allele 1: ExpansionHunter
+	124,333 of 154,743 ( 80.3%) NaN values in NumSpanningReadsThatSupportGenotype: Allele 1: GangSTR
+	145,703 of 154,743 ( 94.2%) NaN values in NumSpanningReadsThatSupportGenotype: Allele 2: ExpansionHunter
+	124,333 of 154,743 ( 80.3%) NaN values in NumSpanningReadsThatSupportGenotype: Allele 2: GangSTR
+	      0 of 154,743 (  0.0%) NaN values in OverlapsIlluminaSTRCatalog: Locus
+	 60,832 of 154,743 ( 39.3%) NaN values in OverlapsIlluminaSTRCatalog: Motif
+	      0 of 154,743 (  0.0%) NaN values in OverlapsSegDupIntervals
+	      0 of 154,743 (  0.0%) NaN values in OverlapsTRFPureRepeats9bp: Locus
+	  9,324 of 154,743 (  6.0%) NaN values in OverlapsTRFPureRepeats9bp: Motif
+	124,333 of 154,743 ( 80.3%) NaN values in Q: GangSTR
+	150,662 of 154,743 ( 97.4%) NaN values in Q: HipSTR
+	145,703 of 154,743 ( 94.2%) NaN values in RepeatSize (bp): Allele 1: ExpansionHunter
+	124,333 of 154,743 ( 80.3%) NaN values in RepeatSize (bp): Allele 1: GangSTR
+	150,662 of 154,743 ( 97.4%) NaN values in RepeatSize (bp): Allele 1: HipSTR
+	      0 of 154,743 (  0.0%) NaN values in RepeatSize (bp): Allele 1: Truth
+	145,703 of 154,743 ( 94.2%) NaN values in RepeatSize (bp): Allele 2: ExpansionHunter
+	124,333 of 154,743 ( 80.3%) NaN values in RepeatSize (bp): Allele 2: GangSTR
+	150,662 of 154,743 ( 97.4%) NaN values in RepeatSize (bp): Allele 2: HipSTR
+	      0 of 154,743 (  0.0%) NaN values in RepeatSize (bp): Allele 2: Truth
+	      0 of 154,743 (  0.0%) NaN values in SummaryString
+	      0 of 154,743 (  0.0%) NaN values in TruthSetOrNegativeLocus
+Wrote 154,743 rows to ./tool_comparison/results_for_exome/STR_truthset.v1.variants.for_comparison.with_HipSTR_results.tsv.gz
++ python3 tool_comparison/scripts/add_tool_results_columns.py --tool HipSTR ./tool_comparison/results_for_exome/hipstr/negative_loci/combined.negative_loci.16_json_files.variants.tsv.gz ./tool_comparison/results_for_exome/negative_loci.for_comparison.tsv.gz
+Merged table has the same number of rows (152,072) as the truth set.
+Output columns:
+	146,856 of 152,072 ( 96.6%) NaN values in AB: HipSTR
+	141,643 of 152,072 ( 93.1%) NaN values in CI end: Allele 1: ExpansionHunter
+	122,848 of 152,072 ( 80.8%) NaN values in CI end: Allele 1: GangSTR
+	146,856 of 152,072 ( 96.6%) NaN values in CI end: Allele 1: HipSTR
+	      0 of 152,072 (  0.0%) NaN values in CI end: Allele 1: Truth
+	141,643 of 152,072 ( 93.1%) NaN values in CI end: Allele 2: ExpansionHunter
+	122,848 of 152,072 ( 80.8%) NaN values in CI end: Allele 2: GangSTR
+	146,856 of 152,072 ( 96.6%) NaN values in CI end: Allele 2: HipSTR
+	      0 of 152,072 (  0.0%) NaN values in CI end: Allele 2: Truth
+	141,643 of 152,072 ( 93.1%) NaN values in CI size: Allele 1: ExpansionHunter
+	122,848 of 152,072 ( 80.8%) NaN values in CI size: Allele 1: GangSTR
+	146,856 of 152,072 ( 96.6%) NaN values in CI size: Allele 1: HipSTR
+	      0 of 152,072 (  0.0%) NaN values in CI size: Allele 1: Truth
+	141,643 of 152,072 ( 93.1%) NaN values in CI size: Allele 2: ExpansionHunter
+	122,848 of 152,072 ( 80.8%) NaN values in CI size: Allele 2: GangSTR
+	146,856 of 152,072 ( 96.6%) NaN values in CI size: Allele 2: HipSTR
+	      0 of 152,072 (  0.0%) NaN values in CI size: Allele 2: Truth
+	141,643 of 152,072 ( 93.1%) NaN values in CI start: Allele 1: ExpansionHunter
+	122,848 of 152,072 ( 80.8%) NaN values in CI start: Allele 1: GangSTR
+	146,856 of 152,072 ( 96.6%) NaN values in CI start: Allele 1: HipSTR
+	      0 of 152,072 (  0.0%) NaN values in CI start: Allele 1: Truth
+	141,643 of 152,072 ( 93.1%) NaN values in CI start: Allele 2: ExpansionHunter
+	122,848 of 152,072 ( 80.8%) NaN values in CI start: Allele 2: GangSTR
+	146,856 of 152,072 ( 96.6%) NaN values in CI start: Allele 2: HipSTR
+	      0 of 152,072 (  0.0%) NaN values in CI start: Allele 2: Truth
+	141,643 of 152,072 ( 93.1%) NaN values in Coverage: ExpansionHunter
+	122,848 of 152,072 ( 80.8%) NaN values in Coverage: GangSTR
+	146,856 of 152,072 ( 96.6%) NaN values in Coverage: HipSTR
+	146,856 of 152,072 ( 96.6%) NaN values in DFLANKINDEL: HipSTR
+	146,856 of 152,072 ( 96.6%) NaN values in DP: HipSTR
+	146,856 of 152,072 ( 96.6%) NaN values in DSTUTTER: HipSTR
+	141,643 of 152,072 ( 93.1%) NaN values in DiffFromRefRepeats: Allele 1: ExpansionHunter
+	122,848 of 152,072 ( 80.8%) NaN values in DiffFromRefRepeats: Allele 1: GangSTR
+	146,856 of 152,072 ( 96.6%) NaN values in DiffFromRefRepeats: Allele 1: HipSTR
+	      0 of 152,072 (  0.0%) NaN values in DiffFromRefRepeats: Allele 1: Truth
+	141,643 of 152,072 ( 93.1%) NaN values in DiffFromRefRepeats: Allele 2: ExpansionHunter
+	122,848 of 152,072 ( 80.8%) NaN values in DiffFromRefRepeats: Allele 2: GangSTR
+	146,856 of 152,072 ( 96.6%) NaN values in DiffFromRefRepeats: Allele 2: HipSTR
+	      0 of 152,072 (  0.0%) NaN values in DiffFromRefRepeats: Allele 2: Truth
+	141,643 of 152,072 ( 93.1%) NaN values in DiffFromRefSize (bp): Allele 1: ExpansionHunter
+	122,848 of 152,072 ( 80.8%) NaN values in DiffFromRefSize (bp): Allele 1: GangSTR
+	146,856 of 152,072 ( 96.6%) NaN values in DiffFromRefSize (bp): Allele 1: HipSTR
+	      0 of 152,072 (  0.0%) NaN values in DiffFromRefSize (bp): Allele 1: Truth
+	141,643 of 152,072 ( 93.1%) NaN values in DiffFromRefSize (bp): Allele 2: ExpansionHunter
+	122,848 of 152,072 ( 80.8%) NaN values in DiffFromRefSize (bp): Allele 2: GangSTR
+	146,856 of 152,072 ( 96.6%) NaN values in DiffFromRefSize (bp): Allele 2: HipSTR
+	      0 of 152,072 (  0.0%) NaN values in DiffFromRefSize (bp): Allele 2: Truth
+	146,856 of 152,072 ( 96.6%) NaN values in FS: HipSTR
+	141,643 of 152,072 ( 93.1%) NaN values in FractionOfReadsThatSupportsGenotype: Allele 1: ExpansionHunter
+	122,848 of 152,072 ( 80.8%) NaN values in FractionOfReadsThatSupportsGenotype: Allele 1: GangSTR
+	141,643 of 152,072 ( 93.1%) NaN values in FractionOfReadsThatSupportsGenotype: Allele 2: ExpansionHunter
+	122,848 of 152,072 ( 80.8%) NaN values in FractionOfReadsThatSupportsGenotype: Allele 2: GangSTR
+	      0 of 152,072 (  0.0%) NaN values in GeneRegionFromGencode_V42
+	      0 of 152,072 (  0.0%) NaN values in GeneRegionFromMane_V1
+	141,643 of 152,072 ( 93.1%) NaN values in Genotype: ExpansionHunter
+	122,848 of 152,072 ( 80.8%) NaN values in Genotype: GangSTR
+	146,856 of 152,072 ( 96.6%) NaN values in Genotype: HipSTR
+	      0 of 152,072 (  0.0%) NaN values in Genotype: Truth
+	141,643 of 152,072 ( 93.1%) NaN values in GenotypeConfidenceInterval: ExpansionHunter
+	122,848 of 152,072 ( 80.8%) NaN values in GenotypeConfidenceInterval: GangSTR
+	146,856 of 152,072 ( 96.6%) NaN values in GenotypeConfidenceInterval: HipSTR
+	      0 of 152,072 (  0.0%) NaN values in GenotypeConfidenceInterval: Truth
+	      0 of 152,072 (  0.0%) NaN values in HET_or_HOM
+	      0 of 152,072 (  0.0%) NaN values in IsFoundInReference
+	141,643 of 152,072 ( 93.1%) NaN values in IsHomRef: ExpansionHunter
+	122,848 of 152,072 ( 80.8%) NaN values in IsHomRef: GangSTR
+	146,856 of 152,072 ( 96.6%) NaN values in IsHomRef: HipSTR
+	      0 of 152,072 (  0.0%) NaN values in IsHomRef: Truth
+	      0 of 152,072 (  0.0%) NaN values in IsMultiallelic
+	      0 of 152,072 (  0.0%) NaN values in IsPureRepeat
+	141,643 of 152,072 ( 93.1%) NaN values in IsRef: Allele 1: ExpansionHunter
+	122,848 of 152,072 ( 80.8%) NaN values in IsRef: Allele 1: GangSTR
+	146,856 of 152,072 ( 96.6%) NaN values in IsRef: Allele 1: HipSTR
+	      0 of 152,072 (  0.0%) NaN values in IsRef: Allele 1: Truth
+	141,643 of 152,072 ( 93.1%) NaN values in IsRef: Allele 2: ExpansionHunter
+	122,848 of 152,072 ( 80.8%) NaN values in IsRef: Allele 2: GangSTR
+	146,856 of 152,072 ( 96.6%) NaN values in IsRef: Allele 2: HipSTR
+	      0 of 152,072 (  0.0%) NaN values in IsRef: Allele 2: Truth
+	      0 of 152,072 (  0.0%) NaN values in LocusId
+	      0 of 152,072 (  0.0%) NaN values in LocusSize (bp)
+	      0 of 152,072 (  0.0%) NaN values in Motif
+	      0 of 152,072 (  0.0%) NaN values in MotifSize
+	141,643 of 152,072 ( 93.1%) NaN values in NumAllelesSupportedTotal: ExpansionHunter
+	141,643 of 152,072 ( 93.1%) NaN values in NumFlankingReads: ExpansionHunter
+	122,848 of 152,072 ( 80.8%) NaN values in NumFlankingReads: GangSTR
+	141,643 of 152,072 ( 93.1%) NaN values in NumInrepeatReads: ExpansionHunter
+	122,848 of 152,072 ( 80.8%) NaN values in NumInrepeatReads: GangSTR
+	141,643 of 152,072 ( 93.1%) NaN values in NumReadsTotal: ExpansionHunter
+	122,848 of 152,072 ( 80.8%) NaN values in NumReadsTotal: GangSTR
+	141,643 of 152,072 ( 93.1%) NaN values in NumReadsTotalThatSupportGenotype: Allele 1: ExpansionHunter
+	122,848 of 152,072 ( 80.8%) NaN values in NumReadsTotalThatSupportGenotype: Allele 1: GangSTR
+	141,643 of 152,072 ( 93.1%) NaN values in NumReadsTotalThatSupportGenotype: Allele 2: ExpansionHunter
+	122,848 of 152,072 ( 80.8%) NaN values in NumReadsTotalThatSupportGenotype: Allele 2: GangSTR
+	141,643 of 152,072 ( 93.1%) NaN values in NumRepeats: Allele 1: ExpansionHunter
+	122,848 of 152,072 ( 80.8%) NaN values in NumRepeats: Allele 1: GangSTR
+	146,856 of 152,072 ( 96.6%) NaN values in NumRepeats: Allele 1: HipSTR
+	      0 of 152,072 (  0.0%) NaN values in NumRepeats: Allele 1: Truth
+	141,643 of 152,072 ( 93.1%) NaN values in NumRepeats: Allele 2: ExpansionHunter
+	122,848 of 152,072 ( 80.8%) NaN values in NumRepeats: Allele 2: GangSTR
+	146,856 of 152,072 ( 96.6%) NaN values in NumRepeats: Allele 2: HipSTR
+	      0 of 152,072 (  0.0%) NaN values in NumRepeats: Allele 2: Truth
+	      0 of 152,072 (  0.0%) NaN values in NumRepeatsInReference
+	141,643 of 152,072 ( 93.1%) NaN values in NumSpanningReads: ExpansionHunter
+	122,848 of 152,072 ( 80.8%) NaN values in NumSpanningReads: GangSTR
+	141,643 of 152,072 ( 93.1%) NaN values in NumSpanningReadsThatSupportGenotype: Allele 1: ExpansionHunter
+	122,848 of 152,072 ( 80.8%) NaN values in NumSpanningReadsThatSupportGenotype: Allele 1: GangSTR
+	141,643 of 152,072 ( 93.1%) NaN values in NumSpanningReadsThatSupportGenotype: Allele 2: ExpansionHunter
+	122,848 of 152,072 ( 80.8%) NaN values in NumSpanningReadsThatSupportGenotype: Allele 2: GangSTR
+	      0 of 152,072 (  0.0%) NaN values in OverlapsIlluminaSTRCatalog: Locus
+	140,848 of 152,072 ( 92.6%) NaN values in OverlapsIlluminaSTRCatalog: Motif
+	      0 of 152,072 (  0.0%) NaN values in OverlapsSegDupIntervals
+	      0 of 152,072 (  0.0%) NaN values in OverlapsTRFPureRepeats9bp: Locus
+	      0 of 152,072 (  0.0%) NaN values in OverlapsTRFPureRepeats9bp: Motif
+	122,848 of 152,072 ( 80.8%) NaN values in Q: GangSTR
+	146,856 of 152,072 ( 96.6%) NaN values in Q: HipSTR
+	141,643 of 152,072 ( 93.1%) NaN values in RepeatSize (bp): Allele 1: ExpansionHunter
+	122,848 of 152,072 ( 80.8%) NaN values in RepeatSize (bp): Allele 1: GangSTR
+	146,856 of 152,072 ( 96.6%) NaN values in RepeatSize (bp): Allele 1: HipSTR
+	      0 of 152,072 (  0.0%) NaN values in RepeatSize (bp): Allele 1: Truth
+	141,643 of 152,072 ( 93.1%) NaN values in RepeatSize (bp): Allele 2: ExpansionHunter
+	122,848 of 152,072 ( 80.8%) NaN values in RepeatSize (bp): Allele 2: GangSTR
+	146,856 of 152,072 ( 96.6%) NaN values in RepeatSize (bp): Allele 2: HipSTR
+	      0 of 152,072 (  0.0%) NaN values in RepeatSize (bp): Allele 2: Truth
+	      0 of 152,072 (  0.0%) NaN values in SummaryString
+	      0 of 152,072 (  0.0%) NaN values in TruthSetOrNegativeLocus
+Wrote 152,072 rows to ./tool_comparison/results_for_exome/negative_loci.for_comparison.with_HipSTR_results.tsv.gz
++ mv ./tool_comparison/results_for_exome/STR_truthset.v1.variants.for_comparison.with_HipSTR_results.tsv.gz ./tool_comparison/results_for_exome/STR_truthset.v1.variants.for_comparison.tsv.gz
++ mv ./tool_comparison/results_for_exome/negative_loci.for_comparison.with_HipSTR_results.tsv.gz ./tool_comparison/results_for_exome/negative_loci.for_comparison.tsv.gz
++ python3 tool_comparison/scripts/add_concordance_columns.py ./tool_comparison/results_for_exome/STR_truthset.v1.variants.for_comparison.tsv.gz
+Adding concordance columns...
+Computed Variant: Concordance: ExpansionHunter vs Truth column. 0 of 154743 values are NA
+Computed Variant: Concordance: GangSTR vs Truth column. 0 of 154743 values are NA
+Computed Variant: Concordance: ExpansionHunter vs GangSTR column. 0 of 154743 values are NA
+Computed Variant: Concordance: HipSTR vs Truth column. 0 of 154743 values are NA
+Adding max diff columns...
+Computed DiffRepeats: Allele 1: ExpansionHunter - Truth column. 145703 of 154743 values are NA
+Computed DiffRepeats: Allele 2: ExpansionHunter - Truth column. 145703 of 154743 values are NA
+Computed DiffSize: Allele 1: ExpansionHunter - Truth column. 145703 of 154743 values are NA
+Computed DiffSize: Allele 2: ExpansionHunter - Truth column. 145703 of 154743 values are NA
+Computed DiffRepeats: Allele 1: GangSTR - Truth column. 124333 of 154743 values are NA
+Computed DiffRepeats: Allele 2: GangSTR - Truth column. 124333 of 154743 values are NA
+Computed DiffSize: Allele 1: GangSTR - Truth column. 124333 of 154743 values are NA
+Computed DiffSize: Allele 2: GangSTR - Truth column. 124333 of 154743 values are NA
+Computed DiffRepeats: Allele 1: HipSTR - Truth column. 150662 of 154743 values are NA
+Computed DiffRepeats: Allele 2: HipSTR - Truth column. 150662 of 154743 values are NA
+Computed DiffSize: Allele 1: HipSTR - Truth column. 150662 of 154743 values are NA
+Computed DiffSize: Allele 2: HipSTR - Truth column. 150662 of 154743 values are NA
+Output columns:
+	      0 of 154,743 (  0.0%) NaN values in AB: HipSTR
+	      0 of 154,743 (  0.0%) NaN values in Allele 1: Concordance: ExpansionHunter vs GangSTR
+	      0 of 154,743 (  0.0%) NaN values in Allele 1: Concordance: ExpansionHunter vs Truth
+	      0 of 154,743 (  0.0%) NaN values in Allele 1: Concordance: GangSTR vs Truth
+	      0 of 154,743 (  0.0%) NaN values in Allele 1: Concordance: HipSTR vs Truth
+	      0 of 154,743 (  0.0%) NaN values in Allele 2: Concordance: ExpansionHunter vs GangSTR
+	      0 of 154,743 (  0.0%) NaN values in Allele 2: Concordance: ExpansionHunter vs Truth
+	      0 of 154,743 (  0.0%) NaN values in Allele 2: Concordance: GangSTR vs Truth
+	      0 of 154,743 (  0.0%) NaN values in Allele 2: Concordance: HipSTR vs Truth
+	      0 of 154,743 (  0.0%) NaN values in CI end: Allele 1: ExpansionHunter
+	      0 of 154,743 (  0.0%) NaN values in CI end: Allele 1: GangSTR
+	      0 of 154,743 (  0.0%) NaN values in CI end: Allele 1: HipSTR
+	      0 of 154,743 (  0.0%) NaN values in CI end: Allele 1: Truth
+	      0 of 154,743 (  0.0%) NaN values in CI end: Allele 2: ExpansionHunter
+	      0 of 154,743 (  0.0%) NaN values in CI end: Allele 2: GangSTR
+	      0 of 154,743 (  0.0%) NaN values in CI end: Allele 2: HipSTR
+	      0 of 154,743 (  0.0%) NaN values in CI end: Allele 2: Truth
+	      0 of 154,743 (  0.0%) NaN values in CI size: Allele 1: ExpansionHunter
+	      0 of 154,743 (  0.0%) NaN values in CI size: Allele 1: GangSTR
+	      0 of 154,743 (  0.0%) NaN values in CI size: Allele 1: HipSTR
+	      0 of 154,743 (  0.0%) NaN values in CI size: Allele 1: Truth
+	      0 of 154,743 (  0.0%) NaN values in CI size: Allele 2: ExpansionHunter
+	      0 of 154,743 (  0.0%) NaN values in CI size: Allele 2: GangSTR
+	      0 of 154,743 (  0.0%) NaN values in CI size: Allele 2: HipSTR
+	      0 of 154,743 (  0.0%) NaN values in CI size: Allele 2: Truth
+	      0 of 154,743 (  0.0%) NaN values in CI start: Allele 1: ExpansionHunter
+	      0 of 154,743 (  0.0%) NaN values in CI start: Allele 1: GangSTR
+	      0 of 154,743 (  0.0%) NaN values in CI start: Allele 1: HipSTR
+	      0 of 154,743 (  0.0%) NaN values in CI start: Allele 1: Truth
+	      0 of 154,743 (  0.0%) NaN values in CI start: Allele 2: ExpansionHunter
+	      0 of 154,743 (  0.0%) NaN values in CI start: Allele 2: GangSTR
+	      0 of 154,743 (  0.0%) NaN values in CI start: Allele 2: HipSTR
+	      0 of 154,743 (  0.0%) NaN values in CI start: Allele 2: Truth
+	      0 of 154,743 (  0.0%) NaN values in Coverage: ExpansionHunter
+	      0 of 154,743 (  0.0%) NaN values in Coverage: GangSTR
+	      0 of 154,743 (  0.0%) NaN values in Coverage: HipSTR
+	      0 of 154,743 (  0.0%) NaN values in DFLANKINDEL: HipSTR
+	      0 of 154,743 (  0.0%) NaN values in DP: HipSTR
+	      0 of 154,743 (  0.0%) NaN values in DSTUTTER: HipSTR
+	      0 of 154,743 (  0.0%) NaN values in DiffFromRefRepeats: Allele 1: ExpansionHunter
+	      0 of 154,743 (  0.0%) NaN values in DiffFromRefRepeats: Allele 1: GangSTR
+	      0 of 154,743 (  0.0%) NaN values in DiffFromRefRepeats: Allele 1: HipSTR
+	      0 of 154,743 (  0.0%) NaN values in DiffFromRefRepeats: Allele 1: Truth
+	      0 of 154,743 (  0.0%) NaN values in DiffFromRefRepeats: Allele 2: ExpansionHunter
+	      0 of 154,743 (  0.0%) NaN values in DiffFromRefRepeats: Allele 2: GangSTR
+	      0 of 154,743 (  0.0%) NaN values in DiffFromRefRepeats: Allele 2: HipSTR
+	      0 of 154,743 (  0.0%) NaN values in DiffFromRefRepeats: Allele 2: Truth
+	      0 of 154,743 (  0.0%) NaN values in DiffFromRefSize (bp): Allele 1: ExpansionHunter
+	      0 of 154,743 (  0.0%) NaN values in DiffFromRefSize (bp): Allele 1: GangSTR
+	      0 of 154,743 (  0.0%) NaN values in DiffFromRefSize (bp): Allele 1: HipSTR
+	      0 of 154,743 (  0.0%) NaN values in DiffFromRefSize (bp): Allele 1: Truth
+	      0 of 154,743 (  0.0%) NaN values in DiffFromRefSize (bp): Allele 2: ExpansionHunter
+	      0 of 154,743 (  0.0%) NaN values in DiffFromRefSize (bp): Allele 2: GangSTR
+	      0 of 154,743 (  0.0%) NaN values in DiffFromRefSize (bp): Allele 2: HipSTR
+	      0 of 154,743 (  0.0%) NaN values in DiffFromRefSize (bp): Allele 2: Truth
+	      0 of 154,743 (  0.0%) NaN values in DiffRepeats: Allele 1: ExpansionHunter - Truth
+	      0 of 154,743 (  0.0%) NaN values in DiffRepeats: Allele 1: GangSTR - Truth
+	      0 of 154,743 (  0.0%) NaN values in DiffRepeats: Allele 1: HipSTR - Truth
+	      0 of 154,743 (  0.0%) NaN values in DiffRepeats: Allele 2: ExpansionHunter - Truth
+	      0 of 154,743 (  0.0%) NaN values in DiffRepeats: Allele 2: GangSTR - Truth
+	      0 of 154,743 (  0.0%) NaN values in DiffRepeats: Allele 2: HipSTR - Truth
+	      0 of 154,743 (  0.0%) NaN values in DiffSize: Allele 1: ExpansionHunter - Truth
+	      0 of 154,743 (  0.0%) NaN values in DiffSize: Allele 1: GangSTR - Truth
+	      0 of 154,743 (  0.0%) NaN values in DiffSize: Allele 1: HipSTR - Truth
+	      0 of 154,743 (  0.0%) NaN values in DiffSize: Allele 2: ExpansionHunter - Truth
+	      0 of 154,743 (  0.0%) NaN values in DiffSize: Allele 2: GangSTR - Truth
+	      0 of 154,743 (  0.0%) NaN values in DiffSize: Allele 2: HipSTR - Truth
+	      0 of 154,743 (  0.0%) NaN values in FS: HipSTR
+	      0 of 154,743 (  0.0%) NaN values in FractionOfReadsThatSupportsGenotype: Allele 1: ExpansionHunter
+	      0 of 154,743 (  0.0%) NaN values in FractionOfReadsThatSupportsGenotype: Allele 1: GangSTR
+	      0 of 154,743 (  0.0%) NaN values in FractionOfReadsThatSupportsGenotype: Allele 2: ExpansionHunter
+	      0 of 154,743 (  0.0%) NaN values in FractionOfReadsThatSupportsGenotype: Allele 2: GangSTR
+	      0 of 154,743 (  0.0%) NaN values in GeneRegionFromGencode_V42
+	      0 of 154,743 (  0.0%) NaN values in GeneRegionFromMane_V1
+	      0 of 154,743 (  0.0%) NaN values in Genotype: ExpansionHunter
+	      0 of 154,743 (  0.0%) NaN values in Genotype: GangSTR
+	      0 of 154,743 (  0.0%) NaN values in Genotype: HipSTR
+	      0 of 154,743 (  0.0%) NaN values in Genotype: Truth
+	      0 of 154,743 (  0.0%) NaN values in GenotypeConfidenceInterval: ExpansionHunter
+	      0 of 154,743 (  0.0%) NaN values in GenotypeConfidenceInterval: GangSTR
+	      0 of 154,743 (  0.0%) NaN values in GenotypeConfidenceInterval: HipSTR
+	      0 of 154,743 (  0.0%) NaN values in GenotypeConfidenceInterval: Truth
+	      0 of 154,743 (  0.0%) NaN values in HET_or_HOM
+	      0 of 154,743 (  0.0%) NaN values in IsFoundInReference
+	      0 of 154,743 (  0.0%) NaN values in IsHomRef: ExpansionHunter
+	      0 of 154,743 (  0.0%) NaN values in IsHomRef: GangSTR
+	      0 of 154,743 (  0.0%) NaN values in IsHomRef: HipSTR
+	      0 of 154,743 (  0.0%) NaN values in IsHomRef: Truth
+	      0 of 154,743 (  0.0%) NaN values in IsMultiallelic
+	      0 of 154,743 (  0.0%) NaN values in IsPureRepeat
+	      0 of 154,743 (  0.0%) NaN values in IsRef: Allele 1: ExpansionHunter
+	      0 of 154,743 (  0.0%) NaN values in IsRef: Allele 1: GangSTR
+	      0 of 154,743 (  0.0%) NaN values in IsRef: Allele 1: HipSTR
+	      0 of 154,743 (  0.0%) NaN values in IsRef: Allele 1: Truth
+	      0 of 154,743 (  0.0%) NaN values in IsRef: Allele 2: ExpansionHunter
+	      0 of 154,743 (  0.0%) NaN values in IsRef: Allele 2: GangSTR
+	      0 of 154,743 (  0.0%) NaN values in IsRef: Allele 2: HipSTR
+	      0 of 154,743 (  0.0%) NaN values in IsRef: Allele 2: Truth
+	      0 of 154,743 (  0.0%) NaN values in LocusId
+	      0 of 154,743 (  0.0%) NaN values in Motif
+	      0 of 154,743 (  0.0%) NaN values in MotifSize
+	      0 of 154,743 (  0.0%) NaN values in NumAllelesSupportedTotal: ExpansionHunter
+	      0 of 154,743 (  0.0%) NaN values in NumFlankingReads: ExpansionHunter
+	      0 of 154,743 (  0.0%) NaN values in NumFlankingReads: GangSTR
+	      0 of 154,743 (  0.0%) NaN values in NumInrepeatReads: ExpansionHunter
+	      0 of 154,743 (  0.0%) NaN values in NumInrepeatReads: GangSTR
+	      0 of 154,743 (  0.0%) NaN values in NumReadsTotal: ExpansionHunter
+	      0 of 154,743 (  0.0%) NaN values in NumReadsTotal: GangSTR
+	      0 of 154,743 (  0.0%) NaN values in NumReadsTotalThatSupportGenotype: Allele 1: ExpansionHunter
+	      0 of 154,743 (  0.0%) NaN values in NumReadsTotalThatSupportGenotype: Allele 1: GangSTR
+	      0 of 154,743 (  0.0%) NaN values in NumReadsTotalThatSupportGenotype: Allele 2: ExpansionHunter
+	      0 of 154,743 (  0.0%) NaN values in NumReadsTotalThatSupportGenotype: Allele 2: GangSTR
+	      0 of 154,743 (  0.0%) NaN values in NumRepeats: Allele 1: ExpansionHunter
+	      0 of 154,743 (  0.0%) NaN values in NumRepeats: Allele 1: GangSTR
+	      0 of 154,743 (  0.0%) NaN values in NumRepeats: Allele 1: HipSTR
+	      0 of 154,743 (  0.0%) NaN values in NumRepeats: Allele 1: Truth
+	      0 of 154,743 (  0.0%) NaN values in NumRepeats: Allele 2: ExpansionHunter
+	      0 of 154,743 (  0.0%) NaN values in NumRepeats: Allele 2: GangSTR
+	      0 of 154,743 (  0.0%) NaN values in NumRepeats: Allele 2: HipSTR
+	      0 of 154,743 (  0.0%) NaN values in NumRepeats: Allele 2: Truth
+	      0 of 154,743 (  0.0%) NaN values in NumRepeatsInReference
+	      0 of 154,743 (  0.0%) NaN values in NumSpanningReads: ExpansionHunter
+	      0 of 154,743 (  0.0%) NaN values in NumSpanningReads: GangSTR
+	      0 of 154,743 (  0.0%) NaN values in NumSpanningReadsThatSupportGenotype: Allele 1: ExpansionHunter
+	      0 of 154,743 (  0.0%) NaN values in NumSpanningReadsThatSupportGenotype: Allele 1: GangSTR
+	      0 of 154,743 (  0.0%) NaN values in NumSpanningReadsThatSupportGenotype: Allele 2: ExpansionHunter
+	      0 of 154,743 (  0.0%) NaN values in NumSpanningReadsThatSupportGenotype: Allele 2: GangSTR
+	      0 of 154,743 (  0.0%) NaN values in OverlapsIlluminaSTRCatalog: Locus
+	      0 of 154,743 (  0.0%) NaN values in OverlapsIlluminaSTRCatalog: Motif
+	      0 of 154,743 (  0.0%) NaN values in OverlapsSegDupIntervals
+	      0 of 154,743 (  0.0%) NaN values in OverlapsTRFPureRepeats9bp: Locus
+	      0 of 154,743 (  0.0%) NaN values in OverlapsTRFPureRepeats9bp: Motif
+	      0 of 154,743 (  0.0%) NaN values in Q: GangSTR
+	      0 of 154,743 (  0.0%) NaN values in Q: HipSTR
+	      0 of 154,743 (  0.0%) NaN values in ReferenceLocusSize (bp)
+	      0 of 154,743 (  0.0%) NaN values in RepeatSize (bp): Allele 1: ExpansionHunter
+	      0 of 154,743 (  0.0%) NaN values in RepeatSize (bp): Allele 1: GangSTR
+	      0 of 154,743 (  0.0%) NaN values in RepeatSize (bp): Allele 1: HipSTR
+	      0 of 154,743 (  0.0%) NaN values in RepeatSize (bp): Allele 1: Truth
+	      0 of 154,743 (  0.0%) NaN values in RepeatSize (bp): Allele 2: ExpansionHunter
+	      0 of 154,743 (  0.0%) NaN values in RepeatSize (bp): Allele 2: GangSTR
+	      0 of 154,743 (  0.0%) NaN values in RepeatSize (bp): Allele 2: HipSTR
+	      0 of 154,743 (  0.0%) NaN values in RepeatSize (bp): Allele 2: Truth
+	      0 of 154,743 (  0.0%) NaN values in SummaryString
+	      0 of 154,743 (  0.0%) NaN values in TruthSetOrNegativeLocus
+	      0 of 154,743 (  0.0%) NaN values in Variant: Concordance: ExpansionHunter vs GangSTR
+	      0 of 154,743 (  0.0%) NaN values in Variant: Concordance: ExpansionHunter vs Truth
+	      0 of 154,743 (  0.0%) NaN values in Variant: Concordance: GangSTR vs Truth
+	      0 of 154,743 (  0.0%) NaN values in Variant: Concordance: HipSTR vs Truth
+Wrote 154,743 rows to ./tool_comparison/results_for_exome/STR_truthset.v1.variants.for_comparison.with_concordance.tsv.gz
+Wrote 309,486 rows to ./tool_comparison/results_for_exome/STR_truthset.v1.variants.for_comparison.with_concordance.alleles.tsv.gz
++ python3 tool_comparison/scripts/add_concordance_columns.py ./tool_comparison/results_for_exome/negative_loci.for_comparison.tsv.gz
+Adding concordance columns...
+Computed Variant: Concordance: ExpansionHunter vs Truth column. 0 of 152072 values are NA
+Computed Variant: Concordance: GangSTR vs Truth column. 0 of 152072 values are NA
+Computed Variant: Concordance: ExpansionHunter vs GangSTR column. 0 of 152072 values are NA
+Computed Variant: Concordance: HipSTR vs Truth column. 0 of 152072 values are NA
+Adding max diff columns...
+Computed DiffRepeats: Allele 1: ExpansionHunter - Truth column. 141643 of 152072 values are NA
+Computed DiffRepeats: Allele 2: ExpansionHunter - Truth column. 141643 of 152072 values are NA
+Computed DiffSize: Allele 1: ExpansionHunter - Truth column. 141643 of 152072 values are NA
+Computed DiffSize: Allele 2: ExpansionHunter - Truth column. 141643 of 152072 values are NA
+Computed DiffRepeats: Allele 1: GangSTR - Truth column. 122848 of 152072 values are NA
+Computed DiffRepeats: Allele 2: GangSTR - Truth column. 122848 of 152072 values are NA
+Computed DiffSize: Allele 1: GangSTR - Truth column. 122848 of 152072 values are NA
+Computed DiffSize: Allele 2: GangSTR - Truth column. 122848 of 152072 values are NA
+Computed DiffRepeats: Allele 1: HipSTR - Truth column. 146856 of 152072 values are NA
+Computed DiffRepeats: Allele 2: HipSTR - Truth column. 146856 of 152072 values are NA
+Computed DiffSize: Allele 1: HipSTR - Truth column. 146856 of 152072 values are NA
+Computed DiffSize: Allele 2: HipSTR - Truth column. 146856 of 152072 values are NA
+Output columns:
+	      0 of 152,072 (  0.0%) NaN values in AB: HipSTR
+	      0 of 152,072 (  0.0%) NaN values in Allele 1: Concordance: ExpansionHunter vs GangSTR
+	      0 of 152,072 (  0.0%) NaN values in Allele 1: Concordance: ExpansionHunter vs Truth
+	      0 of 152,072 (  0.0%) NaN values in Allele 1: Concordance: GangSTR vs Truth
+	      0 of 152,072 (  0.0%) NaN values in Allele 1: Concordance: HipSTR vs Truth
+	      0 of 152,072 (  0.0%) NaN values in Allele 2: Concordance: ExpansionHunter vs GangSTR
+	      0 of 152,072 (  0.0%) NaN values in Allele 2: Concordance: ExpansionHunter vs Truth
+	      0 of 152,072 (  0.0%) NaN values in Allele 2: Concordance: GangSTR vs Truth
+	      0 of 152,072 (  0.0%) NaN values in Allele 2: Concordance: HipSTR vs Truth
+	      0 of 152,072 (  0.0%) NaN values in CI end: Allele 1: ExpansionHunter
+	      0 of 152,072 (  0.0%) NaN values in CI end: Allele 1: GangSTR
+	      0 of 152,072 (  0.0%) NaN values in CI end: Allele 1: HipSTR
+	      0 of 152,072 (  0.0%) NaN values in CI end: Allele 1: Truth
+	      0 of 152,072 (  0.0%) NaN values in CI end: Allele 2: ExpansionHunter
+	      0 of 152,072 (  0.0%) NaN values in CI end: Allele 2: GangSTR
+	      0 of 152,072 (  0.0%) NaN values in CI end: Allele 2: HipSTR
+	      0 of 152,072 (  0.0%) NaN values in CI end: Allele 2: Truth
+	      0 of 152,072 (  0.0%) NaN values in CI size: Allele 1: ExpansionHunter
+	      0 of 152,072 (  0.0%) NaN values in CI size: Allele 1: GangSTR
+	      0 of 152,072 (  0.0%) NaN values in CI size: Allele 1: HipSTR
+	      0 of 152,072 (  0.0%) NaN values in CI size: Allele 1: Truth
+	      0 of 152,072 (  0.0%) NaN values in CI size: Allele 2: ExpansionHunter
+	      0 of 152,072 (  0.0%) NaN values in CI size: Allele 2: GangSTR
+	      0 of 152,072 (  0.0%) NaN values in CI size: Allele 2: HipSTR
+	      0 of 152,072 (  0.0%) NaN values in CI size: Allele 2: Truth
+	      0 of 152,072 (  0.0%) NaN values in CI start: Allele 1: ExpansionHunter
+	      0 of 152,072 (  0.0%) NaN values in CI start: Allele 1: GangSTR
+	      0 of 152,072 (  0.0%) NaN values in CI start: Allele 1: HipSTR
+	      0 of 152,072 (  0.0%) NaN values in CI start: Allele 1: Truth
+	      0 of 152,072 (  0.0%) NaN values in CI start: Allele 2: ExpansionHunter
+	      0 of 152,072 (  0.0%) NaN values in CI start: Allele 2: GangSTR
+	      0 of 152,072 (  0.0%) NaN values in CI start: Allele 2: HipSTR
+	      0 of 152,072 (  0.0%) NaN values in CI start: Allele 2: Truth
+	      0 of 152,072 (  0.0%) NaN values in Coverage: ExpansionHunter
+	      0 of 152,072 (  0.0%) NaN values in Coverage: GangSTR
+	      0 of 152,072 (  0.0%) NaN values in Coverage: HipSTR
+	      0 of 152,072 (  0.0%) NaN values in DFLANKINDEL: HipSTR
+	      0 of 152,072 (  0.0%) NaN values in DP: HipSTR
+	      0 of 152,072 (  0.0%) NaN values in DSTUTTER: HipSTR
+	      0 of 152,072 (  0.0%) NaN values in DiffFromRefRepeats: Allele 1: ExpansionHunter
+	      0 of 152,072 (  0.0%) NaN values in DiffFromRefRepeats: Allele 1: GangSTR
+	      0 of 152,072 (  0.0%) NaN values in DiffFromRefRepeats: Allele 1: HipSTR
+	      0 of 152,072 (  0.0%) NaN values in DiffFromRefRepeats: Allele 1: Truth
+	      0 of 152,072 (  0.0%) NaN values in DiffFromRefRepeats: Allele 2: ExpansionHunter
+	      0 of 152,072 (  0.0%) NaN values in DiffFromRefRepeats: Allele 2: GangSTR
+	      0 of 152,072 (  0.0%) NaN values in DiffFromRefRepeats: Allele 2: HipSTR
+	      0 of 152,072 (  0.0%) NaN values in DiffFromRefRepeats: Allele 2: Truth
+	      0 of 152,072 (  0.0%) NaN values in DiffFromRefSize (bp): Allele 1: ExpansionHunter
+	      0 of 152,072 (  0.0%) NaN values in DiffFromRefSize (bp): Allele 1: GangSTR
+	      0 of 152,072 (  0.0%) NaN values in DiffFromRefSize (bp): Allele 1: HipSTR
+	      0 of 152,072 (  0.0%) NaN values in DiffFromRefSize (bp): Allele 1: Truth
+	      0 of 152,072 (  0.0%) NaN values in DiffFromRefSize (bp): Allele 2: ExpansionHunter
+	      0 of 152,072 (  0.0%) NaN values in DiffFromRefSize (bp): Allele 2: GangSTR
+	      0 of 152,072 (  0.0%) NaN values in DiffFromRefSize (bp): Allele 2: HipSTR
+	      0 of 152,072 (  0.0%) NaN values in DiffFromRefSize (bp): Allele 2: Truth
+	      0 of 152,072 (  0.0%) NaN values in DiffRepeats: Allele 1: ExpansionHunter - Truth
+	      0 of 152,072 (  0.0%) NaN values in DiffRepeats: Allele 1: GangSTR - Truth
+	      0 of 152,072 (  0.0%) NaN values in DiffRepeats: Allele 1: HipSTR - Truth
+	      0 of 152,072 (  0.0%) NaN values in DiffRepeats: Allele 2: ExpansionHunter - Truth
+	      0 of 152,072 (  0.0%) NaN values in DiffRepeats: Allele 2: GangSTR - Truth
+	      0 of 152,072 (  0.0%) NaN values in DiffRepeats: Allele 2: HipSTR - Truth
+	      0 of 152,072 (  0.0%) NaN values in DiffSize: Allele 1: ExpansionHunter - Truth
+	      0 of 152,072 (  0.0%) NaN values in DiffSize: Allele 1: GangSTR - Truth
+	      0 of 152,072 (  0.0%) NaN values in DiffSize: Allele 1: HipSTR - Truth
+	      0 of 152,072 (  0.0%) NaN values in DiffSize: Allele 2: ExpansionHunter - Truth
+	      0 of 152,072 (  0.0%) NaN values in DiffSize: Allele 2: GangSTR - Truth
+	      0 of 152,072 (  0.0%) NaN values in DiffSize: Allele 2: HipSTR - Truth
+	      0 of 152,072 (  0.0%) NaN values in FS: HipSTR
+	      0 of 152,072 (  0.0%) NaN values in FractionOfReadsThatSupportsGenotype: Allele 1: ExpansionHunter
+	      0 of 152,072 (  0.0%) NaN values in FractionOfReadsThatSupportsGenotype: Allele 1: GangSTR
+	      0 of 152,072 (  0.0%) NaN values in FractionOfReadsThatSupportsGenotype: Allele 2: ExpansionHunter
+	      0 of 152,072 (  0.0%) NaN values in FractionOfReadsThatSupportsGenotype: Allele 2: GangSTR
+	      0 of 152,072 (  0.0%) NaN values in GeneRegionFromGencode_V42
+	      0 of 152,072 (  0.0%) NaN values in GeneRegionFromMane_V1
+	      0 of 152,072 (  0.0%) NaN values in Genotype: ExpansionHunter
+	      0 of 152,072 (  0.0%) NaN values in Genotype: GangSTR
+	      0 of 152,072 (  0.0%) NaN values in Genotype: HipSTR
+	      0 of 152,072 (  0.0%) NaN values in Genotype: Truth
+	      0 of 152,072 (  0.0%) NaN values in GenotypeConfidenceInterval: ExpansionHunter
+	      0 of 152,072 (  0.0%) NaN values in GenotypeConfidenceInterval: GangSTR
+	      0 of 152,072 (  0.0%) NaN values in GenotypeConfidenceInterval: HipSTR
+	      0 of 152,072 (  0.0%) NaN values in GenotypeConfidenceInterval: Truth
+	      0 of 152,072 (  0.0%) NaN values in HET_or_HOM
+	      0 of 152,072 (  0.0%) NaN values in IsFoundInReference
+	      0 of 152,072 (  0.0%) NaN values in IsHomRef: ExpansionHunter
+	      0 of 152,072 (  0.0%) NaN values in IsHomRef: GangSTR
+	      0 of 152,072 (  0.0%) NaN values in IsHomRef: HipSTR
+	      0 of 152,072 (  0.0%) NaN values in IsHomRef: Truth
+	      0 of 152,072 (  0.0%) NaN values in IsMultiallelic
+	      0 of 152,072 (  0.0%) NaN values in IsPureRepeat
+	      0 of 152,072 (  0.0%) NaN values in IsRef: Allele 1: ExpansionHunter
+	      0 of 152,072 (  0.0%) NaN values in IsRef: Allele 1: GangSTR
+	      0 of 152,072 (  0.0%) NaN values in IsRef: Allele 1: HipSTR
+	      0 of 152,072 (  0.0%) NaN values in IsRef: Allele 1: Truth
+	      0 of 152,072 (  0.0%) NaN values in IsRef: Allele 2: ExpansionHunter
+	      0 of 152,072 (  0.0%) NaN values in IsRef: Allele 2: GangSTR
+	      0 of 152,072 (  0.0%) NaN values in IsRef: Allele 2: HipSTR
+	      0 of 152,072 (  0.0%) NaN values in IsRef: Allele 2: Truth
+	      0 of 152,072 (  0.0%) NaN values in LocusId
+	      0 of 152,072 (  0.0%) NaN values in Motif
+	      0 of 152,072 (  0.0%) NaN values in MotifSize
+	      0 of 152,072 (  0.0%) NaN values in NumAllelesSupportedTotal: ExpansionHunter
+	      0 of 152,072 (  0.0%) NaN values in NumFlankingReads: ExpansionHunter
+	      0 of 152,072 (  0.0%) NaN values in NumFlankingReads: GangSTR
+	      0 of 152,072 (  0.0%) NaN values in NumInrepeatReads: ExpansionHunter
+	      0 of 152,072 (  0.0%) NaN values in NumInrepeatReads: GangSTR
+	      0 of 152,072 (  0.0%) NaN values in NumReadsTotal: ExpansionHunter
+	      0 of 152,072 (  0.0%) NaN values in NumReadsTotal: GangSTR
+	      0 of 152,072 (  0.0%) NaN values in NumReadsTotalThatSupportGenotype: Allele 1: ExpansionHunter
+	      0 of 152,072 (  0.0%) NaN values in NumReadsTotalThatSupportGenotype: Allele 1: GangSTR
+	      0 of 152,072 (  0.0%) NaN values in NumReadsTotalThatSupportGenotype: Allele 2: ExpansionHunter
+	      0 of 152,072 (  0.0%) NaN values in NumReadsTotalThatSupportGenotype: Allele 2: GangSTR
+	      0 of 152,072 (  0.0%) NaN values in NumRepeats: Allele 1: ExpansionHunter
+	      0 of 152,072 (  0.0%) NaN values in NumRepeats: Allele 1: GangSTR
+	      0 of 152,072 (  0.0%) NaN values in NumRepeats: Allele 1: HipSTR
+	      0 of 152,072 (  0.0%) NaN values in NumRepeats: Allele 1: Truth
+	      0 of 152,072 (  0.0%) NaN values in NumRepeats: Allele 2: ExpansionHunter
+	      0 of 152,072 (  0.0%) NaN values in NumRepeats: Allele 2: GangSTR
+	      0 of 152,072 (  0.0%) NaN values in NumRepeats: Allele 2: HipSTR
+	      0 of 152,072 (  0.0%) NaN values in NumRepeats: Allele 2: Truth
+	      0 of 152,072 (  0.0%) NaN values in NumRepeatsInReference
+	      0 of 152,072 (  0.0%) NaN values in NumSpanningReads: ExpansionHunter
+	      0 of 152,072 (  0.0%) NaN values in NumSpanningReads: GangSTR
+	      0 of 152,072 (  0.0%) NaN values in NumSpanningReadsThatSupportGenotype: Allele 1: ExpansionHunter
+	      0 of 152,072 (  0.0%) NaN values in NumSpanningReadsThatSupportGenotype: Allele 1: GangSTR
+	      0 of 152,072 (  0.0%) NaN values in NumSpanningReadsThatSupportGenotype: Allele 2: ExpansionHunter
+	      0 of 152,072 (  0.0%) NaN values in NumSpanningReadsThatSupportGenotype: Allele 2: GangSTR
+	      0 of 152,072 (  0.0%) NaN values in OverlapsIlluminaSTRCatalog: Locus
+	      0 of 152,072 (  0.0%) NaN values in OverlapsIlluminaSTRCatalog: Motif
+	      0 of 152,072 (  0.0%) NaN values in OverlapsSegDupIntervals
+	      0 of 152,072 (  0.0%) NaN values in OverlapsTRFPureRepeats9bp: Locus
+	      0 of 152,072 (  0.0%) NaN values in OverlapsTRFPureRepeats9bp: Motif
+	      0 of 152,072 (  0.0%) NaN values in Q: GangSTR
+	      0 of 152,072 (  0.0%) NaN values in Q: HipSTR
+	      0 of 152,072 (  0.0%) NaN values in ReferenceLocusSize (bp)
+	      0 of 152,072 (  0.0%) NaN values in RepeatSize (bp): Allele 1: ExpansionHunter
+	      0 of 152,072 (  0.0%) NaN values in RepeatSize (bp): Allele 1: GangSTR
+	      0 of 152,072 (  0.0%) NaN values in RepeatSize (bp): Allele 1: HipSTR
+	      0 of 152,072 (  0.0%) NaN values in RepeatSize (bp): Allele 1: Truth
+	      0 of 152,072 (  0.0%) NaN values in RepeatSize (bp): Allele 2: ExpansionHunter
+	      0 of 152,072 (  0.0%) NaN values in RepeatSize (bp): Allele 2: GangSTR
+	      0 of 152,072 (  0.0%) NaN values in RepeatSize (bp): Allele 2: HipSTR
+	      0 of 152,072 (  0.0%) NaN values in RepeatSize (bp): Allele 2: Truth
+	      0 of 152,072 (  0.0%) NaN values in SummaryString
+	      0 of 152,072 (  0.0%) NaN values in TruthSetOrNegativeLocus
+	      0 of 152,072 (  0.0%) NaN values in Variant: Concordance: ExpansionHunter vs GangSTR
+	      0 of 152,072 (  0.0%) NaN values in Variant: Concordance: ExpansionHunter vs Truth
+	      0 of 152,072 (  0.0%) NaN values in Variant: Concordance: GangSTR vs Truth
+	      0 of 152,072 (  0.0%) NaN values in Variant: Concordance: HipSTR vs Truth
+Wrote 152,072 rows to ./tool_comparison/results_for_exome/negative_loci.for_comparison.with_concordance.tsv.gz
+Wrote 304,144 rows to ./tool_comparison/results_for_exome/negative_loci.for_comparison.with_concordance.alleles.tsv.gz
++ mv ./tool_comparison/results_for_exome/STR_truthset.v1.for_comparison.with_concordance.tsv.gz ./tool_comparison/results_for_exome/STR_truthset.v1.for_comparison.variants.tsv.gz
+mv: cannot stat './tool_comparison/results_for_exome/STR_truthset.v1.for_comparison.with_concordance.tsv.gz': No such file or directory
