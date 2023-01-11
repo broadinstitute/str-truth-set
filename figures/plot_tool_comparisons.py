@@ -11,25 +11,41 @@ sns.set_context("notebook", font_scale=1.1, rc={
 
 GREEN_COLOR = "#50AA44"
 
+NO_CALL_LABEL = "No Call"
+FILTERED_CALL_LABEL = "Filtered"
+HOM_REF_LABEL = "Called Hom Ref"
+HET_REF_LABEL = "Called Het Ref"
+WRONG_DIRECTION_LABEL = "Wrong Direction"
 
-def bin_num_repeats_wrapper(threshold=20, bin_size=1):
+
+def bin_num_repeats_wrapper(bin_size=1):
     """Create a function that converts the integer number of STR repeats to a histogram bin"""
 
-    threshold = threshold - threshold % bin_size + bin_size + 1
-    def bin_num_repeats(num_repeats):
+    def bin_num_repeats(row):
+        num_repeats = row["DiffFromRefRepeats: Allele: Truth"]
         sign = "-" if num_repeats < 0 else "+"
         num_repeats = abs(num_repeats)
+
         if num_repeats == 0:
             return "0"
-        elif num_repeats >= threshold:
-            return f"{sign}{int(threshold)}" + " or more"
+
+        if row["coverage"] == "exome":
+            if 13 <= num_repeats:
+                return f"{sign}13 or more"
         else:
-            if bin_size > 1:
-                start = int((num_repeats - 1)/bin_size) * bin_size
-                end = start + bin_size
-                return f"{sign}{int(start + 1)} to {sign}{int(end)}"
-            else:
-                return f"{sign}{int(num_repeats)}"
+            if 21 <= num_repeats <= 25:
+                return f"{sign}21 to {sign}25"
+            if 26 <= num_repeats <= 30:
+                return f"{sign}26 to {sign}30"
+            if 31 <= num_repeats:
+                return f"{sign}31 or more"
+
+        if bin_size == 1:
+            return f"{sign}{int(num_repeats)}"
+
+        start = int((num_repeats - 1)/bin_size) * bin_size
+        end = start + bin_size
+        return f"{sign}{int(start + 1)} to {sign}{int(end)}"
 
     return bin_num_repeats
 
@@ -61,7 +77,7 @@ def bin_repeats_vs_truth_wrapper():
 
     def bin_repeats_vs_truth(num_repeats_diff):
         if pd.isna(num_repeats_diff):
-            return "No Call"
+            return NO_CALL_LABEL
 
         sign = "-" if num_repeats_diff < 0 else ""
         num_repeats_diff = abs(num_repeats_diff)
@@ -84,26 +100,24 @@ def define_hue_column(df, tool):
     df.loc[:, f"DiffRepeats: Allele: {tool} - Truth (bin)"] = df[f"DiffRepeats: Allele: {tool} - Truth"].apply(
         bin_repeats_vs_truth_wrapper())
 
-    wrong_direction_label = "Wrong Direction"
+
     df.loc[:, f"DiffRepeats: Allele: {tool} - Truth (bin)"] = np.where(
         ~df[f"DiffFromRefRepeats: Allele: Truth"].isna() &
         ~df[f"DiffFromRefRepeats: Allele: {tool}"].isna() & (
                 df[f"DiffFromRefRepeats: Allele: {tool}"] != 0) & (
                 np.sign(df[f"DiffFromRefRepeats: Allele: Truth"]) != np.sign(df[f"DiffFromRefRepeats: Allele: {tool}"])
         ),
-        wrong_direction_label,
+        WRONG_DIRECTION_LABEL,
         df[f"DiffRepeats: Allele: {tool} - Truth (bin)"])
 
-    ref_allele_label = "Called Het Ref"
     df.loc[:, f"DiffRepeats: Allele: {tool} - Truth (bin)"] = np.where(
         ~df[f"IsRef: Allele: {tool}"].isna() & df[f"IsRef: Allele: {tool}"],
-        ref_allele_label,
+        HET_REF_LABEL,
         df[f"DiffRepeats: Allele: {tool} - Truth (bin)"])
 
-    ref_variant_label = "Called Hom Ref"
     df.loc[:, f"DiffRepeats: Allele: {tool} - Truth (bin)"] = np.where(
         ~df[f"IsHomRef: {tool}"].isna() & df[f"IsHomRef: {tool}"],
-        ref_variant_label,
+        HOM_REF_LABEL,
         df[f"DiffRepeats: Allele: {tool} - Truth (bin)"])
 
 
@@ -253,15 +267,15 @@ def plot_distribution_by_num_repeats(
 
 def hue_sorter(value):
     """Defines the sort order of colors in the plot_distribution_by_num_repeats plot"""
-    if value == "Filtered":
+    if value == FILTERED_CALL_LABEL:
         return -2500
-    elif value == "No Call":
+    elif value == NO_CALL_LABEL:
         return -2000
-    elif value == "Called Hom Ref":
+    elif value == HOM_REF_LABEL:
         return -1500
-    elif value == "Called Het Ref":
+    elif value == HET_REF_LABEL:
         return -1000
-    elif value == "Wrong Direction":
+    elif value == WRONG_DIRECTION_LABEL:
         return -500
     else:
         return int(float(value.split(" ")[0]))
@@ -297,10 +311,10 @@ def generate_all_distribution_by_motif_size_plots(df, output_image_dir, plot_cou
 
 
 def compute_fraction_exactly_correct(df, tool):
-    allowed_diff_to_still_be_considered_correct = ["0",] # "1", "-1", "2", "-2"]
+    diff_values_considered_exactly_correct = ["0",] # "1", "-1", "2", "-2"]
 
     exact_match_counts = df[df[f"DiffRepeats: Allele: {tool} - Truth (bin)"].isin(
-        allowed_diff_to_still_be_considered_correct)].groupby("DiffFromRefRepeats: Allele: Truth (bin)").count()[["LocusId"]]
+        diff_values_considered_exactly_correct)].groupby("DiffFromRefRepeats: Allele: Truth (bin)").count()[["LocusId"]]
     total_counts = df.groupby("DiffFromRefRepeats: Allele: Truth (bin)").count()[["LocusId"]]
 
     total_exact_match = sum(exact_match_counts.LocusId)
@@ -324,8 +338,9 @@ def compute_tables_for_fraction_exactly_right_plots(df, coverage_values=("40x", 
             df_tool.loc[:, "tool"] = f"{tool}: {coverage} coverage" if len(coverage_values) > 1 else tool
             tables_by_coverage.append(df_tool)
 
-            print(f"Processed {tool:20s} --  {100*overall_fraction_exactly_correct:0.1f}% of calls by {tool} @ {coverage} coverage "
-                  f"were exactly correct for {len(df2):,d} alleles at {len(set(df2.LocusId)):,d} loci")
+            print(f"Processed {tool:20s} --  {100*overall_fraction_exactly_correct:0.1f}% of calls by {tool} "
+                  f"@ {coverage} coverage were exactly correct for "
+                  f"{len(df2):,d} alleles at {len(set(df2.LocusId)):,d} loci")
 
     return pd.concat(tables_by_coverage, axis=0)
 
@@ -375,11 +390,11 @@ def generate_all_distribution_by_num_repeats_plots(df, output_image_dir, plot_co
                         raise ValueError(f"Unexpected motif_size value: {motif_size}")
 
                     if pure_repeats:
-                        filter_description.append("pure repeats only")
+                        #filter_description.append("pure repeats only")
                         output_image_filename += ".pure_repeats"
                         df2 = df2[df2["IsPureRepeat"]]
                     else:
-                        filter_description.append("only repeats with interruptions")
+                        filter_description.append("repeats with interruptions")
                         output_image_filename += ".with_interruptions"
                         df2 = df2[~df2["IsPureRepeat"]]
 
@@ -429,9 +444,17 @@ def generate_all_distribution_by_num_repeats_plots(df, output_image_dir, plot_co
                     hue_values = set(df2.loc[:, f"DiffRepeats: Allele: {tool} - Truth (bin)"])
                     print("Hue values:", sorted(hue_values, key=hue_sorter))
 
-                    palette = ["#c9c9c9", "#880000", "#823d3d", "#99FFEF"]
-                    if "Filtered" in hue_values:
-                        palette = ["#f5f5f5"] + palette
+                    palette = []
+                    if FILTERED_CALL_LABEL in hue_values:
+                        palette.append("#f5f5f5")
+                    if NO_CALL_LABEL in hue_values:
+                        palette.append("#c9c9c9")
+                    if HOM_REF_LABEL in hue_values:
+                        palette.append("#880000")
+                    if HET_REF_LABEL in hue_values:
+                        palette.append("#823d3d")
+                    if WRONG_DIRECTION_LABEL in hue_values:
+                        palette.append("#99FFEF")
 
                     n_blue_colors = sum(1 for h in hue_values if h.startswith("-"))
                     n_orange_colors = len(hue_values) - n_blue_colors - len(palette) - 1
@@ -451,8 +474,9 @@ def generate_all_distribution_by_num_repeats_plots(df, output_image_dir, plot_co
                             figure_title=figure_title_line1 + "\n\n" + figure_title_line2
                         )
 
-                        print(f"Saved {output_image_dir}/{output_image_filename}.svg")
-                        plt.savefig(f"{output_image_dir}/{output_image_filename}.svg")
+                        for ext in ".svg", ".png":
+                            print(f"Saved {output_image_dir}/{output_image_filename}{ext}")
+                            plt.savefig(f"{output_image_dir}/{output_image_filename}{ext}")
                         plt.close()
 
                     except Exception as e:
@@ -465,7 +489,8 @@ def generate_all_distribution_by_num_repeats_plots(df, output_image_dir, plot_co
     return plot_counter
 
 
-def generate_fraction_exactly_right_plot(df, output_image_dir, plot_counter, max_plots=None, verbose=False):
+def generate_fraction_exactly_right_plot(
+        df, output_image_dir, plot_counter, discard_hipstr_no_call_loci=False, max_plots=None, verbose=False):
     hue_column = "tool"
     motif_size = "STR"
     pure_repeats = True
@@ -487,6 +512,12 @@ def generate_fraction_exactly_right_plot(df, output_image_dir, plot_counter, max
         df = df[(7 <= df["MotifSize"]) & (df["MotifSize"] <= 24)]
     else:
         raise ValueError(f"Unexpected motif_size value: {motif_size}")
+
+    if discard_hipstr_no_call_loci:
+        count_before = len(set(df[df["coverage"] == "40x"].LocusId))
+        df = df[df[f"DiffRepeats: Allele: HipSTR - Truth (bin)"] != NO_CALL_LABEL]
+        count_discarded = count_before - len(set(df[df["coverage"] == "40x"].LocusId))
+        print(f"Discarded {count_discarded:,d} ({100.0*count_discarded/count_before:0.1f}%) of loci due to HipSTR no call")
 
     df_fraction = compute_tables_for_fraction_exactly_right_plots(df, coverage_values=("40x", "30x", "20x", "10x", "05x"))
 
@@ -520,11 +551,11 @@ def generate_fraction_exactly_right_plot(df, output_image_dir, plot_counter, max
             raise ValueError(f"Unexpected motif_size value: {motif_size}")
 
         if pure_repeats:
-            filter_description.append("pure repeats only")
+            #filter_description.append("pure repeats only")
             #figure_title += ", pure repeats only"
             filename_suffix += ".pure_repeats"
         else:
-            filter_description.append("only repeats with interruptions")
+            filter_description.append("repeats with interruptions")
             #figure_title += "only repeats with interruptions"
             filename_suffix += ".has_interruptions"
 
@@ -533,15 +564,20 @@ def generate_fraction_exactly_right_plot(df, output_image_dir, plot_counter, max
         else:
             filename_suffix += f".{coverage}_coverage"
 
+        if discard_hipstr_no_call_loci:
+            filter_description.append("excluding HipSTR no-call loci")
+            filename_suffix += f".excluding_hipstr_no_call_loci"
+
         figure_title = f"Accuracy of " + ", ".join(sorted(set([t.split(":")[0] for t in set(df2.tool)])))
         figure_title += "\n\n"
         figure_title += f"at {len(set(df.LocusId)):,d} {motif_size} loci (" + ", ".join(filter_description) + ")"
 
         print(figure_title.replace("\n", " "))
 
-        num_gangstr_colors = len([h for h in set(df2[hue_column]) if h.lower().startswith("gangstr")])
-        num_expansion_hunter_colors = len([h for h in set(df2[hue_column]) if h.lower().startswith("expansionhunter")])
-        num_hipstr_colors = len([h for h in set(df2[hue_column]) if h.lower().startswith("hipstr")])
+        hue_values = set(df2[hue_column])
+        num_gangstr_colors = len([h for h in hue_values if h.lower().startswith("gangstr")])
+        num_expansion_hunter_colors = len([h for h in hue_values if h.lower().startswith("expansionhunter")])
+        num_hipstr_colors = len([h for h in hue_values if h.lower().startswith("hipstr")])
 
         # plot figure
         fig, ax = plt.subplots(1, 1, figsize=(12, 10), dpi=80)
@@ -561,7 +597,7 @@ def generate_fraction_exactly_right_plot(df, output_image_dir, plot_counter, max
             y="FractionExactlyCorrect",
             hue=hue_column,
             scale=0.8,
-            hue_order=sorted(set(df2[hue_column]), key=hue_order),
+            hue_order=sorted(hue_values, key=hue_order),
             palette=(
                     list(sns.color_palette("Purples_r", n_colors=num_expansion_hunter_colors) if num_expansion_hunter_colors > 1 else ["#6A51A3"]) +
                     list(sns.color_palette("blend:#FF3355,#FFCCCC", n_colors=num_gangstr_colors)) +
@@ -581,15 +617,22 @@ def generate_fraction_exactly_right_plot(df, output_image_dir, plot_counter, max
         ax.set_xticks(ax.get_xticks())
         ax.set_xticklabels(ax.get_xticklabels(), rotation=45, horizontalalignment="right", rotation_mode='anchor')
         ax.get_legend().set_title(f"")
-        ax.legend(loc="lower left", frameon=False)
+        ax.legend(frameon=True)
+        if len(hue_values) > 4:
+            ax.get_legend().set_bbox_to_anchor((0.15, 0.25))
+        else:
+            #ax.legend(loc="upper right", frameon=True)
+            ax.get_legend().set_bbox_to_anchor((0.15, 0.15))
 
         #fig.tight_layout()
         suptitle_artist = fig.suptitle(figure_title, fontsize=17, y=1.01)
 
         output_image_filename = "tool_accuracy_by_true_allele_size_exactly_matching_calls"
 
-        print(f"Saved {output_image_dir}/{output_image_filename}{filename_suffix}.svg")
-        plt.savefig(f"{output_image_dir}/{output_image_filename}{filename_suffix}.svg", bbox_extra_artists=(suptitle_artist,), bbox_inches="tight")
+        for ext in ".svg", ".png":
+            print(f"Saved {output_image_dir}/{output_image_filename}{filename_suffix}{ext}")
+            plt.savefig(f"{output_image_dir}/{output_image_filename}{filename_suffix}{ext}", bbox_extra_artists=(suptitle_artist,), bbox_inches="tight")
+
         plt.close()
         plot_counter += 1
 
@@ -603,13 +646,20 @@ def generate_fraction_exactly_right_plot(df, output_image_dir, plot_counter, max
 def main():
     p = argparse.ArgumentParser()
     p.add_argument("-n", type=int, help="If specified, only generate this many plots. Useful for testing")
+    p.add_argument("--skip-plot1", action="store_true", help="Don't generate line plots with fraction exactly right")
+    p.add_argument("--skip-plot2", action="store_true", help="Don't generate bar plots by motif size")
+    p.add_argument("--skip-plot3", action="store_true", help="Don't generate bar plots by true allele size")
+    p.add_argument("--output-dir", default="../tool_comparison/figures")
     p.add_argument("--verbose", action="store_true", help="Print additional info")
     args = p.parse_args()
 
     input_table_path = "../tool_comparison/combined.results.alleles.tsv"
-    output_image_dir = "../tool_comparison/figures"
+
     print(f"Loading {input_table_path}")
     df = pd.read_table(input_table_path)
+
+    #df = df[df.Motif.isin({"AAG", "AGA", "GAA", "CTT", "TCT", "TTC"})]
+    #df = df[df.MotifSize == 3]
 
     if args.verbose:
         print("Num loci:")
@@ -619,8 +669,7 @@ def main():
     df.loc[:, "RepeatSize (bp): Allele: Truth (bin)"] = df["RepeatSize (bp): Allele: Truth"].apply(
         bin_repeat_size_bp_wrapper(400, 24))
 
-    df.loc[:, "DiffFromRefRepeats: Allele: Truth (bin)"] = df["DiffFromRefRepeats: Allele: Truth"].apply(
-        bin_num_repeats_wrapper(19, bin_size=2))
+    df.loc[:, "DiffFromRefRepeats: Allele: Truth (bin)"] = df.apply(bin_num_repeats_wrapper(bin_size=2), axis=1)
     df = df.sort_values("DiffFromRefRepeats: Allele: Truth")
 
     for tool in ("ExpansionHunter", "GangSTR", "HipSTR",):
@@ -628,9 +677,18 @@ def main():
 
     print("Generating plots...")
     plot_counter = 0
-    plot_counter = generate_fraction_exactly_right_plot(df, output_image_dir, plot_counter, max_plots=args.n, verbose=args.verbose)
-    plot_counter = generate_all_distribution_by_motif_size_plots(df, output_image_dir, plot_counter, max_plots=args.n, verbose=args.verbose)
-    plot_counter = generate_all_distribution_by_num_repeats_plots(df, output_image_dir, plot_counter, max_plots=args.n, verbose=args.verbose)
+    if not args.skip_plot1:
+        plot_counter = generate_fraction_exactly_right_plot(
+            df, args.output_dir, plot_counter, discard_hipstr_no_call_loci=False, max_plots=args.n, verbose=args.verbose)
+        plot_counter = generate_fraction_exactly_right_plot(
+            df, args.output_dir, plot_counter, discard_hipstr_no_call_loci=True, max_plots=args.n, verbose=args.verbose)
+
+    if not args.skip_plot2:
+        plot_counter = generate_all_distribution_by_motif_size_plots(
+            df, args.output_dir, plot_counter, max_plots=args.n, verbose=args.verbose)
+    if not args.skip_plot3:
+        plot_counter = generate_all_distribution_by_num_repeats_plots(
+            df, args.output_dir, plot_counter, max_plots=args.n, verbose=args.verbose)
 
     print(f"Done generating all {plot_counter} plots")
 
