@@ -73,7 +73,7 @@ def main():
         output_prefix = re.sub(".json$", "", local_repeat_spec.filename)
         s1.command("set -ex")
 
-        s1.command(f"""GangSTR \
+        s1.command(f"""time GangSTR \
             --ref {local_fasta} \
             --bam {local_bam} \
             --regions {local_repeat_spec} \

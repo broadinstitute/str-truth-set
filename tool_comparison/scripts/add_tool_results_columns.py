@@ -4,7 +4,7 @@ import pandas as pd
 from pprint import pprint
 import re
 
-COLUMNS_TO_KEEP = [
+TOOL_DF_COLUMNS_TO_KEEP = [
     "LocusId",
     "Coverage",
     "Motif",
@@ -69,15 +69,15 @@ def parse_args():
 def main():
     args = parse_args()
 
-    columns_to_keep = list(COLUMNS_TO_KEEP)
+    tool_df_columns_to_keep = list(TOOL_DF_COLUMNS_TO_KEEP)
     if args.tool == "ExpansionHunter":
-        columns_to_keep += EH_AND_GANGSTR_COLUMNS
-        columns_to_keep += ["NumAllelesSupportedTotal"]
+        tool_df_columns_to_keep += EH_AND_GANGSTR_COLUMNS
+        tool_df_columns_to_keep += ["NumAllelesSupportedTotal"]
     elif args.tool == "GangSTR":
-        columns_to_keep += EH_AND_GANGSTR_COLUMNS
-        columns_to_keep += ["Q"]
+        tool_df_columns_to_keep += EH_AND_GANGSTR_COLUMNS
+        tool_df_columns_to_keep += ["Q"]
     elif args.tool == "HipSTR":
-        columns_to_keep += ["Q", "DP", "AB", "FS", "DFLANKINDEL", "DSTUTTER"]
+        tool_df_columns_to_keep += ["Q", "DP", "AB", "FS", "DFLANKINDEL", "DSTUTTER"]
     else:
         raise ValueError(f"Unexpected tool: {args.tool}")
     
@@ -138,9 +138,9 @@ def main():
         pprint(sorted(set(tool_df.columns) - set(truth_set_df.columns)))
         print("="*100)
         print("set(tool_df.columns) - set(columns to keep)")
-        pprint(sorted(set(tool_df.columns) - set(columns_to_keep)))
+        pprint(sorted(set(tool_df.columns) - set(tool_df_columns_to_keep)))
 
-    tool_df = tool_df[columns_to_keep]
+    tool_df = tool_df[tool_df_columns_to_keep]
     for tool_column in set(tool_df.columns) - set(truth_set_df.columns):
         tool_df.rename(columns={tool_column: f"{tool_column}: {args.tool}"}, inplace=True)
 

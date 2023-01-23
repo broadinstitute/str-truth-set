@@ -2,6 +2,10 @@
 
 set -ex
 
+force=""
+force="--force"
+
+
 function run_pipelines {
     input_bam=$1
     output_dir=$2
@@ -11,16 +15,16 @@ function run_pipelines {
     python3 ./tool_comparison/hail_batch_pipelines/expansion_hunter_denovo_pipeline.py --input-bam ${input_bam} --output-dir ${output_dir}/expansion_hunter_denovo &
     
     # ExpansionHunter
-    python3 ./tool_comparison/hail_batch_pipelines/expansion_hunter_pipeline.py  --positive-loci --input-bam ${input_bam} --output-dir ${output_dir}/expansion_hunter &
-    python3 ./tool_comparison/hail_batch_pipelines/expansion_hunter_pipeline.py  --negative-loci --input-bam ${input_bam} --output-dir ${output_dir}/expansion_hunter &
+    python3 ./tool_comparison/hail_batch_pipelines/expansion_hunter_pipeline.py  --positive-loci --input-bam ${input_bam} --output-dir ${output_dir}/expansion_hunter ${force} &
+    python3 ./tool_comparison/hail_batch_pipelines/expansion_hunter_pipeline.py  --negative-loci --input-bam ${input_bam} --output-dir ${output_dir}/expansion_hunter ${force} &
 
     # GangSTR
-    python3 ./tool_comparison/hail_batch_pipelines/gangstr_pipeline.py  --positive-loci --input-bam ${input_bam} --output-dir ${output_dir}/gangstr &
-    python3 ./tool_comparison/hail_batch_pipelines/gangstr_pipeline.py  --negative-loci --input-bam ${input_bam} --output-dir ${output_dir}/gangstr &
+    python3 ./tool_comparison/hail_batch_pipelines/gangstr_pipeline.py  --positive-loci --input-bam ${input_bam} --output-dir ${output_dir}/gangstr ${force} &
+    python3 ./tool_comparison/hail_batch_pipelines/gangstr_pipeline.py  --negative-loci --input-bam ${input_bam} --output-dir ${output_dir}/gangstr ${force} &
 
     # HipSTR
-    python3 ./tool_comparison/hail_batch_pipelines/hipstr_pipeline.py  --positive-loci --input-bam ${input_bam} --output-dir ${output_dir}/hipstr &
-    python3 ./tool_comparison/hail_batch_pipelines/hipstr_pipeline.py  --negative-loci --input-bam ${input_bam} --output-dir ${output_dir}/hipstr &    
+    python3 ./tool_comparison/hail_batch_pipelines/hipstr_pipeline.py  --positive-loci --input-bam ${input_bam} --output-dir ${output_dir}/hipstr ${force} &
+    python3 ./tool_comparison/hail_batch_pipelines/hipstr_pipeline.py  --negative-loci --input-bam ${input_bam} --output-dir ${output_dir}/hipstr ${force} &    
 
     wait
 
@@ -54,7 +58,6 @@ run_pipelines \
     "gs://broad-public-datasets/CHM1_CHM13_WES/CHMI_CHMI3_Nex1.cram" \
     "gs://str-truth-set/hg38/tool_results_for_exome" \
     "./tool_comparison/results_for_exome"
-
 
 
 # Downsample

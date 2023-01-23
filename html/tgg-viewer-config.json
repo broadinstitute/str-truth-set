@@ -166,7 +166,7 @@
         }, {
           "name": "40x coverage genome: EHdn",
           "description": "Results from running ExpansionHunterDenovo on the original CHM1-CHM13 WGS sample with 40x coverage",
-          "data": [{"type": "bed", "url": "gs://str-truth-set/hg38/tool_results/expansion_hunter_denovo/CHM1_CHM13_WGS2.expansion_hunter_denovo.locus.bed.gz"}]
+          "data": [{"type": "bed", "url": "gs://str-truth-set/hg38/tool_results/expansion_hunter_denovo/CHM1_CHM13_WGS2.expansion_hunter_denovo.bed.gz"}]
         }, {
           "name": "30x coverage genome: EHdn",
           "description": "Results from running ExpansionHunterDenovo on CHM1-CHM13 downsampled to 30x coverage",

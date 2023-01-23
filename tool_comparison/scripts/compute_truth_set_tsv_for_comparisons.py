@@ -9,7 +9,7 @@ import pandas as pd
 from str_analysis.utils.canonical_repeat_unit import compute_canonical_motif
 
 TSV_HEADER = [
-    "LocusId", "LocusSize (bp)", "NumRepeatsInReference", "Motif", "MotifSize",
+    "LocusId", "LocusSize (bp)", "NumRepeatsInReference", "Motif", "CanonicalMotif", "MotifSize",
     "Genotype", "GenotypeConfidenceInterval",
     "NumRepeats: Allele 1", "RepeatSize (bp): Allele 1", "CI start: Allele 1", "CI end: Allele 1", "CI size: Allele 1",
     "NumRepeats: Allele 2", "RepeatSize (bp): Allele 2", "CI start: Allele 2", "CI end: Allele 2", "CI size: Allele 2",

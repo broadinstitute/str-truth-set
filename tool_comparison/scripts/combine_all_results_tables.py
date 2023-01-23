@@ -1,4 +1,3 @@
-import glob
 import os
 import pandas as pd
 
@@ -15,19 +14,21 @@ for coverage_label, results_directory in [
     ("05x", "results_for_downsampled_5x_bam"),
     ("exome", "results_for_exome"),
 ]:
+    # ExpansionHunter, GangSTR, HipSTR
     print(f"Processing {results_directory}")
     for table_list, filename_suffix in [
         (variants_tables, ".variants"),
         (alleles_tables, ".alleles"),
     ]:
-        positive_df = pd.read_table(os.path.join(
-            tool_comparison_base_dir, results_directory, f"STR_truthset.v1.for_comparison{filename_suffix}.tsv"),
-            dtype=str,
-        )
-        negative_df = pd.read_table(os.path.join(
-            tool_comparison_base_dir, results_directory, f"negative_loci.for_comparison{filename_suffix}.tsv"),
-            dtype=str,
-        )
+        positive_df_path = os.path.join(
+            tool_comparison_base_dir, results_directory, f"STR_truthset.v1.for_comparison{filename_suffix}.tsv")
+        print(f"Loading {positive_df_path}")
+        positive_df = pd.read_table(positive_df_path, dtype=str)
+
+        negative_df_path = os.path.join(
+            tool_comparison_base_dir, results_directory, f"negative_loci.for_comparison{filename_suffix}.tsv")
+        print(f"Loading {negative_df_path}")
+        negative_df = pd.read_table(negative_df_path, dtype=str)
 
         positive_df.loc[:, "coverage"] = coverage_label
         negative_df.loc[:, "coverage"] = coverage_label
@@ -38,15 +39,18 @@ for coverage_label, results_directory in [
         table_list.append(negative_df)
     print(f"    Added {len(positive_df):,d} positive calls, {len(negative_df):,d} negative calls")
 
+    # EHdn
     if coverage_label != "exome":
-        ehdn_table_wildcard_path = os.path.join(tool_comparison_base_dir, results_directory,
-            f"expansion_hunter_denovo/CHM1_CHM13_WGS2.*truth_set_EHdn_comparison_table.tsv")
-        ehdn_table_paths = glob.glob(ehdn_table_wildcard_path)
+        additional_label = ""
+        if "downsampled" in results_directory:
+            coverage = results_directory.replace("results_for_downsampled_", "").replace("_bam", "")
+            additional_label = f"downsampled_to_{coverage}."
 
-        if len(ehdn_table_paths) != 1:
-            raise ValueError(f"Found {len(ehdn_table_paths)} EHdn tables in {ehdn_table_wildcard_path}")
+        ehdn_table_path = os.path.join(tool_comparison_base_dir, results_directory,
+            f"expansion_hunter_denovo/CHM1_CHM13_WGS2.{additional_label}truth_set_EHdn_comparison_table.tsv")
 
-        ehdn_df = pd.read_table(ehdn_table_paths[0], dtype=str)
+        print(f"Loading {ehdn_table_path}")
+        ehdn_df = pd.read_table(ehdn_table_path, dtype=str)
         ehdn_df.loc[:, "coverage"] = coverage_label
         ehdn_tables.append(ehdn_df)
         print(f"    Added {len(ehdn_df):,d} EHdn calls")
