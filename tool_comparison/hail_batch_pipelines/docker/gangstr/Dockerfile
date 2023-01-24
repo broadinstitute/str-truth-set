@@ -9,6 +9,7 @@ RUN apt update && apt-get install --no-install-recommends -y \
     automake \
     libtool \
     libbz2-dev \
+    time \
 	zlib1g-dev \
 	liblzma-dev \
 	libssl-dev \

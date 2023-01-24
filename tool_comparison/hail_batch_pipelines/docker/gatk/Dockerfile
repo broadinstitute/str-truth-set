@@ -7,6 +7,7 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
     zlib1g-dev \
     liblzma-dev \
     libssl-dev \
+    time \
     libcurl4-openssl-dev \
     build-essential
 RUN apt-get update && apt-get install --no-install-recommends -y python3.7

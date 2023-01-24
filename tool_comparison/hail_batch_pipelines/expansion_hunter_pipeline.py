@@ -5,13 +5,13 @@ import re
 
 from step_pipeline import pipeline, Backend, Localize, Delocalize
 
-DOCKER_IMAGE = "weisburd/expansion-hunter@sha256:a2b3dc962c33733cb0e293e72bbba10449f0eadeaf665adec71debc4b1b7255d"
+DOCKER_IMAGE = "weisburd/expansion-hunter@sha256:5242b1d8cf477824898f2e634cef49fb8f1430eba93612b478a605fb8215c5d1"
 
 REFERENCE_FASTA_PATH = "gs://gcp-public-data--broad-references/hg38/v0/Homo_sapiens_assembly38.fasta"
 REFERENCE_FASTA_FAI_PATH = "gs://gcp-public-data--broad-references/hg38/v0/Homo_sapiens_assembly38.fasta.fai"
 
 CHM1_CHM13_CRAM_PATH = "gs://broad-public-datasets/CHM1_CHM13_WGS2/CHM1_CHM13_WGS2.cram"
-CHM1_CHM13_CRAI_PATH = "gs://broad-public-datasets/CHM1_CHM13_WGS2/CHM1_CHM13_WGS2.cram.bai"
+CHM1_CHM13_CRAI_PATH = "gs://broad-public-datasets/CHM1_CHM13_WGS2/CHM1_CHM13_WGS2.cram.crai"
 
 VARIANT_CATALOG_POSITIVE_LOCI = "gs://str-truth-set/hg38/variant_catalogs/expansion_hunter/positive_loci.EHv5.*_of_308.json"
 VARIANT_CATALOG_NEGATIVE_LOCI = "gs://str-truth-set/hg38/variant_catalogs/expansion_hunter/negative_loci.EHv5.*_of_305.json"
@@ -26,10 +26,12 @@ def main():
     parser_group = parser.add_mutually_exclusive_group(required=True)
     parser_group.add_argument("--positive-loci", action="store_true", help="Genotype truth set loci")
     parser_group.add_argument("--negative-loci", action="store_true", help="Genotype negative (hom-ref) loci")
+    parser.add_argument("--use-illumina-expansion-hunter", action="store_true", help="Go back to using the Illumina "
+         "version of ExpansionHunter instead of the optimized version from https://github.com/bw2/ExpansionHunter.git")
     parser.add_argument("--reference-fasta", default=REFERENCE_FASTA_PATH)
-    parser.add_argument("--reference-fasta-fai")
+    parser.add_argument("--reference-fasta-fai", default=REFERENCE_FASTA_FAI_PATH)
     parser.add_argument("--input-bam", default=CHM1_CHM13_CRAM_PATH)
-    parser.add_argument("--input-bai")
+    parser.add_argument("--input-bai", default=CHM1_CHM13_CRAI_PATH)
     parser.add_argument("--output-dir", default=OUTPUT_BASE_DIR)
     parser.add_argument("-n", type=int, help="Only process the first n inputs. Useful for testing.")
     args = bp.parse_known_args()
@@ -43,8 +45,18 @@ def main():
     else:
         parser.error("Must specify either --positive-loci or --negative-loci")
 
-    bp.set_name(f"STR Truth Set: ExpansionHunter  {positive_or_negative_loci}")
-    output_dir = os.path.join(args.output_dir, positive_or_negative_loci)
+    if args.use_illumina_expansion_hunter:
+        tool_exec = "IlluminaExpansionHunter"
+        output_dir = os.path.join(args.output_dir, tool_exec, positive_or_negative_loci)
+        cache_mates_arg = ""
+    else:
+        tool_exec = "ExpansionHunter"
+        output_dir = os.path.join(args.output_dir, positive_or_negative_loci)
+        cache_mates_arg = "--cache-mates "
+
+
+    bam_path_ending = "/".join(args.input_bam.split("/")[-2:])
+    bp.set_name(f"STR Truth Set: {tool_exec}: {positive_or_negative_loci}: {bam_path_ending}")
     if not args.force:
         json_paths = bp.precache_file_paths(os.path.join(output_dir, f"**/*.json"))
         logging.info(f"Precached {len(json_paths)} json files")
@@ -57,30 +69,31 @@ def main():
         if args.n and catalog_i >= args.n:
             break
 
-        s1 = bp.new_step(f"Run EHv5 #{catalog_i}", arg_suffix=f"eh", step_number=1, image=DOCKER_IMAGE, cpu=1)
+        s1 = bp.new_step(
+            f"Run EHv5 #{catalog_i}", arg_suffix=f"eh", step_number=1, image=DOCKER_IMAGE, cpu=2, storage="75Gi")
         step1s.append(s1)
 
-        local_fasta = s1.input(args.reference_fasta, localize_by=Localize.HAIL_BATCH_CLOUDFUSE)
+        local_fasta = s1.input(args.reference_fasta, localize_by=Localize.COPY)
         if args.reference_fasta_fai:
-            s1.input(args.reference_fasta_fai, localize_by=Localize.HAIL_BATCH_CLOUDFUSE)
+            s1.input(args.reference_fasta_fai, localize_by=Localize.COPY)
 
-        local_bam = s1.input(args.input_bam, localize_by=Localize.HAIL_BATCH_CLOUDFUSE)
+        local_bam = s1.input(args.input_bam, localize_by=Localize.COPY)
         if args.input_bai:
-            s1.input(args.input_bai, localize_by=Localize.HAIL_BATCH_CLOUDFUSE)
+            s1.input(args.input_bai, localize_by=Localize.COPY)
 
         local_variant_catalog = s1.input(variant_catalog_path)
 
         output_prefix = re.sub(".json$", "", local_variant_catalog.filename)
+        s1.command(f"echo Genotyping $(cat {local_variant_catalog} | grep LocusId | wc -l) loci")
         s1.command("set -ex")
 
-        s1.command(f"""time ExpansionHunter \
-                --reference {local_fasta} \
-                --reads {local_bam} \
-                --variant-catalog {local_variant_catalog} \
-                --cache-mates \
-                --output-prefix {output_prefix}""")
-
+        s1.command(f"""/usr/bin/time --verbose {tool_exec} {cache_mates_arg} \
+            --reference {local_fasta} \
+            --reads {local_bam} \
+            --variant-catalog {local_variant_catalog} \
+            --output-prefix {output_prefix}""")
         s1.command("ls -lhrt")
+
         s1.output(f"{output_prefix}.json", output_dir=os.path.join(output_dir, f"json"))
 
         step1_output_json_paths.append(os.path.join(output_dir, f"json", f"{output_prefix}.json"))

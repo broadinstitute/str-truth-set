@@ -5,13 +5,13 @@ import re
 
 from step_pipeline import pipeline, Backend, Localize, Delocalize
 
-DOCKER_IMAGE = "weisburd/gangstr@sha256:bed6a056e2ae5043acaecf6e5b13a61c181ad2caadcecd47442e5ddff926ff5e"
+DOCKER_IMAGE = "weisburd/gangstr@sha256:a9ff55c211d1252655b0791b18d5c54cc0465accd9414c1ef3131a47565d8e26"
 
 REFERENCE_FASTA_PATH = "gs://gcp-public-data--broad-references/hg38/v0/Homo_sapiens_assembly38.fasta"
 REFERENCE_FASTA_FAI_PATH = "gs://gcp-public-data--broad-references/hg38/v0/Homo_sapiens_assembly38.fasta.fai"
 
 CHM1_CHM13_CRAM_PATH = "gs://broad-public-datasets/CHM1_CHM13_WGS2/CHM1_CHM13_WGS2.cram"
-CHM1_CHM13_CRAI_PATH = "gs://broad-public-datasets/CHM1_CHM13_WGS2/CHM1_CHM13_WGS2.cram.bai"
+CHM1_CHM13_CRAI_PATH = "gs://broad-public-datasets/CHM1_CHM13_WGS2/CHM1_CHM13_WGS2.cram.crai"
 
 REPEAT_SPECS_POSITIVE_LOCI = "gs://str-truth-set/hg38/variant_catalogs/gangstr/positive_loci.GangSTR.*_of_016.bed"
 REPEAT_SPECS_NEGATIVE_LOCI = "gs://str-truth-set/hg38/variant_catalogs/gangstr/negative_loci.GangSTR.*_of_016.bed"
@@ -27,9 +27,9 @@ def main():
     parser_group.add_argument("--positive-loci", action="store_true", help="Genotype truth set loci")
     parser_group.add_argument("--negative-loci", action="store_true", help="Genotype negative (hom-ref) loci")
     parser.add_argument("--reference-fasta", default=REFERENCE_FASTA_PATH)
-    parser.add_argument("--reference-fasta-fai")
+    parser.add_argument("--reference-fasta-fai", default=REFERENCE_FASTA_FAI_PATH)
     parser.add_argument("--input-bam", default=CHM1_CHM13_CRAM_PATH)
-    parser.add_argument("--input-bai")
+    parser.add_argument("--input-bai", default=CHM1_CHM13_CRAI_PATH)
     parser.add_argument("--output-dir", default=OUTPUT_BASE_DIR)
     parser.add_argument("-n", type=int, help="Only process the first n inputs. Useful for testing.")
     args = bp.parse_known_args()
@@ -43,7 +43,8 @@ def main():
     else:
         parser.error("Must specify either --positive-loci or --negative-loci")
 
-    bp.set_name(f"STR Truth Set: GangSTR  {positive_or_negative_loci}")
+    bam_path_ending = "/".join(args.input_bam.split("/")[-2:])
+    bp.set_name(f"STR Truth Set: GangSTR: {positive_or_negative_loci}: {bam_path_ending}")
     output_dir = os.path.join(args.output_dir, positive_or_negative_loci)
     if not args.force:
         json_paths = bp.precache_file_paths(os.path.join(output_dir, f"**/*.json"))
@@ -57,23 +58,23 @@ def main():
         if args.n and repeat_spec_i >= args.n:
             break
 
-        s1 = bp.new_step(f"Run GangSTR #{repeat_spec_i}", arg_suffix=f"gangstr", step_number=1, image=DOCKER_IMAGE, cpu=1)
+        s1 = bp.new_step(f"Run GangSTR #{repeat_spec_i}", arg_suffix=f"gangstr", step_number=1, image=DOCKER_IMAGE, cpu=2, storage="75Gi")
         step1s.append(s1)
 
-        local_fasta = s1.input(args.reference_fasta, localize_by=Localize.HAIL_BATCH_CLOUDFUSE)
+        local_fasta = s1.input(args.reference_fasta, localize_by=Localize.COPY)
         if args.reference_fasta_fai:
-            s1.input(args.reference_fasta_fai, localize_by=Localize.HAIL_BATCH_CLOUDFUSE)
+            s1.input(args.reference_fasta_fai, localize_by=Localize.COPY)
 
-        local_bam = s1.input(args.input_bam, localize_by=Localize.HAIL_BATCH_CLOUDFUSE)
+        local_bam = s1.input(args.input_bam, localize_by=Localize.COPY)
         if args.input_bai:
-            s1.input(args.input_bai, localize_by=Localize.HAIL_BATCH_CLOUDFUSE)
+            s1.input(args.input_bai, localize_by=Localize.COPY)
 
         local_repeat_spec = s1.input(repeat_spec_path)
 
         output_prefix = re.sub(".json$", "", local_repeat_spec.filename)
+        s1.command(f"echo Genotyping $(cat {local_repeat_spec} | wc -l) loci")
         s1.command("set -ex")
-
-        s1.command(f"""time GangSTR \
+        s1.command(f"""/usr/bin/time --verbose GangSTR \
             --ref {local_fasta} \
             --bam {local_bam} \
             --regions {local_repeat_spec} \

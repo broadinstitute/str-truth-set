@@ -5,6 +5,7 @@ RUN apt update && apt-get install --no-install-recommends -y \
     curl \
     wget \
     git \
+    time \
     autoconf \
     automake \
     libtool \
