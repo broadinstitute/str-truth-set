@@ -5,7 +5,7 @@ import re
 
 from step_pipeline import pipeline, Backend, Localize, Delocalize
 
-DOCKER_IMAGE = "weisburd/expansion-hunter@sha256:5242b1d8cf477824898f2e634cef49fb8f1430eba93612b478a605fb8215c5d1"
+DOCKER_IMAGE = "weisburd/expansion-hunter@sha256:610cb2838400a0a26e7a5c9aaea3b77bc745707d1c3543283eb09533e9927913"
 
 REFERENCE_FASTA_PATH = "gs://gcp-public-data--broad-references/hg38/v0/Homo_sapiens_assembly38.fasta"
 REFERENCE_FASTA_FAI_PATH = "gs://gcp-public-data--broad-references/hg38/v0/Homo_sapiens_assembly38.fasta.fai"
@@ -28,6 +28,10 @@ def main():
     parser_group.add_argument("--negative-loci", action="store_true", help="Genotype negative (hom-ref) loci")
     parser.add_argument("--use-illumina-expansion-hunter", action="store_true", help="Go back to using the Illumina "
          "version of ExpansionHunter instead of the optimized version from https://github.com/bw2/ExpansionHunter.git")
+    parser.add_argument("--loci-to-exclude", action="append", help="Path of a file containing locus ids (one per line) "
+        "to exclude from the variant catalogs before running ExpansionHunter. This can be useful when running with the "
+        "--use-illumina-expansion-hunter in order to first filter out the small number of loci that cause "
+        "ExpansionHunter to exit with the error message 'Flanks can contain at most 5 characters N but found x Ns.'")
     parser.add_argument("--reference-fasta", default=REFERENCE_FASTA_PATH)
     parser.add_argument("--reference-fasta-fai", default=REFERENCE_FASTA_FAI_PATH)
     parser.add_argument("--input-bam", default=CHM1_CHM13_CRAM_PATH)
@@ -54,6 +58,14 @@ def main():
         output_dir = os.path.join(args.output_dir, positive_or_negative_loci)
         cache_mates_arg = "--cache-mates "
 
+    loci_to_exclude = []
+    if args.loci_to_exclude:
+        for loci_to_exclude_file_path in args.loci_to_exclude:
+            with open(loci_to_exclude_file_path, "rt") as f:
+                for line in f:
+                    loci_to_exclude.append(line.strip())
+        print(f"Parsed {len(loci_to_exclude)} locus ids to exclude:", ", ".join(loci_to_exclude[:5]),
+              "..." if len(loci_to_exclude) > 5 else "")
 
     bam_path_ending = "/".join(args.input_bam.split("/")[-2:])
     bp.set_name(f"STR Truth Set: {tool_exec}: {positive_or_negative_loci}: {bam_path_ending}")
@@ -81,16 +93,28 @@ def main():
         if args.input_bai:
             s1.input(args.input_bai, localize_by=Localize.COPY)
 
+        s1.command("set -ex")
+
         local_variant_catalog = s1.input(variant_catalog_path)
+        if len(loci_to_exclude) > 0:
+            local_variant_catalog_path = f"filtered_{local_variant_catalog.filename}"
+
+            # add command to filter out excluded loci from variant catalog
+            jq_command = f"cat {local_variant_catalog} | "
+            jq_command += "jq '.[] | " + " | ".join([f'select(.LocusId != "{i}")' for i in loci_to_exclude]) + "' | "
+            jq_command += "jq -s '.' "  # reformat output into proper json
+            jq_command += f" > {local_variant_catalog_path}"
+            s1.command(jq_command)
+        else:
+            local_variant_catalog_path = str(local_variant_catalog)
 
         output_prefix = re.sub(".json$", "", local_variant_catalog.filename)
-        s1.command(f"echo Genotyping $(cat {local_variant_catalog} | grep LocusId | wc -l) loci")
-        s1.command("set -ex")
+        s1.command(f"echo Genotyping $(cat {local_variant_catalog_path} | grep LocusId | wc -l) loci")
 
         s1.command(f"""/usr/bin/time --verbose {tool_exec} {cache_mates_arg} \
             --reference {local_fasta} \
             --reads {local_bam} \
-            --variant-catalog {local_variant_catalog} \
+            --variant-catalog {local_variant_catalog_path} \
             --output-prefix {output_prefix}""")
         s1.command("ls -lhrt")
 

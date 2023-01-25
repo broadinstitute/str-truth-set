@@ -78,4 +78,6 @@ RUN wget -q https://github.com/Illumina/REViewer/releases/download/${REVIEWER_VE
 
 RUN python3 -m pip install str_analysis==0.9.15
 
+RUN apt-get install -y jq
+
 ENTRYPOINT ["/bin/bash"]
