@@ -222,10 +222,12 @@ def create_ehdn_output_record(ehdn_call):
         ehdn_output_record["EHdn Concordance With Truth Set"] = "Matching Expansion In Truth Set"
         ehdn_output_record["TruthSet NumRepeats"] = matching_truth_set_row["NumRepeatsLongAllele"]
         ehdn_output_record["TruthSet RepeatSize (bp)"] = matching_truth_set_row["RepeatSizeLongAllele (bp)"]
+        ehdn_output_record["TruthSet IsPureRepeat"] = matching_truth_set_row["IsPureRepeat"]
     else:
         ehdn_output_record["EHdn Concordance With Truth Set"] = "False Positive"
         ehdn_output_record["TruthSet NumRepeats"] = None
         ehdn_output_record["TruthSet RepeatSize (bp)"] = None
+        ehdn_output_record["TruthSet IsPureRepeat"] = None
 
     return ehdn_output_record
 
