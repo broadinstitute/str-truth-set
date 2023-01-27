@@ -16,19 +16,20 @@ function run_pipelines {
     output_dir=$3
     local_dir=$4
     run_illumina_expansion_hunter=$5
-
+    min_locus_coverage_arg=$6
+    
     # ExpansionHunterDenovo
     $debug python3 ./tool_comparison/hail_batch_pipelines/expansion_hunter_denovo_pipeline.py --input-bam ${input_bam} --input-bai ${input_bai} --output-dir ${output_dir}/expansion_hunter_denovo &
 
     # ExpansionHunter
-    $debug python3 ./tool_comparison/hail_batch_pipelines/expansion_hunter_pipeline.py  --positive-loci --input-bam ${input_bam} --input-bai ${input_bai} --output-dir ${output_dir}/expansion_hunter ${force} &
-    $debug python3 ./tool_comparison/hail_batch_pipelines/expansion_hunter_pipeline.py  --negative-loci --input-bam ${input_bam} --input-bai ${input_bai} --output-dir ${output_dir}/expansion_hunter ${force} &
+    $debug python3 ./tool_comparison/hail_batch_pipelines/expansion_hunter_pipeline.py  --positive-loci --input-bam ${input_bam} --input-bai ${input_bai} --output-dir ${output_dir}/expansion_hunter ${min_locus_coverage_arg} ${force} &
+    $debug python3 ./tool_comparison/hail_batch_pipelines/expansion_hunter_pipeline.py  --negative-loci --input-bam ${input_bam} --input-bai ${input_bai} --output-dir ${output_dir}/expansion_hunter ${min_locus_coverage_arg} ${force} &
 
     if [ "$run_illumina_expansion_hunter" == "yes" ]; then
 	$debug python3 ./tool_comparison/hail_batch_pipelines/expansion_hunter_pipeline.py  --use-illumina-expansion-hunter --loci-to-exclude ./tool_comparison/hail_batch_pipelines/truth_set_loci_that_cause_illumina_expansion_hunter_error.txt \
-	       --positive-loci --input-bam ${input_bam} --input-bai ${input_bai} --output-dir ${output_dir}/expansion_hunter ${force} &
+	       --positive-loci --input-bam ${input_bam} --input-bai ${input_bai} --output-dir ${output_dir}/expansion_hunter ${min_locus_coverage_arg}  ${force} &
 	$debug python3 ./tool_comparison/hail_batch_pipelines/expansion_hunter_pipeline.py  --use-illumina-expansion-hunter --loci-to-exclude ./tool_comparison/hail_batch_pipelines/negative_loci_that_cause_illumina_expansion_hunter_error.txt \
-	       --negative-loci --input-bam ${input_bam} --input-bai ${input_bai} --output-dir ${output_dir}/expansion_hunter ${force} &
+	       --negative-loci --input-bam ${input_bam} --input-bai ${input_bai} --output-dir ${output_dir}/expansion_hunter ${min_locus_coverage_arg}  ${force} &
     fi
 
     # GangSTR
@@ -65,10 +66,9 @@ run_pipelines \
   "gs://broad-public-datasets/CHM1_CHM13_WGS2/CHM1_CHM13_WGS2.cram.crai" \
   "gs://str-truth-set/hg38/tool_results" \
   "./tool_comparison/results" \
-  "yes"
+  "yes" \
+  ""
 
-
-exit 0
 
 # Run pipelines on exome data
 run_pipelines \
@@ -76,19 +76,26 @@ run_pipelines \
   "gs://broad-public-datasets/CHM1_CHM13_WES/CHMI_CHMI3_Nex1.cram.crai" \
   "gs://str-truth-set/hg38/tool_results_for_exome" \
   "./tool_comparison/results_for_exome" \
-  "yes"
-
+  "no" \
+  ""
 
 # Downsample
 for coverage in 30 20 10 5; do 
     $debug python3 ./tool_comparison/hail_batch_pipelines/downsample_bam_pipeline.py --verbose --target-coverage ${coverage} \
-	--output-dir gs://bw2-delete-after-5-days/ --input-bam gs://broad-public-datasets/CHM1_CHM13_WGS2/CHM1_CHM13_WGS2.cram
+	--output-dir gs://bw2-delete-after-15-days/ --input-bam gs://broad-public-datasets/CHM1_CHM13_WGS2/CHM1_CHM13_WGS2.cram
 
+    if [ "$coverage" == "10" ] || [ "$coverage" == "5" ]; then
+	min_locus_coverage="--min-locus-coverage 3"
+    else
+	min_locus_coverage=""
+    fi
+    
     # Rerun pipelines on downsampled bam
     run_pipelines \
-      "gs://bw2-delete-after-5-days/CHM1_CHM13_WGS2.downsampled_to_${coverage}x.bam" \
-      "gs://bw2-delete-after-5-days/CHM1_CHM13_WGS2.downsampled_to_${coverage}x.bam.bai" \
+      "gs://bw2-delete-after-15-days/CHM1_CHM13_WGS2.downsampled_to_${coverage}x.bam" \
+      "gs://bw2-delete-after-15-days/CHM1_CHM13_WGS2.downsampled_to_${coverage}x.bam.bai" \
       "gs://str-truth-set/hg38/tool_results_for_downsampled_${coverage}x_bam" \
       "./tool_comparison/results_for_downsampled_${coverage}x_bam" \
       "no"
+      "${min_locus_coverage}"
 done

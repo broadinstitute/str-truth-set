@@ -16,7 +16,7 @@ OUTPUT_BASE_DIR = "gs://str-truth-set/hg38/tool_results/expansion_hunter_denovo"
 MAX_REPEAT_UNIT_LENGTH = 50
 
 def main():
-    bp = pipeline("run ExpansionHunterDenovo", backend=Backend.HAIL_BATCH_SERVICE, config_file_path="~/.step_pipeline")
+    bp = pipeline(backend=Backend.HAIL_BATCH_SERVICE, config_file_path="~/.step_pipeline")
     parser = bp.get_config_arg_parser()
     parser.add_argument("--reference-fasta", default=REFERENCE_FASTA_PATH)
     parser.add_argument("--reference-fasta-fai")
@@ -24,6 +24,9 @@ def main():
     parser.add_argument("--input-bai")
     parser.add_argument("--output-dir", default=OUTPUT_BASE_DIR)
     args = bp.parse_known_args()
+
+    bam_path_ending = "/".join(args.input_bam.split("/")[-2:])
+    bp.set_name(f"STR Truth Set: ExpansionHunterDenovo: {bam_path_ending}")
 
     s1 = bp.new_step(image=EXPANSION_HUNTER_DENOVO_DOCKER_IMAGE, step_number=1, cpu=2, output_dir=args.output_dir)
     local_fasta = s1.input(args.reference_fasta, localize_by=Localize.HAIL_BATCH_CLOUDFUSE)

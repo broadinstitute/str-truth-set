@@ -36,6 +36,7 @@ def main():
     parser.add_argument("--reference-fasta-fai", default=REFERENCE_FASTA_FAI_PATH)
     parser.add_argument("--input-bam", default=CHM1_CHM13_CRAM_PATH)
     parser.add_argument("--input-bai", default=CHM1_CHM13_CRAI_PATH)
+    parser.add_argument("--min-locus-coverage", type=int, help="Sets ExpansionHunter's --min-locus-coverage arg")
     parser.add_argument("--output-dir", default=OUTPUT_BASE_DIR)
     parser.add_argument("-n", type=int, help="Only process the first n inputs. Useful for testing.")
     args = bp.parse_known_args()
@@ -57,6 +58,10 @@ def main():
         tool_exec = "ExpansionHunter"
         output_dir = os.path.join(args.output_dir, positive_or_negative_loci)
         cache_mates_arg = "--cache-mates "
+
+    min_locus_coverage_arg = ""
+    if args.min_locus_coverage is not None:
+        min_locus_coverage_arg = f"--min-locus-coverage {args.min_locus_coverage}"
 
     loci_to_exclude = []
     if args.loci_to_exclude:
@@ -111,7 +116,7 @@ def main():
         output_prefix = re.sub(".json$", "", local_variant_catalog.filename)
         s1.command(f"echo Genotyping $(cat {local_variant_catalog_path} | grep LocusId | wc -l) loci")
 
-        s1.command(f"""/usr/bin/time --verbose {tool_exec} {cache_mates_arg} \
+        s1.command(f"""/usr/bin/time --verbose {tool_exec} {cache_mates_arg} {min_locus_coverage_arg} \
             --reference {local_fasta} \
             --reads {local_bam} \
             --variant-catalog {local_variant_catalog_path} \
