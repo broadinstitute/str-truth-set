@@ -15,6 +15,7 @@ OUTPUT_BASE_DIR = "gs://str-truth-set/hg38/tool_results/expansion_hunter_denovo"
 
 MAX_REPEAT_UNIT_LENGTH = 50
 
+
 def main():
     bp = pipeline(backend=Backend.HAIL_BATCH_SERVICE, config_file_path="~/.step_pipeline")
     parser = bp.get_config_arg_parser()
