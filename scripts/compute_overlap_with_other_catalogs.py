@@ -252,6 +252,16 @@ def main():
                         "checking / troubleshooting results in IGV.",
                    action="store_true")
 
+    g = p.add_mutually_exclusive_group(required=True)
+    g.add_argument("--only-pure-repeats", action="store_true", help="Only include pure repeats from the truth set.")
+    g.add_argument("--only-interrupted-repeats", action="store_true", help="Only include interrupted repeats.")
+    g.add_argument("--all-repeats", action="store_true", help="Include both pure and interrupted repeats.")
+
+    g = p.add_mutually_exclusive_group(required=True)
+    g.add_argument("--only-2to6bp-motifs", action="store_true", help="Only include motifs of size 2 to 6bp.")
+    g.add_argument("--only-2to24bp-motifs", action="store_true", help="Only include motifs of size 2 to 24bp.")
+    g.add_argument("--all-motifs", action="store_true", help="Include both pure and interrupted repeats.")
+
     p.add_argument("-c", "--catalog", action="append", choices=list(OTHER_STR_CATALOGS) + list(GENOMIC_REGIONS),
                    help="The name of the genomic region or catalog to check overlap with. This option can be specified "
                         "more than once. If not specified, all available catalogs and region lists will be included.")
@@ -263,8 +273,25 @@ def main():
         truth_set_or_bed_df = pd.read_table(args.truth_set_tsv_or_bed_path, names=[
             "Chrom", "Start0Based", "End1Based", "Motif", "MotifSize"])
         truth_set_or_bed_df.loc[:, "Start1Based"] = truth_set_or_bed_df.Start0Based + 1
+        if args.only_pure_repeats:
+            p.error("Cannot specify --only-pure-repeats with a .bed file since there's not enough information to apply "
+                    "this filter.")
+        elif args.only_interrupted_repeats:
+            p.error("Cannot specify --only-interrupted-repeats with a .bed file since there's not enough information "
+                    "to apply this filter.")
+
     else:
         truth_set_or_bed_df = pd.read_table(args.truth_set_tsv_or_bed_path)
+        if args.only_pure_repeats:
+            truth_set_or_bed_df = truth_set_or_bed_df[truth_set_or_bed_df.IsPureRepeat == "Yes"]
+        elif args.only_interrupted_repeats:
+            truth_set_or_bed_df = truth_set_or_bed_df[truth_set_or_bed_df.IsPureRepeat == "No"]
+
+    if args.only_2to6bp_motifs:
+        truth_set_or_bed_df = truth_set_or_bed_df[truth_set_or_bed_df.MotifSize <= 6]
+    elif args.only_2to24bp_motifs:
+        truth_set_or_bed_df = truth_set_or_bed_df[truth_set_or_bed_df.MotifSize <= 24]
+
 
     if args.output_tsv:
         output_tsv_path = args.output_tsv
@@ -292,7 +319,8 @@ def main():
     # Iterate over all STR variants in the truth set and check overlap
     print(f"Processing rows from {args.truth_set_tsv_or_bed_path}")
     if args.show_progress_bar:
-        tqdm.tqdm(truth_set_or_bed_df.iterrows(), total=len(truth_set_or_bed_df), unit=" truth_set records")
+        truth_set_or_bed_df_row_iterator = tqdm.tqdm(
+            truth_set_or_bed_df.iterrows(), total=len(truth_set_or_bed_df), unit=" truth_set records")
     else:
         truth_set_or_bed_df_row_iterator = truth_set_or_bed_df.iterrows()
 

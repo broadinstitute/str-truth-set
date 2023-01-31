@@ -167,7 +167,7 @@ python3 -u -m str_analysis.filter_vcf_to_STR_variants \
 
 
 # generate overlap statistics before liftover
-python3 -u scripts/compute_overlap_with_other_catalogs.py ${output_prefix}.variants.tsv.gz  ${output_prefix}.variants.with_overlap_columns.tsv.gz -c IlluminaSTRCatalog -c GangSTRCatalog17 -c KnownDiseaseAssociatedSTRs
+python3 -u scripts/compute_overlap_with_other_catalogs.py --all-repeats --all-motifs ${output_prefix}.variants.tsv.gz  ${output_prefix}.variants.with_overlap_columns.tsv.gz -c IlluminaSTRCatalog -c GangSTRCatalog17 -c KnownDiseaseAssociatedSTRs
 
 set +x
 print_output_stats $input_vcf $output_vcf
@@ -288,8 +288,8 @@ python3 -u -m str_analysis.filter_vcf_to_STR_variants \
 
 # compute overlap with various reference annotations
 suffix=with_overlap_columns
-python3 -u scripts/compute_overlap_with_other_catalogs.py ${output_prefix}.variants.tsv.gz  ${output_prefix}.variants.${suffix}.tsv.gz &
-python3 -u scripts/compute_overlap_with_other_catalogs.py ${output_prefix}.alleles.tsv.gz  ${output_prefix}.alleles.${suffix}.tsv.gz &
+python3 -u scripts/compute_overlap_with_other_catalogs.py --all-repeats --all-motifs ${output_prefix}.variants.tsv.gz  ${output_prefix}.variants.${suffix}.tsv.gz &
+python3 -u scripts/compute_overlap_with_other_catalogs.py --all-repeats --all-motifs ${output_prefix}.alleles.tsv.gz  ${output_prefix}.alleles.${suffix}.tsv.gz &
 wait
 mv ${output_prefix}.variants.${suffix}.tsv.gz ${output_prefix}.variants.tsv.gz
 mv ${output_prefix}.alleles.${suffix}.tsv.gz  ${output_prefix}.alleles.tsv.gz
@@ -335,7 +335,7 @@ negative_loci_bed_path=tool_comparison/variant_catalogs/negative_loci.bed.gz
 output_prefix=tool_comparison/variant_catalogs/negative_loci
 
 suffix=with_overlap_columns
-python3 -u scripts/compute_overlap_with_other_catalogs.py ${negative_loci_bed_path}  ${output_prefix}.${suffix}.tsv.gz
+python3 -u scripts/compute_overlap_with_other_catalogs.py --all-repeats --all-motifs ${negative_loci_bed_path}  ${output_prefix}.${suffix}.tsv.gz
 mv ${output_prefix}.${suffix}.tsv.gz  ${output_prefix}.tsv.gz
 
 suffix=with_gencode_v42_columns
