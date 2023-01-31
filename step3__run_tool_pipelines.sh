@@ -96,6 +96,6 @@ for coverage in 30 20 10 5; do
       "gs://bw2-delete-after-15-days/CHM1_CHM13_WGS2.downsampled_to_${coverage}x.bam.bai" \
       "gs://str-truth-set/hg38/tool_results_for_downsampled_${coverage}x_bam" \
       "./tool_comparison/results_for_downsampled_${coverage}x_bam" \
-      "no"
+      "no" \
       "${min_locus_coverage}"
 done
