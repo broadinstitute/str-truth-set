@@ -33,7 +33,7 @@
       "categoryName": "CHM1-CHM13",
       "rows": [
         {
-          "name": "SynDip truth: raw VCF [Li 2018]",
+          "name": "SynDip truth: raw VCF",
           "data": [{"type": "vcf", "url": "gs://str-truth-set/hg38/ref/full.38.vcf.gz"}],
           "description": "Original truth data from [Li 2018]. This includes variants both within and outside of high-confidence regions."
         }, {
