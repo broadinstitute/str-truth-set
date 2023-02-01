@@ -444,7 +444,7 @@ def generate_all_distribution_by_num_repeats_plots(df, output_image_dir, plot_co
                         if skip_condition1:
                             message = "HipSTR doesn't support motif sizes larger than 9bp"
                         elif skip_condition2:
-                            message = "Not enough alleles"
+                            message = "Not enough alleles to create plot"
 
                         print(f"Skipping..  {message}")
                         plot_empty_image(
