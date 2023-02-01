@@ -1,5 +1,6 @@
 import argparse
 import matplotlib.pyplot as plt
+from matplotlib import patches
 import numpy as np
 import pandas as pd
 import seaborn as sns
@@ -194,9 +195,27 @@ def plot_distribution_by_motif_size(df, figure_title, output_image_path):
     print(figure_title)
     suptitle_artist = fig.suptitle(figure_title, fontsize=20, y=1.02)
 
-    print(f"Saved {output_image_path}")
     plt.savefig(f"{output_image_path}", bbox_extra_artists=(suptitle_artist,), bbox_inches="tight")
     plt.close()
+    print(f"Saved {output_image_path}")
+
+
+DISTRIBUTION_BY_NUM_REPEATS_FIGURE_SIZE = (20, 9)
+
+
+def plot_empty_image(figure_title, message):
+    fig, ax = plt.subplots(1, 1, figsize=DISTRIBUTION_BY_NUM_REPEATS_FIGURE_SIZE, dpi=80)
+    fig.suptitle(figure_title, fontsize=20)
+    ax.axis('off')
+    text = ax.text(0.5, 0.5, message, ha='center', va='center', fontsize=24)
+
+    plt.gcf().canvas.draw()
+
+    bbox = text.get_window_extent()
+    bbox = bbox.transformed(fig.dpi_scale_trans.inverted())
+
+    rect = patches.Rectangle(bbox.min, bbox.width, bbox.height, linewidth=1, edgecolor='black', facecolor='none', ls='dashed')
+    ax.add_patch(rect)
 
 
 def plot_distribution_by_num_repeats(
@@ -209,8 +228,7 @@ def plot_distribution_by_num_repeats(
         figure_title=None,
 ):
 
-    n_plots = 2
-    fig, axes = plt.subplots(1, n_plots, figsize=(n_plots*10, 9), dpi=80)
+    fig, axes = plt.subplots(1, 2, figsize=DISTRIBUTION_BY_NUM_REPEATS_FIGURE_SIZE, dpi=80)
 
     if figure_title:
         fig.suptitle(figure_title, fontsize=20)
@@ -347,14 +365,10 @@ def compute_tables_for_fraction_exactly_right_plots(df, coverage_values=("40x", 
 
 def generate_all_distribution_by_num_repeats_plots(df, output_image_dir, plot_counter, max_plots=None, verbose=False):
 
-    for motif_size in ("STR", "TR"):
+    for motif_size in ("STR", "TR", "TR2"):
         for pure_repeats in (True, False,):
             for coverage in ("40x", "30x", "20x", "10x", "05x", "exome", ):
                 for tool_label in ("ExpansionHunter", "GangSTR", "HipSTR"):  #"GangSTR__Q_over_0.8", "ExpansionHunter_Filtered":
-                    if tool_label == "HipSTR" and motif_size == "TR":
-                        # HipSTR doesn't support motifs larger than 9bp
-                        continue
-
                     if max_plots and plot_counter >= max_plots:
                         print(f"Exiting after generating {plot_counter} plot(s)")
                         sys.exit(0)
@@ -386,6 +400,10 @@ def generate_all_distribution_by_num_repeats_plots(df, output_image_dir, plot_co
                         filter_description.append(f"7bp to 24bp motifs")
                         output_image_filename += ".7to24bp_motifs"
                         df2 = df2[(7 <= df2["MotifSize"]) & (df2["MotifSize"] <= 24)]
+                    elif motif_size == "TR2":
+                        filter_description.append(f"25bp to 50bp motifs")
+                        output_image_filename += ".25to50bp_motifs"
+                        df2 = df2[(25 <= df2["MotifSize"]) & (df2["MotifSize"] <= 50)]
                     else:
                         raise ValueError(f"Unexpected motif_size value: {motif_size}")
 
@@ -414,13 +432,27 @@ def generate_all_distribution_by_num_repeats_plots(df, output_image_dir, plot_co
                         figure_title_line1 += f"{tool} Calls for {coverage_label}"
                         output_image_filename += f".{tool}"
 
-                    figure_title_line2 += f"Showing {len(df2):,d} total alleles at {len(set(df2.LocusId)):,d} loci (" + ", ".join(filter_description) + ")"
+                    figure_title_line2 += f"{len(df2):,d} total alleles at {len(set(df2.LocusId)):,d} loci (" + ", ".join(filter_description) + ")"
 
                     print(figure_title_line1)
                     print(figure_title_line2)
 
-                    if len(df2) < 1000:
-                        print(f"Skipping..  only {len(df)} total alleles")
+                    skip_condition1 = tool_label == "HipSTR" and motif_size != "STR"
+                    skip_condition2 = len(df2) < 10
+                    if skip_condition1 or skip_condition2:
+                        # HipSTR doesn't support motifs larger than 9bp
+                        if skip_condition1:
+                            message = "HipSTR doesn't support motif sizes larger than 9bp"
+                        elif skip_condition2:
+                            message = "Not enough alleles for plot"
+
+                        print(f"Skipping..  {message}")
+                        plot_empty_image(
+                            figure_title_line1 + "\n\n" + figure_title_line2,
+                        )
+                        plt.savefig(f"{output_image_dir}/{output_image_filename}.svg")
+                        print(f"Saved {output_image_dir}/{output_image_filename}.svg")
+                        plt.close()
                         continue
 
                     print("Keeping", len(df2), "out of ", len(df), "rows")
@@ -475,8 +507,8 @@ def generate_all_distribution_by_num_repeats_plots(df, output_image_dir, plot_co
                         )
 
                         for ext in ".svg", ".png":
-                            print(f"Saved {output_image_dir}/{output_image_filename}{ext}")
                             plt.savefig(f"{output_image_dir}/{output_image_filename}{ext}")
+                            print(f"Saved {output_image_dir}/{output_image_filename}{ext}")
                         plt.close()
 
                     except Exception as e:
@@ -510,6 +542,8 @@ def generate_fraction_exactly_right_plot(
         df = df[(2 <= df["MotifSize"]) & (df["MotifSize"] <= 6)]
     elif motif_size == "TR":
         df = df[(7 <= df["MotifSize"]) & (df["MotifSize"] <= 24)]
+    elif motif_size == "TR2":
+        df = df[(25 <= df["MotifSize"]) & (df["MotifSize"] <= 50)]
     else:
         raise ValueError(f"Unexpected motif_size value: {motif_size}")
 
@@ -547,6 +581,10 @@ def generate_fraction_exactly_right_plot(
             filter_description.append(f"7bp to 24bp motifs")
             #figure_title += f"7bp to 24bp motifs"
             filename_suffix += ".7to24bp_motifs"
+        elif motif_size == "TR2":
+            filter_description.append(f"25bp to 50bp motifs")
+            #figure_title += f"7bp to 24bp motifs"
+            filename_suffix += ".25to50bp_motifs"
         else:
             raise ValueError(f"Unexpected motif_size value: {motif_size}")
 
@@ -570,7 +608,7 @@ def generate_fraction_exactly_right_plot(
 
         figure_title = f"Accuracy of " + ", ".join(sorted(set([t.split(":")[0] for t in set(df2.tool)])))
         figure_title += "\n\n"
-        figure_title += f"at {len(set(df.LocusId)):,d} {motif_size} loci (" + ", ".join(filter_description) + ")"
+        figure_title += f"at {len(set(df.LocusId)):,d} {motif_size.strip('2')} loci (" + ", ".join(filter_description) + ")"
 
         print(figure_title.replace("\n", " "))
 
@@ -630,8 +668,8 @@ def generate_fraction_exactly_right_plot(
         output_image_filename = "tool_accuracy_by_true_allele_size_exactly_matching_calls"
 
         for ext in ".svg", ".png":
-            print(f"Saved {output_image_dir}/{output_image_filename}{filename_suffix}{ext}")
             plt.savefig(f"{output_image_dir}/{output_image_filename}{filename_suffix}{ext}", bbox_extra_artists=(suptitle_artist,), bbox_inches="tight")
+            print(f"Saved {output_image_dir}/{output_image_filename}{filename_suffix}{ext}")
 
         plt.close()
         plot_counter += 1
