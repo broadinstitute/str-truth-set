@@ -12,18 +12,18 @@
   "locus": "chr15:92,835,700-93,031,800",
   "rowsInCategories": [
     {
-      "categoryName": "Truth Set",
+      "categoryName": "STR Truth Set",
       "rows": [
         {
-          "name": "Truth Set BED",
+          "name": "STR Truth Set BED",
           "data": [{"type": "bed", "url": "gs://str-truth-set/hg38/STR_truthset.v1.variants.bed.gz"}]
         },
         {
-          "name": "Truth Set VCF",
+          "name": "STR Truth Set VCF",
           "data": [{"type": "vcf", "url": "gs://str-truth-set/hg38/STR_truthset.v1.vcf.gz"}]
         },
         {
-          "name": "Negative Loci",
+          "name": "STR Negative Loci",
           "description": "STR loci from the reference genome that were selected as true negatives.",
           "data": [{"type": "bed", "url": "gs://str-truth-set/hg38/negative_loci.bed.gz"}]
         }
@@ -33,11 +33,13 @@
       "categoryName": "CHM1-CHM13",
       "rows": [
         {
-          "name": "SynDip full truth set VCF",
-          "data": [{"type": "vcf", "url": "gs://str-truth-set/hg38/ref/full.38.vcf.gz"}]
+          "name": "SynDip truth: raw VCF [Li 2018]",
+          "data": [{"type": "vcf", "url": "gs://str-truth-set/hg38/ref/full.38.vcf.gz"}],
+          "description": "Original truth data from [Li 2018]. This includes variants both within and outside of high-confidence regions."
         }, {
-          "name": "SynDip confidence intervals",
-          "data": [{"type": "bed", "url": "gs://str-truth-set/hg38/ref/full.38.bed.gz"}]
+          "name": "SynDip truth: confidence regions",
+          "data": [{"type": "bed", "url": "gs://str-truth-set/hg38/ref/full.38.bed.gz"}],
+          "description": "Original high-confidence regions from [Li 2018]. Variants outside these regions have lower-quality genotypes."
         }, {
           "name": "CHM1-CHM13 genome",
           "data": [{"type": "alignment", "url": "gs://broad-public-datasets/CHM1_CHM13_WGS2/CHM1_CHM13_WGS2.cram"}]
