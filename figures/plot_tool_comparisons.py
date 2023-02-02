@@ -447,9 +447,7 @@ def generate_all_distribution_by_num_repeats_plots(df, output_image_dir, plot_co
                             message = "Not enough alleles to create plot"
 
                         print(f"Skipping..  {message}")
-                        plot_empty_image(
-                            figure_title_line1 + "\n\n" + figure_title_line2,
-                        )
+                        plot_empty_image(figure_title_line1 + "\n\n" + figure_title_line2, message)
                         plt.savefig(f"{output_image_dir}/{output_image_filename}.svg")
                         print(f"Saved {output_image_dir}/{output_image_filename}.svg")
                         plt.close()

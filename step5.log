@@ -1,8 +1,11 @@
+nohup: ignoring input
 + set -e
 + set -u
 + cd ./figures
-+ python3 plot_tool_comparisons.py --verbose
++ python3 -u plot_tool_comparisons.py --verbose
 Loading ../tool_comparison/combined.results.alleles.tsv
+plot_tool_comparisons.py:733: DtypeWarning: Columns (27,33,34,53,54) have mixed types.Specify dtype option on import or set low_memory=False.
+  main()
 Num loci:
 PositiveOrNegative  coverage  IsPureRepeat
 negative            05x       True            152072.0
@@ -29,25 +32,52 @@ Generating plots...
 Processed ExpansionHunter      --  92.6% of calls by ExpansionHunter @ 40x coverage were exactly correct for 208,491 alleles at 139,244 loci
 Processed GangSTR              --  91.0% of calls by GangSTR @ 40x coverage were exactly correct for 208,491 alleles at 139,244 loci
 Processed HipSTR               --  74.0% of calls by HipSTR @ 40x coverage were exactly correct for 208,491 alleles at 139,244 loci
-Processed ExpansionHunter      --  91.9% of calls by ExpansionHunter @ 30x coverage were exactly correct for 208,491 alleles at 139,244 loci
-Processed GangSTR              --  89.6% of calls by GangSTR @ 30x coverage were exactly correct for 208,491 alleles at 139,244 loci
+Processed ExpansionHunter      --  92.3% of calls by ExpansionHunter @ 30x coverage were exactly correct for 208,491 alleles at 139,244 loci
+Processed GangSTR              --  90.0% of calls by GangSTR @ 30x coverage were exactly correct for 208,491 alleles at 139,244 loci
 Processed HipSTR               --  74.0% of calls by HipSTR @ 30x coverage were exactly correct for 208,491 alleles at 139,244 loci
-Processed ExpansionHunter      --  90.9% of calls by ExpansionHunter @ 20x coverage were exactly correct for 208,491 alleles at 139,244 loci
-Processed GangSTR              --  87.1% of calls by GangSTR @ 20x coverage were exactly correct for 208,491 alleles at 139,244 loci
+Processed ExpansionHunter      --  91.5% of calls by ExpansionHunter @ 20x coverage were exactly correct for 208,491 alleles at 139,244 loci
+Processed GangSTR              --  87.5% of calls by GangSTR @ 20x coverage were exactly correct for 208,491 alleles at 139,244 loci
 Processed HipSTR               --  72.9% of calls by HipSTR @ 20x coverage were exactly correct for 208,491 alleles at 139,244 loci
-Processed ExpansionHunter      --  83.3% of calls by ExpansionHunter @ 10x coverage were exactly correct for 208,491 alleles at 139,244 loci
+Processed ExpansionHunter      --  88.0% of calls by ExpansionHunter @ 10x coverage were exactly correct for 208,491 alleles at 139,244 loci
 Processed GangSTR              --  76.1% of calls by GangSTR @ 10x coverage were exactly correct for 208,491 alleles at 139,244 loci
 Processed HipSTR               --  65.9% of calls by HipSTR @ 10x coverage were exactly correct for 208,491 alleles at 139,244 loci
-Processed ExpansionHunter      --  0.1% of calls by ExpansionHunter @ 05x coverage were exactly correct for 208,491 alleles at 139,244 loci
+Processed ExpansionHunter      --  80.9% of calls by ExpansionHunter @ 05x coverage were exactly correct for 208,491 alleles at 139,244 loci
 Processed GangSTR              --  53.5% of calls by GangSTR @ 05x coverage were exactly correct for 208,491 alleles at 139,244 loci
 Processed HipSTR               --  42.5% of calls by HipSTR @ 05x coverage were exactly correct for 208,491 alleles at 139,244 loci
-Accuracy of ExpansionHunter, GangSTR, HipSTR  at 139,244 STR loci (2bp to 6bp motifs, pure repeats only)
+Accuracy of ExpansionHunter, GangSTR, HipSTR  at 139,244 STR loci (2bp to 6bp motifs)
 Unable to parse hue value: HipSTR: list index out of range
 Unable to parse hue value: ExpansionHunter: list index out of range
 Unable to parse hue value: GangSTR: list index out of range
 Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size_exactly_matching_calls.2to6bp_motifs.pure_repeats.40x_coverage.svg
-Accuracy of ExpansionHunter, GangSTR  at 139,244 STR loci (2bp to 6bp motifs, pure repeats only)
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size_exactly_matching_calls.2to6bp_motifs.pure_repeats.40x_coverage.png
+Accuracy of ExpansionHunter, GangSTR  at 139,244 STR loci (2bp to 6bp motifs)
 Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size_exactly_matching_calls.2to6bp_motifs.pure_repeats.compare_different_coverages.svg
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size_exactly_matching_calls.2to6bp_motifs.pure_repeats.compare_different_coverages.png
+Discarded 30,394 (21.8%) of loci due to HipSTR no call
+Processed ExpansionHunter      --  96.1% of calls by ExpansionHunter @ 40x coverage were exactly correct for 165,006 alleles at 108,850 loci
+Processed GangSTR              --  95.5% of calls by GangSTR @ 40x coverage were exactly correct for 165,006 alleles at 108,850 loci
+Processed HipSTR               --  93.5% of calls by HipSTR @ 40x coverage were exactly correct for 165,006 alleles at 108,850 loci
+Processed ExpansionHunter      --  95.9% of calls by ExpansionHunter @ 30x coverage were exactly correct for 166,215 alleles at 109,665 loci
+Processed GangSTR              --  94.6% of calls by GangSTR @ 30x coverage were exactly correct for 166,215 alleles at 109,665 loci
+Processed HipSTR               --  92.8% of calls by HipSTR @ 30x coverage were exactly correct for 166,215 alleles at 109,665 loci
+Processed ExpansionHunter      --  95.3% of calls by ExpansionHunter @ 20x coverage were exactly correct for 166,946 alleles at 110,170 loci
+Processed GangSTR              --  92.5% of calls by GangSTR @ 20x coverage were exactly correct for 166,946 alleles at 110,170 loci
+Processed HipSTR               --  91.1% of calls by HipSTR @ 20x coverage were exactly correct for 166,946 alleles at 110,170 loci
+Processed ExpansionHunter      --  92.6% of calls by ExpansionHunter @ 10x coverage were exactly correct for 163,249 alleles at 107,730 loci
+Processed GangSTR              --  82.4% of calls by GangSTR @ 10x coverage were exactly correct for 163,249 alleles at 107,730 loci
+Processed HipSTR               --  84.2% of calls by HipSTR @ 10x coverage were exactly correct for 163,249 alleles at 107,730 loci
+Processed ExpansionHunter      --  89.5% of calls by ExpansionHunter @ 05x coverage were exactly correct for 115,964 alleles at 76,491 loci
+Processed GangSTR              --  67.9% of calls by GangSTR @ 05x coverage were exactly correct for 115,964 alleles at 76,491 loci
+Processed HipSTR               --  76.4% of calls by HipSTR @ 05x coverage were exactly correct for 115,964 alleles at 76,491 loci
+Accuracy of ExpansionHunter, GangSTR, HipSTR  at 113,987 STR loci (2bp to 6bp motifs, excluding HipSTR no-call loci)
+Unable to parse hue value: HipSTR: list index out of range
+Unable to parse hue value: ExpansionHunter: list index out of range
+Unable to parse hue value: GangSTR: list index out of range
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size_exactly_matching_calls.2to6bp_motifs.pure_repeats.40x_coverage.excluding_hipstr_no_call_loci.svg
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size_exactly_matching_calls.2to6bp_motifs.pure_repeats.40x_coverage.excluding_hipstr_no_call_loci.png
+Accuracy of ExpansionHunter, GangSTR  at 113,987 STR loci (2bp to 6bp motifs, excluding HipSTR no-call loci)
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size_exactly_matching_calls.2to6bp_motifs.pure_repeats.compare_different_coverages.excluding_hipstr_no_call_loci.svg
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size_exactly_matching_calls.2to6bp_motifs.pure_repeats.compare_different_coverages.excluding_hipstr_no_call_loci.png
 Accuracy by Motif Size (40x Coverage WGS Data)
 Saved ../tool_comparison/figures/tool_accuracy_by_motif_size.pure_repeats.40x.svg
 Accuracy by Motif Size (30x Coverage WGS Data)
@@ -62,416 +92,830 @@ Accuracy by Motif Size (Exome Data)
 Saved ../tool_comparison/figures/tool_accuracy_by_motif_size.pure_repeats.exome.svg
 ----------------------------------------------------------------------------------------------------
 ExpansionHunter Calls for 40x Coverage Genome Data
-Showing 208,491 total alleles at 139,244 loci (2bp to 6bp motifs, pure repeats only)
+208,491 total alleles at 139,244 loci (2bp to 6bp motifs)
 Keeping 208491 out of  3681780 rows
 ExpansionHunter 51 out of 208491 ExpansionHunter - Ref' values are NaN
 ExpansionHunter 51 out of 208491 ExpansionHunter - Truth' values are NaN
 Hue values: ['No Call', 'Called Hom Ref', 'Called Het Ref', 'Wrong Direction', '-21 or more', '-8 to -20', '-3 to -7', '-2', '-1', '0', '1', '2', '3 to 7', '8 to 20', '21 or more']
 Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.2to6bp_motifs.pure_repeats.40x.ExpansionHunter.svg
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.2to6bp_motifs.pure_repeats.40x.ExpansionHunter.png
 ----------------------------------------------------------------------------------------------------
 GangSTR Calls for 40x Coverage Genome Data
-Showing 208,491 total alleles at 139,244 loci (2bp to 6bp motifs, pure repeats only)
+208,491 total alleles at 139,244 loci (2bp to 6bp motifs)
 Keeping 208491 out of  3681780 rows
 GangSTR 140 out of 208491 GangSTR - Ref' values are NaN
 GangSTR 140 out of 208491 GangSTR - Truth' values are NaN
 Hue values: ['No Call', 'Called Hom Ref', 'Called Het Ref', 'Wrong Direction', '-21 or more', '-8 to -20', '-3 to -7', '-2', '-1', '0', '1', '2', '3 to 7', '8 to 20', '21 or more']
 Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.2to6bp_motifs.pure_repeats.40x.GangSTR.svg
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.2to6bp_motifs.pure_repeats.40x.GangSTR.png
 ----------------------------------------------------------------------------------------------------
 HipSTR Calls for 40x Coverage Genome Data
-Showing 208,491 total alleles at 139,244 loci (2bp to 6bp motifs, pure repeats only)
+208,491 total alleles at 139,244 loci (2bp to 6bp motifs)
 Keeping 208491 out of  3681780 rows
 HipSTR 43485 out of 208491 HipSTR - Ref' values are NaN
 HipSTR 43485 out of 208491 HipSTR - Truth' values are NaN
 Hue values: ['No Call', 'Called Hom Ref', 'Called Het Ref', 'Wrong Direction', '-21 or more', '-8 to -20', '-3 to -7', '-2', '-1', '0', '1', '2', '3 to 7', '8 to 20', '21 or more']
 Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.2to6bp_motifs.pure_repeats.40x.HipSTR.svg
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.2to6bp_motifs.pure_repeats.40x.HipSTR.png
 ----------------------------------------------------------------------------------------------------
 ExpansionHunter Calls for 30x Coverage Genome Data
-Showing 208,491 total alleles at 139,244 loci (2bp to 6bp motifs, pure repeats only)
+208,491 total alleles at 139,244 loci (2bp to 6bp motifs)
 Keeping 208491 out of  3681780 rows
-ExpansionHunter 502 out of 208491 ExpansionHunter - Ref' values are NaN
-ExpansionHunter 502 out of 208491 ExpansionHunter - Truth' values are NaN
+ExpansionHunter 55 out of 208491 ExpansionHunter - Ref' values are NaN
+ExpansionHunter 55 out of 208491 ExpansionHunter - Truth' values are NaN
 Hue values: ['No Call', 'Called Hom Ref', 'Called Het Ref', 'Wrong Direction', '-21 or more', '-8 to -20', '-3 to -7', '-2', '-1', '0', '1', '2', '3 to 7', '8 to 20', '21 or more']
 Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.2to6bp_motifs.pure_repeats.30x.ExpansionHunter.svg
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.2to6bp_motifs.pure_repeats.30x.ExpansionHunter.png
 ----------------------------------------------------------------------------------------------------
 GangSTR Calls for 30x Coverage Genome Data
-Showing 208,491 total alleles at 139,244 loci (2bp to 6bp motifs, pure repeats only)
+208,491 total alleles at 139,244 loci (2bp to 6bp motifs)
 Keeping 208491 out of  3681780 rows
-GangSTR 251 out of 208491 GangSTR - Ref' values are NaN
-GangSTR 251 out of 208491 GangSTR - Truth' values are NaN
+GangSTR 154 out of 208491 GangSTR - Ref' values are NaN
+GangSTR 154 out of 208491 GangSTR - Truth' values are NaN
 Hue values: ['No Call', 'Called Hom Ref', 'Called Het Ref', 'Wrong Direction', '-21 or more', '-8 to -20', '-3 to -7', '-2', '-1', '0', '1', '2', '3 to 7', '8 to 20', '21 or more']
 Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.2to6bp_motifs.pure_repeats.30x.GangSTR.svg
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.2to6bp_motifs.pure_repeats.30x.GangSTR.png
 ----------------------------------------------------------------------------------------------------
 HipSTR Calls for 30x Coverage Genome Data
-Showing 208,491 total alleles at 139,244 loci (2bp to 6bp motifs, pure repeats only)
+208,491 total alleles at 139,244 loci (2bp to 6bp motifs)
 Keeping 208491 out of  3681780 rows
 HipSTR 42276 out of 208491 HipSTR - Ref' values are NaN
 HipSTR 42276 out of 208491 HipSTR - Truth' values are NaN
 Hue values: ['No Call', 'Called Hom Ref', 'Called Het Ref', 'Wrong Direction', '-21 or more', '-8 to -20', '-3 to -7', '-2', '-1', '0', '1', '2', '3 to 7', '8 to 20', '21 or more']
 Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.2to6bp_motifs.pure_repeats.30x.HipSTR.svg
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.2to6bp_motifs.pure_repeats.30x.HipSTR.png
 ----------------------------------------------------------------------------------------------------
 ExpansionHunter Calls for 20x Coverage Genome Data
-Showing 208,491 total alleles at 139,244 loci (2bp to 6bp motifs, pure repeats only)
+208,491 total alleles at 139,244 loci (2bp to 6bp motifs)
 Keeping 208491 out of  3681780 rows
-ExpansionHunter 951 out of 208491 ExpansionHunter - Ref' values are NaN
-ExpansionHunter 951 out of 208491 ExpansionHunter - Truth' values are NaN
+ExpansionHunter 83 out of 208491 ExpansionHunter - Ref' values are NaN
+ExpansionHunter 83 out of 208491 ExpansionHunter - Truth' values are NaN
 Hue values: ['No Call', 'Called Hom Ref', 'Called Het Ref', 'Wrong Direction', '-21 or more', '-8 to -20', '-3 to -7', '-2', '-1', '0', '1', '2', '3 to 7', '8 to 20', '21 or more']
 Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.2to6bp_motifs.pure_repeats.20x.ExpansionHunter.svg
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.2to6bp_motifs.pure_repeats.20x.ExpansionHunter.png
 ----------------------------------------------------------------------------------------------------
 GangSTR Calls for 20x Coverage Genome Data
-Showing 208,491 total alleles at 139,244 loci (2bp to 6bp motifs, pure repeats only)
+208,491 total alleles at 139,244 loci (2bp to 6bp motifs)
 Keeping 208491 out of  3681780 rows
-GangSTR 485 out of 208491 GangSTR - Ref' values are NaN
-GangSTR 485 out of 208491 GangSTR - Truth' values are NaN
+GangSTR 264 out of 208491 GangSTR - Ref' values are NaN
+GangSTR 264 out of 208491 GangSTR - Truth' values are NaN
 Hue values: ['No Call', 'Called Hom Ref', 'Called Het Ref', 'Wrong Direction', '-21 or more', '-8 to -20', '-3 to -7', '-2', '-1', '0', '1', '2', '3 to 7', '8 to 20', '21 or more']
 Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.2to6bp_motifs.pure_repeats.20x.GangSTR.svg
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.2to6bp_motifs.pure_repeats.20x.GangSTR.png
 ----------------------------------------------------------------------------------------------------
 HipSTR Calls for 20x Coverage Genome Data
-Showing 208,491 total alleles at 139,244 loci (2bp to 6bp motifs, pure repeats only)
+208,491 total alleles at 139,244 loci (2bp to 6bp motifs)
 Keeping 208491 out of  3681780 rows
 HipSTR 41545 out of 208491 HipSTR - Ref' values are NaN
 HipSTR 41545 out of 208491 HipSTR - Truth' values are NaN
 Hue values: ['No Call', 'Called Hom Ref', 'Called Het Ref', 'Wrong Direction', '-21 or more', '-8 to -20', '-3 to -7', '-2', '-1', '0', '1', '2', '3 to 7', '8 to 20', '21 or more']
 Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.2to6bp_motifs.pure_repeats.20x.HipSTR.svg
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.2to6bp_motifs.pure_repeats.20x.HipSTR.png
 ----------------------------------------------------------------------------------------------------
 ExpansionHunter Calls for 10x Coverage Genome Data
-Showing 208,491 total alleles at 139,244 loci (2bp to 6bp motifs, pure repeats only)
+208,491 total alleles at 139,244 loci (2bp to 6bp motifs)
 Keeping 208491 out of  3681780 rows
-ExpansionHunter 12344 out of 208491 ExpansionHunter - Ref' values are NaN
-ExpansionHunter 12344 out of 208491 ExpansionHunter - Truth' values are NaN
+ExpansionHunter 53 out of 208491 ExpansionHunter - Ref' values are NaN
+ExpansionHunter 53 out of 208491 ExpansionHunter - Truth' values are NaN
 Hue values: ['No Call', 'Called Hom Ref', 'Called Het Ref', 'Wrong Direction', '-21 or more', '-8 to -20', '-3 to -7', '-2', '-1', '0', '1', '2', '3 to 7', '8 to 20', '21 or more']
 Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.2to6bp_motifs.pure_repeats.10x.ExpansionHunter.svg
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.2to6bp_motifs.pure_repeats.10x.ExpansionHunter.png
 ----------------------------------------------------------------------------------------------------
 GangSTR Calls for 10x Coverage Genome Data
-Showing 208,491 total alleles at 139,244 loci (2bp to 6bp motifs, pure repeats only)
+208,491 total alleles at 139,244 loci (2bp to 6bp motifs)
 Keeping 208491 out of  3681780 rows
-GangSTR 1178 out of 208491 GangSTR - Ref' values are NaN
-GangSTR 1178 out of 208491 GangSTR - Truth' values are NaN
+GangSTR 1177 out of 208491 GangSTR - Ref' values are NaN
+GangSTR 1177 out of 208491 GangSTR - Truth' values are NaN
 Hue values: ['No Call', 'Called Hom Ref', 'Called Het Ref', 'Wrong Direction', '-21 or more', '-8 to -20', '-3 to -7', '-2', '-1', '0', '1', '2', '3 to 7', '8 to 20', '21 or more']
 Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.2to6bp_motifs.pure_repeats.10x.GangSTR.svg
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.2to6bp_motifs.pure_repeats.10x.GangSTR.png
 ----------------------------------------------------------------------------------------------------
 HipSTR Calls for 10x Coverage Genome Data
-Showing 208,491 total alleles at 139,244 loci (2bp to 6bp motifs, pure repeats only)
+208,491 total alleles at 139,244 loci (2bp to 6bp motifs)
 Keeping 208491 out of  3681780 rows
 HipSTR 45242 out of 208491 HipSTR - Ref' values are NaN
 HipSTR 45242 out of 208491 HipSTR - Truth' values are NaN
 Hue values: ['No Call', 'Called Hom Ref', 'Called Het Ref', 'Wrong Direction', '-21 or more', '-8 to -20', '-3 to -7', '-2', '-1', '0', '1', '2', '3 to 7', '8 to 20', '21 or more']
 Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.2to6bp_motifs.pure_repeats.10x.HipSTR.svg
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.2to6bp_motifs.pure_repeats.10x.HipSTR.png
 ----------------------------------------------------------------------------------------------------
 ExpansionHunter Calls for 05x Coverage Genome Data
-Showing 208,491 total alleles at 139,244 loci (2bp to 6bp motifs, pure repeats only)
+208,491 total alleles at 139,244 loci (2bp to 6bp motifs)
 Keeping 208491 out of  3681780 rows
-ExpansionHunter 208051 out of 208491 ExpansionHunter - Ref' values are NaN
-ExpansionHunter 208051 out of 208491 ExpansionHunter - Truth' values are NaN
-Hue values: ['No Call', 'Called Hom Ref', 'Called Het Ref', 'Wrong Direction', '-8 to -20', '-3 to -7', '-2', '-1', '0', '1', '2', '3 to 7', '8 to 20', '21 or more']
+ExpansionHunter 172 out of 208491 ExpansionHunter - Ref' values are NaN
+ExpansionHunter 172 out of 208491 ExpansionHunter - Truth' values are NaN
+Hue values: ['No Call', 'Called Hom Ref', 'Called Het Ref', 'Wrong Direction', '-21 or more', '-8 to -20', '-3 to -7', '-2', '-1', '0', '1', '2', '3 to 7', '8 to 20', '21 or more']
 Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.2to6bp_motifs.pure_repeats.05x.ExpansionHunter.svg
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.2to6bp_motifs.pure_repeats.05x.ExpansionHunter.png
 ----------------------------------------------------------------------------------------------------
 GangSTR Calls for 05x Coverage Genome Data
-Showing 208,491 total alleles at 139,244 loci (2bp to 6bp motifs, pure repeats only)
+208,491 total alleles at 139,244 loci (2bp to 6bp motifs)
 Keeping 208491 out of  3681780 rows
-GangSTR 6154 out of 208491 GangSTR - Ref' values are NaN
-GangSTR 6154 out of 208491 GangSTR - Truth' values are NaN
+GangSTR 6171 out of 208491 GangSTR - Ref' values are NaN
+GangSTR 6171 out of 208491 GangSTR - Truth' values are NaN
 Hue values: ['No Call', 'Called Hom Ref', 'Called Het Ref', 'Wrong Direction', '-21 or more', '-8 to -20', '-3 to -7', '-2', '-1', '0', '1', '2', '3 to 7', '8 to 20', '21 or more']
 Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.2to6bp_motifs.pure_repeats.05x.GangSTR.svg
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.2to6bp_motifs.pure_repeats.05x.GangSTR.png
 ----------------------------------------------------------------------------------------------------
 HipSTR Calls for 05x Coverage Genome Data
-Showing 208,491 total alleles at 139,244 loci (2bp to 6bp motifs, pure repeats only)
+208,491 total alleles at 139,244 loci (2bp to 6bp motifs)
 Keeping 208491 out of  3681780 rows
 HipSTR 92527 out of 208491 HipSTR - Ref' values are NaN
 HipSTR 92527 out of 208491 HipSTR - Truth' values are NaN
 Hue values: ['No Call', 'Called Hom Ref', 'Called Het Ref', 'Wrong Direction', '-8 to -20', '-3 to -7', '-2', '-1', '0', '1', '2', '3 to 7', '8 to 20', '21 or more']
 Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.2to6bp_motifs.pure_repeats.05x.HipSTR.svg
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.2to6bp_motifs.pure_repeats.05x.HipSTR.png
 ----------------------------------------------------------------------------------------------------
 ExpansionHunter Calls for Exome Data
-Showing 2,564 total alleles at 1,766 loci (2bp to 6bp motifs, pure repeats only)
+2,564 total alleles at 1,766 loci (2bp to 6bp motifs)
 Keeping 2564 out of  3681780 rows
 ExpansionHunter 845 out of 2564 ExpansionHunter - Ref' values are NaN
 ExpansionHunter 845 out of 2564 ExpansionHunter - Truth' values are NaN
 Hue values: ['No Call', 'Called Hom Ref', 'Called Het Ref', 'Wrong Direction', '-21 or more', '-8 to -20', '-3 to -7', '-2', '-1', '0', '1', '2', '3 to 7', '8 to 20']
 Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.2to6bp_motifs.pure_repeats.exome.ExpansionHunter.svg
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.2to6bp_motifs.pure_repeats.exome.ExpansionHunter.png
 ----------------------------------------------------------------------------------------------------
 GangSTR Calls for Exome Data
-Showing 2,564 total alleles at 1,766 loci (2bp to 6bp motifs, pure repeats only)
+2,564 total alleles at 1,766 loci (2bp to 6bp motifs)
 Keeping 2564 out of  3681780 rows
-GangSTR 548 out of 2564 GangSTR - Ref' values are NaN
-GangSTR 548 out of 2564 GangSTR - Truth' values are NaN
+GangSTR 550 out of 2564 GangSTR - Ref' values are NaN
+GangSTR 550 out of 2564 GangSTR - Truth' values are NaN
 Hue values: ['No Call', 'Called Hom Ref', 'Called Het Ref', 'Wrong Direction', '-21 or more', '-8 to -20', '-3 to -7', '-2', '-1', '0', '1', '2', '3 to 7', '8 to 20', '21 or more']
 Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.2to6bp_motifs.pure_repeats.exome.GangSTR.svg
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.2to6bp_motifs.pure_repeats.exome.GangSTR.png
 ----------------------------------------------------------------------------------------------------
 HipSTR Calls for Exome Data
-Showing 2,564 total alleles at 1,766 loci (2bp to 6bp motifs, pure repeats only)
+2,564 total alleles at 1,766 loci (2bp to 6bp motifs)
 Keeping 2564 out of  3681780 rows
 HipSTR 1591 out of 2564 HipSTR - Ref' values are NaN
 HipSTR 1591 out of 2564 HipSTR - Truth' values are NaN
 Hue values: ['No Call', 'Called Hom Ref', 'Called Het Ref', 'Wrong Direction', '-8 to -20', '-2', '-1', '0', '1', '2', '3 to 7']
 Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.2to6bp_motifs.pure_repeats.exome.HipSTR.svg
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.2to6bp_motifs.pure_repeats.exome.HipSTR.png
 ----------------------------------------------------------------------------------------------------
 ExpansionHunter Calls for 40x Coverage Genome Data
-Showing 12,073 total alleles at 9,150 loci (2bp to 6bp motifs, only repeats with interruptions)
+12,073 total alleles at 9,150 loci (2bp to 6bp motifs, repeats with interruptions)
 Keeping 12073 out of  3681780 rows
 ExpansionHunter 16 out of 12073 ExpansionHunter - Ref' values are NaN
 ExpansionHunter 16 out of 12073 ExpansionHunter - Truth' values are NaN
 Hue values: ['No Call', 'Called Hom Ref', 'Called Het Ref', 'Wrong Direction', '-21 or more', '-8 to -20', '-3 to -7', '-2', '-1', '0', '1', '2', '3 to 7', '8 to 20', '21 or more']
 Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.2to6bp_motifs.with_interruptions.40x.ExpansionHunter.svg
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.2to6bp_motifs.with_interruptions.40x.ExpansionHunter.png
 ----------------------------------------------------------------------------------------------------
 GangSTR Calls for 40x Coverage Genome Data
-Showing 12,073 total alleles at 9,150 loci (2bp to 6bp motifs, only repeats with interruptions)
+12,073 total alleles at 9,150 loci (2bp to 6bp motifs, repeats with interruptions)
 Keeping 12073 out of  3681780 rows
 GangSTR 42 out of 12073 GangSTR - Ref' values are NaN
 GangSTR 42 out of 12073 GangSTR - Truth' values are NaN
 Hue values: ['No Call', 'Called Hom Ref', 'Called Het Ref', 'Wrong Direction', '-21 or more', '-8 to -20', '-3 to -7', '-2', '-1', '0', '1', '2', '3 to 7', '8 to 20']
 Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.2to6bp_motifs.with_interruptions.40x.GangSTR.svg
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.2to6bp_motifs.with_interruptions.40x.GangSTR.png
 ----------------------------------------------------------------------------------------------------
 HipSTR Calls for 40x Coverage Genome Data
-Showing 12,073 total alleles at 9,150 loci (2bp to 6bp motifs, only repeats with interruptions)
+12,073 total alleles at 9,150 loci (2bp to 6bp motifs, repeats with interruptions)
 Keeping 12073 out of  3681780 rows
 HipSTR 4972 out of 12073 HipSTR - Ref' values are NaN
 HipSTR 4972 out of 12073 HipSTR - Truth' values are NaN
 Hue values: ['No Call', 'Called Hom Ref', 'Called Het Ref', 'Wrong Direction', '-21 or more', '-8 to -20', '-3 to -7', '-2', '-1', '0', '1', '2', '3 to 7']
 Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.2to6bp_motifs.with_interruptions.40x.HipSTR.svg
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.2to6bp_motifs.with_interruptions.40x.HipSTR.png
 ----------------------------------------------------------------------------------------------------
 ExpansionHunter Calls for 30x Coverage Genome Data
-Showing 12,073 total alleles at 9,150 loci (2bp to 6bp motifs, only repeats with interruptions)
+12,073 total alleles at 9,150 loci (2bp to 6bp motifs, repeats with interruptions)
 Keeping 12073 out of  3681780 rows
-ExpansionHunter 44 out of 12073 ExpansionHunter - Ref' values are NaN
-ExpansionHunter 44 out of 12073 ExpansionHunter - Truth' values are NaN
+ExpansionHunter 19 out of 12073 ExpansionHunter - Ref' values are NaN
+ExpansionHunter 19 out of 12073 ExpansionHunter - Truth' values are NaN
 Hue values: ['No Call', 'Called Hom Ref', 'Called Het Ref', 'Wrong Direction', '-21 or more', '-8 to -20', '-3 to -7', '-2', '-1', '0', '1', '2', '3 to 7', '8 to 20', '21 or more']
 Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.2to6bp_motifs.with_interruptions.30x.ExpansionHunter.svg
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.2to6bp_motifs.with_interruptions.30x.ExpansionHunter.png
 ----------------------------------------------------------------------------------------------------
 GangSTR Calls for 30x Coverage Genome Data
-Showing 12,073 total alleles at 9,150 loci (2bp to 6bp motifs, only repeats with interruptions)
+12,073 total alleles at 9,150 loci (2bp to 6bp motifs, repeats with interruptions)
 Keeping 12073 out of  3681780 rows
-GangSTR 50 out of 12073 GangSTR - Ref' values are NaN
-GangSTR 50 out of 12073 GangSTR - Truth' values are NaN
+GangSTR 54 out of 12073 GangSTR - Ref' values are NaN
+GangSTR 54 out of 12073 GangSTR - Truth' values are NaN
 Hue values: ['No Call', 'Called Hom Ref', 'Called Het Ref', 'Wrong Direction', '-21 or more', '-8 to -20', '-3 to -7', '-2', '-1', '0', '1', '2', '3 to 7', '8 to 20', '21 or more']
 Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.2to6bp_motifs.with_interruptions.30x.GangSTR.svg
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.2to6bp_motifs.with_interruptions.30x.GangSTR.png
 ----------------------------------------------------------------------------------------------------
 HipSTR Calls for 30x Coverage Genome Data
-Showing 12,073 total alleles at 9,150 loci (2bp to 6bp motifs, only repeats with interruptions)
+12,073 total alleles at 9,150 loci (2bp to 6bp motifs, repeats with interruptions)
 Keeping 12073 out of  3681780 rows
 HipSTR 4928 out of 12073 HipSTR - Ref' values are NaN
 HipSTR 4928 out of 12073 HipSTR - Truth' values are NaN
 Hue values: ['No Call', 'Called Hom Ref', 'Called Het Ref', 'Wrong Direction', '-21 or more', '-8 to -20', '-3 to -7', '-2', '-1', '0', '1', '2', '3 to 7']
 Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.2to6bp_motifs.with_interruptions.30x.HipSTR.svg
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.2to6bp_motifs.with_interruptions.30x.HipSTR.png
 ----------------------------------------------------------------------------------------------------
 ExpansionHunter Calls for 20x Coverage Genome Data
-Showing 12,073 total alleles at 9,150 loci (2bp to 6bp motifs, only repeats with interruptions)
+12,073 total alleles at 9,150 loci (2bp to 6bp motifs, repeats with interruptions)
 Keeping 12073 out of  3681780 rows
-ExpansionHunter 85 out of 12073 ExpansionHunter - Ref' values are NaN
-ExpansionHunter 85 out of 12073 ExpansionHunter - Truth' values are NaN
+ExpansionHunter 25 out of 12073 ExpansionHunter - Ref' values are NaN
+ExpansionHunter 25 out of 12073 ExpansionHunter - Truth' values are NaN
 Hue values: ['No Call', 'Called Hom Ref', 'Called Het Ref', 'Wrong Direction', '-21 or more', '-8 to -20', '-3 to -7', '-2', '-1', '0', '1', '2', '3 to 7', '8 to 20', '21 or more']
 Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.2to6bp_motifs.with_interruptions.20x.ExpansionHunter.svg
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.2to6bp_motifs.with_interruptions.20x.ExpansionHunter.png
 ----------------------------------------------------------------------------------------------------
 GangSTR Calls for 20x Coverage Genome Data
-Showing 12,073 total alleles at 9,150 loci (2bp to 6bp motifs, only repeats with interruptions)
+12,073 total alleles at 9,150 loci (2bp to 6bp motifs, repeats with interruptions)
 Keeping 12073 out of  3681780 rows
-GangSTR 87 out of 12073 GangSTR - Ref' values are NaN
-GangSTR 87 out of 12073 GangSTR - Truth' values are NaN
+GangSTR 83 out of 12073 GangSTR - Ref' values are NaN
+GangSTR 83 out of 12073 GangSTR - Truth' values are NaN
 Hue values: ['No Call', 'Called Hom Ref', 'Called Het Ref', 'Wrong Direction', '-21 or more', '-8 to -20', '-3 to -7', '-2', '-1', '0', '1', '2', '3 to 7', '8 to 20', '21 or more']
 Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.2to6bp_motifs.with_interruptions.20x.GangSTR.svg
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.2to6bp_motifs.with_interruptions.20x.GangSTR.png
 ----------------------------------------------------------------------------------------------------
 HipSTR Calls for 20x Coverage Genome Data
-Showing 12,073 total alleles at 9,150 loci (2bp to 6bp motifs, only repeats with interruptions)
+12,073 total alleles at 9,150 loci (2bp to 6bp motifs, repeats with interruptions)
 Keeping 12073 out of  3681780 rows
 HipSTR 4926 out of 12073 HipSTR - Ref' values are NaN
 HipSTR 4926 out of 12073 HipSTR - Truth' values are NaN
 Hue values: ['No Call', 'Called Hom Ref', 'Called Het Ref', 'Wrong Direction', '-21 or more', '-8 to -20', '-3 to -7', '-2', '-1', '0', '1', '2', '3 to 7']
 Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.2to6bp_motifs.with_interruptions.20x.HipSTR.svg
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.2to6bp_motifs.with_interruptions.20x.HipSTR.png
 ----------------------------------------------------------------------------------------------------
 ExpansionHunter Calls for 10x Coverage Genome Data
-Showing 12,073 total alleles at 9,150 loci (2bp to 6bp motifs, only repeats with interruptions)
+12,073 total alleles at 9,150 loci (2bp to 6bp motifs, repeats with interruptions)
 Keeping 12073 out of  3681780 rows
-ExpansionHunter 749 out of 12073 ExpansionHunter - Ref' values are NaN
-ExpansionHunter 749 out of 12073 ExpansionHunter - Truth' values are NaN
+ExpansionHunter 19 out of 12073 ExpansionHunter - Ref' values are NaN
+ExpansionHunter 19 out of 12073 ExpansionHunter - Truth' values are NaN
 Hue values: ['No Call', 'Called Hom Ref', 'Called Het Ref', 'Wrong Direction', '-21 or more', '-8 to -20', '-3 to -7', '-2', '-1', '0', '1', '2', '3 to 7', '8 to 20', '21 or more']
 Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.2to6bp_motifs.with_interruptions.10x.ExpansionHunter.svg
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.2to6bp_motifs.with_interruptions.10x.ExpansionHunter.png
 ----------------------------------------------------------------------------------------------------
 GangSTR Calls for 10x Coverage Genome Data
-Showing 12,073 total alleles at 9,150 loci (2bp to 6bp motifs, only repeats with interruptions)
+12,073 total alleles at 9,150 loci (2bp to 6bp motifs, repeats with interruptions)
 Keeping 12073 out of  3681780 rows
 GangSTR 260 out of 12073 GangSTR - Ref' values are NaN
 GangSTR 260 out of 12073 GangSTR - Truth' values are NaN
-Hue values: ['No Call', 'Called Hom Ref', 'Called Het Ref', 'Wrong Direction', '-21 or more', '-8 to -20', '-3 to -7', '-2', '-1', '0', '1', '2', '3 to 7', '8 to 20']
+Hue values: ['No Call', 'Called Hom Ref', 'Called Het Ref', 'Wrong Direction', '-21 or more', '-8 to -20', '-3 to -7', '-2', '-1', '0', '1', '2', '3 to 7', '8 to 20', '21 or more']
 Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.2to6bp_motifs.with_interruptions.10x.GangSTR.svg
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.2to6bp_motifs.with_interruptions.10x.GangSTR.png
 ----------------------------------------------------------------------------------------------------
 HipSTR Calls for 10x Coverage Genome Data
-Showing 12,073 total alleles at 9,150 loci (2bp to 6bp motifs, only repeats with interruptions)
+12,073 total alleles at 9,150 loci (2bp to 6bp motifs, repeats with interruptions)
 Keeping 12073 out of  3681780 rows
 HipSTR 5215 out of 12073 HipSTR - Ref' values are NaN
 HipSTR 5215 out of 12073 HipSTR - Truth' values are NaN
 Hue values: ['No Call', 'Called Hom Ref', 'Called Het Ref', 'Wrong Direction', '-21 or more', '-8 to -20', '-3 to -7', '-2', '-1', '0', '1', '2', '3 to 7', '8 to 20']
 Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.2to6bp_motifs.with_interruptions.10x.HipSTR.svg
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.2to6bp_motifs.with_interruptions.10x.HipSTR.png
 ----------------------------------------------------------------------------------------------------
 ExpansionHunter Calls for 05x Coverage Genome Data
-Showing 12,073 total alleles at 9,150 loci (2bp to 6bp motifs, only repeats with interruptions)
+12,073 total alleles at 9,150 loci (2bp to 6bp motifs, repeats with interruptions)
 Keeping 12073 out of  3681780 rows
-ExpansionHunter 11991 out of 12073 ExpansionHunter - Ref' values are NaN
-ExpansionHunter 11991 out of 12073 ExpansionHunter - Truth' values are NaN
-Hue values: ['No Call', 'Called Het Ref', 'Wrong Direction', '-21 or more', '-8 to -20', '-3 to -7', '-2', '-1', '0', '3 to 7', '8 to 20', '21 or more']
+ExpansionHunter 34 out of 12073 ExpansionHunter - Ref' values are NaN
+ExpansionHunter 34 out of 12073 ExpansionHunter - Truth' values are NaN
+Hue values: ['No Call', 'Called Hom Ref', 'Called Het Ref', 'Wrong Direction', '-21 or more', '-8 to -20', '-3 to -7', '-2', '-1', '0', '1', '2', '3 to 7', '8 to 20', '21 or more']
 Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.2to6bp_motifs.with_interruptions.05x.ExpansionHunter.svg
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.2to6bp_motifs.with_interruptions.05x.ExpansionHunter.png
 ----------------------------------------------------------------------------------------------------
 GangSTR Calls for 05x Coverage Genome Data
-Showing 12,073 total alleles at 9,150 loci (2bp to 6bp motifs, only repeats with interruptions)
+12,073 total alleles at 9,150 loci (2bp to 6bp motifs, repeats with interruptions)
 Keeping 12073 out of  3681780 rows
-GangSTR 892 out of 12073 GangSTR - Ref' values are NaN
-GangSTR 892 out of 12073 GangSTR - Truth' values are NaN
+GangSTR 893 out of 12073 GangSTR - Ref' values are NaN
+GangSTR 893 out of 12073 GangSTR - Truth' values are NaN
 Hue values: ['No Call', 'Called Hom Ref', 'Called Het Ref', 'Wrong Direction', '-21 or more', '-8 to -20', '-3 to -7', '-2', '-1', '0', '1', '2', '3 to 7', '8 to 20']
 Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.2to6bp_motifs.with_interruptions.05x.GangSTR.svg
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.2to6bp_motifs.with_interruptions.05x.GangSTR.png
 ----------------------------------------------------------------------------------------------------
 HipSTR Calls for 05x Coverage Genome Data
-Showing 12,073 total alleles at 9,150 loci (2bp to 6bp motifs, only repeats with interruptions)
+12,073 total alleles at 9,150 loci (2bp to 6bp motifs, repeats with interruptions)
 Keeping 12073 out of  3681780 rows
 HipSTR 7279 out of 12073 HipSTR - Ref' values are NaN
 HipSTR 7279 out of 12073 HipSTR - Truth' values are NaN
 Hue values: ['No Call', 'Called Hom Ref', 'Called Het Ref', 'Wrong Direction', '-8 to -20', '-3 to -7', '-2', '-1', '0', '1', '2', '3 to 7']
 Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.2to6bp_motifs.with_interruptions.05x.HipSTR.svg
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.2to6bp_motifs.with_interruptions.05x.HipSTR.png
 ----------------------------------------------------------------------------------------------------
 ExpansionHunter Calls for Exome Data
-Showing 142 total alleles at 102 loci (2bp to 6bp motifs, only repeats with interruptions)
-Skipping..  only 3681780 total alleles
+142 total alleles at 102 loci (2bp to 6bp motifs, repeats with interruptions)
+Keeping 142 out of  3681780 rows
+ExpansionHunter 49 out of 142 ExpansionHunter - Ref' values are NaN
+ExpansionHunter 49 out of 142 ExpansionHunter - Truth' values are NaN
+Hue values: ['No Call', 'Called Hom Ref', 'Called Het Ref', 'Wrong Direction', '-8 to -20', '-3 to -7', '-2', '-1', '0', '1']
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.2to6bp_motifs.with_interruptions.exome.ExpansionHunter.svg
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.2to6bp_motifs.with_interruptions.exome.ExpansionHunter.png
 ----------------------------------------------------------------------------------------------------
 GangSTR Calls for Exome Data
-Showing 142 total alleles at 102 loci (2bp to 6bp motifs, only repeats with interruptions)
-Skipping..  only 3681780 total alleles
+142 total alleles at 102 loci (2bp to 6bp motifs, repeats with interruptions)
+Keeping 142 out of  3681780 rows
+GangSTR 24 out of 142 GangSTR - Ref' values are NaN
+GangSTR 24 out of 142 GangSTR - Truth' values are NaN
+Hue values: ['No Call', 'Called Hom Ref', 'Wrong Direction', '-8 to -20', '-3 to -7', '-2', '-1', '0', '1', '3 to 7']
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.2to6bp_motifs.with_interruptions.exome.GangSTR.svg
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.2to6bp_motifs.with_interruptions.exome.GangSTR.png
 ----------------------------------------------------------------------------------------------------
 HipSTR Calls for Exome Data
-Showing 142 total alleles at 102 loci (2bp to 6bp motifs, only repeats with interruptions)
-Skipping..  only 3681780 total alleles
+142 total alleles at 102 loci (2bp to 6bp motifs, repeats with interruptions)
+Keeping 142 out of  3681780 rows
+HipSTR 94 out of 142 HipSTR - Ref' values are NaN
+HipSTR 94 out of 142 HipSTR - Truth' values are NaN
+Hue values: ['No Call', 'Called Hom Ref', '-3 to -7', '-1', '0', '1']
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.2to6bp_motifs.with_interruptions.exome.HipSTR.svg
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.2to6bp_motifs.with_interruptions.exome.HipSTR.png
 ----------------------------------------------------------------------------------------------------
 ExpansionHunter Calls for 40x Coverage Genome Data
-Showing 4,361 total alleles at 3,158 loci (7bp to 24bp motifs, pure repeats only)
+4,361 total alleles at 3,158 loci (7bp to 24bp motifs)
 Keeping 4361 out of  3681780 rows
 ExpansionHunter 3 out of 4361 ExpansionHunter - Ref' values are NaN
 ExpansionHunter 3 out of 4361 ExpansionHunter - Truth' values are NaN
 Hue values: ['No Call', 'Called Hom Ref', 'Called Het Ref', 'Wrong Direction', '-8 to -20', '-3 to -7', '-2', '-1', '0', '1', '2', '3 to 7', '8 to 20']
 Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.7to24bp_motifs.pure_repeats.40x.ExpansionHunter.svg
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.7to24bp_motifs.pure_repeats.40x.ExpansionHunter.png
 ----------------------------------------------------------------------------------------------------
 GangSTR Calls for 40x Coverage Genome Data
-Showing 4,361 total alleles at 3,158 loci (7bp to 24bp motifs, pure repeats only)
+4,361 total alleles at 3,158 loci (7bp to 24bp motifs)
 Keeping 4361 out of  3681780 rows
 GangSTR 8 out of 4361 GangSTR - Ref' values are NaN
 GangSTR 8 out of 4361 GangSTR - Truth' values are NaN
 Hue values: ['No Call', 'Called Hom Ref', 'Called Het Ref', 'Wrong Direction', '-8 to -20', '-3 to -7', '-2', '-1', '0', '1', '2', '3 to 7', '8 to 20']
 Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.7to24bp_motifs.pure_repeats.40x.GangSTR.svg
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.7to24bp_motifs.pure_repeats.40x.GangSTR.png
+----------------------------------------------------------------------------------------------------
+HipSTR Calls for 40x Coverage Genome Data
+4,361 total alleles at 3,158 loci (7bp to 24bp motifs)
+Skipping..  HipSTR doesn't support motif sizes larger than 9bp
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.7to24bp_motifs.pure_repeats.40x.HipSTR.svg
 ----------------------------------------------------------------------------------------------------
 ExpansionHunter Calls for 30x Coverage Genome Data
-Showing 4,361 total alleles at 3,158 loci (7bp to 24bp motifs, pure repeats only)
+4,361 total alleles at 3,158 loci (7bp to 24bp motifs)
 Keeping 4361 out of  3681780 rows
-ExpansionHunter 8 out of 4361 ExpansionHunter - Ref' values are NaN
-ExpansionHunter 8 out of 4361 ExpansionHunter - Truth' values are NaN
+ExpansionHunter 3 out of 4361 ExpansionHunter - Ref' values are NaN
+ExpansionHunter 3 out of 4361 ExpansionHunter - Truth' values are NaN
 Hue values: ['No Call', 'Called Hom Ref', 'Called Het Ref', 'Wrong Direction', '-8 to -20', '-3 to -7', '-2', '-1', '0', '1', '2', '3 to 7', '8 to 20']
 Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.7to24bp_motifs.pure_repeats.30x.ExpansionHunter.svg
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.7to24bp_motifs.pure_repeats.30x.ExpansionHunter.png
 ----------------------------------------------------------------------------------------------------
 GangSTR Calls for 30x Coverage Genome Data
-Showing 4,361 total alleles at 3,158 loci (7bp to 24bp motifs, pure repeats only)
+4,361 total alleles at 3,158 loci (7bp to 24bp motifs)
 Keeping 4361 out of  3681780 rows
 GangSTR 10 out of 4361 GangSTR - Ref' values are NaN
 GangSTR 10 out of 4361 GangSTR - Truth' values are NaN
 Hue values: ['No Call', 'Called Hom Ref', 'Called Het Ref', 'Wrong Direction', '-8 to -20', '-3 to -7', '-2', '-1', '0', '1', '2', '3 to 7', '8 to 20']
 Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.7to24bp_motifs.pure_repeats.30x.GangSTR.svg
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.7to24bp_motifs.pure_repeats.30x.GangSTR.png
+----------------------------------------------------------------------------------------------------
+HipSTR Calls for 30x Coverage Genome Data
+4,361 total alleles at 3,158 loci (7bp to 24bp motifs)
+Skipping..  HipSTR doesn't support motif sizes larger than 9bp
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.7to24bp_motifs.pure_repeats.30x.HipSTR.svg
 ----------------------------------------------------------------------------------------------------
 ExpansionHunter Calls for 20x Coverage Genome Data
-Showing 4,361 total alleles at 3,158 loci (7bp to 24bp motifs, pure repeats only)
+4,361 total alleles at 3,158 loci (7bp to 24bp motifs)
 Keeping 4361 out of  3681780 rows
-ExpansionHunter 29 out of 4361 ExpansionHunter - Ref' values are NaN
-ExpansionHunter 29 out of 4361 ExpansionHunter - Truth' values are NaN
-Hue values: ['No Call', 'Called Hom Ref', 'Called Het Ref', 'Wrong Direction', '-8 to -20', '-3 to -7', '-2', '-1', '0', '1', '2', '3 to 7', '8 to 20', '21 or more']
+ExpansionHunter 3 out of 4361 ExpansionHunter - Ref' values are NaN
+ExpansionHunter 3 out of 4361 ExpansionHunter - Truth' values are NaN
+Hue values: ['No Call', 'Called Hom Ref', 'Called Het Ref', 'Wrong Direction', '-8 to -20', '-3 to -7', '-2', '-1', '0', '1', '2', '3 to 7', '8 to 20']
 Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.7to24bp_motifs.pure_repeats.20x.ExpansionHunter.svg
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.7to24bp_motifs.pure_repeats.20x.ExpansionHunter.png
 ----------------------------------------------------------------------------------------------------
 GangSTR Calls for 20x Coverage Genome Data
-Showing 4,361 total alleles at 3,158 loci (7bp to 24bp motifs, pure repeats only)
+4,361 total alleles at 3,158 loci (7bp to 24bp motifs)
 Keeping 4361 out of  3681780 rows
-GangSTR 25 out of 4361 GangSTR - Ref' values are NaN
-GangSTR 25 out of 4361 GangSTR - Truth' values are NaN
+GangSTR 19 out of 4361 GangSTR - Ref' values are NaN
+GangSTR 19 out of 4361 GangSTR - Truth' values are NaN
 Hue values: ['No Call', 'Called Hom Ref', 'Called Het Ref', 'Wrong Direction', '-8 to -20', '-3 to -7', '-2', '-1', '0', '1', '2', '3 to 7', '8 to 20']
 Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.7to24bp_motifs.pure_repeats.20x.GangSTR.svg
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.7to24bp_motifs.pure_repeats.20x.GangSTR.png
+----------------------------------------------------------------------------------------------------
+HipSTR Calls for 20x Coverage Genome Data
+4,361 total alleles at 3,158 loci (7bp to 24bp motifs)
+Skipping..  HipSTR doesn't support motif sizes larger than 9bp
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.7to24bp_motifs.pure_repeats.20x.HipSTR.svg
 ----------------------------------------------------------------------------------------------------
 ExpansionHunter Calls for 10x Coverage Genome Data
-Showing 4,361 total alleles at 3,158 loci (7bp to 24bp motifs, pure repeats only)
+4,361 total alleles at 3,158 loci (7bp to 24bp motifs)
 Keeping 4361 out of  3681780 rows
-ExpansionHunter 382 out of 4361 ExpansionHunter - Ref' values are NaN
-ExpansionHunter 382 out of 4361 ExpansionHunter - Truth' values are NaN
-Hue values: ['No Call', 'Called Hom Ref', 'Called Het Ref', 'Wrong Direction', '-3 to -7', '-2', '-1', '0', '1', '2', '3 to 7', '8 to 20']
+ExpansionHunter 3 out of 4361 ExpansionHunter - Ref' values are NaN
+ExpansionHunter 3 out of 4361 ExpansionHunter - Truth' values are NaN
+Hue values: ['No Call', 'Called Hom Ref', 'Called Het Ref', 'Wrong Direction', '-8 to -20', '-3 to -7', '-2', '-1', '0', '1', '2', '3 to 7', '8 to 20', '21 or more']
 Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.7to24bp_motifs.pure_repeats.10x.ExpansionHunter.svg
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.7to24bp_motifs.pure_repeats.10x.ExpansionHunter.png
 ----------------------------------------------------------------------------------------------------
 GangSTR Calls for 10x Coverage Genome Data
-Showing 4,361 total alleles at 3,158 loci (7bp to 24bp motifs, pure repeats only)
+4,361 total alleles at 3,158 loci (7bp to 24bp motifs)
 Keeping 4361 out of  3681780 rows
 GangSTR 86 out of 4361 GangSTR - Ref' values are NaN
-GangSTR 86 out of 4361 GangSTR - Truth' values are NaNplot_tool_comparisons.py:639: DtypeWarning: Columns (26,30,31,32,33,52,53) have mixed types.Specify dtype option on import or set low_memory=False.
-  main()
-
+GangSTR 86 out of 4361 GangSTR - Truth' values are NaN
 Hue values: ['No Call', 'Called Hom Ref', 'Called Het Ref', 'Wrong Direction', '-8 to -20', '-3 to -7', '-2', '-1', '0', '1', '2', '3 to 7', '8 to 20']
 Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.7to24bp_motifs.pure_repeats.10x.GangSTR.svg
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.7to24bp_motifs.pure_repeats.10x.GangSTR.png
+----------------------------------------------------------------------------------------------------
+HipSTR Calls for 10x Coverage Genome Data
+4,361 total alleles at 3,158 loci (7bp to 24bp motifs)
+Skipping..  HipSTR doesn't support motif sizes larger than 9bp
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.7to24bp_motifs.pure_repeats.10x.HipSTR.svg
 ----------------------------------------------------------------------------------------------------
 ExpansionHunter Calls for 05x Coverage Genome Data
-Showing 4,361 total alleles at 3,158 loci (7bp to 24bp motifs, pure repeats only)
+4,361 total alleles at 3,158 loci (7bp to 24bp motifs)
 Keeping 4361 out of  3681780 rows
-ExpansionHunter 4329 out of 4361 ExpansionHunter - Ref' values are NaN
-ExpansionHunter 4329 out of 4361 ExpansionHunter - Truth' values are NaN
-Hue values: ['No Call', 'Called Het Ref', 'Wrong Direction', '-3 to -7', '-1', '0', '1', '3 to 7', '8 to 20']
+ExpansionHunter 9 out of 4361 ExpansionHunter - Ref' values are NaN
+ExpansionHunter 9 out of 4361 ExpansionHunter - Truth' values are NaN
+Hue values: ['No Call', 'Called Hom Ref', 'Called Het Ref', 'Wrong Direction', '-8 to -20', '-3 to -7', '-2', '-1', '0', '1', '2', '3 to 7', '8 to 20', '21 or more']
 Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.7to24bp_motifs.pure_repeats.05x.ExpansionHunter.svg
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.7to24bp_motifs.pure_repeats.05x.ExpansionHunter.png
 ----------------------------------------------------------------------------------------------------
 GangSTR Calls for 05x Coverage Genome Data
-Showing 4,361 total alleles at 3,158 loci (7bp to 24bp motifs, pure repeats only)
+4,361 total alleles at 3,158 loci (7bp to 24bp motifs)
 Keeping 4361 out of  3681780 rows
-GangSTR 370 out of 4361 GangSTR - Ref' values are NaN
-GangSTR 370 out of 4361 GangSTR - Truth' values are NaN
-Hue values: ['No Call', 'Called Hom Ref', 'Called Het Ref', 'Wrong Direction', '-8 to -20', '-3 to -7', '-2', '-1', '0', '1', '2', '3 to 7']
+GangSTR 369 out of 4361 GangSTR - Ref' values are NaN
+GangSTR 369 out of 4361 GangSTR - Truth' values are NaN
+Hue values: ['No Call', 'Called Hom Ref', 'Called Het Ref', 'Wrong Direction', '-8 to -20', '-3 to -7', '-2', '-1', '0', '1', '2', '3 to 7', '8 to 20']
 Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.7to24bp_motifs.pure_repeats.05x.GangSTR.svg
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.7to24bp_motifs.pure_repeats.05x.GangSTR.png
+----------------------------------------------------------------------------------------------------
+HipSTR Calls for 05x Coverage Genome Data
+4,361 total alleles at 3,158 loci (7bp to 24bp motifs)
+Skipping..  HipSTR doesn't support motif sizes larger than 9bp
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.7to24bp_motifs.pure_repeats.05x.HipSTR.svg
 ----------------------------------------------------------------------------------------------------
 ExpansionHunter Calls for Exome Data
-Showing 119 total alleles at 91 loci (7bp to 24bp motifs, pure repeats only)
-Skipping..  only 3681780 total alleles
+119 total alleles at 91 loci (7bp to 24bp motifs)
+Keeping 119 out of  3681780 rows
+ExpansionHunter 35 out of 119 ExpansionHunter - Ref' values are NaN
+ExpansionHunter 35 out of 119 ExpansionHunter - Truth' values are NaN
+Hue values: ['No Call', 'Called Het Ref', 'Wrong Direction', '-3 to -7', '-2', '0', '2']
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.7to24bp_motifs.pure_repeats.exome.ExpansionHunter.svg
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.7to24bp_motifs.pure_repeats.exome.ExpansionHunter.png
 ----------------------------------------------------------------------------------------------------
 GangSTR Calls for Exome Data
-Showing 119 total alleles at 91 loci (7bp to 24bp motifs, pure repeats only)
-Skipping..  only 3681780 total alleles
+119 total alleles at 91 loci (7bp to 24bp motifs)
+Keeping 119 out of  3681780 rows
+GangSTR 33 out of 119 GangSTR - Ref' values are NaN
+GangSTR 33 out of 119 GangSTR - Truth' values are NaN
+Hue values: ['No Call', 'Called Hom Ref', 'Called Het Ref', 'Wrong Direction', '-3 to -7', '-2', '-1', '0', '1', '21 or more']
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.7to24bp_motifs.pure_repeats.exome.GangSTR.svg
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.7to24bp_motifs.pure_repeats.exome.GangSTR.png
+----------------------------------------------------------------------------------------------------
+HipSTR Calls for Exome Data
+119 total alleles at 91 loci (7bp to 24bp motifs)
+Skipping..  HipSTR doesn't support motif sizes larger than 9bp
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.7to24bp_motifs.pure_repeats.exome.HipSTR.svg
 ----------------------------------------------------------------------------------------------------
 ExpansionHunter Calls for 40x Coverage Genome Data
-Showing 591 total alleles at 446 loci (7bp to 24bp motifs, only repeats with interruptions)
-Skipping..  only 3681780 total alleles
+591 total alleles at 446 loci (7bp to 24bp motifs, repeats with interruptions)
+Keeping 591 out of  3681780 rows
+ExpansionHunter 0 out of 591 ExpansionHunter - Ref' values are NaN
+ExpansionHunter 0 out of 591 ExpansionHunter - Truth' values are NaN
+Hue values: ['Called Hom Ref', 'Called Het Ref', 'Wrong Direction', '-8 to -20', '-3 to -7', '-2', '-1', '0', '1', '2', '3 to 7', '8 to 20']
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.7to24bp_motifs.with_interruptions.40x.ExpansionHunter.svg
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.7to24bp_motifs.with_interruptions.40x.ExpansionHunter.png
 ----------------------------------------------------------------------------------------------------
 GangSTR Calls for 40x Coverage Genome Data
-Showing 591 total alleles at 446 loci (7bp to 24bp motifs, only repeats with interruptions)
-Skipping..  only 3681780 total alleles
+591 total alleles at 446 loci (7bp to 24bp motifs, repeats with interruptions)
+Keeping 591 out of  3681780 rows
+GangSTR 7 out of 591 GangSTR - Ref' values are NaN
+GangSTR 7 out of 591 GangSTR - Truth' values are NaN
+Hue values: ['No Call', 'Called Hom Ref', 'Called Het Ref', 'Wrong Direction', '-8 to -20', '-3 to -7', '-2', '-1', '0', '1', '2', '3 to 7', '8 to 20']
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.7to24bp_motifs.with_interruptions.40x.GangSTR.svg
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.7to24bp_motifs.with_interruptions.40x.GangSTR.png
+----------------------------------------------------------------------------------------------------
+HipSTR Calls for 40x Coverage Genome Data
+591 total alleles at 446 loci (7bp to 24bp motifs, repeats with interruptions)
+Skipping..  HipSTR doesn't support motif sizes larger than 9bp
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.7to24bp_motifs.with_interruptions.40x.HipSTR.svg
 ----------------------------------------------------------------------------------------------------
 ExpansionHunter Calls for 30x Coverage Genome Data
-Showing 591 total alleles at 446 loci (7bp to 24bp motifs, only repeats with interruptions)
-Skipping..  only 3681780 total alleles
+591 total alleles at 446 loci (7bp to 24bp motifs, repeats with interruptions)
+Keeping 591 out of  3681780 rows
+ExpansionHunter 0 out of 591 ExpansionHunter - Ref' values are NaN
+ExpansionHunter 0 out of 591 ExpansionHunter - Truth' values are NaN
+Hue values: ['Called Hom Ref', 'Called Het Ref', 'Wrong Direction', '-8 to -20', '-3 to -7', '-2', '-1', '0', '1', '2', '3 to 7', '8 to 20']
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.7to24bp_motifs.with_interruptions.30x.ExpansionHunter.svg
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.7to24bp_motifs.with_interruptions.30x.ExpansionHunter.png
 ----------------------------------------------------------------------------------------------------
 GangSTR Calls for 30x Coverage Genome Data
-Showing 591 total alleles at 446 loci (7bp to 24bp motifs, only repeats with interruptions)
-Skipping..  only 3681780 total alleles
+591 total alleles at 446 loci (7bp to 24bp motifs, repeats with interruptions)
+Keeping 591 out of  3681780 rows
+GangSTR 9 out of 591 GangSTR - Ref' values are NaN
+GangSTR 9 out of 591 GangSTR - Truth' values are NaN
+Hue values: ['No Call', 'Called Hom Ref', 'Called Het Ref', 'Wrong Direction', '-8 to -20', '-3 to -7', '-2', '-1', '0', '1', '2', '3 to 7', '8 to 20']
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.7to24bp_motifs.with_interruptions.30x.GangSTR.svg
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.7to24bp_motifs.with_interruptions.30x.GangSTR.png
+----------------------------------------------------------------------------------------------------
+HipSTR Calls for 30x Coverage Genome Data
+591 total alleles at 446 loci (7bp to 24bp motifs, repeats with interruptions)
+Skipping..  HipSTR doesn't support motif sizes larger than 9bp
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.7to24bp_motifs.with_interruptions.30x.HipSTR.svg
 ----------------------------------------------------------------------------------------------------
 ExpansionHunter Calls for 20x Coverage Genome Data
-Showing 591 total alleles at 446 loci (7bp to 24bp motifs, only repeats with interruptions)
-Skipping..  only 3681780 total alleles
+591 total alleles at 446 loci (7bp to 24bp motifs, repeats with interruptions)
+Keeping 591 out of  3681780 rows
+ExpansionHunter 0 out of 591 ExpansionHunter - Ref' values are NaN
+ExpansionHunter 0 out of 591 ExpansionHunter - Truth' values are NaN
+Hue values: ['Called Hom Ref', 'Called Het Ref', 'Wrong Direction', '-8 to -20', '-3 to -7', '-2', '-1', '0', '1', '2', '3 to 7', '8 to 20', '21 or more']
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.7to24bp_motifs.with_interruptions.20x.ExpansionHunter.svg
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.7to24bp_motifs.with_interruptions.20x.ExpansionHunter.png
 ----------------------------------------------------------------------------------------------------
 GangSTR Calls for 20x Coverage Genome Data
-Showing 591 total alleles at 446 loci (7bp to 24bp motifs, only repeats with interruptions)
-Skipping..  only 3681780 total alleles
+591 total alleles at 446 loci (7bp to 24bp motifs, repeats with interruptions)
+Keeping 591 out of  3681780 rows
+GangSTR 19 out of 591 GangSTR - Ref' values are NaN
+GangSTR 19 out of 591 GangSTR - Truth' values are NaN
+Hue values: ['No Call', 'Called Hom Ref', 'Called Het Ref', 'Wrong Direction', '-8 to -20', '-3 to -7', '-2', '-1', '0', '1', '2', '8 to 20']
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.7to24bp_motifs.with_interruptions.20x.GangSTR.svg
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.7to24bp_motifs.with_interruptions.20x.GangSTR.png
+----------------------------------------------------------------------------------------------------
+HipSTR Calls for 20x Coverage Genome Data
+591 total alleles at 446 loci (7bp to 24bp motifs, repeats with interruptions)
+Skipping..  HipSTR doesn't support motif sizes larger than 9bp
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.7to24bp_motifs.with_interruptions.20x.HipSTR.svg
 ----------------------------------------------------------------------------------------------------
 ExpansionHunter Calls for 10x Coverage Genome Data
-Showing 591 total alleles at 446 loci (7bp to 24bp motifs, only repeats with interruptions)
-Skipping..  only 3681780 total alleles
+591 total alleles at 446 loci (7bp to 24bp motifs, repeats with interruptions)
+Keeping 591 out of  3681780 rows
+ExpansionHunter 0 out of 591 ExpansionHunter - Ref' values are NaN
+ExpansionHunter 0 out of 591 ExpansionHunter - Truth' values are NaN
+Hue values: ['Called Hom Ref', 'Called Het Ref', 'Wrong Direction', '-8 to -20', '-3 to -7', '-2', '-1', '0', '1', '2', '3 to 7', '8 to 20', '21 or more']
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.7to24bp_motifs.with_interruptions.10x.ExpansionHunter.svg
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.7to24bp_motifs.with_interruptions.10x.ExpansionHunter.png
 ----------------------------------------------------------------------------------------------------
 GangSTR Calls for 10x Coverage Genome Data
-Showing 591 total alleles at 446 loci (7bp to 24bp motifs, only repeats with interruptions)
-Skipping..  only 3681780 total alleles
+591 total alleles at 446 loci (7bp to 24bp motifs, repeats with interruptions)
+Keeping 591 out of  3681780 rows
+GangSTR 44 out of 591 GangSTR - Ref' values are NaN
+GangSTR 44 out of 591 GangSTR - Truth' values are NaN
+Hue values: ['No Call', 'Called Hom Ref', 'Called Het Ref', 'Wrong Direction', '-8 to -20', '-3 to -7', '-2', '-1', '0', '1', '2', '8 to 20']
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.7to24bp_motifs.with_interruptions.10x.GangSTR.svg
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.7to24bp_motifs.with_interruptions.10x.GangSTR.png
+----------------------------------------------------------------------------------------------------
+HipSTR Calls for 10x Coverage Genome Data
+591 total alleles at 446 loci (7bp to 24bp motifs, repeats with interruptions)
+Skipping..  HipSTR doesn't support motif sizes larger than 9bp
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.7to24bp_motifs.with_interruptions.10x.HipSTR.svg
 ----------------------------------------------------------------------------------------------------
 ExpansionHunter Calls for 05x Coverage Genome Data
-Showing 591 total alleles at 446 loci (7bp to 24bp motifs, only repeats with interruptions)
-Skipping..  only 3681780 total alleles
+591 total alleles at 446 loci (7bp to 24bp motifs, repeats with interruptions)
+Keeping 591 out of  3681780 rows
+ExpansionHunter 1 out of 591 ExpansionHunter - Ref' values are NaN
+ExpansionHunter 1 out of 591 ExpansionHunter - Truth' values are NaN
+Hue values: ['No Call', 'Called Hom Ref', 'Called Het Ref', 'Wrong Direction', '-8 to -20', '-3 to -7', '-2', '-1', '0', '1', '2', '3 to 7', '8 to 20']
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.7to24bp_motifs.with_interruptions.05x.ExpansionHunter.svg
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.7to24bp_motifs.with_interruptions.05x.ExpansionHunter.png
 ----------------------------------------------------------------------------------------------------
 GangSTR Calls for 05x Coverage Genome Data
-Showing 591 total alleles at 446 loci (7bp to 24bp motifs, only repeats with interruptions)
-Skipping..  only 3681780 total alleles
+591 total alleles at 446 loci (7bp to 24bp motifs, repeats with interruptions)
+Keeping 591 out of  3681780 rows
+GangSTR 101 out of 591 GangSTR - Ref' values are NaN
+GangSTR 101 out of 591 GangSTR - Truth' values are NaN
+Hue values: ['No Call', 'Called Hom Ref', 'Called Het Ref', 'Wrong Direction', '-8 to -20', '-3 to -7', '-2', '-1', '0', '1', '2']
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.7to24bp_motifs.with_interruptions.05x.GangSTR.svg
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.7to24bp_motifs.with_interruptions.05x.GangSTR.png
+----------------------------------------------------------------------------------------------------
+HipSTR Calls for 05x Coverage Genome Data
+591 total alleles at 446 loci (7bp to 24bp motifs, repeats with interruptions)
+Skipping..  HipSTR doesn't support motif sizes larger than 9bp
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.7to24bp_motifs.with_interruptions.05x.HipSTR.svg
 ----------------------------------------------------------------------------------------------------
 ExpansionHunter Calls for Exome Data
-Showing 17 total alleles at 12 loci (7bp to 24bp motifs, only repeats with interruptions)
-Skipping..  only 3681780 total alleles
+17 total alleles at 12 loci (7bp to 24bp motifs, repeats with interruptions)
+Keeping 17 out of  3681780 rows
+ExpansionHunter 7 out of 17 ExpansionHunter - Ref' values are NaN
+ExpansionHunter 7 out of 17 ExpansionHunter - Truth' values are NaN
+Hue values: ['No Call', '-3 to -7', '-2', '0', '3 to 7']
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.7to24bp_motifs.with_interruptions.exome.ExpansionHunter.svg
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.7to24bp_motifs.with_interruptions.exome.ExpansionHunter.png
 ----------------------------------------------------------------------------------------------------
 GangSTR Calls for Exome Data
-Showing 17 total alleles at 12 loci (7bp to 24bp motifs, only repeats with interruptions)
-Skipping..  only 3681780 total alleles
-Done generating all 51 plots
+17 total alleles at 12 loci (7bp to 24bp motifs, repeats with interruptions)
+Keeping 17 out of  3681780 rows
+GangSTR 4 out of 17 GangSTR - Ref' values are NaN
+GangSTR 4 out of 17 GangSTR - Truth' values are NaN
+Hue values: ['No Call', 'Called Hom Ref', 'Wrong Direction', '-3 to -7', '-1', '0']
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.7to24bp_motifs.with_interruptions.exome.GangSTR.svg
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.7to24bp_motifs.with_interruptions.exome.GangSTR.png
+----------------------------------------------------------------------------------------------------
+HipSTR Calls for Exome Data
+17 total alleles at 12 loci (7bp to 24bp motifs, repeats with interruptions)
+Skipping..  HipSTR doesn't support motif sizes larger than 9bp
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.7to24bp_motifs.with_interruptions.exome.HipSTR.svg
+----------------------------------------------------------------------------------------------------
+ExpansionHunter Calls for 40x Coverage Genome Data
+2,262 total alleles at 1,625 loci (25bp to 50bp motifs)
+Keeping 2262 out of  3681780 rows
+ExpansionHunter 2 out of 2262 ExpansionHunter - Ref' values are NaN
+ExpansionHunter 2 out of 2262 ExpansionHunter - Truth' values are NaN
+Hue values: ['No Call', 'Called Hom Ref', 'Called Het Ref', 'Wrong Direction', '-21 or more', '-8 to -20', '-3 to -7', '-2', '-1', '0', '1', '2', '3 to 7', '8 to 20']
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.25to50bp_motifs.pure_repeats.40x.ExpansionHunter.svg
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.25to50bp_motifs.pure_repeats.40x.ExpansionHunter.png
+----------------------------------------------------------------------------------------------------
+GangSTR Calls for 40x Coverage Genome Data
+2,262 total alleles at 1,625 loci (25bp to 50bp motifs)
+Keeping 2262 out of  3681780 rows
+GangSTR 40 out of 2262 GangSTR - Ref' values are NaN
+GangSTR 40 out of 2262 GangSTR - Truth' values are NaN
+Hue values: ['No Call', 'Called Hom Ref', 'Called Het Ref', 'Wrong Direction', '-21 or more', '-8 to -20', '-3 to -7', '-2', '-1', '0', '1', '2', '3 to 7', '8 to 20']
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.25to50bp_motifs.pure_repeats.40x.GangSTR.svg
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.25to50bp_motifs.pure_repeats.40x.GangSTR.png
+----------------------------------------------------------------------------------------------------
+HipSTR Calls for 40x Coverage Genome Data
+2,262 total alleles at 1,625 loci (25bp to 50bp motifs)
+Skipping..  HipSTR doesn't support motif sizes larger than 9bp
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.25to50bp_motifs.pure_repeats.40x.HipSTR.svg
+----------------------------------------------------------------------------------------------------
+ExpansionHunter Calls for 30x Coverage Genome Data
+2,262 total alleles at 1,625 loci (25bp to 50bp motifs)
+Keeping 2262 out of  3681780 rows
+ExpansionHunter 2 out of 2262 ExpansionHunter - Ref' values are NaN
+ExpansionHunter 2 out of 2262 ExpansionHunter - Truth' values are NaN
+Hue values: ['No Call', 'Called Hom Ref', 'Called Het Ref', 'Wrong Direction', '-21 or more', '-8 to -20', '-3 to -7', '-2', '-1', '0', '1', '2', '3 to 7', '8 to 20']
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.25to50bp_motifs.pure_repeats.30x.ExpansionHunter.svg
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.25to50bp_motifs.pure_repeats.30x.ExpansionHunter.png
+----------------------------------------------------------------------------------------------------
+GangSTR Calls for 30x Coverage Genome Data
+2,262 total alleles at 1,625 loci (25bp to 50bp motifs)
+Keeping 2262 out of  3681780 rows
+GangSTR 63 out of 2262 GangSTR - Ref' values are NaN
+GangSTR 63 out of 2262 GangSTR - Truth' values are NaN
+Hue values: ['No Call', 'Called Hom Ref', 'Called Het Ref', 'Wrong Direction', '-21 or more', '-8 to -20', '-3 to -7', '-2', '-1', '0', '1', '2', '3 to 7', '8 to 20']
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.25to50bp_motifs.pure_repeats.30x.GangSTR.svg
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.25to50bp_motifs.pure_repeats.30x.GangSTR.png
+----------------------------------------------------------------------------------------------------
+HipSTR Calls for 30x Coverage Genome Data
+2,262 total alleles at 1,625 loci (25bp to 50bp motifs)
+Skipping..  HipSTR doesn't support motif sizes larger than 9bp
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.25to50bp_motifs.pure_repeats.30x.HipSTR.svg
+----------------------------------------------------------------------------------------------------
+ExpansionHunter Calls for 20x Coverage Genome Data
+2,262 total alleles at 1,625 loci (25bp to 50bp motifs)
+Keeping 2262 out of  3681780 rows
+ExpansionHunter 3 out of 2262 ExpansionHunter - Ref' values are NaN
+ExpansionHunter 3 out of 2262 ExpansionHunter - Truth' values are NaN
+Hue values: ['No Call', 'Called Hom Ref', 'Called Het Ref', 'Wrong Direction', '-21 or more', '-8 to -20', '-3 to -7', '-2', '-1', '0', '1', '2', '3 to 7', '8 to 20']
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.25to50bp_motifs.pure_repeats.20x.ExpansionHunter.svg
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.25to50bp_motifs.pure_repeats.20x.ExpansionHunter.png
+----------------------------------------------------------------------------------------------------
+GangSTR Calls for 20x Coverage Genome Data
+2,262 total alleles at 1,625 loci (25bp to 50bp motifs)
+Keeping 2262 out of  3681780 rows
+GangSTR 109 out of 2262 GangSTR - Ref' values are NaN
+GangSTR 109 out of 2262 GangSTR - Truth' values are NaN
+Hue values: ['No Call', 'Called Hom Ref', 'Called Het Ref', 'Wrong Direction', '-21 or more', '-8 to -20', '-3 to -7', '-2', '-1', '0', '1', '2', '3 to 7', '8 to 20']
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.25to50bp_motifs.pure_repeats.20x.GangSTR.svg
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.25to50bp_motifs.pure_repeats.20x.GangSTR.png
+----------------------------------------------------------------------------------------------------
+HipSTR Calls for 20x Coverage Genome Data
+2,262 total alleles at 1,625 loci (25bp to 50bp motifs)
+Skipping..  HipSTR doesn't support motif sizes larger than 9bp
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.25to50bp_motifs.pure_repeats.20x.HipSTR.svg
+----------------------------------------------------------------------------------------------------
+ExpansionHunter Calls for 10x Coverage Genome Data
+2,262 total alleles at 1,625 loci (25bp to 50bp motifs)
+Keeping 2262 out of  3681780 rows
+ExpansionHunter 2 out of 2262 ExpansionHunter - Ref' values are NaN
+ExpansionHunter 2 out of 2262 ExpansionHunter - Truth' values are NaN
+Hue values: ['No Call', 'Called Hom Ref', 'Called Het Ref', 'Wrong Direction', '-21 or more', '-8 to -20', '-3 to -7', '-2', '-1', '0', '1', '2', '3 to 7', '8 to 20']
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.25to50bp_motifs.pure_repeats.10x.ExpansionHunter.svg
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.25to50bp_motifs.pure_repeats.10x.ExpansionHunter.png
+----------------------------------------------------------------------------------------------------
+GangSTR Calls for 10x Coverage Genome Data
+2,262 total alleles at 1,625 loci (25bp to 50bp motifs)
+Keeping 2262 out of  3681780 rows
+GangSTR 326 out of 2262 GangSTR - Ref' values are NaN
+GangSTR 326 out of 2262 GangSTR - Truth' values are NaN
+Hue values: ['No Call', 'Called Hom Ref', 'Called Het Ref', 'Wrong Direction', '-21 or more', '-8 to -20', '-3 to -7', '-2', '-1', '0', '1', '2', '3 to 7', '8 to 20']
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.25to50bp_motifs.pure_repeats.10x.GangSTR.svg
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.25to50bp_motifs.pure_repeats.10x.GangSTR.png
+----------------------------------------------------------------------------------------------------
+HipSTR Calls for 10x Coverage Genome Data
+2,262 total alleles at 1,625 loci (25bp to 50bp motifs)
+Skipping..  HipSTR doesn't support motif sizes larger than 9bp
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.25to50bp_motifs.pure_repeats.10x.HipSTR.svg
+----------------------------------------------------------------------------------------------------
+ExpansionHunter Calls for 05x Coverage Genome Data
+2,262 total alleles at 1,625 loci (25bp to 50bp motifs)
+Keeping 2262 out of  3681780 rows
+ExpansionHunter 6 out of 2262 ExpansionHunter - Ref' values are NaN
+ExpansionHunter 6 out of 2262 ExpansionHunter - Truth' values are NaN
+Hue values: ['No Call', 'Called Hom Ref', 'Called Het Ref', 'Wrong Direction', '-21 or more', '-8 to -20', '-3 to -7', '-2', '-1', '0', '1', '2', '3 to 7', '8 to 20']
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.25to50bp_motifs.pure_repeats.05x.ExpansionHunter.svg
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.25to50bp_motifs.pure_repeats.05x.ExpansionHunter.png
+----------------------------------------------------------------------------------------------------
+GangSTR Calls for 05x Coverage Genome Data
+2,262 total alleles at 1,625 loci (25bp to 50bp motifs)
+Keeping 2262 out of  3681780 rows
+GangSTR 718 out of 2262 GangSTR - Ref' values are NaN
+GangSTR 718 out of 2262 GangSTR - Truth' values are NaN
+Hue values: ['No Call', 'Called Hom Ref', 'Called Het Ref', 'Wrong Direction', '-8 to -20', '-3 to -7', '-2', '-1', '0', '1', '2', '3 to 7', '8 to 20']
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.25to50bp_motifs.pure_repeats.05x.GangSTR.svg
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.25to50bp_motifs.pure_repeats.05x.GangSTR.png
+----------------------------------------------------------------------------------------------------
+HipSTR Calls for 05x Coverage Genome Data
+2,262 total alleles at 1,625 loci (25bp to 50bp motifs)
+Skipping..  HipSTR doesn't support motif sizes larger than 9bp
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.25to50bp_motifs.pure_repeats.05x.HipSTR.svg
+----------------------------------------------------------------------------------------------------
+ExpansionHunter Calls for Exome Data
+56 total alleles at 42 loci (25bp to 50bp motifs)
+Keeping 56 out of  3681780 rows
+ExpansionHunter 15 out of 56 ExpansionHunter - Ref' values are NaN
+ExpansionHunter 15 out of 56 ExpansionHunter - Truth' values are NaN
+Hue values: ['No Call', 'Called Hom Ref', 'Called Het Ref', 'Wrong Direction', '-3 to -7', '-2', '-1', '0', '1', '3 to 7', '8 to 20']
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.25to50bp_motifs.pure_repeats.exome.ExpansionHunter.svg
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.25to50bp_motifs.pure_repeats.exome.ExpansionHunter.png
+----------------------------------------------------------------------------------------------------
+GangSTR Calls for Exome Data
+56 total alleles at 42 loci (25bp to 50bp motifs)
+Keeping 56 out of  3681780 rows
+GangSTR 12 out of 56 GangSTR - Ref' values are NaN
+GangSTR 12 out of 56 GangSTR - Truth' values are NaN
+Hue values: ['No Call', 'Called Hom Ref', 'Wrong Direction', '-3 to -7', '-2', '-1', '0']
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.25to50bp_motifs.pure_repeats.exome.GangSTR.svg
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.25to50bp_motifs.pure_repeats.exome.GangSTR.png
+----------------------------------------------------------------------------------------------------
+HipSTR Calls for Exome Data
+56 total alleles at 42 loci (25bp to 50bp motifs)
+Skipping..  HipSTR doesn't support motif sizes larger than 9bp
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.25to50bp_motifs.pure_repeats.exome.HipSTR.svg
+----------------------------------------------------------------------------------------------------
+ExpansionHunter Calls for 40x Coverage Genome Data
+0 total alleles at 0 loci (25bp to 50bp motifs, repeats with interruptions)
+Skipping..  Not enough alleles to create plot
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.25to50bp_motifs.with_interruptions.40x.ExpansionHunter.svg
+----------------------------------------------------------------------------------------------------
+GangSTR Calls for 40x Coverage Genome Data
+0 total alleles at 0 loci (25bp to 50bp motifs, repeats with interruptions)
+Skipping..  Not enough alleles to create plot
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.25to50bp_motifs.with_interruptions.40x.GangSTR.svg
+----------------------------------------------------------------------------------------------------
+HipSTR Calls for 40x Coverage Genome Data
+0 total alleles at 0 loci (25bp to 50bp motifs, repeats with interruptions)
+Skipping..  HipSTR doesn't support motif sizes larger than 9bp
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.25to50bp_motifs.with_interruptions.40x.HipSTR.svg
+----------------------------------------------------------------------------------------------------
+ExpansionHunter Calls for 30x Coverage Genome Data
+0 total alleles at 0 loci (25bp to 50bp motifs, repeats with interruptions)
+Skipping..  Not enough alleles to create plot
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.25to50bp_motifs.with_interruptions.30x.ExpansionHunter.svg
+----------------------------------------------------------------------------------------------------
+GangSTR Calls for 30x Coverage Genome Data
+0 total alleles at 0 loci (25bp to 50bp motifs, repeats with interruptions)
+Skipping..  Not enough alleles to create plot
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.25to50bp_motifs.with_interruptions.30x.GangSTR.svg
+----------------------------------------------------------------------------------------------------
+HipSTR Calls for 30x Coverage Genome Data
+0 total alleles at 0 loci (25bp to 50bp motifs, repeats with interruptions)
+Skipping..  HipSTR doesn't support motif sizes larger than 9bp
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.25to50bp_motifs.with_interruptions.30x.HipSTR.svg
+----------------------------------------------------------------------------------------------------
+ExpansionHunter Calls for 20x Coverage Genome Data
+0 total alleles at 0 loci (25bp to 50bp motifs, repeats with interruptions)
+Skipping..  Not enough alleles to create plot
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.25to50bp_motifs.with_interruptions.20x.ExpansionHunter.svg
+----------------------------------------------------------------------------------------------------
+GangSTR Calls for 20x Coverage Genome Data
+0 total alleles at 0 loci (25bp to 50bp motifs, repeats with interruptions)
+Skipping..  Not enough alleles to create plot
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.25to50bp_motifs.with_interruptions.20x.GangSTR.svg
+----------------------------------------------------------------------------------------------------
+HipSTR Calls for 20x Coverage Genome Data
+0 total alleles at 0 loci (25bp to 50bp motifs, repeats with interruptions)
+Skipping..  HipSTR doesn't support motif sizes larger than 9bp
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.25to50bp_motifs.with_interruptions.20x.HipSTR.svg
+----------------------------------------------------------------------------------------------------
+ExpansionHunter Calls for 10x Coverage Genome Data
+0 total alleles at 0 loci (25bp to 50bp motifs, repeats with interruptions)
+Skipping..  Not enough alleles to create plot
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.25to50bp_motifs.with_interruptions.10x.ExpansionHunter.svg
+----------------------------------------------------------------------------------------------------
+GangSTR Calls for 10x Coverage Genome Data
+0 total alleles at 0 loci (25bp to 50bp motifs, repeats with interruptions)
+Skipping..  Not enough alleles to create plot
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.25to50bp_motifs.with_interruptions.10x.GangSTR.svg
+----------------------------------------------------------------------------------------------------
+HipSTR Calls for 10x Coverage Genome Data
+0 total alleles at 0 loci (25bp to 50bp motifs, repeats with interruptions)
+Skipping..  HipSTR doesn't support motif sizes larger than 9bp
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.25to50bp_motifs.with_interruptions.10x.HipSTR.svg
+----------------------------------------------------------------------------------------------------
+ExpansionHunter Calls for 05x Coverage Genome Data
+0 total alleles at 0 loci (25bp to 50bp motifs, repeats with interruptions)
+Skipping..  Not enough alleles to create plot
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.25to50bp_motifs.with_interruptions.05x.ExpansionHunter.svg
+----------------------------------------------------------------------------------------------------
+GangSTR Calls for 05x Coverage Genome Data
+0 total alleles at 0 loci (25bp to 50bp motifs, repeats with interruptions)
+Skipping..  Not enough alleles to create plot
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.25to50bp_motifs.with_interruptions.05x.GangSTR.svg
+----------------------------------------------------------------------------------------------------
+HipSTR Calls for 05x Coverage Genome Data
+0 total alleles at 0 loci (25bp to 50bp motifs, repeats with interruptions)
+Skipping..  HipSTR doesn't support motif sizes larger than 9bp
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.25to50bp_motifs.with_interruptions.05x.HipSTR.svg
+----------------------------------------------------------------------------------------------------
+ExpansionHunter Calls for Exome Data
+0 total alleles at 0 loci (25bp to 50bp motifs, repeats with interruptions)
+Skipping..  Not enough alleles to create plot
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.25to50bp_motifs.with_interruptions.exome.ExpansionHunter.svg
+----------------------------------------------------------------------------------------------------
+GangSTR Calls for Exome Data
+0 total alleles at 0 loci (25bp to 50bp motifs, repeats with interruptions)
+Skipping..  Not enough alleles to create plot
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.25to50bp_motifs.with_interruptions.exome.GangSTR.svg
+----------------------------------------------------------------------------------------------------
+HipSTR Calls for Exome Data
+0 total alleles at 0 loci (25bp to 50bp motifs, repeats with interruptions)
+Skipping..  HipSTR doesn't support motif sizes larger than 9bp
+Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size.25to50bp_motifs.with_interruptions.exome.HipSTR.svg
+Done generating all 82 plots
