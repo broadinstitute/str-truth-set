@@ -127,8 +127,8 @@ def main():
         #max_diff_column_name = f"Max Diff: {label1} - {label2}"
         diff_repeats1_column_name = f"DiffRepeats: Allele 1: {label1} - {label2}"
         diff_repeats2_column_name = f"DiffRepeats: Allele 2: {label1} - {label2}"
-        diff_size1_column_name = f"DiffSize: Allele 1: {label1} - {label2}"
-        diff_size2_column_name = f"DiffSize: Allele 2: {label1} - {label2}"
+        diff_size1_column_name = f"DiffSize (bp): Allele 1: {label1} - {label2}"
+        diff_size2_column_name = f"DiffSize (bp): Allele 2: {label1} - {label2}"
         df[[diff_repeats1_column_name, diff_repeats2_column_name, diff_size1_column_name, diff_size2_column_name]] = \
             df.apply(compute_distance_func_wrapper(label1, label2), axis=1, result_type="expand")
 

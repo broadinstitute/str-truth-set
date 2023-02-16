@@ -45,8 +45,8 @@ Processed ExpansionHunter      --  80.9% of calls by ExpansionHunter @ 05x cover
 Processed GangSTR              --  53.5% of calls by GangSTR @ 05x coverage were exactly correct for 208,491 alleles at 139,244 loci
 Processed HipSTR               --  42.5% of calls by HipSTR @ 05x coverage were exactly correct for 208,491 alleles at 139,244 loci
 Accuracy of ExpansionHunter, GangSTR, HipSTR  at 139,244 STR loci (2bp to 6bp motifs)
-Unable to parse hue value: HipSTR: list index out of range
 Unable to parse hue value: ExpansionHunter: list index out of range
+Unable to parse hue value: HipSTR: list index out of range
 Unable to parse hue value: GangSTR: list index out of range
 Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size_exactly_matching_calls.2to6bp_motifs.pure_repeats.40x_coverage.svg
 Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size_exactly_matching_calls.2to6bp_motifs.pure_repeats.40x_coverage.png
@@ -70,8 +70,8 @@ Processed ExpansionHunter      --  89.5% of calls by ExpansionHunter @ 05x cover
 Processed GangSTR              --  67.9% of calls by GangSTR @ 05x coverage were exactly correct for 115,964 alleles at 76,491 loci
 Processed HipSTR               --  76.4% of calls by HipSTR @ 05x coverage were exactly correct for 115,964 alleles at 76,491 loci
 Accuracy of ExpansionHunter, GangSTR, HipSTR  at 113,987 STR loci (2bp to 6bp motifs, excluding HipSTR no-call loci)
-Unable to parse hue value: HipSTR: list index out of range
 Unable to parse hue value: ExpansionHunter: list index out of range
+Unable to parse hue value: HipSTR: list index out of range
 Unable to parse hue value: GangSTR: list index out of range
 Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size_exactly_matching_calls.2to6bp_motifs.pure_repeats.40x_coverage.excluding_hipstr_no_call_loci.svg
 Saved ../tool_comparison/figures/tool_accuracy_by_true_allele_size_exactly_matching_calls.2to6bp_motifs.pure_repeats.40x_coverage.excluding_hipstr_no_call_loci.png
