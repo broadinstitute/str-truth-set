@@ -480,9 +480,9 @@ def generate_all_distribution_by_num_repeats_plots(df, output_image_dir, plot_co
                     if NO_CALL_LABEL in hue_values:
                         palette.append("#c9c9c9")
                     if HOM_REF_LABEL in hue_values:
-                        palette.append("#880000")
+                        palette.append("#C9342A")
                     if HET_REF_LABEL in hue_values:
-                        palette.append("#823d3d")
+                        palette.append("#734B4B")
                     if WRONG_DIRECTION_LABEL in hue_values:
                         palette.append("#99FFEF")
 
