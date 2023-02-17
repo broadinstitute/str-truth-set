@@ -143,6 +143,8 @@ echo ===============
 for pure_STRs_only in "true" "false"
 do
 
+  # Process pure STRs only, then also allowing STRs with interruptions. Although the 1st is a strict subset of the 2nd,
+  # processing the pure STRs separately first makes it easier to get stats on how many pure STRs fail validation vs. T2T
   if [ $pure_STRs_only == "true" ]
   then
     STR_type="pure_STR"
