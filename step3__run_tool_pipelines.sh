@@ -59,7 +59,13 @@ function run_pipelines {
     $debug gsutil -m cp ${output_dir}/hipstr/negative_loci/combined.negative_loci.*_json_files.*.tsv.gz ${local_dir}/hipstr/negative_loci/
 }
 
-    
+# Downsample coverage
+for coverage in 30 20 10 5; do 
+    $debug python3 ./tool_comparison/hail_batch_pipelines/downsample_bam_pipeline.py --verbose --target-coverage ${coverage} \
+	--output-dir gs://bw2-delete-after-30-days/ --input-bam gs://broad-public-datasets/CHM1_CHM13_WGS2/CHM1_CHM13_WGS2.cram &
+done
+
+
 # Run pipelines on original bam
 run_pipelines \
   "gs://broad-public-datasets/CHM1_CHM13_WGS2/CHM1_CHM13_WGS2.cram" \
@@ -79,11 +85,10 @@ run_pipelines \
   "no" \
   ""
 
-# Downsample
-for coverage in 30 20 10 5; do 
-    $debug python3 ./tool_comparison/hail_batch_pipelines/downsample_bam_pipeline.py --verbose --target-coverage ${coverage} \
-	--output-dir gs://bw2-delete-after-15-days/ --input-bam gs://broad-public-datasets/CHM1_CHM13_WGS2/CHM1_CHM13_WGS2.cram
+wait   # wait for downsampling to finish
 
+# Process other coverage levels
+for coverage in 30 20 10 5; do    
     if [ "$coverage" == "10" ] || [ "$coverage" == "5" ]; then
 	min_locus_coverage="--min-locus-coverage 3"
     else
@@ -92,8 +97,8 @@ for coverage in 30 20 10 5; do
     
     # Rerun pipelines on downsampled bam
     run_pipelines \
-      "gs://bw2-delete-after-15-days/CHM1_CHM13_WGS2.downsampled_to_${coverage}x.bam" \
-      "gs://bw2-delete-after-15-days/CHM1_CHM13_WGS2.downsampled_to_${coverage}x.bam.bai" \
+      "gs://bw2-delete-after-30-days/CHM1_CHM13_WGS2.downsampled_to_${coverage}x.bam" \
+      "gs://bw2-delete-after-30-days/CHM1_CHM13_WGS2.downsampled_to_${coverage}x.bam.bai" \
       "gs://str-truth-set/hg38/tool_results_for_downsampled_${coverage}x_bam" \
       "./tool_comparison/results_for_downsampled_${coverage}x_bam" \
       "no" \
