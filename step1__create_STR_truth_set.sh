@@ -138,11 +138,8 @@ bedtools intersect -header -f 1 -wa -u \
 set +x
 print_output_stats ${input_vcf} ${output_vcf}
 
-echo ===============
-
 for pure_STRs_only in "true" "false"
 do
-
   # Process pure STRs only, then also allowing STRs with interruptions. Although the 1st is a strict subset of the 2nd,
   # processing the pure STRs separately first makes it easier to get stats on how many pure STRs fail validation vs. T2T
   if [ $pure_STRs_only == "true" ]
@@ -157,6 +154,9 @@ do
   input_vcf=step1.high_confidence_regions.vcf.gz
   output_prefix=step2.${STR_type}s
   output_vcf="${output_prefix}.vcf.gz"
+
+  echo ===============
+  echo Starting to process ${STR_type}s: ${allow_interruptions_arg}
 
   # NOTE: these parameter values were chosen so that the subset of known disease-associated STR loci that have
   # non-reference genotypes in the SynDip truth set would be added to the STR truth set and would have the expected
