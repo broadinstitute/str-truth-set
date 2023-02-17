@@ -139,196 +139,209 @@ set +x
 print_output_stats ${input_vcf} ${output_vcf}
 
 echo ===============
-input_vcf="${output_vcf}"
-output_prefix=step2.STRs
-output_vcf="${output_prefix}.vcf.gz"
 
-# NOTE: these parameter values were chosen so that the subset of known disease-associated STR loci that have
-# non-reference genotypes in the SynDip truth set would be added to the STR truth set and would have the expected
-# reference start and end coordinates despite some of the repeat interruptions in the hg38 reference sequence at some
-# of these loci
+for pure_STRs_only in "true" "false"
+do
 
-min_str_length=9
-min_str_repeats=3
+  if [ $pure_STRs_only == "true" ]
+  then
+    STR_type="pure_STR"
+    allow_interruptions_arg=""
+  else
+    STR_type="STR"
+    allow_interruptions_arg="--allow-interruptions"
+  fi
 
-print_input_stats $input_vcf "STEP #2: Filter variants to the subset that are actually STR expansion or contractions"
-set -x
+  input_vcf=step1.high_confidence_regions.vcf.gz
+  output_prefix=step2.${STR_type}s
+  output_vcf="${output_prefix}.vcf.gz"
 
-python3 -u -m str_analysis.filter_vcf_to_STR_variants \
-  -R "${hg38_fasta_path}" \
-  --write-bed-file \
-  --allow-interruptions \
-  --min-str-length "${min_str_length}" \
-  --min-str-repeats "${min_str_repeats}" \
-  --output-prefix "${output_prefix}" \
-  "${input_vcf}"
+  # NOTE: these parameter values were chosen so that the subset of known disease-associated STR loci that have
+  # non-reference genotypes in the SynDip truth set would be added to the STR truth set and would have the expected
+  # reference start and end coordinates despite some of the repeat interruptions in the hg38 reference sequence at some
+  # of these loci
 
-#   -n 10000 \
+  min_str_length=9
+  min_str_repeats=3
 
+  print_input_stats $input_vcf "STEP #2: Filter variants to the subset that are actually STR expansion or contractions"
+  set -x
 
-# generate overlap statistics before liftover
-python3 -u scripts/compute_overlap_with_other_catalogs.py --all-repeats --all-motifs ${output_prefix}.variants.tsv.gz  ${output_prefix}.variants.with_overlap_columns.tsv.gz -c IlluminaSTRCatalog -c GangSTRCatalog17 -c KnownDiseaseAssociatedSTRs
+  python3 -u -m str_analysis.filter_vcf_to_STR_variants ${allow_interruptions_arg} \
+    -R "${hg38_fasta_path}" \
+    --write-bed-file \
+    --min-str-length "${min_str_length}" \
+    --min-str-repeats "${min_str_repeats}" \
+    --output-prefix "${output_prefix}" \
+    "${input_vcf}"
 
-set +x
-print_output_stats $input_vcf $output_vcf
-
-
-echo ===============
-input_vcf=$output_vcf
-output_vcf=step3.STRs.lifted_to_chm13v2.vcf.gz
-output_failed_liftover1_vcf=step3.lifted_to_chm13v2_rejected.vcf.gz
-
-print_input_stats $input_vcf "STEP #3: Liftover variants from hg38 to the T2T reference (chm13v2.0)"
-set -x
-
-gatk --java-options "-Xmx7g" LiftoverVcf \
-    -R "${t2t_fasta_path}" \
-    -C "${hg38_t2t_chain_path}" \
-    -I       "${input_vcf}" \
-    -O       "${output_vcf}" \
-    --REJECT "${output_failed_liftover1_vcf}" \
-    --VALIDATION_STRINGENCY LENIENT \
-    --RECOVER_SWAPPED_REF_ALT \
-    --WARN_ON_MISSING_CONTIG \
-    --LIFTOVER_MIN_MATCH 0.00001 \
-    --WRITE_ORIGINAL_POSITION \
-    --WRITE_ORIGINAL_ALLELES \
-    --ALLOW_MISSING_FIELDS_IN_HEADER
-
-set +x
-print_liftover_output_stats $input_vcf $output_vcf $output_failed_liftover1_vcf
-
-echo ===============
-input_vcf=$output_vcf
-output_vcf=step4.STRs.found_in_chm13v2.vcf.gz
-print_input_stats ${input_vcf} "STEP #4: Filter out variants that are true homozygous alt or multi-allelic after liftover since this means neither allele matches the T2T reference (chm13v2.0)"
-set -x
-
-python3 -u scripts/filter_out_discordant_variants_after_liftover.py --reference-fasta ${t2t_fasta_path} ${input_vcf} ${output_vcf}
-
-set +x
-print_output_stats ${input_vcf} ${output_vcf}
-
-echo ===============
-input_vcf=${output_vcf}
-output_vcf=step5.STRs.lifted_back_to_38.vcf.gz
-output_failed_liftover2_vcf=step5.lifted_back_to_38_rejected.vcf.gz
-
-print_input_stats $input_vcf "STEP #5: Liftover the truth variants that passed all checks back to hg38"
-set -x
-
-gatk --java-options "-Xmx7g" LiftoverVcf \
-     -R "${hg38_fasta_path}" \
-     -C "${t2t_hg38_chain_path}" \
-     -I       ${input_vcf} \
-     -O       ${output_vcf} \
-     --REJECT $output_failed_liftover2_vcf \
-     --VALIDATION_STRINGENCY LENIENT \
-     --RECOVER_SWAPPED_REF_ALT \
-     --WARN_ON_MISSING_CONTIG \
-     --LIFTOVER_MIN_MATCH 0.00001 \
-     --WRITE_ORIGINAL_POSITION \
-     --WRITE_ORIGINAL_ALLELES \
-     --ALLOW_MISSING_FIELDS_IN_HEADER
-
-set +x
-print_liftover_output_stats $input_vcf $output_vcf $output_failed_liftover2_vcf
-
-echo ===============
-input_vcf=$output_vcf
-output_vcf=step6.STRs.restored_dels_that_failed_liftover.vcf.gz
-
-print_input_stats $input_vcf "STEP #6: Restore deletions that were dropped in the 1st liftover (hg38 => chm13v2.0) due to IndelStraddlesMultipleIntevals flag in picard LiftoverVcf. See https://github.com/broadinstitute/picard/blob/master/src/main/java/picard/vcf/LiftoverVcf.java#L424-L431 for more details on IndelStraddlesMultipleIntevals"
-set -x
-
-gunzip -c $input_vcf > temp.vcf
-gunzip -c $output_failed_liftover1_vcf | grep -v '^#' | grep IndelStraddlesMultipleIntevals | awk '{ if ( length($4) > length($5) || index($5, ",") > 0) { print $0 } }' >> temp.vcf
-
-gatk FixVcfHeader -I temp.vcf -O temp.fixed.vcf
-gatk SortVcf -I temp.fixed.vcf -O $output_vcf
-
-rm temp.vcf temp.fixed.vcf*
-
-set +x
-print_output_stats $input_vcf $output_vcf
-
-echo ===============
-input_vcf=$output_vcf
-output_vcf=step7.STRs.passed_liftover_checks.vcf.gz
-
-print_input_stats $input_vcf "STEP #7: Check VCF positions before vs. after liftover to confirm concordance."
-set -x
-
-python3 -u scripts/check_vcf_concordance_before_vs_after_liftover.py \
-  -o $output_vcf \
-  step2.STRs.vcf.gz \
-  step6.STRs.restored_dels_that_failed_liftover.vcf.gz
-
-set +x
-print_output_stats $input_vcf $output_vcf
-
-echo ===============
-input_vcf=$output_vcf
-output_prefix=step7.filtered_STRs
-
-print_input_stats $input_vcf "step8: Print stats and compute overlap with other catalogs."
-set -x
-
-# even though all the variants in $input_vcf are already STRs, run the str_analysis.filter_vcf_to_STR_variants script on
-# it just to generate the .variants.tsv and .alleles.tsv tables and print summary stats.
-python3 -u -m str_analysis.filter_vcf_to_STR_variants \
-  -R "${hg38_fasta_path}" \
-  --write-bed-file \
-  --allow-interruptions \
-  --min-str-length "${min_str_length}" \
-  --min-str-repeats "${min_str_repeats}" \
-  --output-prefix "${output_prefix}" \
-  "${input_vcf}"
+  #   -n 10000 \
 
 
-# compute overlap with various reference annotations
-suffix=with_overlap_columns
-python3 -u scripts/compute_overlap_with_other_catalogs.py --all-repeats --all-motifs ${output_prefix}.variants.tsv.gz  ${output_prefix}.variants.${suffix}.tsv.gz &
-python3 -u scripts/compute_overlap_with_other_catalogs.py --all-repeats --all-motifs ${output_prefix}.alleles.tsv.gz  ${output_prefix}.alleles.${suffix}.tsv.gz &
-wait
-mv ${output_prefix}.variants.${suffix}.tsv.gz ${output_prefix}.variants.tsv.gz
-mv ${output_prefix}.alleles.${suffix}.tsv.gz  ${output_prefix}.alleles.tsv.gz
+  # generate overlap statistics before liftover
+  python3 -u scripts/compute_overlap_with_other_catalogs.py --all-repeats --all-motifs ${output_prefix}.variants.tsv.gz  ${output_prefix}.variants.with_overlap_columns.tsv.gz -c IlluminaSTRCatalog -c GangSTRCatalog17 -c KnownDiseaseAssociatedSTRs
 
-suffix=with_gencode_v42_columns
-python3 -u scripts/compute_overlap_with_gene_models.py ./ref/other/gencode.v42.annotation.gtf.gz  ${output_prefix}.variants.tsv.gz  ${output_prefix}.variants.${suffix}.tsv.gz &
-python3 -u scripts/compute_overlap_with_gene_models.py ./ref/other/gencode.v42.annotation.gtf.gz  ${output_prefix}.alleles.tsv.gz   ${output_prefix}.alleles.${suffix}.tsv.gz &
-wait
-mv ${output_prefix}.variants.${suffix}.tsv.gz ${output_prefix}.variants.tsv.gz
-mv ${output_prefix}.alleles.${suffix}.tsv.gz ${output_prefix}.alleles.tsv.gz
-
-suffix=with_MANE_columns
-python3 -u scripts/compute_overlap_with_gene_models.py ./ref/other/MANE.v1.0.ensembl_genomic.gtf.gz  ${output_prefix}.variants.tsv.gz ${output_prefix}.variants.${suffix}.tsv.gz &
-python3 -u scripts/compute_overlap_with_gene_models.py ./ref/other/MANE.v1.0.ensembl_genomic.gtf.gz  ${output_prefix}.alleles.tsv.gz  ${output_prefix}.alleles.${suffix}.tsv.gz &
-wait
-mv ${output_prefix}.variants.${suffix}.tsv.gz ${output_prefix}.variants.tsv.gz
-mv ${output_prefix}.alleles.${suffix}.tsv.gz ${output_prefix}.alleles.tsv.gz
+  set +x
+  print_output_stats $input_vcf $output_vcf
 
 
-# move files to final output filenames
-final_output_prefix=STR_truthset.${version}
+  echo ===============
+  input_vcf=$output_vcf
+  output_vcf=step3.${STR_type}s.lifted_to_chm13v2.vcf.gz
+  output_failed_liftover1_vcf=step3.lifted_to_chm13v2_rejected.vcf.gz
 
-mv ${output_prefix}.variants.tsv.gz ${final_output_prefix}.variants.tsv.gz
-mv ${output_prefix}.alleles.tsv.gz  ${final_output_prefix}.alleles.tsv.gz
+  print_input_stats $input_vcf "STEP #3: Liftover variants from hg38 to the T2T reference (chm13v2.0)"
+  set -x
 
-mv ${output_prefix}.variants.bed.gz     ${final_output_prefix}.variants.bed.gz
-mv ${output_prefix}.variants.bed.gz.tbi ${final_output_prefix}.variants.bed.gz.tbi
+  gatk --java-options "-Xmx7g" LiftoverVcf \
+      -R "${t2t_fasta_path}" \
+      -C "${hg38_t2t_chain_path}" \
+      -I       "${input_vcf}" \
+      -O       "${output_vcf}" \
+      --REJECT "${output_failed_liftover1_vcf}" \
+      --VALIDATION_STRINGENCY LENIENT \
+      --RECOVER_SWAPPED_REF_ALT \
+      --WARN_ON_MISSING_CONTIG \
+      --LIFTOVER_MIN_MATCH 0.00001 \
+      --WRITE_ORIGINAL_POSITION \
+      --WRITE_ORIGINAL_ALLELES \
+      --ALLOW_MISSING_FIELDS_IN_HEADER
 
-mv ${output_prefix}.vcf.gz      ${final_output_prefix}.vcf.gz
-mv ${output_prefix}.vcf.gz.tbi  ${final_output_prefix}.vcf.gz.tbi
+  set +x
+  print_liftover_output_stats $input_vcf $output_vcf $output_failed_liftover1_vcf
 
-python3 tool_comparison/scripts/convert_truth_set_to_variant_catalogs.py \
-	--expansion-hunter-loci-per-run 500 \
-	--gangstr-loci-per-run 10000 \
-	--output-dir ./tool_comparison/variant_catalogs \
-	--high-confidence-regions-bed ./ref/full.38.bed.gz \
-	--all-repeats-bed ./ref/other/repeat_specs_GRCh38_without_mismatches.sorted.trimmed.at_least_9bp.bed.gz \
-	STR_truthset.v1.variants.tsv.gz
+  echo ===============
+  input_vcf=$output_vcf
+  output_vcf=step4.${STR_type}s.found_in_chm13v2.vcf.gz
+  print_input_stats ${input_vcf} "STEP #4: Filter out variants that are true homozygous alt or multi-allelic after liftover since this means neither allele matches the T2T reference (chm13v2.0)"
+  set -x
 
+  python3 -u scripts/filter_out_discordant_variants_after_liftover.py --reference-fasta ${t2t_fasta_path} ${input_vcf} ${output_vcf}
+
+  set +x
+  print_output_stats ${input_vcf} ${output_vcf}
+
+  echo ===============
+  input_vcf=${output_vcf}
+  output_vcf=step5.${STR_type}s.lifted_back_to_38.vcf.gz
+  output_failed_liftover2_vcf=step5.lifted_back_to_38_rejected.vcf.gz
+
+  print_input_stats $input_vcf "STEP #5: Liftover the truth variants that passed all checks back to hg38"
+  set -x
+
+  gatk --java-options "-Xmx7g" LiftoverVcf \
+       -R "${hg38_fasta_path}" \
+       -C "${t2t_hg38_chain_path}" \
+       -I       ${input_vcf} \
+       -O       ${output_vcf} \
+       --REJECT $output_failed_liftover2_vcf \
+       --VALIDATION_STRINGENCY LENIENT \
+       --RECOVER_SWAPPED_REF_ALT \
+       --WARN_ON_MISSING_CONTIG \
+       --LIFTOVER_MIN_MATCH 0.00001 \
+       --WRITE_ORIGINAL_POSITION \
+       --WRITE_ORIGINAL_ALLELES \
+       --ALLOW_MISSING_FIELDS_IN_HEADER
+
+  set +x
+  print_liftover_output_stats $input_vcf $output_vcf $output_failed_liftover2_vcf
+
+  echo ===============
+  input_vcf=$output_vcf
+  output_vcf=step6.${STR_type}s.restored_dels_that_failed_liftover.vcf.gz
+
+  print_input_stats $input_vcf "STEP #6: Restore deletions that were dropped in the 1st liftover (hg38 => chm13v2.0) due to IndelStraddlesMultipleIntevals flag in picard LiftoverVcf. See https://github.com/broadinstitute/picard/blob/master/src/main/java/picard/vcf/LiftoverVcf.java#L424-L431 for more details on IndelStraddlesMultipleIntevals"
+  set -x
+
+  gunzip -c $input_vcf > temp.vcf
+  gunzip -c $output_failed_liftover1_vcf | grep -v '^#' | grep IndelStraddlesMultipleIntevals | awk '{ if ( length($4) > length($5) || index($5, ",") > 0) { print $0 } }' >> temp.vcf
+
+  gatk FixVcfHeader -I temp.vcf -O temp.fixed.vcf
+  gatk SortVcf -I temp.fixed.vcf -O $output_vcf
+
+  rm temp.vcf temp.fixed.vcf*
+
+  set +x
+  print_output_stats $input_vcf $output_vcf
+
+  echo ===============
+  input_vcf=$output_vcf
+  output_vcf=step7.${STR_type}s.passed_liftover_checks.vcf.gz
+
+  print_input_stats $input_vcf "STEP #7: Check VCF positions before vs. after liftover to confirm concordance."
+  set -x
+
+  python3 -u scripts/check_vcf_concordance_before_vs_after_liftover.py \
+    -o $output_vcf \
+    step2.${STR_type}s.vcf.gz \
+    step6.${STR_type}s.restored_dels_that_failed_liftover.vcf.gz
+
+  set +x
+  print_output_stats $input_vcf $output_vcf
+
+  echo ===============
+  input_vcf=$output_vcf
+  output_prefix=step7.filtered_${STR_type}s
+
+  print_input_stats $input_vcf "step8: Print stats and compute overlap with other catalogs."
+  set -x
+
+  # even though all the variants in $input_vcf are already STRs, run the str_analysis.filter_vcf_to_STR_variants script on
+  # it just to generate the .variants.tsv and .alleles.tsv tables and print summary stats.
+  python3 -u -m str_analysis.filter_vcf_to_STR_variants \
+    -R "${hg38_fasta_path}" \
+    --write-bed-file \
+    --allow-interruptions \
+    --min-str-length "${min_str_length}" \
+    --min-str-repeats "${min_str_repeats}" \
+    --output-prefix "${output_prefix}" \
+    "${input_vcf}"
+
+
+  # compute overlap with various reference annotations
+  suffix=with_overlap_columns
+  python3 -u scripts/compute_overlap_with_other_catalogs.py --all-repeats --all-motifs ${output_prefix}.variants.tsv.gz  ${output_prefix}.variants.${suffix}.tsv.gz &
+  python3 -u scripts/compute_overlap_with_other_catalogs.py --all-repeats --all-motifs ${output_prefix}.alleles.tsv.gz  ${output_prefix}.alleles.${suffix}.tsv.gz &
+  wait
+  mv ${output_prefix}.variants.${suffix}.tsv.gz ${output_prefix}.variants.tsv.gz
+  mv ${output_prefix}.alleles.${suffix}.tsv.gz  ${output_prefix}.alleles.tsv.gz
+
+  suffix=with_gencode_v42_columns
+  python3 -u scripts/compute_overlap_with_gene_models.py ./ref/other/gencode.v42.annotation.gtf.gz  ${output_prefix}.variants.tsv.gz  ${output_prefix}.variants.${suffix}.tsv.gz &
+  python3 -u scripts/compute_overlap_with_gene_models.py ./ref/other/gencode.v42.annotation.gtf.gz  ${output_prefix}.alleles.tsv.gz   ${output_prefix}.alleles.${suffix}.tsv.gz &
+  wait
+  mv ${output_prefix}.variants.${suffix}.tsv.gz ${output_prefix}.variants.tsv.gz
+  mv ${output_prefix}.alleles.${suffix}.tsv.gz ${output_prefix}.alleles.tsv.gz
+
+  suffix=with_MANE_columns
+  python3 -u scripts/compute_overlap_with_gene_models.py ./ref/other/MANE.v1.0.ensembl_genomic.gtf.gz  ${output_prefix}.variants.tsv.gz ${output_prefix}.variants.${suffix}.tsv.gz &
+  python3 -u scripts/compute_overlap_with_gene_models.py ./ref/other/MANE.v1.0.ensembl_genomic.gtf.gz  ${output_prefix}.alleles.tsv.gz  ${output_prefix}.alleles.${suffix}.tsv.gz &
+  wait
+  mv ${output_prefix}.variants.${suffix}.tsv.gz ${output_prefix}.variants.tsv.gz
+  mv ${output_prefix}.alleles.${suffix}.tsv.gz ${output_prefix}.alleles.tsv.gz
+
+
+  # move files to final output filenames
+  final_output_prefix=${STR_type}_truthset.${version}
+
+  mv ${output_prefix}.variants.tsv.gz ${final_output_prefix}.variants.tsv.gz
+  mv ${output_prefix}.alleles.tsv.gz  ${final_output_prefix}.alleles.tsv.gz
+
+  mv ${output_prefix}.variants.bed.gz     ${final_output_prefix}.variants.bed.gz
+  mv ${output_prefix}.variants.bed.gz.tbi ${final_output_prefix}.variants.bed.gz.tbi
+
+  mv ${output_prefix}.vcf.gz      ${final_output_prefix}.vcf.gz
+  mv ${output_prefix}.vcf.gz.tbi  ${final_output_prefix}.vcf.gz.tbi
+
+  python3 tool_comparison/scripts/convert_truth_set_to_variant_catalogs.py \
+    --expansion-hunter-loci-per-run 500 \
+    --gangstr-loci-per-run 10000 \
+    --output-dir ./tool_comparison/variant_catalogs \
+    --high-confidence-regions-bed ./ref/full.38.bed.gz \
+    --all-repeats-bed ./ref/other/repeat_specs_GRCh38_without_mismatches.sorted.trimmed.at_least_9bp.bed.gz \
+    ${STR_type}_truthset.v1.variants.tsv.gz
+
+done
 
 # compute overlap with various reference annotations for negative loci
 negative_loci_bed_path=tool_comparison/variant_catalogs/negative_loci.bed.gz
