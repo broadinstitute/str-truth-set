@@ -365,156 +365,178 @@ def compute_tables_for_fraction_exactly_right_plots(df, coverage_values=("40x", 
 
 def generate_all_distribution_by_num_repeats_plots(df, output_image_dir, plot_counter, max_plots=None, verbose=False):
 
-    for motif_size in ("STR", "TR", "TR2"):
+    for motif_size in ("all_motifs", "STR", "TR", "TR25+"):
         for pure_repeats in (True, False,):
             for coverage in ("40x", "30x", "20x", "10x", "05x", "exome", ):
                 for tool_label in ("ExpansionHunter", "GangSTR", "HipSTR"):  #"GangSTR__Q_over_0.8", "ExpansionHunter_Filtered":
-                    if max_plots and plot_counter >= max_plots:
-                        print(f"Exiting after generating {plot_counter} plot(s)")
-                        sys.exit(0)
+                    for genotype_subset in ("all_genotypes", "HET", "HOM", "MULTI"):
+                        if max_plots and plot_counter >= max_plots:
+                            print(f"Exiting after generating {plot_counter} plot(s)")
+                            sys.exit(0)
 
-                    print("-"*100)
+                        print("-"*100)
 
-                    figure_title_line1 = ""
-                    figure_title_line2 = ""
-                    output_image_filename = "tool_accuracy_by_true_allele_size"
+                        figure_title_line1 = ""
+                        figure_title_line2 = ""
+                        output_image_filename = "tool_accuracy_by_true_allele_size"
 
-                    df2 = df.copy()
-                    df2 = df2[
-                        (df2["PositiveOrNegative"] == "positive") &
-                        (df2["coverage"] == coverage) &
-                        (df2["DiffFromRefRepeats: Allele: Truth (bin)"] != "0") &
-                        df2.IsFoundInReference
-                    ]
+                        df2 = df.copy()
+                        df2 = df2[
+                            (df2["PositiveOrNegative"] == "positive") &
+                            (df2["coverage"] == coverage) &
+                            (df2["DiffFromRefRepeats: Allele: Truth (bin)"] != "0") &
+                            df2.IsFoundInReference
+                        ]
 
-                    if coverage == "exome":
-                        df2 = df2[~df2["Genotype: GangSTR"].isna() | ~df2["Genotype: ExpansionHunter"].isna()]
-                        df2 = df2[~df2["GeneRegionFromGencode_V42"].isin({"intergenic", "intron", "promoter"})]
+                        if coverage == "exome":
+                            df2 = df2[~df2["Genotype: GangSTR"].isna() | ~df2["Genotype: ExpansionHunter"].isna()]
+                            df2 = df2[~df2["GeneRegionFromGencode_V42"].isin({"intergenic", "intron", "promoter"})]
 
-                    filter_description = []
-                    if motif_size == "STR":
-                        filter_description.append("2bp to 6bp motifs")
-                        output_image_filename += ".2to6bp_motifs"
-                        df2 = df2[(2 <= df2["MotifSize"]) & (df2["MotifSize"] <= 6)]
-                    elif motif_size == "TR":
-                        filter_description.append(f"7bp to 24bp motifs")
-                        output_image_filename += ".7to24bp_motifs"
-                        df2 = df2[(7 <= df2["MotifSize"]) & (df2["MotifSize"] <= 24)]
-                    elif motif_size == "TR2":
-                        filter_description.append(f"25bp to 50bp motifs")
-                        output_image_filename += ".25to50bp_motifs"
-                        df2 = df2[(25 <= df2["MotifSize"]) & (df2["MotifSize"] <= 50)]
-                    else:
-                        raise ValueError(f"Unexpected motif_size value: {motif_size}")
+                        filter_description = []
+                        if motif_size == "all_motifs":
+                            filter_description.append("all motif sizes")
+                            output_image_filename += ".all_motifs"
+                            df2 = df2[(2 <= df2["MotifSize"]) & (df2["MotifSize"] <= 50)]
+                        elif motif_size == "STR":
+                            filter_description.append("2bp to 6bp motifs")
+                            output_image_filename += ".2to6bp_motifs"
+                            df2 = df2[(2 <= df2["MotifSize"]) & (df2["MotifSize"] <= 6)]
+                        elif motif_size == "TR":
+                            filter_description.append(f"7bp to 24bp motifs")
+                            output_image_filename += ".7to24bp_motifs"
+                            df2 = df2[(7 <= df2["MotifSize"]) & (df2["MotifSize"] <= 24)]
+                        elif motif_size == "TR25+":
+                            filter_description.append(f"25bp to 50bp motifs")
+                            output_image_filename += ".25to50bp_motifs"
+                            df2 = df2[(25 <= df2["MotifSize"]) & (df2["MotifSize"] <= 50)]
+                        else:
+                            raise ValueError(f"Unexpected motif_size value: {motif_size}")
 
-                    if pure_repeats:
-                        #filter_description.append("pure repeats only")
-                        output_image_filename += ".pure_repeats"
-                        df2 = df2[df2["IsPureRepeat"]]
-                    else:
-                        filter_description.append("repeats with interruptions")
-                        output_image_filename += ".with_interruptions"
-                        df2 = df2[~df2["IsPureRepeat"]]
+                        if genotype_subset == "all_genotypes":
+                            output_image_filename += ".all_genotypes"
+                        elif genotype_subset == "HET":
+                            filter_description.append("HET")
+                            output_image_filename += ".HET"
+                            df2 = df2[df2["SummaryString"].str.contains(":HET")]
+                        elif genotype_subset == "HOM":
+                            filter_description.append(f"HOM")
+                            output_image_filename += ".HOM"
+                            df2 = df2[df2["SummaryString"].str.contains(":HOM")]
+                        elif genotype_subset == "MULTI":
+                            filter_description.append(f"multi-allelic")
+                            output_image_filename += ".MULTI"
+                            df2 = df2[df2["SummaryString"].str.contains(":MULTI")]
+                        else:
+                            raise ValueError(f"Unexpected motif_size value: {motif_size}")
 
-                    output_image_filename += f".{coverage}"
+                        if pure_repeats:
+                            filter_description.append("uninterrupted repeats")
+                            output_image_filename += ".pure_repeats"
+                            df2 = df2[df2["IsPureRepeat"]]
+                        else:
+                            filter_description.append("repeats with interruptions")
+                            output_image_filename += ".with_interruptions"
+                            df2 = df2[~df2["IsPureRepeat"]]
 
-                    tool = tool_label
-                    coverage_label = f"Exome Data" if coverage == "exome" else f"{coverage} Coverage Genome Data"
-                    if "GangSTR__Q_over_0.8" in tool_label:
-                        tool = "GangSTR"
-                        figure_title_line1 += f"{tool} Calls filtered to Q > 0.8"
-                        output_image_filename += f".{tool}_filtered"
-                    elif "ExpansionHunter_Filtered" in tool_label:
-                        tool = "ExpansionHunter"
-                        figure_title_line1 += f"{tool} Calls filtered"
-                        output_image_filename += f".{tool}_filtered"
-                    else:
-                        figure_title_line1 += f"{tool} Calls for {coverage_label}"
-                        output_image_filename += f".{tool}"
+                        output_image_filename += f".{coverage}"
 
-                    figure_title_line2 += f"{len(df2):,d} total alleles at {len(set(df2.LocusId)):,d} loci (" + ", ".join(filter_description) + ")"
+                        tool = tool_label
+                        coverage_label = f"Exome Data" if coverage == "exome" else f"{coverage} Coverage Genome Data"
+                        if "GangSTR__Q_over_0.8" in tool_label:
+                            tool = "GangSTR"
+                            figure_title_line1 += f"{tool} Calls filtered to Q > 0.8"
+                            output_image_filename += f".{tool}_filtered"
+                        elif "ExpansionHunter_Filtered" in tool_label:
+                            tool = "ExpansionHunter"
+                            figure_title_line1 += f"{tool} Calls filtered"
+                            output_image_filename += f".{tool}_filtered"
+                        else:
+                            figure_title_line1 += f"{tool} Calls for {coverage_label}"
+                            output_image_filename += f".{tool}"
 
-                    print(figure_title_line1)
-                    print(figure_title_line2)
+                        figure_title_line2 += f"{len(df2):,d} total alleles at {len(set(df2.LocusId)):,d} loci (" + ", ".join(filter_description) + ")"
 
-                    skip_condition1 = tool_label == "HipSTR" and motif_size != "STR"
-                    skip_condition2 = len(df2) < 10
-                    if skip_condition1 or skip_condition2:
-                        # HipSTR doesn't support motifs larger than 9bp
-                        if skip_condition1:
-                            message = "HipSTR doesn't support motif sizes larger than 9bp"
-                        elif skip_condition2:
-                            message = "Not enough alleles to create plot"
+                        print(figure_title_line1)
+                        print(figure_title_line2)
 
-                        print(f"Skipping..  {message}")
-                        plot_empty_image(figure_title_line1 + "\n\n" + figure_title_line2, message)
-                        plt.savefig(f"{output_image_dir}/{output_image_filename}.svg")
-                        print(f"Saved {output_image_dir}/{output_image_filename}.svg")
-                        plt.close()
-                        continue
+                        skip_condition1 = tool_label == "HipSTR" and motif_size != "STR"
+                        skip_condition2 = len(df2) < 10
+                        if skip_condition1 or skip_condition2:
+                            # HipSTR doesn't support motifs larger than 9bp
+                            if skip_condition1:
+                                message = "HipSTR doesn't support motif sizes larger than 9bp"
+                            elif skip_condition2:
+                                message = "Not enough alleles to create plot"
 
-                    print("Keeping", len(df2), "out of ", len(df), "rows")
+                            print(f"Skipping..  {message}")
+                            plot_empty_image(figure_title_line1 + "\n\n" + figure_title_line2, message)
+                            plt.savefig(f"{output_image_dir}/{output_image_filename}.svg")
+                            print(f"Saved {output_image_dir}/{output_image_filename}.svg")
+                            plt.close()
+                            continue
 
-                    print(tool, sum(df2[f"DiffFromRefRepeats: Allele: {tool}"].isna()), "out of", len(df2), f"{tool} - Ref' values are NaN")
-                    print(tool, sum(df2[f"DiffRepeats: Allele: {tool} - Truth"].isna()), "out of", len(df2), f"{tool} - Truth' values are NaN")
+                        print("Keeping", len(df2), "out of ", len(df), "rows")
 
-                    if "GangSTR__Q_over_0.8" in tool_label:
-                        df2.loc[:, f"DiffRepeats: Allele: {tool} - Truth (bin)"] = np.where(
-                            ~df2[f"Q: GangSTR"].isna() & (df2[f"Q: GangSTR"].astype(float) <= 0.8),
-                            "Filtered",
-                            df2[f"DiffRepeats: Allele: {tool} - Truth (bin)"])
+                        print(tool, sum(df2[f"DiffFromRefRepeats: Allele: {tool}"].isna()), "out of", len(df2), f"{tool} - Ref' values are NaN")
+                        print(tool, sum(df2[f"DiffRepeats: Allele: {tool} - Truth"].isna()), "out of", len(df2), f"{tool} - Truth' values are NaN")
 
-                    elif "ExpansionHunter_Filtered" in tool_label:
-                        df2.loc[:, f"DiffRepeats: Allele: {tool} - Truth (bin)"] = np.where(
-                            ~df2[f"CI size: Allele: ExpansionHunter"].isna() & (
-                                    df2[f"CI size: Allele: ExpansionHunter"].astype(float)/df2["NumRepeats: Allele: ExpansionHunter"] > 2),
-                            "Filtered",
-                            df2[f"DiffRepeats: Allele: {tool} - Truth (bin)"])
+                        if "GangSTR__Q_over_0.8" in tool_label:
+                            df2.loc[:, f"DiffRepeats: Allele: {tool} - Truth (bin)"] = np.where(
+                                ~df2[f"Q: GangSTR"].isna() & (df2[f"Q: GangSTR"].astype(float) <= 0.8),
+                                "Filtered",
+                                df2[f"DiffRepeats: Allele: {tool} - Truth (bin)"])
 
-                    hue_values = set(df2.loc[:, f"DiffRepeats: Allele: {tool} - Truth (bin)"])
-                    print("Hue values:", sorted(hue_values, key=hue_sorter))
+                        elif "ExpansionHunter_Filtered" in tool_label:
+                            df2.loc[:, f"DiffRepeats: Allele: {tool} - Truth (bin)"] = np.where(
+                                ~df2[f"CI size: Allele: ExpansionHunter"].isna() & (
+                                        df2[f"CI size: Allele: ExpansionHunter"].astype(float)/df2["NumRepeats: Allele: ExpansionHunter"] > 2),
+                                "Filtered",
+                                df2[f"DiffRepeats: Allele: {tool} - Truth (bin)"])
 
-                    palette = []
-                    if FILTERED_CALL_LABEL in hue_values:
-                        palette.append("#f5f5f5")
-                    if NO_CALL_LABEL in hue_values:
-                        palette.append("#c9c9c9")
-                    if HOM_REF_LABEL in hue_values:
-                        palette.append("#C9342A")
-                    if HET_REF_LABEL in hue_values:
-                        palette.append("#734B4B")
-                    if WRONG_DIRECTION_LABEL in hue_values:
-                        palette.append("#99FFEF")
+                        hue_values = set(df2.loc[:, f"DiffRepeats: Allele: {tool} - Truth (bin)"])
+                        print("Hue values:", sorted(hue_values, key=hue_sorter))
 
-                    n_blue_colors = sum(1 for h in hue_values if h.startswith("-"))
-                    n_orange_colors = len(hue_values) - n_blue_colors - len(palette) - 1
+                        palette = []
+                        if FILTERED_CALL_LABEL in hue_values:
+                            palette.append("#f5f5f5")
+                        if NO_CALL_LABEL in hue_values:
+                            palette.append("#c9c9c9")
+                        if HOM_REF_LABEL in hue_values:
+                            palette.append("#C9342A")
+                        if HET_REF_LABEL in hue_values:
+                            palette.append("#734B4B")
+                        if WRONG_DIRECTION_LABEL in hue_values:
+                            palette.append("#99FFEF")
 
-                    try:
-                        palette += list(sns.color_palette("Blues_r", n_colors=n_blue_colors))
-                        palette += [GREEN_COLOR]
-                        palette += list(sns.color_palette("Oranges_r", n_colors=n_orange_colors)[::-1])
+                        n_blue_colors = sum(1 for h in hue_values if h.startswith("-"))
+                        n_orange_colors = len(hue_values) - n_blue_colors - len(palette) - 1
 
-                        plot_distribution_by_num_repeats(
-                            df2,
-                            x_column="DiffFromRefRepeats: Allele: Truth (bin)",
-                            hue_column=f"DiffRepeats: Allele: {tool} - Truth (bin)",
-                            hue_order=sorted(hue_values, key=hue_sorter),
-                            tool_name=tool,
-                            palette=palette,
-                            figure_title=figure_title_line1 + "\n\n" + figure_title_line2
-                        )
+                        try:
+                            palette += list(sns.color_palette("Blues_r", n_colors=n_blue_colors))
+                            palette += [GREEN_COLOR]
+                            palette += list(sns.color_palette("Oranges_r", n_colors=n_orange_colors)[::-1])
 
-                        for ext in ".svg", ".png":
-                            plt.savefig(f"{output_image_dir}/{output_image_filename}{ext}")
-                            print(f"Saved {output_image_dir}/{output_image_filename}{ext}")
-                        plt.close()
+                            plot_distribution_by_num_repeats(
+                                df2,
+                                x_column="DiffFromRefRepeats: Allele: Truth (bin)",
+                                hue_column=f"DiffRepeats: Allele: {tool} - Truth (bin)",
+                                hue_order=sorted(hue_values, key=hue_sorter),
+                                tool_name=tool,
+                                palette=palette,
+                                figure_title=figure_title_line1 + "\n\n" + figure_title_line2
+                            )
 
-                    except Exception as e:
-                        print(f"ERROR: {e}")
-                        #import traceback
-                        #traceback.print_exc()
+                            for ext in ".svg", ".png":
+                                plt.savefig(f"{output_image_dir}/{output_image_filename}{ext}")
+                                print(f"Saved {output_image_dir}/{output_image_filename}{ext}")
+                            plt.close()
 
-                    plot_counter += 1
+                        except Exception as e:
+                            print(f"ERROR: {e}")
+                            #import traceback
+                            #traceback.print_exc()
+
+                        plot_counter += 1
 
     return plot_counter
 
@@ -540,7 +562,7 @@ def generate_fraction_exactly_right_plot(
         df = df[(2 <= df["MotifSize"]) & (df["MotifSize"] <= 6)]
     elif motif_size == "TR":
         df = df[(7 <= df["MotifSize"]) & (df["MotifSize"] <= 24)]
-    elif motif_size == "TR2":
+    elif motif_size == "TR25+":
         df = df[(25 <= df["MotifSize"]) & (df["MotifSize"] <= 50)]
     else:
         raise ValueError(f"Unexpected motif_size value: {motif_size}")
@@ -579,7 +601,7 @@ def generate_fraction_exactly_right_plot(
             filter_description.append(f"7bp to 24bp motifs")
             #figure_title += f"7bp to 24bp motifs"
             filename_suffix += ".7to24bp_motifs"
-        elif motif_size == "TR2":
+        elif motif_size == "TR25+":
             filter_description.append(f"25bp to 50bp motifs")
             #figure_title += f"7bp to 24bp motifs"
             filename_suffix += ".25to50bp_motifs"
