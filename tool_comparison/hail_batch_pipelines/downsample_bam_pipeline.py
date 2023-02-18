@@ -50,7 +50,7 @@ def main():
 
     s1.command("set -ex")
     s1.command("cd /io/")
-    s1.command(f"time gatk --java-options '-Xmx10G' DownsampleSam "
+    s1.command(f"time gatk --java-options '-Xmx11G' DownsampleSam "
                f"REFERENCE_SEQUENCE={local_fasta} "
                f"I={local_bam} "
                f"O={output_bam_filename} "
