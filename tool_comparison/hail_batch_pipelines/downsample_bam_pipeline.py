@@ -35,7 +35,7 @@ def main():
     if args.target_coverage >= args.input_coverage:
         parser.error(f"--target-coverage arg must be < {args.input_coverage}")
 
-    s1 = bp.new_step(pipeline_name, image=DOCKER_IMAGE, cpu=2, storage="250Gi", output_dir=args.output_dir)
+    s1 = bp.new_step(pipeline_name, image=DOCKER_IMAGE, cpu=2, memory="highmem", storage="250Gi", output_dir=args.output_dir)
     local_fasta = s1.input(args.reference_fasta, localize_by=Localize.HAIL_BATCH_CLOUDFUSE)
     if args.reference_fasta_fai:
         s1.input(args.reference_fasta_fai, localize_by=Localize.HAIL_BATCH_CLOUDFUSE)
@@ -50,7 +50,7 @@ def main():
 
     s1.command("set -ex")
     s1.command("cd /io/")
-    s1.command(f"time gatk DownsampleSam "
+    s1.command(f"time gatk --java-options '-Xmx10G' DownsampleSam "
                f"REFERENCE_SEQUENCE={local_fasta} "
                f"I={local_bam} "
                f"O={output_bam_filename} "
