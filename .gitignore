@@ -1,5 +1,8 @@
 .idea
 *.iml
+.DS_Store
+*.png
+*.svg
 
 ref
 *.tar.gz
