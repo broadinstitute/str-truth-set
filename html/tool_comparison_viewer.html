@@ -29,10 +29,10 @@
     </style>
 </head>
 <body>
-<div class="ui grid" style="padding: 0px 0px 20px 30px">
+<div class="ui stackable grid" style="padding: 0px 0px 0px 30px">
     <div class="ui row" style="border-top: 1px solid #eaeaea; padding-top: 20px; margin-top: 10px; border-bottom: 1px solid #eaeaea;">
-        <div class="ui eight wide column">
-            <ul style="padding-bottom: 20px; margin-bottom: 10px; ">
+        <div class="ui eight wide column" style="min-width:820px">
+            <ul>
                 <li>
                     <div class="ui form">
                         <div class="inline fields">
@@ -63,7 +63,7 @@
                             <div style="min-width: 70px">[<a class="prev-button" id="prev-genotype" href="#">&lt;</a> <a class="next-button" id="next-genotype" href="#">&gt;</a>]</div>
                             <div class="field"><div class="ui radio checkbox"><input type="radio" value="all_genotypes" name="genotype"><label>any</label></div></div>
                             <div class="field"><div class="ui radio checkbox"><input type="radio" value="HET" name="genotype" checked="checked"><label>heterozygous</label></div></div>
-                            <div class="field"><div class="ui radio checkbox"><input type="radio" value="HOM" name="genotype"><label>homozygous non-reference</label></div></div>
+                            <div class="field"><div class="ui radio checkbox"><input type="radio" value="HOM" name="genotype"><label>homozygous</label></div></div>
                             <div class="field"><div class="ui radio checkbox"><input type="radio" value="MULTI" name="genotype"><label>multi-allelic</label></div></div>
                         </div>
                     </div>
@@ -94,9 +94,10 @@
                 </li>
             </ul>
         </div>
-        <div class="ui eight wide column">
+        <div id="legend-row" class="ui eight wide column">
             <p>
-                <b>x-axis:</b> represents the true allele size. Positive values are STR expansions, negative values are contractions.<br />
+                <div style="float:right; padding-right:25px">[<a href="#" id="hide-legend">hide this legend</a>]</div>
+                <b>x-axis:</b> represents the true allele size. Positive values <br /> are STR expansions, negative values are contractions.<br />
                 <br />
                 <b>Green</b> represents alleles where the tool exactly matched the true allele size. <br />
                 <b>Orange</b> is for alleles that the tool overestimated (darker orange means larger overestimate).<br />
@@ -105,6 +106,8 @@
                 <b>Red</b> is for loci that the tool called as homozygous reference and so entirely missed the variant. <br />
                 <b>Brown</b> is when the tool incorrectly called an allele as being heterozygous reference.<br />
                 <b>Teal</b> is where it called a contraction when the true allele is an expansion or vice versa.<br />
+
+
             </p>
         </div>
     </div>
@@ -164,7 +167,9 @@
     }
 
     $('input[type="radio"]').on("change", update_tool_comparison_plot_viewer_image_url);
-
+    $('#hide-legend').click(() => {
+        $('#legend-row').hide()
+    })
 </script>
 </body>
 </html>
