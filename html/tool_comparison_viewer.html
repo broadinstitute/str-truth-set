@@ -30,7 +30,7 @@
 </head>
 <body>
 <div class="ui stackable grid" style="padding: 0px 0px 0px 30px">
-    <div class="ui row" style="border-top: 1px solid #eaeaea; padding-top: 20px; margin-top: 10px; border-bottom: 1px solid #eaeaea;">
+    <div class="ui row" style="padding-top: 20px; margin-top: 10px">
         <div class="ui eight wide column" style="min-width:820px">
             <ul>
                 <li>
@@ -116,9 +116,7 @@
 </div>
 
 <p>
-    <a target="_blank" id="tool-comparison-plot-viewer-url" alt="click here to open this image in a new tab" href="https://storage.googleapis.com/str-truth-set/hg38/figures/tool_accuracy_by_true_allele_size.2to6bp_motifs.all_genotypes.pure_repeats.40x.ExpansionHunter.svg">
-        <img style="padding-top:30px; max-width:90%;" alt="image" id="tool-comparison-plot-viewer" src="https://storage.googleapis.com/str-truth-set/hg38/figures/tool_accuracy_by_true_allele_size.2to6bp_motifs.all_genotypes.pure_repeats.40x.ExpansionHunter.svg" />
-    </a>
+    <img style="padding-top:30px; max-width:87%;" alt="image" id="tool-comparison-plot-viewer" src="https://storage.googleapis.com/str-truth-set/hg38/figures/tool_accuracy_by_true_allele_size.2to6bp_motifs.all_genotypes.pure_repeats.40x.ExpansionHunter.svg" />
 </p>
 
 <!-- script section -->
@@ -162,7 +160,6 @@
         let img_url = "https://storage.googleapis.com/str-truth-set/hg38/figures/"
         img_url += `tool_accuracy_by_true_allele_size.${motif_size}.${genotype}.${interruptions}.${coverage}.${tool}.svg`
 
-        $('#tool-comparison-plot-viewer-url').attr("href", img_url)
         $('#tool-comparison-plot-viewer').attr("src", img_url)
     }
 
