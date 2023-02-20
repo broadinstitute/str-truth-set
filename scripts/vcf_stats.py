@@ -10,6 +10,7 @@ p.add_argument("-p", "--prefix", help="Optional prefix string to print at the be
 p.add_argument("-m", "--min-percent", default=0, type=float,
                help="Only print stats (eg. % of variants that is multi-allelic) if the % is greater than this threshold")
 p.add_argument("-l", "--label", help="Optional text label to describe the VCF")
+p.add_argument("--count-by-filter", action="store_true", help="Whether to print stats separately by filter field")
 p.add_argument("vcf_path")
 args = p.parse_args()
 
@@ -71,33 +72,34 @@ for i, line in enumerate(fopen(args.vcf_path, "rt")):
             raise ValueError("Invalid state")
 
     # count variant types
-    if insertion_counter > 0 and deletion_counter == 0 and snv_counter == 0:
-        if insertion_counter > 1:
-            counters["multiallelic INS variants"] += 1
+    variant_filter_prefixes = ["", f"filter:{fltr}  ", "filtered:  "] if args.count_by_filter else [""]
+    for variant_filter_prefix in variant_filter_prefixes:
+        if insertion_counter > 0 and deletion_counter == 0 and snv_counter == 0:
+            if insertion_counter > 1:
+                counters[f"{variant_filter_prefix}multiallelic INS variants"] += 1
+            else:
+                counters[f"{variant_filter_prefix}INS variants"] += 1
+        elif insertion_counter == 0 and deletion_counter > 0 and snv_counter == 0:
+            if deletion_counter > 1:
+                counters[f"{variant_filter_prefix}multiallelic DEL variants"] += 1
+            else:
+                counters[f"{variant_filter_prefix}DEL variants"] += 1
+        elif insertion_counter == 0 and deletion_counter == 0 and snv_counter > 0:
+            if snv_counter > 1:
+                counters[f"{variant_filter_prefix}multiallelic SNV variants"] += 1
+            else:
+                counters[f"{variant_filter_prefix}SNV variants"] += 1
         else:
-            counters["INS variants"] += 1
-    elif insertion_counter == 0 and deletion_counter > 0 and snv_counter == 0:
-        if deletion_counter > 1:
-            counters["multiallelic DEL variants"] += 1
-        else:
-            counters["DEL variants"] += 1
-    elif insertion_counter == 0 and deletion_counter == 0 and snv_counter > 0:
-        if snv_counter > 1:
-            counters["multiallelic SNV variants"] += 1
-        else:
-            counters["SNV variants"] += 1
-    else:
-        var_types = []
-        if insertion_counter > 0:
-            var_types.append("INS")
-        if deletion_counter > 0:
-            var_types.append("DEL")
-        if snv_counter > 0:
-            var_types.append("SNV")
+            var_types = []
+            if insertion_counter > 0:
+                var_types.append("INS")
+            if deletion_counter > 0:
+                var_types.append("DEL")
+            if snv_counter > 0:
+                var_types.append("SNV")
 
-        var_types = "/".join(var_types)
-        counters[f"mixed multiallelic {var_types} variants"] += 1
-
+            var_types = "/".join(var_types)
+            counters[f"{variant_filter_prefix}mixed multiallelic {var_types} variants"] += 1
 
 # step 2: Print totals
 print(prefix+"{:10,d}".format(counters["TOTAL variants"]), "TOTAL variants")
@@ -108,7 +110,13 @@ print(prefix+"{:10,d}".format(counters["TOTAL alleles"]), "TOTAL alleles",
 # step 3: Print all counters
 for keyword in "genotype", "variants", "alleles":
     current_counter = [(key, count) for key, count in counters.items() if keyword in key]
-    current_counter = sorted(current_counter, key=lambda x: (-x[1], x[0]))
+    if args.count_by_filter:
+        sort_key = lambda x: (x[0], -x[1])
+    else:
+        sort_key = lambda x: (-x[1], x[0])
+
+
+    current_counter = sorted(current_counter, key=sort_key)
     print("--------------")
     for key, value in current_counter:
         if "variants" in key or "genotype" in key:

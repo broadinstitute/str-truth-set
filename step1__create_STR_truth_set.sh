@@ -112,7 +112,7 @@ function print_liftover_output_stats {
   print_output_stats "$1" "$2" "$4"
   local output_failed_liftover_vcf="$3"
   local prefix="$4"
-  python3 scripts/vcf_stats.py --prefix "${prefix}:failed-liftover:" --min-percent 0 "$output_failed_liftover_vcf"
+  python3 scripts/vcf_stats.py --count-by-filter --prefix "${prefix}:failed-liftover:" --min-percent 0 "$output_failed_liftover_vcf"
 
   echo Reasons for Liftover failure:
 
@@ -192,7 +192,7 @@ do
   echo ===============
   input_vcf=$output_vcf
   output_vcf=step3.${STR_type}s.lifted_to_chm13v2.vcf.gz
-  output_failed_liftover1_vcf=step3.lifted_to_chm13v2_rejected.vcf.gz
+  output_failed_liftover1_vcf=step3.${STR_type}s.lifted_to_chm13v2_rejected.vcf.gz
 
   print_input_stats $input_vcf "STEP #3: Liftover variants from hg38 to the T2T reference (chm13v2.0)"
   set -x
@@ -228,7 +228,7 @@ do
   echo ===============
   input_vcf=${output_vcf}
   output_vcf=step5.${STR_type}s.lifted_back_to_38.vcf.gz
-  output_failed_liftover2_vcf=step5.lifted_back_to_38_rejected.vcf.gz
+  output_failed_liftover2_vcf=step5.${STR_type}s.lifted_back_to_38_rejected.vcf.gz
 
   print_input_stats $input_vcf "STEP #5: Liftover the truth variants that passed all checks back to hg38"
   set -x

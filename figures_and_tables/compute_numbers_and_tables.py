@@ -180,8 +180,56 @@ print("\nLiftover succeeded for:")
 print(f"{format_np(total_STR_variants_after_1st_liftover_step, total_STR_variants_before_validation_step)} "
       f"total STR variants remaining after 1st liftover step")
 
-print("\nLiftover succeeded for (detail):")
-look_up_liftover_stats("step3:pure_STR:output:", total_STR_variants_after_1st_liftover_step)
+#print("\nLiftover succeeded for (detail):")
+#look_up_liftover_stats("step3:pure_STR:output:", total_STR_variants_after_1st_liftover_step)
 
+
+#%%
+
+# STR Validation Stats - 3rd row of figure: compare alleles with the T2T reference
+
+kept_het_variants = int(re.search(
+    f"([0-9,]+) .*kept variants: heterozygous reference genotype", step1_log_contents).group(1).replace(",", ""))
+
+kept_variants_insertions_that_match_adjacent_reference_sequence = int(re.search(
+    f"([0-9,]+) .*kept variants: insertion matches the adjacent reference sequence", step1_log_contents).group(1).replace(",", ""))
+
+total_variants_passed_t2t_comparison = int(re.search(
+    f"step4:pure_STR:output:[ ]*([0-9,]+)[ ]* TOTAL variants", step1_log_contents).group(1).replace(",", ""))
+
+assert total_variants_passed_t2t_comparison == kept_het_variants + kept_variants_insertions_that_match_adjacent_reference_sequence
+
+print(f"{format_np(total_variants_passed_t2t_comparison, total_STR_variants_before_validation_step)} "
+    "Total ")
+
+print(f"{format_np(total_STR_variants_after_1st_liftover_step - total_variants_passed_t2t_comparison, total_STR_variants_before_validation_step)} "
+      "failed t2t comparison ")
+
+
+#%%
+
+total_variants_passed_liftover_back_to_hg38 = int(re.search(
+    f"step5:pure_STR:output:[ ]*([0-9,]+)[ ]* TOTAL variants", step1_log_contents).group(1).replace(",", ""))
+
+print(f"{format_np(total_variants_passed_liftover_back_to_hg38, total_STR_variants_before_validation_step)} "
+      "Total passed t2t => hg38 liftover")
+
+print("-"*100)
+
+total_variants_with_different_position_after_hg38_to_t2t_to_hg38_liftovers = int(re.search(
+    f"([0-9,]+) .*variants had a different position after hg38 => T2T => hg38", step1_log_contents).group(1).replace(",", ""))
+print(total_variants_with_different_position_after_hg38_to_t2t_to_hg38_liftovers, "variants had a different position after hg38 => T2T => hg38")
+
+#%%
+print("-"*100)
+
+total_variants_passed_all_validation_steps = int(re.search(
+    f"step7:pure_STR:output:[ ]*([0-9,]+)[ ]* TOTAL variants", step1_log_contents).group(1).replace(",", ""))
+
+print(f"{format_np(total_variants_passed_all_validation_steps, total_STR_variants_before_validation_step)} "
+      "Total variants passed all validation steps")
+
+print(f"{format_np(total_STR_variants_before_validation_step - total_variants_passed_all_validation_steps, total_STR_variants_before_validation_step)} "
+      "Total variants failed some validation step")
 
 #%%
