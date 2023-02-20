@@ -154,7 +154,8 @@ print(f"{format_np(total_variants_passed_liftover_back_to_hg38, total_STR_varian
 
 total_variants_with_different_position_after_hg38_to_t2t_to_hg38_liftovers = int(re.search(
     f"([0-9,]+) .*variants had a different position after hg38 => T2T => hg38", step1_log_contents).group(1).replace(",", ""))
-print(f"{format_n(total_variants_with_different_position_after_hg38_to_t2t_to_hg38_liftovers)} variants had a different position after hg38 => T2T => hg38 liftovers")
+print(f"{format_n(total_variants_with_different_position_after_hg38_to_t2t_to_hg38_liftovers)} "
+      f"variants had a different position after hg38 => T2T => hg38 liftovers")
 
 #%%
 print("-"*100)
