@@ -39,6 +39,9 @@ with open("step1.log", "rt") as f:
     step1_log_contents = f.read()
 
 #%%
+print("-"*100)
+print("Numbers for intro:")
+print("-"*100)
 percent_missed_by_gangstr_catalog = re.search(
     f"GangSTRCatalog17.*{len(df_variants):,d} [(][ ]+([0-9]+[.][0-9]+)[%][)].* truth set loci:.*no overlap",
     step1_log_contents).group(1)
@@ -51,8 +54,8 @@ print(f"{percent_missed_by_illumina_catalog}% missed by ExpansionHunter catalog"
 
 #%%
 
+print("-"*100)
 # STR alleles > 30bp relative to reference
-
 bp_diff_from_ref = (df_alleles["RepeatSize (bp)"] - df_alleles["NumRepeatsInReference"] * df_alleles["MotifSize"]).astype(int).abs()
 
 assert all(bp_diff_from_ref > 1)
@@ -62,8 +65,9 @@ print(f"{format_np(sum(bp_diff_from_ref > 30), len(df_alleles))}    STR alleles 
 
 #%%
 
-# Novel STR stats
+print("-"*100)
 
+# Novel STR stats
 is_found_in_reference_counter = collections.Counter(df_variants.IsFoundInReference)
 print(f"{format_np(is_found_in_reference_counter['Yes'], len(df_variants))}    FOUND IN REF STR loci (found in reference genome)")
 print(f"{format_np(is_found_in_reference_counter['No'], len(df_variants))}    NOVEL STR loci (not found in reference genome)")
@@ -71,6 +75,9 @@ print(f"{format_np(is_found_in_reference_counter['No'], len(df_variants))}    NO
 assert is_found_in_reference_counter['Yes'] + is_found_in_reference_counter['No'] == len(df_variants)
 #%%
 
+print("-"*100)
+print("Defining the STR truth set:")
+print("-"*100)
 # Defining the STR truth set - numbers for figure
 total_variants = int(re.search(
     f"step1:input:[ ]*([0-9,]+)[ ]* TOTAL variants", step1_log_contents).group(1).replace(",", ""))
@@ -112,6 +119,10 @@ print(f"{format_n(total_STR_variants_before_validation_step)} total pure STR var
 print(f"{format_np(total_STR_alleles_before_validation_step, total_high_confidence_alleles)} pure STR alleles")
 
 #%%
+print("-"*100)
+print("Validation vs. T2T:")
+print("-"*100)
+
 
 # STR Validation Stats - 1st row of figure:
 
@@ -233,3 +244,68 @@ print(f"{format_np(total_STR_variants_before_validation_step - total_variants_pa
       "Total variants failed some validation step")
 
 #%%
+print("-"*100)
+
+DEL_variants_failed_hg38_to_t2t_liftover_due_to_IndelStraddlesMultipleIntevals = int(re.search(
+    f"step3:pure_STR:failed-liftover:[ ]*([0-9,]+) out of .* filter:IndelStraddlesMultipleIntevals  DEL variants", step1_log_contents).group(1).replace(",", ""))
+multiallelic_DEL_variants_failed_hg38_to_t2t_liftover_due_to_IndelStraddlesMultipleIntevals = int(re.search(
+    f"step3:pure_STR:failed-liftover:[ ]*([0-9,]+) out of .* filter:IndelStraddlesMultipleIntevals  multiallelic DEL variants", step1_log_contents).group(1).replace(",", ""))
+mixed_variants_failed_hg38_to_t2t_liftover_due_to_IndelStraddlesMultipleIntevals = int(re.search(
+    f"step3:pure_STR:failed-liftover:[ ]*([0-9,]+) out of .* filter:IndelStraddlesMultipleIntevals  mixed multiallelic INS/DEL variants", step1_log_contents).group(1).replace(",", ""))
+assert re.search(
+    f"step3:pure_STR:failed-liftover:[ ]*([0-9,]+) out of .* filter:IndelStraddlesMultipleIntevals  INS variants", step1_log_contents) is None
+INS_variants_failed_hg38_to_t2t_liftover_due_to_IndelStraddlesMultipleIntevals = 0
+assert re.search(
+    f"step3:pure_STR:failed-liftover:[ ]*([0-9,]+) out of .* filter:IndelStraddlesMultipleIntevals  multiallelic INS variants", step1_log_contents) is None
+multiallelic_INS_variants_failed_hg38_to_t2t_liftover_due_to_IndelStraddlesMultipleIntevals = 0
+
+print(f"{format_n(DEL_variants_failed_hg38_to_t2t_liftover_due_to_IndelStraddlesMultipleIntevals + multiallelic_DEL_variants_failed_hg38_to_t2t_liftover_due_to_IndelStraddlesMultipleIntevals)} "
+      f"DEL variants failed hg38 to T2T liftover due to IndelStraddlesMultipleIntevals error")
+print(f"{format_n(mixed_variants_failed_hg38_to_t2t_liftover_due_to_IndelStraddlesMultipleIntevals)} "
+      f"MIXED variants failed hg38 to T2T liftover due to IndelStraddlesMultipleIntevals error")
+print(f"{format_n(INS_variants_failed_hg38_to_t2t_liftover_due_to_IndelStraddlesMultipleIntevals + multiallelic_INS_variants_failed_hg38_to_t2t_liftover_due_to_IndelStraddlesMultipleIntevals)} "
+      f"INS variants failed hg38 to T2T liftover due to IndelStraddlesMultipleIntevals error")
+
+
+#%%
+
+print("-"*100)
+
+INS_variants_failed_hg38_to_t2t_liftover = int(re.search(
+    f"step3:pure_STR:failed-liftover:[ ]*([0-9,]+) out of .* filtered:  INS variants", step1_log_contents).group(1).replace(",", ""))
+DEL_variants_failed_hg38_to_t2t_liftover = int(re.search(
+    f"step3:pure_STR:failed-liftover:[ ]*([0-9,]+) out of .* filtered:  DEL variants", step1_log_contents).group(1).replace(",", ""))
+multiallelic_INS_variants_failed_hg38_to_t2t_liftover = int(re.search(
+    f"step3:pure_STR:failed-liftover:[ ]*([0-9,]+) out of .* filtered:  multiallelic INS variants", step1_log_contents).group(1).replace(",", ""))
+multiallelic_DEL_variants_failed_hg38_to_t2t_liftover = int(re.search(
+    f"step3:pure_STR:failed-liftover:[ ]*([0-9,]+) out of .* filtered:  multiallelic DEL variants", step1_log_contents).group(1).replace(",", ""))
+mixed_multiallelic_INS_DEL_variants_failed_hg38_to_t2t_liftover = int(re.search(
+    f"step3:pure_STR:failed-liftover:[ ]*([0-9,]+) out of .* filtered:  mixed multiallelic INS/DEL variants", step1_log_contents).group(1).replace(",", ""))
+
+print(f"{format_n(DEL_variants_failed_hg38_to_t2t_liftover + multiallelic_DEL_variants_failed_hg38_to_t2t_liftover - DEL_variants_failed_hg38_to_t2t_liftover_due_to_IndelStraddlesMultipleIntevals - multiallelic_DEL_variants_failed_hg38_to_t2t_liftover_due_to_IndelStraddlesMultipleIntevals)} "
+      f"DEL variants failed hg38 to T2T liftover due to other errors")
+print(f"{format_n(mixed_multiallelic_INS_DEL_variants_failed_hg38_to_t2t_liftover - mixed_variants_failed_hg38_to_t2t_liftover_due_to_IndelStraddlesMultipleIntevals)} "
+      f"MIXED variants failed hg38 to T2T liftover due to other errors")
+print(f"{format_n(INS_variants_failed_hg38_to_t2t_liftover + multiallelic_INS_variants_failed_hg38_to_t2t_liftover - INS_variants_failed_hg38_to_t2t_liftover_due_to_IndelStraddlesMultipleIntevals - multiallelic_INS_variants_failed_hg38_to_t2t_liftover_due_to_IndelStraddlesMultipleIntevals)} "
+      f"INS variants failed hg38 to T2T liftover due to other errors")
+
+#%%
+
+INS_variants_in_final_truthset = int(re.search(
+    f"step7:pure_STR:output:[ ]*([0-9,]+) out of [ ]*{len(df_variants):,d}.*[%][)] INS variants", step1_log_contents).group(1).replace(",", ""))
+DEL_variants_in_final_truthset = int(re.search(
+    f"step7:pure_STR:output:[ ]*([0-9,]+) out of [ ]*{len(df_variants):,d}.*[%][)] DEL variants", step1_log_contents).group(1).replace(",", ""))
+multiallelic_INS_variants_in_final_truthset = int(re.search(
+    f"step7:pure_STR:output:[ ]*([0-9,]+) out of [ ]*{len(df_variants):,d}.*[%][)] multiallelic INS variants", step1_log_contents).group(1).replace(",", ""))
+multiallelic_DEL_variants_in_final_truthset = int(re.search(
+    f"step7:pure_STR:output:[ ]*([0-9,]+) out of [ ]*{len(df_variants):,d}.*[%][)] multiallelic DEL variants", step1_log_contents).group(1).replace(",", ""))
+mixed_multiallelic_INS_DEL_variants_in_final_truthset = int(re.search(
+    f"step7:pure_STR:output:[ ]*([0-9,]+) out of [ ]*{len(df_variants):,d}.*[%][)] mixed multiallelic INS/DEL variants", step1_log_contents).group(1).replace(",", ""))
+
+print(f"{format_n(DEL_variants_in_final_truthset + multiallelic_DEL_variants_in_final_truthset)} "
+      f"DEL variants failed hg38 to T2T liftover due to IndelStraddlesMultipleIntevals error")
+print(f"{format_n(mixed_multiallelic_INS_DEL_variants_in_final_truthset)} "
+      f"MIXED variants failed hg38 to T2T liftover due to IndelStraddlesMultipleIntevals error")
+print(f"{format_n(INS_variants_in_final_truthset + multiallelic_INS_variants_in_final_truthset)} "
+      f"INS variants failed hg38 to T2T liftover due to IndelStraddlesMultipleIntevals error")
+
