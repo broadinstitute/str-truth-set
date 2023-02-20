@@ -9,11 +9,13 @@ ref
 *.vcf*
 *.bed*
 *.twb
+*.twbr
 *.tsv.gz
 *.tsv
 *.png
 
-results*
+tool_comparison/results*
+tool_comparison/variant_catalogs/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
