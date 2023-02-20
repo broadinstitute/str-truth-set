@@ -6,16 +6,21 @@ import gzip
 import sys
 
 p = argparse.ArgumentParser()
+p.add_argument("-p", "--prefix", help="Optional prefix string to print at the beginning of every line")
 p.add_argument("-m", "--min-percent", default=0, type=float,
                help="Only print stats (eg. % of variants that is multi-allelic) if the % is greater than this threshold")
 p.add_argument("-l", "--label", help="Optional text label to describe the VCF")
 p.add_argument("vcf_path")
 args = p.parse_args()
 
+prefix = ""
+if args.prefix:
+    prefix = f"{args.prefix}      "
+
 if args.label:
-    print(f"VCF stats for {args.label}",  "-- "*50, args.vcf_path)
+    print(f"{prefix}VCF stats for {args.label}",  "-- "*50, args.vcf_path)
 else:
-    print(f"VCF stats for ",  "-- "*50, args.vcf_path)
+    print(f"{prefix}VCF stats for ",  "-- "*50, args.vcf_path)
 
 # step 1: Compute stats
 counters = collections.defaultdict(int)
@@ -95,9 +100,8 @@ for i, line in enumerate(fopen(args.vcf_path, "rt")):
 
 
 # step 2: Print totals
-print("{:10,d}".format(counters["TOTAL variants"]), "TOTAL variants")
-print(
-    "{:10,d}".format(counters["TOTAL alleles"]), "TOTAL alleles",
+print(prefix+"{:10,d}".format(counters["TOTAL variants"]), "TOTAL variants")
+print(prefix+"{:10,d}".format(counters["TOTAL alleles"]), "TOTAL alleles",
     ("(%0.2f alleles per variant)" % (counters["TOTAL alleles"]/counters["TOTAL variants"])) if counters["TOTAL variants"] > 0 else ""
 )
 
@@ -115,4 +119,4 @@ for keyword in "genotype", "variants", "alleles":
         total = counters[total_key]
         percent = f"{100*value / total:5.1f}%" if total > 0 else ""
 
-        print(f"{value:10,d} out of {total:10,d} ({percent}) {key}")
+        print(f"{prefix}{value:10,d} out of {total:10,d} ({percent}) {key}")

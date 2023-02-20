@@ -102,15 +102,17 @@ function print_input_stats {
 function print_output_stats {
   local input_vcf="$1"
   local output_vcf="$2"
+  local prefix="$3"
   echo "        " OUTPUT: $output_vcf "       " $(gunzip -c $output_vcf | grep -v ^# | wc -l) variants
-  python3 scripts/vcf_stats.py --min-percent 0 --label "the input vcf" $input_vcf
-  python3 scripts/vcf_stats.py --min-percent 0 --label "the output vcf" $output_vcf
+  python3 scripts/vcf_stats.py --prefix "${prefix}:input:" --min-percent 0 --label "the input vcf" $input_vcf
+  python3 scripts/vcf_stats.py --prefix "${prefix}:output:" --min-percent 0 --label "the output vcf" $output_vcf
 }
 
 function print_liftover_output_stats {
-  print_output_stats "$1" "$2"
+  print_output_stats "$1" "$2" "$4"
   local output_failed_liftover_vcf="$3"
-  python3 scripts/vcf_stats.py --min-percent 0 "$output_failed_liftover_vcf"
+  local prefix="$4"
+  python3 scripts/vcf_stats.py --prefix "${prefix}:failed-liftover:" --min-percent 0 "$output_failed_liftover_vcf"
 
   echo Reasons for Liftover failure:
 
@@ -136,7 +138,7 @@ bedtools intersect -header -f 1 -wa -u \
     | bgzip > ${output_vcf}
 
 set +x
-print_output_stats ${input_vcf} ${output_vcf}
+print_output_stats ${input_vcf} ${output_vcf} "step1"
 
 for pure_STRs_only in "true" "false"
 do
@@ -184,7 +186,7 @@ do
   python3 -u scripts/compute_overlap_with_other_catalogs.py --all-repeats --all-motifs ${output_prefix}.variants.tsv.gz  ${output_prefix}.variants.with_overlap_columns.tsv.gz -c IlluminaSTRCatalog -c GangSTRCatalog17 -c KnownDiseaseAssociatedSTRs
 
   set +x
-  print_output_stats $input_vcf $output_vcf
+  print_output_stats $input_vcf $output_vcf "step2:${STR_type}"
 
 
   echo ===============
@@ -210,7 +212,7 @@ do
       --ALLOW_MISSING_FIELDS_IN_HEADER
 
   set +x
-  print_liftover_output_stats $input_vcf $output_vcf $output_failed_liftover1_vcf
+  print_liftover_output_stats $input_vcf $output_vcf $output_failed_liftover1_vcf  "step3:${STR_type}"
 
   echo ===============
   input_vcf=$output_vcf
@@ -221,7 +223,7 @@ do
   python3 -u scripts/filter_out_discordant_variants_after_liftover.py --reference-fasta ${t2t_fasta_path} ${input_vcf} ${output_vcf}
 
   set +x
-  print_output_stats ${input_vcf} ${output_vcf}
+  print_output_stats ${input_vcf} ${output_vcf} "step4:${STR_type}"
 
   echo ===============
   input_vcf=${output_vcf}
@@ -246,7 +248,7 @@ do
        --ALLOW_MISSING_FIELDS_IN_HEADER
 
   set +x
-  print_liftover_output_stats $input_vcf $output_vcf $output_failed_liftover2_vcf
+  print_liftover_output_stats $input_vcf $output_vcf $output_failed_liftover2_vcf  "step5:${STR_type}"
 
   echo ===============
   input_vcf=$output_vcf
@@ -264,7 +266,7 @@ do
   rm temp.vcf temp.fixed.vcf*
 
   set +x
-  print_output_stats $input_vcf $output_vcf
+  print_output_stats $input_vcf $output_vcf "step6:${STR_type}"
 
   echo ===============
   input_vcf=$output_vcf
@@ -279,7 +281,7 @@ do
     step6.${STR_type}s.restored_dels_that_failed_liftover.vcf.gz
 
   set +x
-  print_output_stats $input_vcf $output_vcf
+  print_output_stats $input_vcf $output_vcf "step7:${STR_type}"
 
   echo ===============
   input_vcf=$output_vcf
