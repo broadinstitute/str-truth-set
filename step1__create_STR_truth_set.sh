@@ -118,7 +118,7 @@ function print_liftover_output_stats {
 
   # print more stats (disable pipefail in case vcf is empty)
   set +eo pipefail
-  gunzip -c "$output_failed_liftover_vcf" | grep -v ^# | cut -f 7  | sort | uniq -c
+  gunzip -c "$output_failed_liftover_vcf" | grep -v ^# | cut -f 7  | sort | uniq -c | sort -n -r
   set -eo pipefail
 }
 
