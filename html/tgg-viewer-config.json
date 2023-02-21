@@ -15,17 +15,12 @@
       "categoryName": "STR Truth Set",
       "rows": [
         {
-          "name": "STR Truth Set BED",
-          "data": [{"type": "bed", "url": "gs://str-truth-set/hg38/STR_truthset.v1.variants.bed.gz"}]
-        },
-        {
           "name": "STR Truth Set VCF",
           "data": [{"type": "vcf", "url": "gs://str-truth-set/hg38/STR_truthset.v1.vcf.gz"}]
         },
         {
-          "name": "STR Negative Loci",
-          "description": "STR loci from the reference genome that were selected as true negatives.",
-          "data": [{"type": "bed", "url": "gs://str-truth-set/hg38/negative_loci.bed.gz"}]
+          "name": "STR Truth Set BED",
+          "data": [{"type": "bed", "url": "gs://str-truth-set/hg38/STR_truthset.v1.variants.bed.gz"}]
         }
       ]
     },
