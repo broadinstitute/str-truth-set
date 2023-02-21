@@ -89,16 +89,16 @@ total_alleles = int(re.search(
 total_high_confidence_alleles = int(re.search(
     f"step1:output:[ ]*([0-9,]+)[ ]* TOTAL alleles", step1_log_contents).group(1).replace(",", ""))
 
+high_confidence_INS_alleles = int(re.search(
+    f"step1:output:[ ]*([0-9,]+) out of[ ]* {total_high_confidence_alleles:,d}.*INS alleles", step1_log_contents).group(1).replace(",", ""))
+high_confidence_DEL_alleles = int(re.search(
+    f"step1:output:[ ]*([0-9,]+) out of[ ]* {total_high_confidence_alleles:,d}.*DEL alleles", step1_log_contents).group(1).replace(",", ""))
+
+
 high_confidence_SNV_variants = int(re.search(
     f"step1:output:[ ]*([0-9,]+) out of[ ]* {total_high_confidence_variants:,d}.*SNV variants", step1_log_contents).group(1).replace(",", ""))
 
 high_confidence_INS_DEL_variants = total_high_confidence_variants - high_confidence_SNV_variants
-high_confidence_INS_DEL_alleles = (
-        int(re.search(
-            f"step1:output:[ ]*([0-9,]+) out of[ ]* {total_high_confidence_alleles:,d}.*INS alleles", step1_log_contents).group(1).replace(",", ""))
-        + int(re.search(
-    f"step1:output:[ ]*([0-9,]+) out of[ ]* {total_high_confidence_alleles:,d}.*DEL alleles", step1_log_contents).group(1).replace(",", "")))
-
 
 total_STR_variants_before_validation_step = int(re.search(
     f"step2:pure_STR:output:[ ]*([0-9,]+)[ ]* TOTAL variants", step1_log_contents).group(1).replace(",", ""))
@@ -113,7 +113,10 @@ print(f"{format_n(total_high_confidence_variants)} high-confidence SynDip varian
 print(f"{format_n(total_high_confidence_alleles)} high-confidence SynDip alleles")
 
 print(f"{format_n(high_confidence_INS_DEL_variants)} high-confidence INS or DEL variants")
-print(f"{format_np(high_confidence_INS_DEL_alleles, total_high_confidence_alleles)} high-confidence INS or DEL alleles")
+
+print(f"{format_np(high_confidence_INS_alleles, total_high_confidence_alleles)} high-confidence INS alleles")
+print(f"{format_np(high_confidence_DEL_alleles, total_high_confidence_alleles)} high-confidence DEL alleles")
+print(f"{format_np(high_confidence_INS_alleles + high_confidence_DEL_alleles, total_high_confidence_alleles)} high-confidence INS + DEL alleles")
 
 print(f"{format_n(total_STR_variants_before_validation_step)} total pure STR variants")
 print(f"{format_np(total_STR_alleles_before_validation_step, total_high_confidence_alleles)} pure STR alleles")

@@ -1,6 +1,5 @@
 """This script computes numbers that appear in the text of the paper, as well as all tables"""
 
-import collections
 import pandas as pd
 import re
 
@@ -243,3 +242,14 @@ print(f"{format_n(mixed_multiallelic_INS_DEL_variants_in_final_truthset)} "
 print(f"{format_n(INS_variants_in_final_truthset + multiallelic_INS_variants_in_final_truthset)} "
       f"INS variants failed hg38 to T2T liftover due to IndelStraddlesMultipleIntevals error")
 
+#%%
+print("-"*100)
+print("Validation diagram - overall percent that could be validated and that were validated:")
+print("-"*100)
+total_STR_variants_that_could_be_validated = total_STR_variants_before_validation_step - liftover_failed_IndelStraddlesMultipleIntevals
+print(f"{format_n(total_STR_variants_that_could_be_validated)} STRs that could be validated against T2T")
+print(f"{format_np(len(df_variants) - liftover_failed_IndelStraddlesMultipleIntevals, total_STR_variants_that_could_be_validated)} "
+      f"STRs passed this validation")
+
+
+#%%
