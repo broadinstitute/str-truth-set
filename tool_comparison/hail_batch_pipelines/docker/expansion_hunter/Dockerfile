@@ -53,11 +53,11 @@ RUN git clone https://github.com/bw2/ExpansionHunter.git \
     && cmake .. \
     && make \
     && make install \
-    && make clean
+    && cd / \
+    && cp /ExpansionHunter/build/install/bin/ExpansionHunter /bin/ExpansionHunter \
+    && rm -rf ExpansionHunter
 
-RUN cp /ExpansionHunter/build/install/bin/ExpansionHunter /bin/
-
-# Also, install the original, unmodified version of ExpansionHunter
+# Also install the original, unmodified version of ExpansionHunter
 RUN git clone https://github.com/Illumina/ExpansionHunter.git IlluminaExpansionHunter \
     && cd IlluminaExpansionHunter \
     && mkdir build \
@@ -65,9 +65,9 @@ RUN git clone https://github.com/Illumina/ExpansionHunter.git IlluminaExpansionH
     && cmake .. \
     && make \
     && make install \
-    && make clean
-
-RUN cp /IlluminaExpansionHunter/build/install/bin/ExpansionHunter /bin/IlluminaExpansionHunter
+    && cd / \
+    && cp /IlluminaExpansionHunter/build/install/bin/ExpansionHunter /bin/IlluminaExpansionHunter \
+    && rm -rf IlluminaExpansionHunter
 
 # install REViewer
 RUN git clone https://github.com/bw2/REViewer \
@@ -77,10 +77,19 @@ RUN git clone https://github.com/bw2/REViewer \
     && cmake .. \
     && make \
     && make install \
-    && make clean
+    && cd / \
+    && cp /REViewer/build/install/bin/REViewer /bin/REViewer \
+    && rm -rf REViewer
+
+# install gcloud
+ENV GCLOUD_SDK_VERISON="419.0.0"
+RUN wget https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-${GCLOUD_SDK_VERISON}-linux-x86_64.tar.gz \
+    && tar xzf google-cloud-sdk-${GCLOUD_SDK_VERISON}-linux-x86_64.tar.gz \
+    && /google-cloud-sdk/install.sh -q \
+    && /google-cloud-sdk/bin/gcloud components update --quiet
+
+ENV PATH=/google-cloud-sdk/bin:$PATH
 
 RUN python3 -m pip install str_analysis==0.9.15
-
-RUN apt-get install -y jq
 
 ENTRYPOINT ["/bin/bash"]

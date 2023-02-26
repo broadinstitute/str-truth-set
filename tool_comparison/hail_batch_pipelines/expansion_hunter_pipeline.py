@@ -1,11 +1,12 @@
 import hail as hl
+import json
 import logging
 import os
 import re
 
 from step_pipeline import pipeline, Backend, Localize, Delocalize
 
-DOCKER_IMAGE = "weisburd/expansion-hunter@sha256:154d136d3c78d6036c834b37e3466237ab682ac9bdc949837ea0f6841f96faeb"
+DOCKER_IMAGE = "weisburd/expansion-hunter@sha256:f9b231718f4d73c99d4f5881afd17c2c047a2b4b79b013c35c32e10e90507c58"
 
 REFERENCE_FASTA_PATH = "gs://gcp-public-data--broad-references/hg38/v0/Homo_sapiens_assembly38.fasta"
 REFERENCE_FASTA_FAI_PATH = "gs://gcp-public-data--broad-references/hg38/v0/Homo_sapiens_assembly38.fasta.fai"
@@ -39,6 +40,7 @@ def main():
     parser.add_argument("--min-locus-coverage", type=int, help="Sets ExpansionHunter's --min-locus-coverage arg")
     parser.add_argument("--output-dir", default=OUTPUT_BASE_DIR)
     parser.add_argument("-n", type=int, help="Only process the first n inputs. Useful for testing.")
+    parser.add_argument("--run-reviewer", action="store_true", help="Generate REViewer read visualizations for all loci")
     args = bp.parse_known_args()
 
     if args.positive_loci:
@@ -75,8 +77,11 @@ def main():
     bam_path_ending = "/".join(args.input_bam.split("/")[-2:])
     bp.set_name(f"STR Truth Set: {tool_exec}: {positive_or_negative_loci}: {bam_path_ending}")
     if not args.force:
-        json_paths = bp.precache_file_paths(os.path.join(output_dir, f"**/*.json"))
-        logging.info(f"Precached {len(json_paths)} json files")
+        existing_json_paths = bp.precache_file_paths(os.path.join(output_dir, f"**/*.json"))
+        logging.info(f"Precached {len(existing_json_paths)} json files")
+        if args.run_reviewer:
+            existing_svg_paths = bp.precache_file_paths(os.path.join(output_dir, f"**/*.svg"))
+            logging.info(f"Precached {len(existing_svg_paths)} svg files")
 
     step1s = []
     step1_output_json_paths = []
@@ -90,13 +95,13 @@ def main():
             f"Run EHv5 #{catalog_i}", arg_suffix=f"eh", step_number=1, image=DOCKER_IMAGE, cpu=2, storage="75Gi")
         step1s.append(s1)
 
-        local_fasta = s1.input(args.reference_fasta, localize_by=Localize.COPY)
+        local_fasta = s1.input(args.reference_fasta)
         if args.reference_fasta_fai:
-            s1.input(args.reference_fasta_fai, localize_by=Localize.COPY)
+            s1.input(args.reference_fasta_fai)
 
-        local_bam = s1.input(args.input_bam, localize_by=Localize.COPY)
+        local_bam = s1.input(args.input_bam)
         if args.input_bai:
-            s1.input(args.input_bai, localize_by=Localize.COPY)
+            s1.input(args.input_bai)
 
         s1.command("set -ex")
 
@@ -127,30 +132,60 @@ def main():
 
         step1_output_json_paths.append(os.path.join(output_dir, f"json", f"{output_prefix}.json"))
 
+        if args.run_reviewer:
+            reviewer_remote_output_dir = os.path.join(output_dir, f"svg")
+            reviewer_output_prefix = re.sub("(.bam|.cram)$", "", local_bam.filename)
+            s1.command(f"samtools sort {output_prefix}_realigned.bam -o {output_prefix}_realigned.sorted.bam")
+            s1.command(f"samtools index {output_prefix}_realigned.sorted.bam")
+            s1.command(f"""/usr/bin/time --verbose REViewer \
+                --reference {local_fasta}  \
+                --catalog {local_variant_catalog_path} \
+                --reads {output_prefix}_realigned.sorted.bam \
+                --vcf {output_prefix}.vcf \
+                --output-prefix {reviewer_output_prefix}
+            """)
+            done_file = f"done_generating_reviewer_images_for_{output_prefix}"
+            s1.command(f"touch {done_file}")
+            s1.output(done_file, output_dir=reviewer_remote_output_dir)
+            s1.output("*.svg", output_dir=reviewer_remote_output_dir, delocalize_by=Delocalize.GSUTIL_COPY)
+
+            # print which SVG images don't exist yet
+            with hl.hadoop_open(variant_catalog_path, "r") as f:
+                variant_catalog_json = json.load(f)
+
+            locus_ids = [r["LocusId"] for r in variant_catalog_json]
+            for locus_id in locus_ids:
+                svg_output_filename = f"{reviewer_output_prefix}.{locus_id}.svg"
+                svg_output_path = os.path.join(reviewer_remote_output_dir, svg_output_filename)
+                if svg_output_path not in existing_svg_paths:
+                    print(f"{svg_output_path} doesn't exist")
+
     # step2: combine json files
-    s2 = bp.new_step(name="Combine EHv5 outputs", step_number=2, image=DOCKER_IMAGE, storage="20Gi", cpu=1,
-                     output_dir=output_dir)
-    for step1 in step1s:
-        s2.depends_on(step1)
+    if not args.n or args.force:
+        s2 = bp.new_step(name="Combine EHv5 outputs", step_number=2, image=DOCKER_IMAGE, storage="20Gi", cpu=1,
+                         output_dir=output_dir)
 
-    s2.command("mkdir /io/run_dir; cd /io/run_dir")
-    for json_path in step1_output_json_paths:
-        local_path = s2.input(json_path, localize_by=Localize.COPY)
-        s2.command(f"ln -s {local_path}")
+        for step1 in step1s:
+            s2.depends_on(step1)
 
-    output_prefix = f"combined.{positive_or_negative_loci}"
-    s2.command("set -x")
-    s2.command(f"python3.9 -m str_analysis.combine_str_json_to_tsv --include-extra-expansion-hunter-fields "
-               f"--output-prefix {output_prefix}")
-    s2.command(f"bgzip {output_prefix}.{len(step1_output_json_paths)}_json_files.bed")
-    s2.command(f"tabix {output_prefix}.{len(step1_output_json_paths)}_json_files.bed.gz")
-    s2.command("gzip *.tsv")
-    s2.command("ls -lhrt")
-    s2.output(f"{output_prefix}.{len(step1_output_json_paths)}_json_files.variants.tsv.gz")
-    s2.output(f"{output_prefix}.{len(step1_output_json_paths)}_json_files.alleles.tsv.gz")
-    s2.output(f"{output_prefix}.{len(step1_output_json_paths)}_json_files.bed.gz")
-    s2.output(f"{output_prefix}.{len(step1_output_json_paths)}_json_files.bed.gz.tbi")
-    bp.run()
+        s2.command("mkdir /io/run_dir; cd /io/run_dir")
+        for json_path in step1_output_json_paths:
+            local_path = s2.input(json_path)
+            s2.command(f"ln -s {local_path}")
+
+        output_prefix = f"combined.{positive_or_negative_loci}"
+        s2.command("set -x")
+        s2.command(f"python3.9 -m str_analysis.combine_str_json_to_tsv --include-extra-expansion-hunter-fields "
+                   f"--output-prefix {output_prefix}")
+        s2.command(f"bgzip {output_prefix}.{len(step1_output_json_paths)}_json_files.bed")
+        s2.command(f"tabix {output_prefix}.{len(step1_output_json_paths)}_json_files.bed.gz")
+        s2.command("gzip *.tsv")
+        s2.command("ls -lhrt")
+        s2.output(f"{output_prefix}.{len(step1_output_json_paths)}_json_files.variants.tsv.gz")
+        s2.output(f"{output_prefix}.{len(step1_output_json_paths)}_json_files.alleles.tsv.gz")
+        s2.output(f"{output_prefix}.{len(step1_output_json_paths)}_json_files.bed.gz")
+        s2.output(f"{output_prefix}.{len(step1_output_json_paths)}_json_files.bed.gz.tbi")
+        bp.run()
 
 
 if __name__ == "__main__":
