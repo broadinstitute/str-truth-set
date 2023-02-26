@@ -140,10 +140,12 @@ def main():
                 --vcf {output_prefix}.vcf \
                 --output-prefix {reviewer_output_prefix}
             """)
+
             done_file = f"done_generating_reviewer_images_for_{output_prefix}"
             s1.command(f"touch {done_file}")
-            s1.output(done_file, output_dir=reviewer_remote_output_dir)
+
             s1.output("*.svg", output_dir=reviewer_remote_output_dir, delocalize_by=Delocalize.GSUTIL_COPY)
+            s1.output(done_file, output_dir=reviewer_remote_output_dir)
 
     # step2: combine json files
     if not args.n or args.force:
