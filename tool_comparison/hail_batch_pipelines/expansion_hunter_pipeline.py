@@ -1,5 +1,4 @@
 import hail as hl
-import json
 import logging
 import os
 import re
@@ -79,9 +78,6 @@ def main():
     if not args.force:
         existing_json_paths = bp.precache_file_paths(os.path.join(output_dir, f"**/*.json"))
         logging.info(f"Precached {len(existing_json_paths)} json files")
-        if args.run_reviewer:
-            existing_svg_paths = bp.precache_file_paths(os.path.join(output_dir, f"**/*.svg"))
-            logging.info(f"Precached {len(existing_svg_paths)} svg files")
 
     step1s = []
     step1_output_json_paths = []
@@ -148,17 +144,6 @@ def main():
             s1.command(f"touch {done_file}")
             s1.output(done_file, output_dir=reviewer_remote_output_dir)
             s1.output("*.svg", output_dir=reviewer_remote_output_dir, delocalize_by=Delocalize.GSUTIL_COPY)
-
-            # print which SVG images don't exist yet
-            with hl.hadoop_open(variant_catalog_path, "r") as f:
-                variant_catalog_json = json.load(f)
-
-            locus_ids = [r["LocusId"] for r in variant_catalog_json]
-            for locus_id in locus_ids:
-                svg_output_filename = f"{reviewer_output_prefix}.{locus_id}.svg"
-                svg_output_path = os.path.join(reviewer_remote_output_dir, svg_output_filename)
-                if svg_output_path not in existing_svg_paths:
-                    print(f"{svg_output_path} doesn't exist")
 
     # step2: combine json files
     if not args.n or args.force:
