@@ -104,3 +104,19 @@ for coverage in 30 20 10 5; do
       "no" \
       "${min_locus_coverage}"
 done
+
+# Run REViewer
+python3 ./tool_comparison/hail_batch_pipelines/expansion_hunter_pipeline.py  --positive-loci --run-reviewer \
+	--input-bam gs://broad-public-datasets/CHM1_CHM13_WGS2/CHM1_CHM13_WGS2.cram --input-bai gs://broad-public-datasets/CHM1_CHM13_WGS2/CHM1_CHM13_WGS2.cram.crai \
+	--output-dir gs://str-truth-set/hg38/tool_results/expansion_hunter
+python3 ./tool_comparison/hail_batch_pipelines/expansion_hunter_pipeline.py  --negative-loci --run-reviewer \
+	--input-bam gs://broad-public-datasets/CHM1_CHM13_WGS2/CHM1_CHM13_WGS2.cram --input-bai gs://broad-public-datasets/CHM1_CHM13_WGS2/CHM1_CHM13_WGS2.cram.crai \
+	--output-dir gs://str-truth-set/hg38/tool_results/expansion_hunter 
+
+python3 add_reviewer_image_url_to_bed.py -i ./STR_truthset.v1.variants.bed.gz
+python3 add_reviewer_image_url_to_bed.py -i ./tool_comparison/variant_catalogs/negative_loci.bed.gz
+
+gsutil -m cp ./STR_truthset.v1.variants.with_reviewer_image_urls.bed.gz* gs://str-truth-set/hg38/
+gsutil -m cp ./tool_comparison/variant_catalogs/negative_loci.with_reviewer_image_urls.bed.gz* gs://str-truth-set/hg38/tool_comparison/variant_catalogs/
+
+echo Done
