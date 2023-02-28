@@ -39,7 +39,7 @@ then
   echo "Downloading the STR truth set reference data bundle..."
   set -x
   mkdir -p ./ref
-  curl -L https://github.com/broadinstitute/str-truth-set/releases/download/v1/STR_truth_set_reference_bundle.v1.tar.gz -o STR_truth_set_reference_bundle.v1.tar.gz
+  curl --silent -L https://github.com/broadinstitute/str-truth-set/releases/download/v1/STR_truth_set_reference_bundle.v1.tar.gz -o STR_truth_set_reference_bundle.v1.tar.gz
   tar xzf STR_truth_set_reference_bundle.v1.tar.gz
   rm STR_truth_set_reference_bundle.v1.tar.gz
   set +x
@@ -52,7 +52,7 @@ if [ ! -f ${syndip_truth_vcf} ] || [ ! -f ${syndip_confidence_regions_bed} ]
 then
   echo "Downloading the SynDip truth vcf and confidence regions..."
   set -x
-  curl -L https://github.com/lh3/CHM-eval/releases/download/v0.5/CHM-evalkit-20180222.tar \
+  curl --silent -L https://github.com/lh3/CHM-eval/releases/download/v0.5/CHM-evalkit-20180222.tar \
     | tar xf - CHM-eval.kit/full.38.vcf.gz CHM-eval.kit/full.38.bed.gz
   mv CHM-eval.kit/full.38.vcf.gz ${syndip_truth_vcf}
   mv CHM-eval.kit/full.38.bed.gz ${syndip_confidence_regions_bed}
@@ -70,7 +70,7 @@ if [ ! -f "${hg38_fasta_path}" ]
 then
     echo "$Downloading hg38 reference genome: {hg38_fasta_path}"
     set -x
-    curl -L https://hgdownload.soe.ucsc.edu/goldenPath/hg38/bigZips/latest/hg38.fa.gz \
+    curl --silent -L https://hgdownload.soe.ucsc.edu/goldenPath/hg38/bigZips/latest/hg38.fa.gz \
       | gunzip -c - > "${hg38_fasta_path}"
     gunzip -c
     samtools faidx "${hg38_fasta_path}"
@@ -82,7 +82,7 @@ if [ ! -f "${t2t_fasta_path}" ]
 then
     echo "Downloading T2T reference genome: ${t2t_fasta_path}"
     set -x
-    curl -L https://s3-us-west-2.amazonaws.com/human-pangenomics/T2T/CHM13/assemblies/analysis_set/chm13v2.0.fa.gz \
+    curl --silent -L https://s3-us-west-2.amazonaws.com/human-pangenomics/T2T/CHM13/assemblies/analysis_set/chm13v2.0.fa.gz \
       | gunzip -c - > "${t2t_fasta_path}"
     samtools faidx "${t2t_fasta_path}"
     gatk CreateSequenceDictionary R=${t2t_fasta_path} O=${t2t_fasta_path}.dict
