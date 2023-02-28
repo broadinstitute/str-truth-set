@@ -1,3 +1,5 @@
+set -ex
+
 ./step_A__create_STR_truth_set.sh >& step_A.log
 ./step_B__upload_files_to_STR_truth_set_bucket.sh >& step_B.log
 ./step_C__run_tool_pipelines.sh >& step_C.log
