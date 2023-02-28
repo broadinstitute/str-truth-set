@@ -52,7 +52,7 @@ if [ ! -f ${syndip_truth_vcf} ] || [ ! -f ${syndip_confidence_regions_bed} ]
 then
   echo "Downloading the SynDip truth vcf and confidence regions..."
   set -x
-  curl -L https://github.com/lh3/CHM-eval/releases/download/v0.4/CHM-evalkit-20180221.tar \
+  curl -L https://github.com/lh3/CHM-eval/releases/download/v0.5/CHM-evalkit-20180222.tar \
     | tar xf - CHM-eval.kit/full.38.vcf.gz CHM-eval.kit/full.38.bed.gz
   mv CHM-eval.kit/full.38.vcf.gz ${syndip_truth_vcf}
   mv CHM-eval.kit/full.38.bed.gz ${syndip_confidence_regions_bed}
