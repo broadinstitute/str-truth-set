@@ -68,7 +68,7 @@ fi
 # Download the hg38 and T2T reference fastas if necessary
 if [ ! -f "${hg38_fasta_path}" ]
 then
-    echo "$Downloading hg38 reference genome: {hg38_fasta_path}"
+    echo "Downloading hg38 reference genome: ${hg38_fasta_path}"
     set -x
     curl --silent -L https://hgdownload.soe.ucsc.edu/goldenPath/hg38/bigZips/latest/hg38.fa.gz \
       | gunzip -c - > "${hg38_fasta_path}"
