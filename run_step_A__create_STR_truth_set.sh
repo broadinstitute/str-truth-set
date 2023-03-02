@@ -311,15 +311,15 @@ do
   mv ${output_prefix}.alleles.${suffix}.tsv.gz  ${output_prefix}.alleles.tsv.gz
 
   suffix=with_gencode_v42_columns
-  python3 -u scripts/compute_overlap_with_gene_models.py ./ref/other/gencode.v42.annotation.gtf.gz  ${output_prefix}.variants.tsv.gz  ${output_prefix}.variants.${suffix}.tsv.gz &
-  python3 -u scripts/compute_overlap_with_gene_models.py ./ref/other/gencode.v42.annotation.gtf.gz  ${output_prefix}.alleles.tsv.gz   ${output_prefix}.alleles.${suffix}.tsv.gz &
+  python3 -u scripts/compute_overlap_with_gene_models.py ./ref/other/gencode.v42.annotation.sorted.gtf.gz  ${output_prefix}.variants.tsv.gz  ${output_prefix}.variants.${suffix}.tsv.gz &
+  python3 -u scripts/compute_overlap_with_gene_models.py ./ref/other/gencode.v42.annotation.sorted.gtf.gz  ${output_prefix}.alleles.tsv.gz   ${output_prefix}.alleles.${suffix}.tsv.gz &
   wait
   mv ${output_prefix}.variants.${suffix}.tsv.gz ${output_prefix}.variants.tsv.gz
   mv ${output_prefix}.alleles.${suffix}.tsv.gz ${output_prefix}.alleles.tsv.gz
 
   suffix=with_MANE_columns
-  python3 -u scripts/compute_overlap_with_gene_models.py ./ref/other/MANE.GRCh38.v1.0.ensembl_genomic.gtf.gz  ${output_prefix}.variants.tsv.gz ${output_prefix}.variants.${suffix}.tsv.gz &
-  python3 -u scripts/compute_overlap_with_gene_models.py ./ref/other/MANE.GRCh38.v1.0.ensembl_genomic.gtf.gz  ${output_prefix}.alleles.tsv.gz  ${output_prefix}.alleles.${suffix}.tsv.gz &
+  python3 -u scripts/compute_overlap_with_gene_models.py ./ref/other/MANE.v1.0.ensembl_genomic.sorted.gtf.gz  ${output_prefix}.variants.tsv.gz ${output_prefix}.variants.${suffix}.tsv.gz &
+  python3 -u scripts/compute_overlap_with_gene_models.py ./ref/other/MANE.v1.0.ensembl_genomic.sorted.gtf.gz  ${output_prefix}.alleles.tsv.gz  ${output_prefix}.alleles.${suffix}.tsv.gz &
   wait
   mv ${output_prefix}.variants.${suffix}.tsv.gz ${output_prefix}.variants.tsv.gz
   mv ${output_prefix}.alleles.${suffix}.tsv.gz ${output_prefix}.alleles.tsv.gz
@@ -356,11 +356,11 @@ python3 -u scripts/compute_overlap_with_other_catalogs.py --all-repeats --all-mo
 mv ${output_prefix}.${suffix}.tsv.gz  ${output_prefix}.tsv.gz
 
 suffix=with_gencode_v42_columns
-python3 -u scripts/compute_overlap_with_gene_models.py ./ref/other/gencode.v42.annotation.gtf.gz  ${output_prefix}.tsv.gz  ${output_prefix}.${suffix}.tsv.gz 
+python3 -u scripts/compute_overlap_with_gene_models.py ./ref/other/gencode.v42.annotation.sorted.gtf.gz  ${output_prefix}.tsv.gz  ${output_prefix}.${suffix}.tsv.gz
 mv ${output_prefix}.${suffix}.tsv.gz  ${output_prefix}.tsv.gz
 
 suffix=with_MANE_columns
-python3 -u scripts/compute_overlap_with_gene_models.py ./ref/other/MANE.GRCh38.v1.0.ensembl_genomic.gtf.gz  ${output_prefix}.tsv.gz ${output_prefix}.${suffix}.tsv.gz
+python3 -u scripts/compute_overlap_with_gene_models.py ./ref/other/MANE.v1.0.ensembl_genomic.sorted.gtf.gz  ${output_prefix}.tsv.gz ${output_prefix}.${suffix}.tsv.gz
 mv ${output_prefix}.${suffix}.tsv.gz  ${output_prefix}.tsv.gz
 
 set +x
