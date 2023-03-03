@@ -1,7 +1,5 @@
-import argparse
 import gzip
 import matplotlib.pyplot as plt
-import os
 import pandas as pd
 import seaborn as sns
 from tqdm import tqdm
@@ -11,7 +9,7 @@ sns.set_context("paper", font_scale=1.1, rc={
 })
 
 
-def plot_distribution(df, output_dir, save_image=False):
+def plot_distribution(df):
 
     fig, ax = plt.subplots(figsize=(20, 3.5), dpi=80, tight_layout=True)
 
@@ -36,21 +34,13 @@ def plot_distribution(df, output_dir, save_image=False):
 
     print(f"Plotted {len(df):,d} allele records")
 
-    if save_image:
-        output_image_name = "syndip_indel_size_distribution"
-        output_image_path = os.path.join(output_dir, output_image_name)
-        for ext in ".svg", ".png":
-            print(f"Saved {output_image_path}{ext}")
-            plt.savefig(f"{output_image_path}{ext}", bbox_inches="tight")
-        plt.close()
-
+    output_image_name = "syndip_indel_size_distribution.svg"
+    plt.savefig(f"{output_image_name}", bbox_inches="tight")
+    print(f"Saved {output_image_name}")
+    plt.close()
 
 
 def main():
-    p = argparse.ArgumentParser()
-    p.add_argument("--output-dir", default=".")
-    args = p.parse_args()
-
     indels = set()
     indel_sizes = []
 
@@ -78,11 +68,11 @@ def main():
     df.loc[:, "indel_kb"] = df.indel_size / 10**3
     df.indel_size.mean()
 
-    print("Largest insertion size: ", max(df.indel_kb))
-    print("Largest deletion size: ", min(df.indel_kb))
-    print("Mean event size: ", df.indel_size.mean())
+    print("Largest insertion size: ", max(df.indel_kb), "kb")
+    print("Largest deletion size: ", min(df.indel_kb), "kb")
+    print("Mean event size: ", df.indel_size.mean(), "kb")
 
-    plot_distribution(df, args.output_dir, save_image=True)
+    plot_distribution(df)
 
 
 if __name__ == "__main__":

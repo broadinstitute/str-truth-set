@@ -1,7 +1,6 @@
 import argparse
 import matplotlib.pyplot as plt
 import numpy as np
-import os
 import pandas as pd
 import seaborn as sns
 
@@ -11,8 +10,11 @@ sns.set_context("paper", font_scale=1.1, rc={
 })
 
 
-def plot_allele_size_distribution(df, output_dir, plot_type=1, color_by=None, hue_order=None, save_image=False):
-    # Generate Figure 1: distribution of allele sizes
+def plot_allele_size_distribution(df, plot_type=1, color_by=None, hue_order=None, is_pure_repeats=True):
+    if is_pure_repeats:
+        df = df[df.IsPureRepeat == "Yes"]
+    else:
+        df = df[df.IsPureRepeat == "No"]
 
     binwidth = None
     discrete = None
@@ -45,7 +47,7 @@ def plot_allele_size_distribution(df, output_dir, plot_type=1, color_by=None, hu
     elif plot_type == 3:
         x_column = "MotifSize"
         xlabel = "Motif Size (bp)"
-        xlimit = 50
+        xlimit = 50 if is_pure_repeats else 24
         minus_xlimit = 1
         xticks = [2, 3, 4, 5, 6] + list(range(9, xlimit + 1, 3))
         xtick_labels = xticks
@@ -57,6 +59,12 @@ def plot_allele_size_distribution(df, output_dir, plot_type=1, color_by=None, hu
             figure_title = "Multiallelic Loci by Motif Size"
     else:
         raise ValueError(f"Unexpected plot_type: {plot_type}")
+
+    if is_pure_repeats:
+        output_image_name += ".pure_repeats"
+    else:
+        output_image_name += ".with_interruptions"
+        figure_title += "\n(interrupted repeats only)"
 
     _, ax = plt.subplots(figsize=(8, 7), dpi=80)
     ax.xaxis.labelpad = ax.yaxis.labelpad = 15
@@ -86,33 +94,41 @@ def plot_allele_size_distribution(df, output_dir, plot_type=1, color_by=None, hu
     if color_by:
         output_image_name += f".color_by_{color_by.lower()}"
         if color_by == "Multiallelic":
-            ax.get_legend().set_title("Multiallelic Loci")
+            ax.get_legend().set_title("Multiallelic")
         elif color_by == "OverlapsSegDupIntervals":
             ax.get_legend().set_title("\n".join([
                 "STR Locus Overlaps ",
                 "Segmental Duplication",
             ]))
         ax.get_legend().get_title().set_horizontalalignment('center')
+
         if plot_type == 3:
-            ax.get_legend().set_bbox_to_anchor((0.95, 0.95))
+            if is_pure_repeats:
+                ax.get_legend().set_bbox_to_anchor((0.9, 0.9))
+            else:
+                ax.get_legend().set_bbox_to_anchor((0.803, 0.9))
 
-
-    if save_image:
-        output_image_path = os.path.join(output_dir, output_image_name)
-        ext = ".svg"
-        plt.savefig(f"{output_image_path}{ext}", bbox_inches="tight")
+        output_image_name += ".svg"
+        plt.savefig(f"{output_image_name}", bbox_inches="tight")
         plt.close()
-        print(f"Saved {output_image_path}{ext}")
+        print(f"Saved {output_image_name}")
 
     print(f"Plotted {len(df):,d} allele records")
 
 
-def plot_allele_size_distribution_x3(df, output_dir, save_image=False):
+def plot_allele_size_distribution_x3(df, is_pure_repeats=True):
     """Plot allele size distribution split into 3 plots by motif size ranges"""
+    if is_pure_repeats:
+        df = df[df.IsPureRepeat == "Yes"]
+    else:
+        df = df[df.IsPureRepeat == "No"]
 
     fig, axes = plt.subplots(ncols=3, figsize=(30, 10), dpi=120, sharey=True)
 
-    fig.suptitle("Allele Size Distributions", fontsize=24)
+    title = "Allele Size Distributions"
+    if not is_pure_repeats:
+        title += "\n(interrupted repeats only)"
+    fig.suptitle(title, fontsize=24)
 
     for i, ax in enumerate(axes):
 
@@ -130,7 +146,6 @@ def plot_allele_size_distribution_x3(df, output_dir, save_image=False):
             df_current = df[(df.MotifSize >= 25) & (df.MotifSize <= 50)]
         else:
             raise ValueError(f"{i}")
-
 
         ax.set_xlabel("Allele Size (bp)", labelpad=15, fontsize=18)
         if i == 0:
@@ -158,18 +173,25 @@ def plot_allele_size_distribution_x3(df, output_dir, save_image=False):
         p.set(yscale='log')
         p.set_title(f"{len(df_current):,d} alleles at {len(set(df_current.LocusId)):,d} loci ({label})", fontsize=18)
 
-        if save_image:
-            output_image_name = "allele_size_distribution_by_number_of_repeats.x3"
-            output_image_path = os.path.join(output_dir, output_image_name)
-            ext = ".svg"
-            fig.savefig(f"{output_image_path}{ext}", bbox_inches="tight")
-            print(f"Saved {output_image_path}{ext}")
+        output_image_name = "allele_size_distribution_by_number_of_repeats.x3"
+        if is_pure_repeats:
+            output_image_name += ".pure_repeats"
+        else:
+            output_image_name += ".with_interruptions"
+        output_image_name += ".svg"
+
+        fig.savefig(f"{output_image_name}", bbox_inches="tight")
+        print(f"Saved {output_image_name}")
 
         print(f"Plotted {len(df):,d} allele records")
 
 
-def plot_motif_distribution(df, output_dir, axes=None, save_image=False):
+def plot_motif_distribution(df, is_pure_repeats=True):
     print("Plotting allele distribution by motif size")
+    if is_pure_repeats:
+        df = df[df.IsPureRepeat == "Yes"]
+    else:
+        df = df[df.IsPureRepeat == "No"]
 
     hue_limit = 5
     df.loc[:, "NumRepeatsAwayFromReferenceTruncated"] = df["NumRepeatsAwayFromReference"]
@@ -186,9 +208,11 @@ def plot_motif_distribution(df, output_dir, axes=None, save_image=False):
     df.loc[:, "NumRepeatsAwayFromReferenceTruncated"] = df["NumRepeatsAwayFromReferenceTruncated"].replace(
         f"+{hue_limit}", f"+{hue_limit} or more")
 
-    if axes is None:
-        _, axes = plt.subplots(2, 1, figsize=(8, 12), dpi=80)
+    _, axes = plt.subplots(2, 1, figsize=(8, 12), dpi=80)
 
+    title = "# of Repeats in hg38 at Truth Set STR Loci"
+    if not is_pure_repeats:
+        title += "\n(interrupted repeats only)"
     ax = axes[0]
     p = sns.histplot(
         df,
@@ -197,7 +221,7 @@ def plot_motif_distribution(df, output_dir, axes=None, save_image=False):
         discrete=True,
         ax=ax)
 
-    p.set_title("# of Repeats in hg38 at Truth Set STR Loci", fontsize=14)
+    p.set_title(title, fontsize=14)
     ax.set_xlabel("", fontsize=14)
     ax.set_yscale("log")
     ax.set_ylabel("# of Loci", fontsize=14)
@@ -236,13 +260,15 @@ def plot_motif_distribution(df, output_dir, axes=None, save_image=False):
     ax.get_legend().set_bbox_to_anchor((1.35, 0.25))
     ax.get_legend().get_frame().set_color("white")
 
-    if save_image:
-        output_image_name = "reference_locus_size_distribution"
-        output_image_path = os.path.join(output_dir, output_image_name)
-        ext = ".svg"
-        plt.savefig(f"{output_image_path}{ext}", bbox_inches="tight")
-        plt.close()
-        print(f"Saved {output_image_path}{ext}")
+    output_image_name = "reference_locus_size_distribution"
+    if is_pure_repeats:
+        output_image_name += ".pure_repeats"
+    else:
+        output_image_name += ".with_interruptions"
+    output_image_name += ".svg"
+    plt.savefig(f"{output_image_name}", bbox_inches="tight")
+    plt.close()
+    print(f"Saved {output_image_name}")
 
     print(f"Plotted {len(df):,d} allele records")
 
@@ -251,32 +277,32 @@ def main():
     p = argparse.ArgumentParser()
     p.add_argument("--skip-plot1", action="store_true")
     p.add_argument("--skip-plot2", action="store_true")
-    p.add_argument("--output-dir", default=".")
     args = p.parse_args()
 
     input_table_path = "../STR_truthset.v1.alleles.tsv.gz"
 
     print(f"Reading {input_table_path}")
     df = pd.read_table(input_table_path)
-    df = df[df.IsPureRepeat == "Yes"]
     print(f"Parsed {len(df):,d} rows from {input_table_path}")
     df = df.rename(columns={"IsMultiallelic": "Multiallelic"})
     df.loc[:, "NumRepeatsAwayFromReference"] = df.NumRepeats - df.NumRepeatsInReference
     df.loc[:, "NumBasePairsAwayFromReference"] = df.NumRepeatsAwayFromReference * df.MotifSize
 
     if not args.skip_plot1:
-        plot_allele_size_distribution(df, args.output_dir, plot_type=1, save_image=True)
-        plot_allele_size_distribution(df, args.output_dir, plot_type=2, save_image=True)
-        plot_allele_size_distribution(df, args.output_dir, plot_type=1, save_image=True,
-                                      color_by="Multiallelic", hue_order=["No", "Yes"])
-        plot_allele_size_distribution(df, args.output_dir, plot_type=3, save_image=True,
-                                      color_by="Multiallelic", hue_order=["No", "Yes"])
-        plot_allele_size_distribution(df, args.output_dir, plot_type=1, save_image=True,
-                                      color_by="OverlapsSegDupIntervals", hue_order=["No", "Yes"])
-        plot_allele_size_distribution_x3(df, args.output_dir, save_image=True)
+        plot_allele_size_distribution(df, plot_type=1, is_pure_repeats=True)
+        plot_allele_size_distribution(df, plot_type=1, is_pure_repeats=False)
+        plot_allele_size_distribution(df, plot_type=2, is_pure_repeats=True)
+        plot_allele_size_distribution(df, plot_type=2, is_pure_repeats=False)
+        plot_allele_size_distribution(df, plot_type=1, color_by="Multiallelic", hue_order=["No", "Yes"], is_pure_repeats=True)
+        plot_allele_size_distribution(df, plot_type=1, color_by="Multiallelic", hue_order=["No", "Yes"], is_pure_repeats=False)
+        plot_allele_size_distribution(df, plot_type=3, color_by="Multiallelic", hue_order=["No", "Yes"], is_pure_repeats=True)
+        plot_allele_size_distribution(df, plot_type=3, color_by="Multiallelic", hue_order=["No", "Yes"], is_pure_repeats=False)
+
+        plot_allele_size_distribution(df, plot_type=1, color_by="OverlapsSegDupIntervals", hue_order=["No", "Yes"], is_pure_repeats=True)
+        plot_allele_size_distribution_x3(df, is_pure_repeats=True)
 
     if not args.skip_plot2:
-        plot_motif_distribution(df, args.output_dir, save_image=True)
+        plot_motif_distribution(df, is_pure_repeats=True)
 
 
 if __name__ == "__main__":

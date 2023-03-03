@@ -527,9 +527,8 @@ def generate_all_distribution_by_num_repeats_plots(df, output_image_dir, plot_co
                                 figure_title=figure_title_line1 + "\n\n" + figure_title_line2
                             )
 
-                            for ext in ".svg", ".png":
-                                plt.savefig(f"{output_image_dir}/{output_image_filename}{ext}")
-                                print(f"Saved {output_image_dir}/{output_image_filename}{ext}")
+                            plt.savefig(f"{output_image_dir}/{output_image_filename}.svg")
+                            print(f"Saved {output_image_dir}/{output_image_filename}.svg")
                             plt.close()
 
                         except Exception as e:
@@ -694,9 +693,8 @@ def generate_fraction_exactly_right_plot(
 
         output_image_filename = "tool_accuracy_by_true_allele_size_exactly_matching_calls"
 
-        for ext in ".svg", ".png":
-            plt.savefig(f"{output_image_dir}/{output_image_filename}{filename_suffix}{ext}", bbox_extra_artists=(suptitle_artist,), bbox_inches="tight")
-            print(f"Saved {output_image_dir}/{output_image_filename}{filename_suffix}{ext}")
+        plt.savefig(f"{output_image_dir}/{output_image_filename}{filename_suffix}.svg", bbox_extra_artists=(suptitle_artist,), bbox_inches="tight")
+        print(f"Saved {output_image_dir}/{output_image_filename}{filename_suffix}.svg")
 
         plt.close()
         plot_counter += 1

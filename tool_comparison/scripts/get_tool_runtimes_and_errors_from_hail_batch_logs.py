@@ -156,7 +156,22 @@ for positive_or_negative in "positive", "negative":
 
 #%%
 
-#df = pd.DataFrame(output_rows)
-#df.to_csv("..")
+GROUP_BY_KEY = ['tool', 'positive_or_negative_loci', 'coverage', 'data_group_number']
+
+df = pd.DataFrame(output_rows)
+df2 = df.groupby(
+    GROUP_BY_KEY
+).aggregate({
+    "num_loci": "sum",
+    "tool_run_time_seconds": "sum",
+    "max_resident_set_kbytes": "median",
+    "average_resident_set_kbytes": "median",
+}).reset_index()
+
+df2.loc[:, "seconds_per_10k_loci"] = 10_000 * df2["tool_run_time_seconds"] / df2["num_loci"]
+df2.loc[:, "minutes_per_10k_loci"] = df2["seconds_per_10k_loci"] / 60
+df2.to_csv("STR_tool_timing_with_coverage.tsv", sep="\t", index=False, header=True)
+
+#%%
 
 #%%
