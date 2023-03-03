@@ -6,7 +6,7 @@ import pandas as pd
 import seaborn as sns
 import sys
 
-sns.set_context("notebook", font_scale=1.1, rc={
+sns.set_context("paper", font_scale=1.1, rc={
     "font.family": "sans-serif",
 })
 
@@ -265,7 +265,8 @@ def plot_distribution_by_num_repeats(
             axes[i].get_xticklabels(),
             rotation=45,
             horizontalalignment="right",
-            rotation_mode="anchor")
+            rotation_mode="anchor",
+            fontsize=14)
 
         if i == 1:
             # add n=.. above each bar
@@ -673,7 +674,13 @@ def generate_fraction_exactly_right_plot(
         ax.grid(axis='y', color='#ECECEC')
 
         ax.set_xticks(ax.get_xticks())
-        ax.set_xticklabels(ax.get_xticklabels(), rotation=45, horizontalalignment="right", rotation_mode='anchor')
+        ax.set_xticklabels(
+            ax.get_xticklabels(),
+            rotation=45,
+            horizontalalignment="right",
+            rotation_mode='anchor',
+            fontsize=14)
+        ax.set_yticklabels(ax.get_yticklabels(), fontsize=15)
         ax.get_legend().set_title(f"")
         ax.legend(frameon=True)
         if len(hue_values) > 4:

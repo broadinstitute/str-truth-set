@@ -5,7 +5,7 @@ set -u
 
 cd ./figures_and_tables
 
-python3 -u plot1_summary_stats.py
+python3 -u plot_summary_stats.py
 python3 -u plot_tool_comparisons.py --verbose
 
 # upload to gs://str-truth-set/

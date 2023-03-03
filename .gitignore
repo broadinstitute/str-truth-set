@@ -1,8 +1,8 @@
 .idea
 *.iml
 .DS_Store
-*.png
-*.svg
+tool_comparison/figures/*.svg
+tool_comparison/figures/*.png
 
 ref
 *.tar.gz
@@ -12,7 +12,7 @@ ref
 *.twbr
 *.tsv.gz
 *.tsv
-*.png
+
 
 tool_comparison/results*
 tool_comparison/variant_catalogs/
