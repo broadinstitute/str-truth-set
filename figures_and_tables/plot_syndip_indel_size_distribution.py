@@ -1,13 +1,10 @@
 import argparse
 import gzip
 import matplotlib.pyplot as plt
-import numpy as np
 import os
 import pandas as pd
 import seaborn as sns
 from tqdm import tqdm
-
-
 
 sns.set_context("paper", font_scale=1.1, rc={
     "font.family": "sans-serif",
@@ -26,11 +23,9 @@ def plot_distribution(df, output_dir, save_image=False):
     ax.set_xlim((-20, 20))
     sns.histplot(
         df,
-        x = "indel_kb",
+        x="indel_kb",
         binwidth=0.1,
         color="#0033FF",
-        #multiple="stack", stat="count",
-        #multiple="fill", stat="proportion",
         ax=ax)
 
     fig.tight_layout()
