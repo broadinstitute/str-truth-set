@@ -3,24 +3,31 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 
+np.random.seed(10)
+
 sns.set_context("paper", font_scale=1.1, rc={
     "font.family": "sans-serif",
+    "xtick.labelsize": 12,
+    "ytick.labelsize": 12,
+    "axes.labelsize": 13,
+    "axes.labelpad": 15,
 })
 
 
-def plot_gene_contraint(df):
+def plot_gene_constraint(df):
     fig, axes = plt.subplots(1, 3, sharex=False, sharey=True, figsize=(20, 6), dpi=80)
+    suptitle_artist = fig.suptitle("Gene Constraint Metrics and STR Variants", fontsize=16, y=0.97)
 
-    for column, ax in zip([
+    for column_i, (x_column, ax) in enumerate(zip([
         'pLI',
         "O/E LoF upperbound (LOEUF)",
         "O/E missense upperbound",
         #'pRecessive',
-    ], axes):
+    ], axes)):
 
         sns.violinplot(
             y="Source",
-            x=column,
+            x=x_column,
             data=df,
             inner=None,
             cut=0,
@@ -32,54 +39,43 @@ def plot_gene_contraint(df):
         for violin in ax.collections:
             bbox = violin.get_paths()[0].get_extents()
             x0, y0, width, height = bbox.bounds
-            violin.set_clip_path(plt.Rectangle((x0, y0), width, height / 2, transform=ax.transData))
+            violin.set_clip_path(plt.Rectangle((x0, y0 - 0.1), width, height / 2 + 0.1, transform=ax.transData))
 
         old_len_collections = len(ax.collections)
         stripplot_data = df[~df.Source.isin(["All Genes"])]
-        stripplot_data = stripplot_data.sort_values('InheritanceMode & AgeOfOnset')
+        stripplot_data = stripplot_data.sort_values('InheritanceMode')
         sns.stripplot(
-            x=column,
+            x=x_column,
             y="Source",
             data=stripplot_data,
-            hue='InheritanceMode & AgeOfOnset',
+            hue='InheritanceMode',
             ax=ax,
-            palette=["gray", "red", "orange", "blue", "blue"],
+            palette=["gray", "red", "blue", "orange", "green"],
+            alpha=0.5,
         )
 
         for dots in ax.collections[old_len_collections:]:
             dots.set_offsets(dots.get_offsets() + np.array([0, 0.2]))
-        if column == "pLI":
-            i = 0
-            for _, row in stripplot_data[~stripplot_data.gene_name.isna()].iterrows():
-                text_x = row.pLI
-                text_y = 1.05
-                if row.gene_name == "ATXN3":
-                    text_x += 0.02
-                    text_y += 0.15
-                elif row.gene_name == "PABPN1":
-                    text_x -= 0.08
-                    text_y += 0.35
-                elif row.gene_name == "SOX3":
-                    text_x += 0.02
-                    text_y += 0.08
-                elif row.gene_name == "HOXD13":
-                    text_x -= 0.02
-                    text_y += 0.4
-                else:
-                    continue
-                ax.text(x=text_x, y=text_y, s=row.gene_name)
+
+        for _, row in stripplot_data[~stripplot_data.gene_name.isna()].iterrows():
+            if row.gene_name not in {"RUNX2", "HOXD13"}:
+                continue
+
+            text_x = row[x_column] + 0.02
+            text_y = 1.38
+            ax.text(x=text_x, y=text_y, s=row.gene_name)
 
         sns.boxplot(
-            y="Source", x=column, data=df,
+            y="Source", x=x_column, data=df,
             saturation=1, showfliers=False, width=0.1,
             medianprops={'zorder': 5, 'linewidth': 3},
             whiskerprops={'zorder': 5, 'linewidth': 3},
             boxprops={'zorder': 3, 'linewidth': 3, 'facecolor': 'white'},
             ax=ax)
 
-        if column == "pLI":
+        if column_i == 1:
             ax.get_legend().set_title(f"")
-            sns.move_legend(ax, loc=(-1, 0))
+            sns.move_legend(ax, loc=(0.55, 0.55))
         else:
             ax.get_legend().remove()
 
@@ -87,8 +83,8 @@ def plot_gene_contraint(df):
         ax.set_ylim(ylim)
         ax.set_ylabel("")
 
-    output_image_name = "gene_constraint.svg"
-    plt.savefig(f"{output_image_name}", bbox_inches="tight")
+    output_image_name = "gene_constraint_metrics_and_STRs.svg"
+    plt.savefig(f"{output_image_name}", bbox_extra_artists=(suptitle_artist,), bbox_inches="tight")
     print(f"Saved {output_image_name}")
     plt.close()
 
@@ -97,49 +93,55 @@ def main():
     constraint_df = pd.read_table("../ref/other/gnomad.v2.1.1.lof_metrics.by_gene.txt.bgz", compression="gzip")
     constraint_df = constraint_df[["gene_id", "pLI", "oe_lof_upper", "oe_mis_upper", "oe_syn_upper", "pRec", "mu_syn"]]
     constraint_df = constraint_df.set_index("gene_id")
+    print(f"Loaded {len(constraint_df):,d} rows from the gnomAD gene constraint table")
 
-    known_pathogenic_df = pd.read_table("../ref/other/private/known_pathogenic_STRs_with_Utah_columns.tsv")
+    known_pathogenic_df = pd.read_table("../ref/other/known_disease_associated_STR_loci.tsv")
     known_pathogenic_df = known_pathogenic_df[~known_pathogenic_df["GeneId"].isna()]
-    known_pathogenic_df = known_pathogenic_df.set_index("GeneId")
     known_pathogenic_df = known_pathogenic_df[known_pathogenic_df["Gene Region"].str.startswith("coding:")]
-    known_pathogenic_df = known_pathogenic_df[known_pathogenic_df["RU length"] <= 6]
+    known_pathogenic_df = known_pathogenic_df[known_pathogenic_df["Motif Length"] <= 6]
+    known_pathogenic_df = known_pathogenic_df.set_index("GeneId")
+    known_pathogenic_df.loc[:, "InheritanceMode"] = known_pathogenic_df["InheritanceMode"].replace({
+        "AD": "Autosomal Dominant",
+        "AR": "Autosomal Recessive",
+        "XR": "X-linked Recessive",
+    })
+    print(f"Loaded {len(known_pathogenic_df):,d} coding known disease-associated STR loci")
 
     truth_set_df = pd.read_table("../STR_truth_set.v1.variants.tsv.gz")
     truth_set_df = truth_set_df[truth_set_df["IsPureRepeat"] == "Yes"]
     truth_set_df = truth_set_df.set_index("GeneIdFromMane_V1")
     truth_set_df = truth_set_df[truth_set_df.GeneRegionFromMane_V1 == "CDS"]
-    print(f"Loaded {len(truth_set_df)} truth set loci that MANE v1 CDS")
+    print(f"Loaded {len(truth_set_df):,d} truth set loci that overlap MANE v1 coding regions")
 
-    df1 = constraint_df[constraint_df.index.isin(known_pathogenic_df.index)].reset_index()
+    print("----")
+    df1 = constraint_df[constraint_df.index.isin(known_pathogenic_df.index)]
+    print(f"{len(df1):,d} genes with constraint info contain coding known disease-associated STR loci")
 
-    df1 = df1.set_index("gene_id").join(known_pathogenic_df[
-                                            ["InheritanceMode", 'age_onset_min: Utah', 'age_onset_max: Utah', "Gene"]
-                                        ], how="left")
+    df1 = df1.join(known_pathogenic_df[["InheritanceMode", "Gene"]], how="left")
+
     df1 = df1.reset_index().rename(columns={
         "index": "gene_id",
         "Gene": "gene_name",
-        "age_onset_min: Utah": "age_onset_min",
-        "age_onset_max: Utah": "age_onset_max",
     })
 
-    def combine_inhertiance_and_age_of_onset(row):
-        if row.InheritanceMode == "AD" or  row.InheritanceMode == "XD":
-            return row.InheritanceMode + (", late onset" if (row["age_onset_max"] + row["age_onset_min"])/2 > 25 else "")
-        else:
-            return row.InheritanceMode
-
-    df1.loc[:, "InheritanceMode & AgeOfOnset"] = df1.apply(combine_inhertiance_and_age_of_onset, axis=1)
-
     df2 = constraint_df[constraint_df.index.isin(truth_set_df.index)].reset_index()
-    print(len(df2), "truth set STRs in MANE v1 CDSes have constraint info")
+    print(f"{len(df2):,d} genes with constraint info contain coding truth set STR variants")
+
     df3 = constraint_df
+    print(f"{len(df3):,d} genes with constraint info total")
 
     df1.loc[:, "Source"] = "Genes Containing\nDisease Associated STR Loci"
     df2.loc[:, "Source"] = "Genes Containing\nTruth Set STR Variants"
     df3.loc[:, "Source"] = "All Genes"
-    df2.loc[:, "InheritanceMode"] = df2.loc[:, "InheritanceMode & AgeOfOnset"] = ""
+
+    df2.loc[:, "InheritanceMode"] = ""
 
     df_final = pd.concat([df1, df2, df3])
+    print("----")
+    print("pLI constraint score max:", df_final.pLI.max())
+    print("LOEUF constraint score max:", df_final.oe_lof_upper.max())
+    print("missense constraint score max:", df_final.oe_mis_upper.max())
+    print("----")
 
     df_final = df_final.sort_values("Source", ascending=False)
     df_final = df_final.rename(columns={
@@ -148,7 +150,7 @@ def main():
         "oe_mis_upper": "O/E missense upperbound",
     })
 
-    plot_gene_contraint(df_final)
+    plot_gene_constraint(df_final)
 
 
 if __name__ == "__main__":
