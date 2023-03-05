@@ -103,10 +103,8 @@ def plot_allele_size_distribution(df, plot_type=1, color_by=None, hue_order=None
         ax.get_legend().get_title().set_horizontalalignment('center')
 
         if plot_type == 3:
-            if is_pure_repeats:
-                ax.get_legend().set_bbox_to_anchor((0.9, 0.9))
-            else:
-                ax.get_legend().set_bbox_to_anchor((0.803, 0.9))
+            sns.move_legend(ax, loc="upper right")
+
 
     output_image_name += ".svg"
     plt.savefig(f"{output_image_name}", bbox_inches="tight")
@@ -208,7 +206,7 @@ def plot_gene_info(df, excluding_introns_and_intergenic=False, use_MANE_genes=Fa
     print(f"Plotted {len(df):,d} allele records")
 
 
-def plot_allele_size_distribution_x3(df, is_pure_repeats=True):
+def plot_allele_size_distribution_x3(df, is_pure_repeats=True, color_by=None, hue_order=None):
 
     """Plot allele size distribution split into 3 plots by motif size ranges"""
     if is_pure_repeats:
@@ -243,6 +241,9 @@ def plot_allele_size_distribution_x3(df, is_pure_repeats=True):
         ax.set_xlabel("Allele Size (bp)", labelpad=15, fontsize=18)
         if i == 0:
             ax.set_ylabel("Number of Alleles", labelpad=15, fontsize=18)
+        else:
+            ax.set_ylabel(" ")
+
         ax.spines.right.set_visible(False)
         ax.spines.top.set_visible(False)
         ax.set_xticks(range(-xlimit, xlimit + 1, step_size*4))
@@ -260,17 +261,25 @@ def plot_allele_size_distribution_x3(df, is_pure_repeats=True):
         p = sns.histplot(
             df_current,
             x="NumBasePairsAwayFromReference",
+            hue=color_by,
+            hue_order=hue_order,
+            multiple="stack" if not color_by else "fill",
             bins=[b-1.5 for b in range(-xlimit, xlimit + step_size, step_size)],
             ax=ax)
 
         p.set(yscale='log')
         p.set_title(f"{len(df_current):,d} alleles at {len(set(df_current.LocusId)):,d} loci ({label})", fontsize=18)
+        if color_by:
+            sns.move_legend(ax, loc="upper left")
 
         output_image_name = "allele_size_distribution_by_number_of_repeats.x3"
         if is_pure_repeats:
             output_image_name += ".pure_repeats"
         else:
             output_image_name += ".with_interruptions"
+        if color_by:
+            output_image_name += f".color_by_{color_by.lower()}"
+
         output_image_name += ".svg"
 
         fig.savefig(f"{output_image_name}", bbox_inches="tight")
@@ -301,6 +310,10 @@ def plot_motif_distribution(df, is_pure_repeats=True):
     df.loc[:, "NumRepeatsAwayFromReferenceTruncated"] = df["NumRepeatsAwayFromReferenceTruncated"].replace(
         f"+{hue_limit}", f"+{hue_limit} or more")
 
+    plt.rcParams.update({
+        "xtick.labelsize": 12,
+        "ytick.labelsize": 12,
+    })
     _, axes = plt.subplots(2, 1, figsize=(8, 12), dpi=80)
 
     title = "# of Repeats in hg38 at Truth Set STR Loci"
@@ -341,17 +354,20 @@ def plot_motif_distribution(df, is_pure_repeats=True):
 
     ax.set_xlabel("# of Repeats in hg38", fontsize=14)
     ax.set_ylabel("Fraction of Alleles", fontsize=14)
-    plt.rcParams.update({"text.usetex": True})
+    plt.rcParams.update({
+        "text.usetex": True,
+    })
     ax.get_legend().set_title("\n".join([
-        "# of Repeats in",
+        "\# of Repeats in",
         "Truth Set Allele",
         "Relative to hg38",
-        "$_{contractions\ are < 0}$",
-        "$_{expansions\ are > 0}   $",
-    ]), prop={'size': 12})
+        "$_{contractions\ are\ <\ 0}$",
+        "$_{expansions\ are\ >\ 0}$",
+        "",
+    ]), prop={'size': 14})
     ax.get_legend()._legend_box.align = "left"
-    ax.get_legend().set_bbox_to_anchor((1.35, 0.25))
     ax.get_legend().get_frame().set_color("white")
+    sns.move_legend(ax, loc=(1.05, 0.24))
 
     output_image_name = "reference_locus_size_distribution"
     if is_pure_repeats:
@@ -364,13 +380,16 @@ def plot_motif_distribution(df, is_pure_repeats=True):
     print(f"Saved {output_image_name}")
 
     print(f"Plotted {len(df):,d} allele records")
-    plt.rcParams.update({"text.usetex": False})
+    #plt.rcParams.update({"text.usetex": False})
+
 
 def main():
     p = argparse.ArgumentParser()
     p.add_argument("--skip-plot1", action="store_true")
     p.add_argument("--skip-plot2", action="store_true")
     p.add_argument("--skip-plot3", action="store_true")
+    p.add_argument("--skip-plot4", action="store_true")
+    p.add_argument("--skip-plot5", action="store_true")
     args = p.parse_args()
 
     input_table_path = "../STR_truth_set.v1.alleles.tsv.gz"
@@ -387,21 +406,26 @@ def main():
         plot_allele_size_distribution(df, plot_type=1, is_pure_repeats=False)
         plot_allele_size_distribution(df, plot_type=2, is_pure_repeats=True)
         plot_allele_size_distribution(df, plot_type=2, is_pure_repeats=False)
+
+    if not args.skip_plot2:
         plot_allele_size_distribution(df, plot_type=1, color_by="Multiallelic", hue_order=["No", "Yes"], is_pure_repeats=True)
         plot_allele_size_distribution(df, plot_type=1, color_by="Multiallelic", hue_order=["No", "Yes"], is_pure_repeats=False)
         plot_allele_size_distribution(df, plot_type=3, color_by="Multiallelic", hue_order=["No", "Yes"], is_pure_repeats=True)
         plot_allele_size_distribution(df, plot_type=3, color_by="Multiallelic", hue_order=["No", "Yes"], is_pure_repeats=False)
 
         plot_allele_size_distribution(df, plot_type=1, color_by="OverlapsSegDupIntervals", hue_order=["No", "Yes"], is_pure_repeats=True)
-        plot_allele_size_distribution_x3(df, is_pure_repeats=True)
 
-    if not args.skip_plot2:
+    if not args.skip_plot3:
+        plot_allele_size_distribution_x3(df, is_pure_repeats=True)
+        plot_allele_size_distribution_x3(df, is_pure_repeats=True, color_by="Multiallelic", hue_order=["No", "Yes"])
+
+    if not args.skip_plot4:
         plot_gene_info(df, excluding_introns_and_intergenic=False, use_MANE_genes=False)
         plot_gene_info(df, excluding_introns_and_intergenic=False, use_MANE_genes=True)
         plot_gene_info(df, excluding_introns_and_intergenic=True, use_MANE_genes=False)
         plot_gene_info(df, excluding_introns_and_intergenic=True, use_MANE_genes=True)
 
-    if not args.skip_plot3:
+    if not args.skip_plot5:
         plot_motif_distribution(df, is_pure_repeats=True)
 
 
