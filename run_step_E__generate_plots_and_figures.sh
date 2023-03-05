@@ -15,5 +15,5 @@ python3 -u plot_gene_constraint_info.py
 python3 -u plot_tool_comparisons.py --verbose
 
 # upload to gs://str-truth-set/
-gsutil -m cp -n *.png *.svg   gs://str-truth-set/hg38/figures/
-gsutil -m cp -n ../tool_comparison/figures/*.svg   gs://str-truth-set/hg38/figures/
+gsutil -m cp *.png *.svg   gs://str-truth-set/hg38/figures/
+gsutil -m cp ../tool_comparison/figures/*.svg   gs://str-truth-set/hg38/figures/

@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
 import seaborn as sns
 from str_analysis.utils.canonical_repeat_unit import compute_canonical_motif
@@ -6,6 +7,7 @@ from str_analysis.utils.canonical_repeat_unit import compute_canonical_motif
 
 sns.set_context("paper", font_scale=1.1, rc={
     "font.family": "sans-serif",
+    "legend.fontsize": 12,
 })
 
 
@@ -22,24 +24,23 @@ def compute_motif_labels(row, existing_motif_labels=(), min_fraction_of_motifs_w
         return f"7+bp"
 
 
-def plot_hist(df, output_image_filename, title=None, stack_or_fill="stack", motif_color_map=None, show_title=True):
+def plot_hist(df, output_image_filename, title=None, y_label=None, show_title=True):
     fig, ax = plt.subplots(figsize=(8, 9), dpi=80)
     ax.set_xlim(0, 15.5)
     ax.set_xlabel("Motif size (bp)", labelpad=15, fontsize=14)
-    ax.set_ylabel("Fraction", labelpad=15, fontsize=14)
+    if y_label:
+        ax.set_ylabel(y_label, labelpad=15, fontsize=14)
     ax.spines.right.set_visible(False)
     ax.spines.top.set_visible(False)
     ax.set_xticks(range(2, 16, 1))
+    ax.set_yticks(np.arange(0, 0.75, 0.1))
     ax.set_xticklabels([f"{x}" for x in range(2, 16)], fontsize=13)
     plt.yticks(fontsize=13)
 
     if show_title:
         ax.set_title(title, pad=15, fontsize=14)
 
-    if motif_color_map is None:
-        palette = sns.color_palette("hsv", n_colors=len(set(df["MotifLabels"])), desat=0.8)
-    else:
-        palette = motif_color_map
+    palette = sns.color_palette("hsv", n_colors=len(set(df["MotifLabels"])), desat=0.8)
 
     df = df.rename(columns={
         "MotifLabels": "Normalized Motifs",
@@ -51,11 +52,12 @@ def plot_hist(df, output_image_filename, title=None, stack_or_fill="stack", moti
         hue="Normalized Motifs",
         palette=palette,
         binwidth=1,
-        multiple=stack_or_fill,
+        multiple="stack",
         stat="proportion",
         discrete=True,
         ax=ax)
 
+    ax.get_legend().set_title("Normalized Motif", prop={'size': 13})
     plt.savefig(f"{output_image_filename}", bbox_inches="tight")
     plt.close()
     print(f"Saved {output_image_filename}")
@@ -81,20 +83,23 @@ def main():
     df_ref = add_columns(df_ref)
     print(f"Plotting motifs from {len(df_ref):,d} reference loci")
     plot_hist(df_ref, f"motif_distribution_in_hg38_with_atleast_{min_ref_bp}.svg",
-        title=f"Motifs of Pure STR Loci in hg38")
+              y_label="Fraction of Pure STR Loci in hg38",
+              title=f"Motifs of Pure STR Loci in hg38")
 
     df = pd.read_table("../STR_truth_set.v1.variants.tsv.gz")
     df_pure = df[df["IsPureRepeat"] == "Yes"]
     df_pure = add_columns(df_pure, existing_motif_labels=set(df_ref.MotifLabels))
     print(f"Plotting motifs from {len(df_pure):,d} pure truth set loci")
     plot_hist(df_pure, f"motif_distribution.pure_repeats.svg",
-        title="Motifs of STR Variants In Truth Set")
+              y_label="Fraction of Pure STR Variants in Truth Set",
+              title="Motifs of STR Variants In Truth Set")
 
     df_with_interruptions = df[df["IsPureRepeat"] == "No"]
     df_with_interruptions = add_columns(df_with_interruptions)
     print(f"Plotting motifs from {len(df_with_interruptions):,d} truth set loci with interruptions")
     plot_hist(df_with_interruptions, f"motif_distribution.with_interruptions.svg",
-        title="Motifs of STR Variants In Truth Set\n(only interrupted repeats)")
+              y_label="Fraction of Interrupted STR Variants in Truth Set",
+              title="Motifs of STR Variants In Truth Set\n(only interrupted repeats)")
 
 
 if __name__ == "__main__":

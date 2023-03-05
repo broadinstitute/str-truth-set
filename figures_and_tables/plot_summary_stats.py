@@ -36,7 +36,7 @@ def plot_allele_size_distribution(df_truth_set, plot_type=1, color_by=None, hue_
             figure_title = "STR Overlap with Segmental Duplications"
     elif plot_type == 2:
         x_column = "NumBasePairsAwayFromReference"
-        xlabel = "Allele Size (bp) Relative to hg38"
+        xlabel = "Allele Size (bp)"
         xlimit = 39
         minus_xlimit = -xlimit
         xticks = range(-xlimit, xlimit + 1, 6)
@@ -219,7 +219,7 @@ def plot_allele_size_distribution_x3(df, is_pure_repeats=True, color_by=None, hu
 
     fig, axes = plt.subplots(ncols=3, figsize=(30, 10), dpi=120, sharey=True)
 
-    title = "Allele Size Distributions"
+    title = "STR Allele Size Distributions"
     if not is_pure_repeats:
         title += "\n(interrupted repeats only)"
     fig.suptitle(title, fontsize=24)
@@ -360,6 +360,7 @@ def plot_motif_distribution(df, is_pure_repeats=True, show_title=True):
     ax.set_ylabel("Fraction of Alleles", fontsize=14)
     plt.rcParams.update({
         "text.usetex": True,
+        "legend.fontsize": 12,
     })
     ax.get_legend().set_title("\n".join([
         "\# of Repeats in",
@@ -369,9 +370,9 @@ def plot_motif_distribution(df, is_pure_repeats=True, show_title=True):
         "$_{expansions\ are\ >\ 0}$",
         "",
     ]), prop={'size': 14})
+    sns.move_legend(ax, loc=(1.05, 0.15))
     ax.get_legend()._legend_box.align = "left"
-    ax.get_legend().get_frame().set_color("white")
-    sns.move_legend(ax, loc=(1.05, 0.23))
+    ax.get_legend().get_frame().set_alpha(0)
 
     output_image_name = "reference_locus_size_distribution"
     if is_pure_repeats:
