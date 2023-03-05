@@ -35,8 +35,8 @@ print(f"{format_n(len(df_alleles))}    TOTAL STR alleles")
 
 #%%
 
-with open("step1.log", "rt") as f:
-    step1_log_contents = f.read()
+with open("step_A.log", "rt") as f:
+    stepA_log_contents = f.read()
 
 #%%
 print("-"*100)
@@ -44,12 +44,12 @@ print("Numbers for intro:")
 print("-"*100)
 percent_missed_by_gangstr_catalog = re.search(
     f"GangSTRCatalog17.*{len(df_variants):,d} [(][ ]+([0-9]+[.][0-9]+)[%][)].* truth set loci:.*no overlap",
-    step1_log_contents).group(1)
+    stepA_log_contents).group(1)
 print(f"{percent_missed_by_gangstr_catalog}% missed by GangSTR catalog")
 
 percent_missed_by_illumina_catalog = re.search(
     f"IlluminaSTRCatalog.*{len(df_variants):,d} [(][ ]+([0-9]+[.][0-9]+)[%][)].* truth set loci:.*no overlap",
-    step1_log_contents).group(1)
+    stepA_log_contents).group(1)
 print(f"{percent_missed_by_illumina_catalog}% missed by ExpansionHunter catalog")
 
 #%%
@@ -80,30 +80,30 @@ print("Defining the STR truth set:")
 print("-"*100)
 # Defining the STR truth set - numbers for figure
 total_variants = int(re.search(
-    f"step1:input:[ ]*([0-9,]+)[ ]* TOTAL variants", step1_log_contents).group(1).replace(",", ""))
+    f"step1:input:[ ]*([0-9,]+)[ ]* TOTAL variants", stepA_log_contents).group(1).replace(",", ""))
 total_high_confidence_variants = int(re.search(
-    f"step1:output:[ ]*([0-9,]+)[ ]* TOTAL variants", step1_log_contents).group(1).replace(",", ""))
+    f"step1:output:[ ]*([0-9,]+)[ ]* TOTAL variants", stepA_log_contents).group(1).replace(",", ""))
 
 total_alleles = int(re.search(
-    f"step1:input:[ ]*([0-9,]+)[ ]* TOTAL alleles", step1_log_contents).group(1).replace(",", ""))
+    f"step1:input:[ ]*([0-9,]+)[ ]* TOTAL alleles", stepA_log_contents).group(1).replace(",", ""))
 total_high_confidence_alleles = int(re.search(
-    f"step1:output:[ ]*([0-9,]+)[ ]* TOTAL alleles", step1_log_contents).group(1).replace(",", ""))
+    f"step1:output:[ ]*([0-9,]+)[ ]* TOTAL alleles", stepA_log_contents).group(1).replace(",", ""))
 
 high_confidence_INS_alleles = int(re.search(
-    f"step1:output:[ ]*([0-9,]+) out of[ ]* {total_high_confidence_alleles:,d}.*INS alleles", step1_log_contents).group(1).replace(",", ""))
+    f"step1:output:[ ]*([0-9,]+) out of[ ]* {total_high_confidence_alleles:,d}.*INS alleles", stepA_log_contents).group(1).replace(",", ""))
 high_confidence_DEL_alleles = int(re.search(
-    f"step1:output:[ ]*([0-9,]+) out of[ ]* {total_high_confidence_alleles:,d}.*DEL alleles", step1_log_contents).group(1).replace(",", ""))
+    f"step1:output:[ ]*([0-9,]+) out of[ ]* {total_high_confidence_alleles:,d}.*DEL alleles", stepA_log_contents).group(1).replace(",", ""))
 
 
 high_confidence_SNV_variants = int(re.search(
-    f"step1:output:[ ]*([0-9,]+) out of[ ]* {total_high_confidence_variants:,d}.*SNV variants", step1_log_contents).group(1).replace(",", ""))
+    f"step1:output:[ ]*([0-9,]+) out of[ ]* {total_high_confidence_variants:,d}.*SNV variants", stepA_log_contents).group(1).replace(",", ""))
 
 high_confidence_INS_DEL_variants = total_high_confidence_variants - high_confidence_SNV_variants
 
 total_STR_variants_before_validation_step = int(re.search(
-    f"step2:pure_STR:output:[ ]*([0-9,]+)[ ]* TOTAL variants", step1_log_contents).group(1).replace(",", ""))
+    f"step2:pure_STR:output:[ ]*([0-9,]+)[ ]* TOTAL variants", stepA_log_contents).group(1).replace(",", ""))
 total_STR_alleles_before_validation_step = int(re.search(
-    f"step2:pure_STR:output:[ ]*([0-9,]+)[ ]* TOTAL alleles", step1_log_contents).group(1).replace(",", ""))
+    f"step2:pure_STR:output:[ ]*([0-9,]+)[ ]* TOTAL alleles", stepA_log_contents).group(1).replace(",", ""))
 
 
 print(f"{format_n(total_variants)} total variants in raw SynDip")
