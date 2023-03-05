@@ -73,7 +73,7 @@ def plot_allele_size_distribution(df, plot_type=1, color_by=None, hue_order=None
     ax.spines.right.set_visible(False)
     ax.spines.top.set_visible(False)
     ax.set_xticks(xticks)
-    ax.set_xticklabels(xtick_labels, fontsize=13)
+    ax.set_xticklabels(xtick_labels, fontsize=12)
     ax.set_xlim(minus_xlimit - 0.52, xlimit + 0.52)
 
     plt.yticks(fontsize=13)
@@ -116,7 +116,100 @@ def plot_allele_size_distribution(df, plot_type=1, color_by=None, hue_order=None
     print(f"Plotted {len(df):,d} allele records")
 
 
+def plot_gene_info(df, excluding_introns_and_intergenic=False, use_MANE_genes=False):
+    df = df[df.IsPureRepeat == "Yes"]
+
+    if use_MANE_genes:
+        gene_region_column = "GeneRegionFromMane_V1"
+        output_image_filename_suffix = ".MANE_v1"
+        title_string = "MANE v1"
+    else:
+        gene_region_column = "GeneRegionFromGencode_V42"
+        output_image_filename_suffix = ".gencode_v42"
+        title_string = "Gencode v42"
+
+    if excluding_introns_and_intergenic:
+        df = df[~df[gene_region_column].isin(["intron", "intergenic", "exon"])]
+
+    hue_order = ["intron", "exon", "promoter", "5' UTR", "3' UTR", "CDS", "intergenic"]
+    palette = sns.color_palette("tab20", n_colors=len(hue_order))
+    palette = palette[1:] + palette[:1]
+
+    if excluding_introns_and_intergenic:
+        hue_order = hue_order[2:-1]
+        palette = palette[2:-1]
+
+    plt.rcParams.update({
+        "legend.fontsize": 12,
+        "ytick.labelsize": 12,
+    })
+    if not excluding_introns_and_intergenic:
+        plt.rcParams.update({"legend.loc": "lower left" if use_MANE_genes else "upper left"})
+
+    fig, axes = plt.subplots(1, 2, figsize=(16, 6), dpi=80)
+    suptitle_artist = fig.suptitle(f"Truth Set STR Alleles: Gene Region Overlap ({title_string})", fontsize=15)
+    extra_artists = [suptitle_artist]
+    for i, ax in enumerate(axes):
+        ax.xaxis.labelpad = ax.yaxis.labelpad = 15
+        ax.spines.right.set_visible(False)
+        ax.spines.top.set_visible(False)
+        if i == 0:
+            xlimit = 15
+            ax.set_xlabel("# of Repeats", fontsize=13)
+            ax.set_xticks(range(-xlimit, xlimit + 1, 2))
+            ax.set_xticklabels([f"{x}" if x < 0 else f"+{x}" for x in range(-xlimit, xlimit + 1, 2)], fontsize=12)
+            ax.set_xlim(-xlimit - 0.52, xlimit + 0.52)
+        else:
+            xlimit = 30
+            ax.set_xlabel("Motif Size (bp)", fontsize=13)
+            ax.set_xticks(range(2, xlimit + 1, 1))
+            ax.set_xticklabels([f"{x}" if x <= 6 or x % 3 == 0 else "" for x in range(2, xlimit + 1, 1)], fontsize=12)
+            ax.set_xlim(2 - 0.52, xlimit + 0.52)
+
+        sns.histplot(
+            df,
+            x="NumRepeatsAwayFromReference" if i == 0 else "MotifSize",
+            hue=gene_region_column,
+            hue_order=hue_order,
+            palette=palette,
+            binwidth=1,
+            multiple="fill",
+            stat="proportion",
+            discrete=True,
+            legend=i == 1,
+            ax=ax)
+
+        if i == 0:
+            ax.set_ylabel("Fraction of Alleles", fontsize=14)
+        else:
+            ax.set_ylabel("")
+
+        if ax.get_legend():
+            ax.get_legend().set_title("")
+            sns.move_legend(ax, loc=(1.05, 0.775 if excluding_introns_and_intergenic else 0.62))
+            extra_artists.append(ax.get_legend())
+
+        if i == 0:
+            ax.set_title("By Allele Size", fontsize=14)
+        else:
+            ax.set_title("By Motif Size", fontsize=14)
+
+    output_image_name = "truth_set_gene_overlap"
+    if excluding_introns_and_intergenic:
+        output_image_name += ".excluding_introns_and_intergenic"
+    else:
+        output_image_name += ".all_regions"
+    output_image_name += f"{output_image_filename_suffix}.svg"
+
+    plt.savefig(f"{output_image_name}", bbox_extra_artists=extra_artists, bbox_inches="tight")
+    plt.close()
+    print(f"Saved {output_image_name}")
+
+    print(f"Plotted {len(df):,d} allele records")
+
+
 def plot_allele_size_distribution_x3(df, is_pure_repeats=True):
+
     """Plot allele size distribution split into 3 plots by motif size ranges"""
     if is_pure_repeats:
         df = df[df.IsPureRepeat == "Yes"]
@@ -277,6 +370,7 @@ def main():
     p = argparse.ArgumentParser()
     p.add_argument("--skip-plot1", action="store_true")
     p.add_argument("--skip-plot2", action="store_true")
+    p.add_argument("--skip-plot3", action="store_true")
     args = p.parse_args()
 
     input_table_path = "../STR_truth_set.v1.alleles.tsv.gz"
@@ -303,6 +397,12 @@ def main():
 
     if not args.skip_plot2:
         plot_motif_distribution(df, is_pure_repeats=True)
+
+    if not args.skip_plot3:
+        plot_gene_info(df, excluding_introns_and_intergenic=False, use_MANE_genes=False)
+        plot_gene_info(df, excluding_introns_and_intergenic=False, use_MANE_genes=True)
+        plot_gene_info(df, excluding_introns_and_intergenic=True, use_MANE_genes=False)
+        plot_gene_info(df, excluding_introns_and_intergenic=True, use_MANE_genes=True)
 
 
 if __name__ == "__main__":
