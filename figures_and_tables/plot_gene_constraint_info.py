@@ -17,7 +17,7 @@ sns.set_context("paper", font_scale=1.1, rc={
 def plot_gene_constraint(df, show_title=True):
     fig, axes = plt.subplots(1, 3, sharex=False, sharey=True, figsize=(20, 6), dpi=80)
     if show_title:
-        suptitle_artist = fig.suptitle("Gene Constraint Metrics and STR Variants", fontsize=16, y=0.97)
+        suptitle_artist = fig.suptitle("Gene Constraint Metrics and STR Alleles", fontsize=16, y=0.97)
         extra_artists = [suptitle_artist]
     else:
         extra_artists = []
@@ -94,9 +94,41 @@ def plot_gene_constraint(df, show_title=True):
     plt.close()
 
 
+def plot_str_variant_size_vs_gene_constraint(df, show_title=True):
+    fig, axes = plt.subplots(1, 3, sharex=False, sharey=True, figsize=(20, 6), dpi=80)
+    if show_title:
+        suptitle_artist = fig.suptitle("Gene Constraint Metrics by STR Allele Size", fontsize=16, y=0.97)
+        extra_artists = [suptitle_artist]
+    else:
+        extra_artists = []
+
+    for column, ax in zip([
+        'pLI',
+        "O/E LoF upperbound (LOEUF)",
+        "O/E missense upperbound",
+        #'pRecessive',
+    ], axes):
+        sns.scatterplot(data=df, x=column, y="STR Allele Size (bp)", ax=ax)
+        xlim = list(ax.get_xlim())
+        xlim[0] = -0.05
+        ax.set_xlim(xlim)
+        ax.set_ylim([-100, 100])
+        ax.grid(which='major', linewidth=0.5)
+
+    output_image_name = "gene_constraint_metrics_vs_STR_allele_size.svg"
+    plt.savefig(f"{output_image_name}", bbox_extra_artists=extra_artists, bbox_inches="tight")
+
+    print(f"Saved {output_image_name}")
+    plt.close()
+
 def main():
     constraint_df = pd.read_table("../ref/other/gnomad.v2.1.1.lof_metrics.by_gene.txt.bgz", compression="gzip")
     constraint_df = constraint_df[["gene_id", "pLI", "oe_lof_upper", "oe_mis_upper", "oe_syn_upper", "pRec", "mu_syn"]]
+    constraint_df = constraint_df.rename(columns={
+        "pRec": "pRecessive",
+        "oe_lof_upper": "O/E LoF upperbound (LOEUF)",
+        "oe_mis_upper": "O/E missense upperbound",
+    })
     constraint_df = constraint_df.set_index("gene_id")
     print(f"Loaded {len(constraint_df):,d} rows from the gnomAD gene constraint table")
 
@@ -112,11 +144,12 @@ def main():
     })
     print(f"Loaded {len(known_pathogenic_df):,d} coding known disease-associated STR loci")
 
-    truth_set_df = pd.read_table("../STR_truth_set.v1.variants.tsv.gz")
+    truth_set_df = pd.read_table("../STR_truth_set.v1.alleles.tsv.gz")
     truth_set_df = truth_set_df[truth_set_df["IsPureRepeat"] == "Yes"]
     truth_set_df = truth_set_df.set_index("GeneIdFromMane_V1")
     truth_set_df = truth_set_df[truth_set_df.GeneRegionFromMane_V1 == "CDS"]
     print(f"Loaded {len(truth_set_df):,d} truth set loci that overlap MANE v1 coding regions")
+
 
     print("----")
     df1 = constraint_df[constraint_df.index.isin(known_pathogenic_df.index)]
@@ -130,13 +163,13 @@ def main():
     })
 
     df2 = constraint_df[constraint_df.index.isin(truth_set_df.index)].reset_index()
-    print(f"{len(df2):,d} genes with constraint info contain coding truth set STR variants")
+    print(f"{len(df2):,d} genes with constraint info contain coding truth set STR alleles")
 
     df3 = constraint_df
     print(f"{len(df3):,d} genes with constraint info total")
 
     df1.loc[:, "Source"] = "Genes Containing\nDisease Associated STR Loci"
-    df2.loc[:, "Source"] = "Genes Containing\nTruth Set STR Variants"
+    df2.loc[:, "Source"] = "Genes Containing\nTruth Set STR Alleles"
     df3.loc[:, "Source"] = "All Genes"
 
     df2.loc[:, "InheritanceMode"] = ""
@@ -144,18 +177,20 @@ def main():
     df_final = pd.concat([df1, df2, df3])
     print("----")
     print("pLI constraint score max:", df_final.pLI.max())
-    print("LOEUF constraint score max:", df_final.oe_lof_upper.max())
-    print("missense constraint score max:", df_final.oe_mis_upper.max())
+    print("LOEUF constraint score max:", df_final["O/E LoF upperbound (LOEUF)"].max())
+    print("missense constraint score max:", df_final["O/E missense upperbound"].max())
     print("----")
 
     df_final = df_final.sort_values("Source", ascending=False)
-    df_final = df_final.rename(columns={
-        "pRec": "pRecessive",
-        "oe_lof_upper": "O/E LoF upperbound (LOEUF)",
-        "oe_mis_upper": "O/E missense upperbound",
-    })
 
     plot_gene_constraint(df_final)
+
+    truth_set_df = truth_set_df[truth_set_df.GeneRegionFromMane_V1 == "CDS"]
+    truth_set_df.loc[:, 'NumRepeatsDiffFromReference'] = truth_set_df.NumRepeats - truth_set_df.NumRepeatsInReference
+    truth_set_df.loc[:, 'STR Allele Size (bp)'] = truth_set_df.NumRepeatsDiffFromReference * truth_set_df.MotifSize
+    truthset_with_constraint_df = truth_set_df.join(constraint_df, how="inner")
+
+    plot_str_variant_size_vs_gene_constraint(truthset_with_constraint_df)
 
 
 if __name__ == "__main__":
