@@ -7,10 +7,9 @@ np.random.seed(10)
 
 sns.set_context("paper", font_scale=1.1, rc={
     "font.family": "sans-serif",
-    "xtick.labelsize": 12,
-    "ytick.labelsize": 12,
-    "axes.labelsize": 13,
-    "axes.labelpad": 15,
+    "xtick.labelsize": 14,
+    "ytick.labelsize": 14,
+    "axes.labelsize": 15,
 })
 
 
@@ -28,7 +27,7 @@ def plot_gene_constraint(df, show_title=True):
         "O/E missense upperbound",
         #'pRecessive',
     ], axes)):
-
+        ax.xaxis.labelpad = 15
         sns.violinplot(
             y="Source",
             x=x_column,
