@@ -32,10 +32,6 @@ def plot_hist(df, output_image_filename, title=None, y_label=None, show_title=Tr
         ax.set_ylabel(y_label, labelpad=15, fontsize=14)
     ax.spines.right.set_visible(False)
     ax.spines.top.set_visible(False)
-    ax.set_xticks(range(2, 16, 1))
-    ax.set_yticks(np.arange(0, 0.75, 0.1))
-    ax.set_xticklabels([f"{x}" for x in range(2, 16)], fontsize=13)
-    plt.yticks(fontsize=13)
 
     if show_title:
         ax.set_title(title, pad=15, fontsize=14)
@@ -58,6 +54,15 @@ def plot_hist(df, output_image_filename, title=None, y_label=None, show_title=Tr
         ax=ax)
 
     ax.get_legend().set_title("Normalized Motif", prop={'size': 13})
+    ax.get_legend().set_frame_on(False)
+
+    xticks = range(2, 16, 1)
+    yticks = np.arange(0, 0.75, 0.1)
+    ax.set_xticks(xticks)
+    ax.set_yticks(yticks)
+    ax.set_xticklabels([f"{x}" for x in xticks], fontsize=13)
+    ax.set_yticklabels([f"{y:0.1f}" for y in yticks], fontsize=13)
+
     plt.savefig(f"{output_image_filename}", bbox_inches="tight")
     plt.close()
     print(f"Saved {output_image_filename}")

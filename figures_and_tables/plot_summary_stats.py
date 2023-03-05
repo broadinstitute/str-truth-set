@@ -114,6 +114,94 @@ def plot_allele_size_distribution(df_truth_set, plot_type=1, color_by=None, hue_
     print(f"Plotted {len(df_truth_set):,d} allele records")
 
 
+def plot_allele_size_and_motif_distribution(df_truth_set, color_by=None, hue_order=None, is_pure_repeats=True, show_title=True):
+    if is_pure_repeats:
+        df_truth_set = df_truth_set[df_truth_set.IsPureRepeat == "Yes"]
+    else:
+        df_truth_set = df_truth_set[df_truth_set.IsPureRepeat == "No"]
+
+    output_image_name = "allele_size_distribution_by_number_of_repeats_and_motif_size"
+
+    plt.rcParams.update({
+        "legend.fontsize": 12,
+        "ytick.labelsize": 12,
+    })
+
+    figure_title = "STR Allele Size Distribution"
+    if color_by == "Multiallelic":
+        figure_title = "Multiallelic Loci"
+    elif color_by == "OverlapsSegDupIntervals":
+        figure_title = "STR Overlap with Segmental Duplications"
+
+    if is_pure_repeats:
+        output_image_name += ".pure_repeats"
+    else:
+        output_image_name += ".with_interruptions"
+        figure_title += "  (interrupted repeats only)"
+
+    fig, axes = plt.subplots(1, 2, figsize=(16, 6), dpi=80)
+    if show_title:
+        suptitle_artist = fig.suptitle(figure_title, fontsize=15)
+        extra_artists = [suptitle_artist]
+    else:
+        extra_artists = []
+
+    for i, ax in enumerate(axes):
+        ax.xaxis.labelpad = ax.yaxis.labelpad = 15
+        ax.spines.right.set_visible(False)
+        ax.spines.top.set_visible(False)
+        if i == 0:
+            xlimit = 15
+            ax.set_xlabel("Allele Size (# of Repeats)", fontsize=13)
+            ax.set_xticks(range(-xlimit, xlimit + 1, 2))
+            ax.set_xticklabels([f"{x}" if x < 0 else f"+{x}" for x in range(-xlimit, xlimit + 1, 2)], fontsize=12)
+            ax.set_xlim(-xlimit - 0.52, xlimit + 0.52)
+        else:
+            xlimit = 30 if is_pure_repeats else 24
+            ax.set_xlabel("Motif Size (bp)", fontsize=13)
+            ax.set_xticks(range(2, xlimit + 1, 1))
+            ax.set_xticklabels([f"{x}" if x <= 6 or x % 3 == 0 else "" for x in range(2, xlimit + 1, 1)], fontsize=12)
+            ax.set_xlim(2 - 0.52, xlimit + 0.52)
+
+        sns.histplot(
+            df_truth_set,
+            x="NumRepeatsAwayFromReference" if i == 0 else "MotifSize",
+            hue=color_by,
+            hue_order=hue_order,
+            binwidth=1,
+            multiple="stack" if not color_by else "fill",
+            stat="proportion",
+            discrete=True,
+            legend=i == 1,
+            ax=ax)
+
+        if i == 0:
+            ax.set_ylabel("Fraction of Alleles", fontsize=14)
+        else:
+            ax.set_ylabel("")
+
+        if ax.get_legend():
+            if color_by:
+                sns.move_legend(ax, loc="upper right")
+            if color_by == "Multiallelic":
+                ax.get_legend().set_title("Multiallelic")
+            elif color_by == "OverlapsSegDupIntervals":
+                ax.get_legend().set_title("\n".join([
+                    "STR Locus Overlaps ",
+                    "Segmental Duplication",
+                ]))
+            ax.get_legend().get_title().set_horizontalalignment('center')
+
+    if color_by:
+        output_image_name += f".color_by_{color_by.lower()}"
+    output_image_name += ".svg"
+    plt.savefig(f"{output_image_name}", bbox_extra_artists=extra_artists, bbox_inches="tight")
+    plt.close()
+    print(f"Saved {output_image_name}")
+
+    print(f"Plotted {len(df_truth_set):,d} allele records")
+
+
 def plot_gene_info(df, excluding_introns_and_intergenic=False, use_MANE_genes=False, show_title=True):
     df = df[df.IsPureRepeat == "Yes"]
 
@@ -186,8 +274,9 @@ def plot_gene_info(df, excluding_introns_and_intergenic=False, use_MANE_genes=Fa
             ax.set_ylabel("")
 
         if ax.get_legend():
-            ax.get_legend().set_title("")
             sns.move_legend(ax, loc=(1.05, 0.775 if excluding_introns_and_intergenic else 0.62))
+            ax.get_legend().set_title("")
+            ax.get_legend().set_frame_on(False)
             extra_artists.append(ax.get_legend())
 
         #if i == 0:
@@ -372,7 +461,7 @@ def plot_motif_distribution(df, is_pure_repeats=True, show_title=True):
     ]), prop={'size': 14})
     sns.move_legend(ax, loc=(1.05, 0.15))
     ax.get_legend()._legend_box.align = "left"
-    ax.get_legend().get_frame().set_alpha(0)
+    ax.get_legend().set_frame_on(False)
 
     output_image_name = "reference_locus_size_distribution"
     if is_pure_repeats:
@@ -420,6 +509,10 @@ def main():
         plot_allele_size_distribution(df, plot_type=3, color_by="Multiallelic", hue_order=["No", "Yes"], is_pure_repeats=False)
 
         plot_allele_size_distribution(df, plot_type=1, color_by="OverlapsSegDupIntervals", hue_order=["No", "Yes"], is_pure_repeats=True)
+
+        plot_allele_size_and_motif_distribution(df, color_by="Multiallelic", hue_order=["No", "Yes"], is_pure_repeats=True)
+        plot_allele_size_and_motif_distribution(df, color_by="Multiallelic", hue_order=["No", "Yes"], is_pure_repeats=False)
+        plot_allele_size_and_motif_distribution(df, color_by="OverlapsSegDupIntervals", hue_order=["No", "Yes"], is_pure_repeats=True)
 
     if not args.skip_plot3:
         plot_allele_size_distribution_x3(df, is_pure_repeats=True)
