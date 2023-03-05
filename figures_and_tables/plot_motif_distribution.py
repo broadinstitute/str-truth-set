@@ -104,7 +104,7 @@ def main():
     print(f"Plotting motifs from {len(df_with_interruptions):,d} truth set loci with interruptions")
     plot_hist(df_with_interruptions, f"motif_distribution.with_interruptions.svg",
               y_label="Fraction of Interrupted STR Variants in Truth Set",
-              title="Motifs of STR Variants In Truth Set\n(only interrupted repeats)")
+              title="Motifs of STR Variants In Truth Set\n(interrupted repeats only)")
 
 
 if __name__ == "__main__":
