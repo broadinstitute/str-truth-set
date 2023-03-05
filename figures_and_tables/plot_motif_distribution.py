@@ -25,7 +25,7 @@ def compute_motif_labels(row, existing_motif_labels=(), min_fraction_of_motifs_w
 
 
 def plot_hist(df, output_image_filename, title=None, y_label=None, show_title=True):
-    fig, ax = plt.subplots(figsize=(8, 9), dpi=80)
+    fig, ax = plt.subplots(figsize=(10, 8), dpi=80)
     ax.set_xlim(0, 15.5)
     ax.set_xlabel("Motif size (bp)", labelpad=15, fontsize=14)
     if y_label:

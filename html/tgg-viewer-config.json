@@ -201,9 +201,22 @@
       ]
     }
   ],
-  "selectedRowNamesByCategoryName": {},
+  "selectedRowNamesByCategoryName": {
+    "STR Truth Set": [
+      "STR Truth Set VCF",
+      "STR Truth Set BED"
+    ],
+    "Tool Results": [
+      "40x coverage genome: EH",
+      "40x coverage genome: GangSTR"
+    ],
+    "Mappability Tracks": [
+      "36-mer mappability"
+    ]
+  },
   "selectedSamplesByCategoryNameAndRowName": {},
   "vcfOptions": {
     "displayMode": "EXPANDED"
-  }
+  },
+  "initialSettingsUrl": "https://str-truth-set.storage.googleapis.com/hg38/tgg-viewer-config.json"
 }

@@ -687,7 +687,7 @@ def generate_fraction_exactly_right_plot(df, output_image_dir, plot_counter,
             fontsize=14)
         ax.set_yticklabels(ax.get_yticklabels(), fontsize=15)
         ax.get_legend().set_title(f"")
-        ax.legend(frameon=True)
+        ax.get_legend().set_frame_on(False)
         if len(hue_values) > 4:
             ax.get_legend().set_bbox_to_anchor((0.15, 0.25))
         else:
