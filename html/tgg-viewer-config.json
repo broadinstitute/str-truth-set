@@ -16,11 +16,11 @@
       "rows": [
         {
           "name": "STR Truth Set VCF",
-          "data": [{"type": "vcf", "url": "gs://str-truth-set/hg38/STR_truthset.v1.vcf.gz"}]
+          "data": [{"type": "vcf", "url": "gs://str-truth-set/hg38/STR_truth_set.v1.vcf.gz"}]
         },
         {
           "name": "STR Truth Set BED",
-          "data": [{"type": "bed", "url": "gs://str-truth-set/hg38/STR_truthset.v1.variants.bed.gz"}]
+          "data": [{"type": "bed", "url": "gs://str-truth-set/hg38/STR_truth_set.v1.variants.bed.gz"}]
         }
       ]
     },

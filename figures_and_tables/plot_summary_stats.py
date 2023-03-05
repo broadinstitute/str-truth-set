@@ -279,7 +279,7 @@ def main():
     p.add_argument("--skip-plot2", action="store_true")
     args = p.parse_args()
 
-    input_table_path = "../STR_truthset.v1.alleles.tsv.gz"
+    input_table_path = "../STR_truth_set.v1.alleles.tsv.gz"
 
     print(f"Reading {input_table_path}")
     df = pd.read_table(input_table_path)

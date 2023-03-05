@@ -4,9 +4,9 @@ import collections
 import pandas as pd
 import re
 
-df_variants = pd.read_table("STR_truthset.v1.variants.tsv.gz")
+df_variants = pd.read_table("STR_truth_set.v1.variants.tsv.gz")
 df_variants = df_variants[df_variants.IsPureRepeat == "Yes"]
-df_alleles = pd.read_table("STR_truthset.v1.alleles.tsv.gz")
+df_alleles = pd.read_table("STR_truth_set.v1.alleles.tsv.gz")
 df_alleles = df_alleles[df_alleles.IsPureRepeat == "Yes"]
 
 #%%

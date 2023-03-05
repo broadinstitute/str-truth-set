@@ -1004,15 +1004,15 @@ Wrote 144,735 rows to the output tsv: step7.filtered_pure_STRs.variants.with_MAN
 Wrote 175,338 rows to the output tsv: step7.filtered_pure_STRs.alleles.with_MANE_columns.tsv.gz
 + mv step7.filtered_pure_STRs.variants.with_MANE_columns.tsv.gz step7.filtered_pure_STRs.variants.tsv.gz
 + mv step7.filtered_pure_STRs.alleles.with_MANE_columns.tsv.gz step7.filtered_pure_STRs.alleles.tsv.gz
-+ final_output_prefix=pure_STR_truthset.v1
-+ mv step7.filtered_pure_STRs.variants.tsv.gz pure_STR_truthset.v1.variants.tsv.gz
-+ mv step7.filtered_pure_STRs.alleles.tsv.gz pure_STR_truthset.v1.alleles.tsv.gz
-+ mv step7.filtered_pure_STRs.variants.bed.gz pure_STR_truthset.v1.variants.bed.gz
-+ mv step7.filtered_pure_STRs.variants.bed.gz.tbi pure_STR_truthset.v1.variants.bed.gz.tbi
-+ mv step7.filtered_pure_STRs.vcf.gz pure_STR_truthset.v1.vcf.gz
-+ mv step7.filtered_pure_STRs.vcf.gz.tbi pure_STR_truthset.v1.vcf.gz.tbi
-+ python3 tool_comparison/scripts/convert_truth_set_to_variant_catalogs.py --expansion-hunter-loci-per-run 500 --gangstr-loci-per-run 10000 --output-dir ./tool_comparison/variant_catalogs --high-confidence-regions-bed ./ref/full.38.bed.gz --all-repeats-bed ./ref/other/repeat_specs_GRCh38_without_mismatches.sorted.trimmed.at_least_9bp.bed.gz pure_STR_truthset.v1.variants.tsv.gz
-Parsed 144,735 records from pure_STR_truthset.v1.variants.tsv.gz
++ final_output_prefix=pure_STR_truth_set.v1
++ mv step7.filtered_pure_STRs.variants.tsv.gz pure_STR_truth_set.v1.variants.tsv.gz
++ mv step7.filtered_pure_STRs.alleles.tsv.gz pure_STR_truth_set.v1.alleles.tsv.gz
++ mv step7.filtered_pure_STRs.variants.bed.gz pure_STR_truth_set.v1.variants.bed.gz
++ mv step7.filtered_pure_STRs.variants.bed.gz.tbi pure_STR_truth_set.v1.variants.bed.gz.tbi
++ mv step7.filtered_pure_STRs.vcf.gz pure_STR_truth_set.v1.vcf.gz
++ mv step7.filtered_pure_STRs.vcf.gz.tbi pure_STR_truth_set.v1.vcf.gz.tbi
++ python3 tool_comparison/scripts/convert_truth_set_to_variant_catalogs.py --expansion-hunter-loci-per-run 500 --gangstr-loci-per-run 10000 --output-dir ./tool_comparison/variant_catalogs --high-confidence-regions-bed ./ref/full.38.bed.gz --all-repeats-bed ./ref/other/repeat_specs_GRCh38_without_mismatches.sorted.trimmed.at_least_9bp.bed.gz pure_STR_truth_set.v1.variants.tsv.gz
+Parsed 144,735 records from pure_STR_truth_set.v1.variants.tsv.gz
 Discarded 520 loci without matching repeats in the reference
 Generated 144,214 positive loci
 Loaded 2,525,345 STRs in hg38 within the SynDip high-confidence regions
@@ -2204,15 +2204,15 @@ Wrote 154,584 rows to the output tsv: step7.filtered_STRs.variants.with_MANE_col
 Wrote 185,443 rows to the output tsv: step7.filtered_STRs.alleles.with_MANE_columns.tsv.gz
 + mv step7.filtered_STRs.variants.with_MANE_columns.tsv.gz step7.filtered_STRs.variants.tsv.gz
 + mv step7.filtered_STRs.alleles.with_MANE_columns.tsv.gz step7.filtered_STRs.alleles.tsv.gz
-+ final_output_prefix=STR_truthset.v1
-+ mv step7.filtered_STRs.variants.tsv.gz STR_truthset.v1.variants.tsv.gz
-+ mv step7.filtered_STRs.alleles.tsv.gz STR_truthset.v1.alleles.tsv.gz
-+ mv step7.filtered_STRs.variants.bed.gz STR_truthset.v1.variants.bed.gz
-+ mv step7.filtered_STRs.variants.bed.gz.tbi STR_truthset.v1.variants.bed.gz.tbi
-+ mv step7.filtered_STRs.vcf.gz STR_truthset.v1.vcf.gz
-+ mv step7.filtered_STRs.vcf.gz.tbi STR_truthset.v1.vcf.gz.tbi
-+ python3 tool_comparison/scripts/convert_truth_set_to_variant_catalogs.py --expansion-hunter-loci-per-run 500 --gangstr-loci-per-run 10000 --output-dir ./tool_comparison/variant_catalogs --high-confidence-regions-bed ./ref/full.38.bed.gz --all-repeats-bed ./ref/other/repeat_specs_GRCh38_without_mismatches.sorted.trimmed.at_least_9bp.bed.gz STR_truthset.v1.variants.tsv.gz
-Parsed 154,584 records from STR_truthset.v1.variants.tsv.gz
++ final_output_prefix=STR_truth_set.v1
++ mv step7.filtered_STRs.variants.tsv.gz STR_truth_set.v1.variants.tsv.gz
++ mv step7.filtered_STRs.alleles.tsv.gz STR_truth_set.v1.alleles.tsv.gz
++ mv step7.filtered_STRs.variants.bed.gz STR_truth_set.v1.variants.bed.gz
++ mv step7.filtered_STRs.variants.bed.gz.tbi STR_truth_set.v1.variants.bed.gz.tbi
++ mv step7.filtered_STRs.vcf.gz STR_truth_set.v1.vcf.gz
++ mv step7.filtered_STRs.vcf.gz.tbi STR_truth_set.v1.vcf.gz.tbi
++ python3 tool_comparison/scripts/convert_truth_set_to_variant_catalogs.py --expansion-hunter-loci-per-run 500 --gangstr-loci-per-run 10000 --output-dir ./tool_comparison/variant_catalogs --high-confidence-regions-bed ./ref/full.38.bed.gz --all-repeats-bed ./ref/other/repeat_specs_GRCh38_without_mismatches.sorted.trimmed.at_least_9bp.bed.gz STR_truth_set.v1.variants.tsv.gz
+Parsed 154,584 records from STR_truth_set.v1.variants.tsv.gz
 Discarded 757 loci without matching repeats in the reference
 Generated 153,640 positive loci
 Loaded 2,525,345 STRs in hg38 within the SynDip high-confidence regions

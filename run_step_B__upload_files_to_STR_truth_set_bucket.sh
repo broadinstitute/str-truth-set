@@ -1,6 +1,6 @@
 set -ex
 
-gsutil -q -m cp STR_truthset.v1.*.bed.gz* STR_truthset.v1.*.tsv* STR_truthset.v1.vcf*   gs://str-truth-set/hg38/
+gsutil -q -m cp STR_truth_set.v1.*.bed.gz* STR_truth_set.v1.*.tsv* STR_truth_set.v1.vcf*   gs://str-truth-set/hg38/
 
 gsutil -q -m cp tool_comparison/variant_catalogs/positive_loci.bed.gz* tool_comparison/variant_catalogs/negative_loci.bed.gz* gs://str-truth-set/hg38/
 

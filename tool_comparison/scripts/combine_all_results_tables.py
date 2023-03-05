@@ -21,7 +21,7 @@ for coverage_label, results_directory in [
         (alleles_tables, ".alleles"),
     ]:
         positive_df_path = os.path.join(
-            tool_comparison_base_dir, results_directory, f"STR_truthset.v1.for_comparison{filename_suffix}.tsv")
+            tool_comparison_base_dir, results_directory, f"STR_truth_set.v1.for_comparison{filename_suffix}.tsv")
         print(f"Loading {positive_df_path}")
         positive_df = pd.read_table(positive_df_path, dtype=str)
 

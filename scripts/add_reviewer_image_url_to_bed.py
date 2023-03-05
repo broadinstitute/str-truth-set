@@ -4,7 +4,7 @@ import os
 import re
 
 p = argparse.ArgumentParser()
-p.add_argument("-i", "--input-bed", default="./STR_truthset.v1.variants.bed.gz", help="Truth set bed file")
+p.add_argument("-i", "--input-bed", default="./STR_truth_set.v1.variants.bed.gz", help="Truth set bed file")
 args = p.parse_args()
 
 if not os.path.isfile(args.input_bed):

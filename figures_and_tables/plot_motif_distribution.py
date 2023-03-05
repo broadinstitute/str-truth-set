@@ -82,7 +82,7 @@ def main():
     plot_hist(df_ref, f"motif_distribution_in_hg38_with_atleast_{min_ref_bp}.svg",
         title=f"Motifs of Pure STR Loci in hg38")
 
-    df = pd.read_table("../STR_truthset.v1.variants.tsv.gz")
+    df = pd.read_table("../STR_truth_set.v1.variants.tsv.gz")
     df_pure = df[df["IsPureRepeat"] == "Yes"]
     df_pure = add_columns(df_pure, existing_motif_labels=set(df_ref.MotifLabels))
     print(f"Plotting motifs from {len(df_pure):,d} pure truth set loci")

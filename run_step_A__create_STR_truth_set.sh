@@ -326,7 +326,7 @@ do
 
 
   # move files to final output filenames
-  final_output_prefix=${STR_type}_truthset.${version}
+  final_output_prefix=${STR_type}_truth_set.${version}
 
   mv ${output_prefix}.variants.tsv.gz ${final_output_prefix}.variants.tsv.gz
   mv ${output_prefix}.alleles.tsv.gz  ${final_output_prefix}.alleles.tsv.gz
@@ -343,7 +343,7 @@ do
     --output-dir ./tool_comparison/variant_catalogs \
     --high-confidence-regions-bed ./ref/full.38.bed.gz \
     --all-repeats-bed ./ref/other/repeat_specs_GRCh38_without_mismatches.sorted.trimmed.at_least_9bp.bed.gz \
-    ${STR_type}_truthset.v1.variants.tsv.gz
+    ${STR_type}_truth_set.v1.variants.tsv.gz
 
 done
 

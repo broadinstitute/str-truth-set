@@ -3,7 +3,7 @@
 import pandas as pd
 import re
 
-df_variants = pd.read_table("STR_truthset.v1.variants.tsv.gz")
+df_variants = pd.read_table("STR_truth_set.v1.variants.tsv.gz")
 df_variants = df_variants[df_variants.IsPureRepeat == "Yes"]
 
 #%%
@@ -224,22 +224,22 @@ print("-"*100)
 print("Validation diagram - final truth set stats:")
 print("-"*100)
 
-INS_variants_in_final_truthset = int(re.search(
+INS_variants_in_final_truth_set = int(re.search(
     f"step7:pure_STR:output:[ ]*([0-9,]+) out of [ ]*{len(df_variants):,d}.*[%][)] INS variants", step1_log_contents).group(1).replace(",", ""))
-DEL_variants_in_final_truthset = int(re.search(
+DEL_variants_in_final_truth_set = int(re.search(
     f"step7:pure_STR:output:[ ]*([0-9,]+) out of [ ]*{len(df_variants):,d}.*[%][)] DEL variants", step1_log_contents).group(1).replace(",", ""))
-multiallelic_INS_variants_in_final_truthset = int(re.search(
+multiallelic_INS_variants_in_final_truth_set = int(re.search(
     f"step7:pure_STR:output:[ ]*([0-9,]+) out of [ ]*{len(df_variants):,d}.*[%][)] multiallelic INS variants", step1_log_contents).group(1).replace(",", ""))
-multiallelic_DEL_variants_in_final_truthset = int(re.search(
+multiallelic_DEL_variants_in_final_truth_set = int(re.search(
     f"step7:pure_STR:output:[ ]*([0-9,]+) out of [ ]*{len(df_variants):,d}.*[%][)] multiallelic DEL variants", step1_log_contents).group(1).replace(",", ""))
-mixed_multiallelic_INS_DEL_variants_in_final_truthset = int(re.search(
+mixed_multiallelic_INS_DEL_variants_in_final_truth_set = int(re.search(
     f"step7:pure_STR:output:[ ]*([0-9,]+) out of [ ]*{len(df_variants):,d}.*[%][)] mixed multiallelic INS/DEL variants", step1_log_contents).group(1).replace(",", ""))
 
-print(f"{format_n(DEL_variants_in_final_truthset + multiallelic_DEL_variants_in_final_truthset)} "
+print(f"{format_n(DEL_variants_in_final_truth_set + multiallelic_DEL_variants_in_final_truth_set)} "
       f"DEL variants failed hg38 to T2T liftover due to IndelStraddlesMultipleIntevals error")
-print(f"{format_n(mixed_multiallelic_INS_DEL_variants_in_final_truthset)} "
+print(f"{format_n(mixed_multiallelic_INS_DEL_variants_in_final_truth_set)} "
       f"MIXED variants failed hg38 to T2T liftover due to IndelStraddlesMultipleIntevals error")
-print(f"{format_n(INS_variants_in_final_truthset + multiallelic_INS_variants_in_final_truthset)} "
+print(f"{format_n(INS_variants_in_final_truth_set + multiallelic_INS_variants_in_final_truth_set)} "
       f"INS variants failed hg38 to T2T liftover due to IndelStraddlesMultipleIntevals error")
 
 #%%

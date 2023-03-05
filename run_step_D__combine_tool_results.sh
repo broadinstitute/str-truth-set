@@ -11,14 +11,14 @@ for results_folder in \
   results_for_downsampled_10x_bam \
   results_for_downsampled_5x_bam
 do
-  # compute STR_truthset.v1.variants.for_comparison.tsv.gz
+  # compute STR_truth_set.v1.variants.for_comparison.tsv.gz
   python3 -u tool_comparison/scripts/compute_truth_set_tsv_for_comparisons.py \
       --output-dir ./tool_comparison/${results_folder}/  \
-      STR_truthset.v1.variants.tsv.gz \
+      STR_truth_set.v1.variants.tsv.gz \
       ./tool_comparison/variant_catalogs/negative_loci.tsv.gz
 
-  mv ./tool_comparison/${results_folder}/STR_truthset.v1.variants.for_comparison.tsv.gz \
-     ./tool_comparison/${results_folder}/STR_truthset.v1.for_comparison.tsv.gz
+  mv ./tool_comparison/${results_folder}/STR_truth_set.v1.variants.for_comparison.tsv.gz \
+     ./tool_comparison/${results_folder}/STR_truth_set.v1.for_comparison.tsv.gz
   
   for i in 1 2 3;
   do
@@ -45,43 +45,43 @@ do
       python3 -u tool_comparison/scripts/add_tool_results_columns.py \
 	      --tool $tool \
 	      ./tool_comparison/${results_folder}/${subfolder}/positive_loci/combined.positive_loci.*_json_files.variants.tsv.gz \
-	      ./tool_comparison/${results_folder}/STR_truthset.v1.for_comparison.tsv.gz
+	      ./tool_comparison/${results_folder}/STR_truth_set.v1.for_comparison.tsv.gz
 
       python3 -u tool_comparison/scripts/add_tool_results_columns.py \
 	      --tool $tool \
 	      ./tool_comparison/${results_folder}/${subfolder}/negative_loci/combined.negative_loci.*_json_files.variants.tsv.gz \
 	      ./tool_comparison/${results_folder}/negative_loci.for_comparison.tsv.gz
       
-      mv ./tool_comparison/${results_folder}/STR_truthset.v1.for_comparison.with_${tool}_results.tsv.gz \
-         ./tool_comparison/${results_folder}/STR_truthset.v1.for_comparison.tsv.gz
+      mv ./tool_comparison/${results_folder}/STR_truth_set.v1.for_comparison.with_${tool}_results.tsv.gz \
+         ./tool_comparison/${results_folder}/STR_truth_set.v1.for_comparison.tsv.gz
       mv ./tool_comparison/${results_folder}/negative_loci.for_comparison.with_${tool}_results.tsv.gz \
          ./tool_comparison/${results_folder}/negative_loci.for_comparison.tsv.gz
   done
 
   # add tool vs. truth set concordance columns
   python3 -u tool_comparison/scripts/add_concordance_columns.py \
-    ./tool_comparison/${results_folder}/STR_truthset.v1.for_comparison.tsv.gz
+    ./tool_comparison/${results_folder}/STR_truth_set.v1.for_comparison.tsv.gz
 
   python3 -u tool_comparison/scripts/add_concordance_columns.py \
     ./tool_comparison/${results_folder}/negative_loci.for_comparison.tsv.gz
 
   # rename files
-  mv ./tool_comparison/${results_folder}/STR_truthset.v1.for_comparison.with_concordance.tsv.gz \
-     ./tool_comparison/${results_folder}/STR_truthset.v1.for_comparison.variants.tsv.gz
-  mv ./tool_comparison/${results_folder}/STR_truthset.v1.for_comparison.with_concordance.alleles.tsv.gz \
-     ./tool_comparison/${results_folder}/STR_truthset.v1.for_comparison.alleles.tsv.gz
+  mv ./tool_comparison/${results_folder}/STR_truth_set.v1.for_comparison.with_concordance.tsv.gz \
+     ./tool_comparison/${results_folder}/STR_truth_set.v1.for_comparison.variants.tsv.gz
+  mv ./tool_comparison/${results_folder}/STR_truth_set.v1.for_comparison.with_concordance.alleles.tsv.gz \
+     ./tool_comparison/${results_folder}/STR_truth_set.v1.for_comparison.alleles.tsv.gz
   mv ./tool_comparison/${results_folder}/negative_loci.for_comparison.with_concordance.tsv.gz \
      ./tool_comparison/${results_folder}/negative_loci.for_comparison.variants.tsv.gz
   mv ./tool_comparison/${results_folder}/negative_loci.for_comparison.with_concordance.alleles.tsv.gz \
      ./tool_comparison/${results_folder}/negative_loci.for_comparison.alleles.tsv.gz
 
-  gunzip -f ./tool_comparison/${results_folder}/STR_truthset.v1.for_comparison.variants.tsv.gz
+  gunzip -f ./tool_comparison/${results_folder}/STR_truth_set.v1.for_comparison.variants.tsv.gz
   gunzip -f ./tool_comparison/${results_folder}/negative_loci.for_comparison.variants.tsv.gz
-  gunzip -f ./tool_comparison/${results_folder}/STR_truthset.v1.for_comparison.alleles.tsv.gz
+  gunzip -f ./tool_comparison/${results_folder}/STR_truth_set.v1.for_comparison.alleles.tsv.gz
   gunzip -f ./tool_comparison/${results_folder}/negative_loci.for_comparison.alleles.tsv.gz
 
   # clean up intermediate files
-  rm ./tool_comparison/${results_folder}/STR_truthset.v1.for_comparison.tsv.gz
+  rm ./tool_comparison/${results_folder}/STR_truth_set.v1.for_comparison.tsv.gz
   rm ./tool_comparison/${results_folder}/negative_loci.for_comparison.tsv.gz
 done
 

@@ -2,7 +2,7 @@
 +++ set -u
 +++ cd ./figures_and_tables
 +++ python3 -u plot1_summary_stats.py
-Reading ../STR_truthset.v1.alleles.tsv.gz
+Reading ../STR_truth_set.v1.alleles.tsv.gz
 Saved ../tool_comparison/figures/allele_size_distribution_by_number_of_repeats.svg
 Saved ../tool_comparison/figures/allele_size_distribution_by_number_of_repeats.png
 Plotted 185,443 allele records

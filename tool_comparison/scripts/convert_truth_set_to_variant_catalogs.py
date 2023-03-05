@@ -29,7 +29,7 @@ def parse_args():
     p.add_argument("--all-repeats-bed", default="./ref/other/repeat_specs_GRCh38_without_mismatches.sorted.trimmed.at_least_9bp.bed.gz",
                    help="Path of bed file containing all repeats in the reference genome generated using a tool like "
                         "TandmRepeatFinder")
-    p.add_argument("truth_set_variants_tsv", nargs="?", default="STR_truthset.v1.variants.tsv",
+    p.add_argument("truth_set_variants_tsv", nargs="?", default="STR_truth_set.v1.variants.tsv",
                    help="Path of the STR truth set .variants.tsv")
     args = p.parse_args()
 
@@ -210,8 +210,6 @@ def write_gangstr_or_hipstr_repeat_specs(locus_set, output_path_prefix, gangstr=
         batches = [
             locus_list[i:i+loci_per_run] for i in range(0, len(locus_list), loci_per_run)
         ]
-
-    # repeat_spec_file_path = f"gs://gnomad-bw2/p1_iter3/2022_06_08__compare_EH_GangSTR_STRling_using_truthset/gangstr_repeat_specs/gangstr_{label}_repeat_specs_{batch_i+1}_of_{len(batches)}.bed"
 
     for batch_i, current_repeat_specs in enumerate(batches):
         with open(f"{output_path_prefix}.{batch_i+1:03d}_of_{len(batches):03d}.bed", "wt") as f:

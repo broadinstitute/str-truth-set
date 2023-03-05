@@ -25,7 +25,7 @@ def parse_args():
     p.add_argument("--syndip-confidence-regions-bed", default="./ref/full.38.bed.gz",
                    help="Path of bed file containing the SynDip confidence regions, used to filter out EHdn results in "
                         "regions that are excluded from the STR truth set")
-    p.add_argument("--truth-set-variants-tsv", default="./STR_truthset.v1.variants.tsv.gz",
+    p.add_argument("--truth-set-variants-tsv", default="./STR_truth_set.v1.variants.tsv.gz",
                    help="Path of truth set variants tsv")
     p.add_argument("--reference-repeats-bed", help="Path of bed file containing all STRs in the reference genome",
                    default="./ref/other/repeat_specs_GRCh38_without_mismatches.sorted.trimmed.at_least_6bp.bed.gz")
