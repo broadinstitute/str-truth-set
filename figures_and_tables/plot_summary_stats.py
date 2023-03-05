@@ -108,10 +108,10 @@ def plot_allele_size_distribution(df, plot_type=1, color_by=None, hue_order=None
             else:
                 ax.get_legend().set_bbox_to_anchor((0.803, 0.9))
 
-        output_image_name += ".svg"
-        plt.savefig(f"{output_image_name}", bbox_inches="tight")
-        plt.close()
-        print(f"Saved {output_image_name}")
+    output_image_name += ".svg"
+    plt.savefig(f"{output_image_name}", bbox_inches="tight")
+    plt.close()
+    print(f"Saved {output_image_name}")
 
     print(f"Plotted {len(df):,d} allele records")
 
