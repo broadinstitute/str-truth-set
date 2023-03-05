@@ -364,7 +364,7 @@ def plot_motif_distribution(df, is_pure_repeats=True):
     print(f"Saved {output_image_name}")
 
     print(f"Plotted {len(df):,d} allele records")
-
+    plt.rcParams.update({"text.usetex": False})
 
 def main():
     p = argparse.ArgumentParser()
@@ -396,13 +396,13 @@ def main():
         plot_allele_size_distribution_x3(df, is_pure_repeats=True)
 
     if not args.skip_plot2:
-        plot_motif_distribution(df, is_pure_repeats=True)
-
-    if not args.skip_plot3:
         plot_gene_info(df, excluding_introns_and_intergenic=False, use_MANE_genes=False)
         plot_gene_info(df, excluding_introns_and_intergenic=False, use_MANE_genes=True)
         plot_gene_info(df, excluding_introns_and_intergenic=True, use_MANE_genes=False)
         plot_gene_info(df, excluding_introns_and_intergenic=True, use_MANE_genes=True)
+
+    if not args.skip_plot3:
+        plot_motif_distribution(df, is_pure_repeats=True)
 
 
 if __name__ == "__main__":

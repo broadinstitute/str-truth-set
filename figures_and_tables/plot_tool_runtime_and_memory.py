@@ -13,7 +13,7 @@ sns.set_context("paper", font_scale=1.1, rc={
 def generate_plot(with_coverage=False):
 
     if with_coverage:
-        input_path = "../tool_comparison/STR_tool_timing_with_coverage.tsv"
+        input_path = "../tool_comparison/STR_tool_timing.with_coverage.tsv"
     else:
         input_path = "../tool_comparison/STR_tool_timing.tsv"
 

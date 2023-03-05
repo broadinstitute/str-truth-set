@@ -170,7 +170,7 @@ df2 = df.groupby(
 
 df2.loc[:, "seconds_per_10k_loci"] = 10_000 * df2["tool_run_time_seconds"] / df2["num_loci"]
 df2.loc[:, "minutes_per_10k_loci"] = df2["seconds_per_10k_loci"] / 60
-df2.to_csv("STR_tool_timing_with_coverage.tsv", sep="\t", index=False, header=True)
+df2.to_csv("./tool_comparison/STR_tool_timing.with_coverage.tsv", sep="\t", index=False, header=True)
 
 #%%
 
