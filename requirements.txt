@@ -1,5 +1,12 @@
-pyfaidx>=0.6.4
-pandas>=1.3.5
-str-analysis>=0.9.12
+hail>=0.2.109
 intervaltree>=3.1.0
+matplotlib>=3.5.1
+numpy>=1.21.5
+pandas>=1.3.5
 pybedtools>=0.9.0
+pyfaidx>=0.6.4
+seaborn>=0.11.2
+str-analysis>=0.9.17
+step-pipeline>=0.2.3
+tempora>=5.2.1
+tqdm>=4.63.0
