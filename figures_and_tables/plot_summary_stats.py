@@ -291,7 +291,7 @@ def plot_allele_size_distribution_x3(df, is_pure_repeats=True, color_by=None, hu
         print(f"Plotted {len(df):,d} allele records")
 
 
-def plot_motif_distribution(df, is_pure_repeats=True):
+def plot_motif_distribution(df, is_pure_repeats=True, show_title=True):
     print("Plotting allele distribution by motif size")
     if is_pure_repeats:
         df = df[df.IsPureRepeat == "Yes"]
@@ -330,7 +330,8 @@ def plot_motif_distribution(df, is_pure_repeats=True):
         discrete=True,
         ax=ax)
 
-    #p.set_title(title, fontsize=14)
+    if show_title:
+        p.set_title(title, fontsize=14)
     ax.set_xlabel("", fontsize=14)
     ax.set_yscale("log")
     ax.set_ylabel("# of Loci", fontsize=14)
@@ -370,7 +371,7 @@ def plot_motif_distribution(df, is_pure_repeats=True):
     ]), prop={'size': 14})
     ax.get_legend()._legend_box.align = "left"
     ax.get_legend().get_frame().set_color("white")
-    sns.move_legend(ax, loc=(1.05, 0.24))
+    sns.move_legend(ax, loc=(1.05, 0.23))
 
     output_image_name = "reference_locus_size_distribution"
     if is_pure_repeats:

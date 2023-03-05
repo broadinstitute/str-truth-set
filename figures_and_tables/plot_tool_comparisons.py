@@ -546,8 +546,9 @@ def generate_all_distribution_by_num_repeats_plots(df, output_image_dir, plot_co
     return plot_counter
 
 
-def generate_fraction_exactly_right_plot(
-        df, output_image_dir, plot_counter, discard_hipstr_no_call_loci=False, max_plots=None, verbose=False):
+def generate_fraction_exactly_right_plot(df, output_image_dir, plot_counter,
+     discard_hipstr_no_call_loci=False, max_plots=None, verbose=False, show_title=True):
+
     hue_column = "tool"
     motif_size = "STR"
     pure_repeats = True
@@ -699,7 +700,7 @@ def generate_fraction_exactly_right_plot(
             extra_artists = [suptitle_artist]
         else:
             extra_artists = []
-            
+
         output_image_filename = "tool_accuracy_by_true_allele_size_exactly_matching_calls"
 
         plt.savefig(f"{output_image_dir}/{output_image_filename}{filename_suffix}.svg", bbox_extra_artists=extra_artists, bbox_inches="tight")
