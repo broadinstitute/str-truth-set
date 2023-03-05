@@ -22,7 +22,7 @@ def compute_motif_labels(row, existing_motif_labels=(), min_fraction_of_motifs_w
         return f"7+bp"
 
 
-def plot_hist(df, output_image_filename, title=None, stack_or_fill="stack", motif_color_map=None):
+def plot_hist(df, output_image_filename, title=None, stack_or_fill="stack", motif_color_map=None, show_title=True):
     fig, ax = plt.subplots(figsize=(8, 9), dpi=80)
     ax.set_xlim(0, 15.5)
     ax.set_xlabel("Motif size (bp)", labelpad=15, fontsize=14)
@@ -33,7 +33,8 @@ def plot_hist(df, output_image_filename, title=None, stack_or_fill="stack", moti
     ax.set_xticklabels([f"{x}" for x in range(2, 16)], fontsize=13)
     plt.yticks(fontsize=13)
 
-    ax.set_title(title, pad=15, fontsize=14)
+    if show_title:
+        ax.set_title(title, pad=15, fontsize=14)
 
     if motif_color_map is None:
         palette = sns.color_palette("hsv", n_colors=len(set(df["MotifLabels"])), desat=0.8)

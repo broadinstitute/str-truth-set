@@ -10,18 +10,18 @@ sns.set_context("paper", font_scale=1.1, rc={
 })
 
 
-def plot_allele_size_distribution(df, plot_type=1, color_by=None, hue_order=None, is_pure_repeats=True):
+def plot_allele_size_distribution(df_truth_set, plot_type=1, color_by=None, hue_order=None, is_pure_repeats=True, show_title=True):
     if is_pure_repeats:
-        df = df[df.IsPureRepeat == "Yes"]
+        df_truth_set = df_truth_set[df_truth_set.IsPureRepeat == "Yes"]
     else:
-        df = df[df.IsPureRepeat == "No"]
+        df_truth_set = df_truth_set[df_truth_set.IsPureRepeat == "No"]
 
     binwidth = None
     discrete = None
     bins = None
     if plot_type == 1:
         x_column = "NumRepeatsAwayFromReference"
-        xlabel = "# of Repeats Relative to hg38"
+        xlabel = "Allele Size (# of Repeats)"
         xlimit = 15
         minus_xlimit = -xlimit
         xticks = range(-xlimit, xlimit + 1, 2)
@@ -78,7 +78,7 @@ def plot_allele_size_distribution(df, plot_type=1, color_by=None, hue_order=None
 
     plt.yticks(fontsize=13)
     p = sns.histplot(
-        df,
+        df_truth_set,
         x=x_column,
         hue=color_by,
         hue_order=hue_order,
@@ -89,7 +89,8 @@ def plot_allele_size_distribution(df, plot_type=1, color_by=None, hue_order=None
         discrete=discrete,
         ax=ax)
 
-    p.set_title(figure_title, fontsize=14)
+    if show_title:
+        p.set_title(figure_title, fontsize=14)
 
     if color_by:
         output_image_name += f".color_by_{color_by.lower()}"
@@ -105,16 +106,15 @@ def plot_allele_size_distribution(df, plot_type=1, color_by=None, hue_order=None
         if plot_type == 3:
             sns.move_legend(ax, loc="upper right")
 
-
     output_image_name += ".svg"
     plt.savefig(f"{output_image_name}", bbox_inches="tight")
     plt.close()
     print(f"Saved {output_image_name}")
 
-    print(f"Plotted {len(df):,d} allele records")
+    print(f"Plotted {len(df_truth_set):,d} allele records")
 
 
-def plot_gene_info(df, excluding_introns_and_intergenic=False, use_MANE_genes=False):
+def plot_gene_info(df, excluding_introns_and_intergenic=False, use_MANE_genes=False, show_title=True):
     df = df[df.IsPureRepeat == "Yes"]
 
     if use_MANE_genes:
@@ -145,15 +145,18 @@ def plot_gene_info(df, excluding_introns_and_intergenic=False, use_MANE_genes=Fa
         plt.rcParams.update({"legend.loc": "lower left" if use_MANE_genes else "upper left"})
 
     fig, axes = plt.subplots(1, 2, figsize=(16, 6), dpi=80)
-    suptitle_artist = fig.suptitle(f"Truth Set STR Alleles: Gene Region Overlap ({title_string})", fontsize=15)
-    extra_artists = [suptitle_artist]
+    if show_title:
+        suptitle_artist = fig.suptitle(f"Truth Set STR Alleles: Gene Region Overlap ({title_string})", fontsize=15)
+        extra_artists = [suptitle_artist]
+    else:
+        extra_artists = []
     for i, ax in enumerate(axes):
         ax.xaxis.labelpad = ax.yaxis.labelpad = 15
         ax.spines.right.set_visible(False)
         ax.spines.top.set_visible(False)
         if i == 0:
             xlimit = 15
-            ax.set_xlabel("# of Repeats", fontsize=13)
+            ax.set_xlabel("Allele Size (# of Repeats)", fontsize=13)
             ax.set_xticks(range(-xlimit, xlimit + 1, 2))
             ax.set_xticklabels([f"{x}" if x < 0 else f"+{x}" for x in range(-xlimit, xlimit + 1, 2)], fontsize=12)
             ax.set_xlim(-xlimit - 0.52, xlimit + 0.52)
@@ -187,10 +190,10 @@ def plot_gene_info(df, excluding_introns_and_intergenic=False, use_MANE_genes=Fa
             sns.move_legend(ax, loc=(1.05, 0.775 if excluding_introns_and_intergenic else 0.62))
             extra_artists.append(ax.get_legend())
 
-        if i == 0:
-            ax.set_title("By Allele Size", fontsize=14)
-        else:
-            ax.set_title("By Motif Size", fontsize=14)
+        #if i == 0:
+        #    ax.set_title("By Allele Size", fontsize=14)
+        #else:
+        #    ax.set_title("By Motif Size", fontsize=14)
 
     output_image_name = "truth_set_gene_overlap"
     if excluding_introns_and_intergenic:
@@ -327,7 +330,7 @@ def plot_motif_distribution(df, is_pure_repeats=True):
         discrete=True,
         ax=ax)
 
-    p.set_title(title, fontsize=14)
+    #p.set_title(title, fontsize=14)
     ax.set_xlabel("", fontsize=14)
     ax.set_yscale("log")
     ax.set_ylabel("# of Loci", fontsize=14)
@@ -397,6 +400,7 @@ def main():
     print(f"Reading {input_table_path}")
     df = pd.read_table(input_table_path)
     print(f"Parsed {len(df):,d} rows from {input_table_path}")
+
     df = df.rename(columns={"IsMultiallelic": "Multiallelic"})
     df.loc[:, "NumRepeatsAwayFromReference"] = df.NumRepeats - df.NumRepeatsInReference
     df.loc[:, "NumBasePairsAwayFromReference"] = df.NumRepeatsAwayFromReference * df.MotifSize

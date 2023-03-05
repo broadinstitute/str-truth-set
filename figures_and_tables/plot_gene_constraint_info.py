@@ -14,9 +14,13 @@ sns.set_context("paper", font_scale=1.1, rc={
 })
 
 
-def plot_gene_constraint(df):
+def plot_gene_constraint(df, show_title=True):
     fig, axes = plt.subplots(1, 3, sharex=False, sharey=True, figsize=(20, 6), dpi=80)
-    suptitle_artist = fig.suptitle("Gene Constraint Metrics and STR Variants", fontsize=16, y=0.97)
+    if show_title:
+        suptitle_artist = fig.suptitle("Gene Constraint Metrics and STR Variants", fontsize=16, y=0.97)
+        extra_artists = [suptitle_artist]
+    else:
+        extra_artists = []
 
     for column_i, (x_column, ax) in enumerate(zip([
         'pLI',
@@ -84,7 +88,8 @@ def plot_gene_constraint(df):
         ax.set_ylabel("")
 
     output_image_name = "gene_constraint_metrics_and_STRs.svg"
-    plt.savefig(f"{output_image_name}", bbox_extra_artists=(suptitle_artist,), bbox_inches="tight")
+    plt.savefig(f"{output_image_name}", bbox_extra_artists=extra_artists, bbox_inches="tight")
+
     print(f"Saved {output_image_name}")
     plt.close()
 

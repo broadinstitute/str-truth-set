@@ -56,7 +56,7 @@ def compute_concordance_summary(row):
     return "No expansion in truth set & no matching pure repeats in hg38"
 
 
-def plot_truth_set_overlap_with_ehdn_calls():
+def plot_truth_set_overlap_with_ehdn_calls(show_title=True):
     x_column = "RepeatSizeLongAllele (bin)"
     hue_column = "EHdn Concordance"
 
@@ -89,7 +89,8 @@ def plot_truth_set_overlap_with_ehdn_calls():
 
     fig.tight_layout()
 
-    ax.set_title("Truth Set vs ExpansionHunterDenovo (EHdn) Calls", pad=75, fontsize=15)
+    if show_title:
+        ax.set_title("Truth Set vs ExpansionHunterDenovo (EHdn) Calls", pad=75, fontsize=15)
     ax.get_legend().set_title(f"")
 
     # add # of loci label above each bar
@@ -111,7 +112,7 @@ def plot_truth_set_overlap_with_ehdn_calls():
     print(f"Saved {output_image_name}")
 
 
-def plot_ehdn_calls_overlap_with_truth_set():
+def plot_ehdn_calls_overlap_with_truth_set(show_title=True):
     ehdn_df = pd.read_table("~/code/str-truth-set/tool_comparison/results/expansion_hunter_denovo/"
                             "CHM1_CHM13_WGS2.EHdn_results_table.with_truth_set_concordance.tsv")
 
@@ -139,7 +140,9 @@ def plot_ehdn_calls_overlap_with_truth_set():
         legend=True,
         ax=ax)
 
-    ax.set_title("\n\nExpansionHunterDenovo Calls vs Truth Set", pad=20, fontsize=15)
+    if show_title:
+        ax.set_title("\n\nExpansionHunterDenovo Calls vs Truth Set", pad=20, fontsize=15)
+
     ax.get_legend().set_title(f"")
     ax.get_legend().set_frame_on(False)
 

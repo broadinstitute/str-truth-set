@@ -122,7 +122,7 @@ def define_hue_column(df, tool):
         df[f"DiffRepeats: Allele: {tool} - Truth (bin)"])
 
 
-def plot_distribution_by_motif_size(df, figure_title, output_image_path):
+def plot_distribution_by_motif_size(df, figure_title, output_image_path, show_title=True):
     x_column = "MotifSize"
     n_rows = 4
     n_columns = 2
@@ -178,7 +178,8 @@ def plot_distribution_by_motif_size(df, figure_title, output_image_path):
                 legend=(column_j == 0) and (row_i > 0),
                 ax=axes[column_j])
 
-            p.set_title(title, fontsize=16)
+            if show_title:
+                p.set_title(title, fontsize=16)
 
             l = ax.get_legend()
             if l:
@@ -193,9 +194,13 @@ def plot_distribution_by_motif_size(df, figure_title, output_image_path):
     fig.tight_layout()
 
     print(figure_title)
-    suptitle_artist = fig.suptitle(figure_title, fontsize=20, y=1.02)
+    if show_title:
+        suptitle_artist = fig.suptitle(figure_title, fontsize=20, y=1.02)
+        extra_artists = [suptitle_artist]
+    else:
+        extra_artists = []
 
-    plt.savefig(f"{output_image_path}", bbox_extra_artists=(suptitle_artist,), bbox_inches="tight")
+    plt.savefig(f"{output_image_path}", bbox_extra_artists=extra_artists, bbox_inches="tight")
     plt.close()
     print(f"Saved {output_image_path}")
 
@@ -689,11 +694,15 @@ def generate_fraction_exactly_right_plot(
             ax.get_legend().set_bbox_to_anchor((0.15, 0.15))
 
         #fig.tight_layout()
-        suptitle_artist = fig.suptitle(figure_title, fontsize=17, y=1.01)
-
+        if show_title:
+            suptitle_artist = fig.suptitle(figure_title, fontsize=17, y=1.01)
+            extra_artists = [suptitle_artist]
+        else:
+            extra_artists = []
+            
         output_image_filename = "tool_accuracy_by_true_allele_size_exactly_matching_calls"
 
-        plt.savefig(f"{output_image_dir}/{output_image_filename}{filename_suffix}.svg", bbox_extra_artists=(suptitle_artist,), bbox_inches="tight")
+        plt.savefig(f"{output_image_dir}/{output_image_filename}{filename_suffix}.svg", bbox_extra_artists=extra_artists, bbox_inches="tight")
         print(f"Saved {output_image_dir}/{output_image_filename}{filename_suffix}.svg")
 
         plt.close()
