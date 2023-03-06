@@ -62,6 +62,7 @@ assert all(bp_diff_from_ref > 1)
 
 print(f"{format_np(sum(bp_diff_from_ref > 30), len(df_alleles))}    STR alleles that differ from reference locus size by more than 30bp")
 
+print(f"{format_np(sum(bp_diff_from_ref > 60), len(df_alleles))}    STR alleles that differ from reference locus size by more than 60bp")
 
 #%%
 
@@ -81,8 +82,19 @@ print("-"*100)
 # Defining the STR truth set - numbers for figure
 total_variants = int(re.search(
     f"step1:input:[ ]*([0-9,]+)[ ]* TOTAL variants", stepA_log_contents).group(1).replace(",", ""))
+
 total_high_confidence_variants = int(re.search(
     f"step1:output:[ ]*([0-9,]+)[ ]* TOTAL variants", stepA_log_contents).group(1).replace(",", ""))
+total_high_confidence_monoallelic_SNV_variants = int(re.search(
+    f"step1:output:[ ]*([0-9,]+)[ ]* out of[ ]* {total_high_confidence_variants:,d}.*SNV variants", stepA_log_contents).group(1).replace(",", ""))
+total_high_confidence_monoallelic_INS_variants = int(re.search(
+    f"step1:output:[ ]*([0-9,]+)[ ]* out of[ ]* {total_high_confidence_variants:,d}.*INS variants", stepA_log_contents).group(1).replace(",", ""))
+total_high_confidence_monoallelic_DEL_variants = int(re.search(
+    f"step1:output:[ ]*([0-9,]+)[ ]* out of[ ]* {total_high_confidence_variants:,d}.*DEL variants", stepA_log_contents).group(1).replace(",", ""))
+total_high_confidence_multiallelic_variants = total_high_confidence_variants - (
+    total_high_confidence_monoallelic_SNV_variants +
+    total_high_confidence_monoallelic_INS_variants +
+    total_high_confidence_monoallelic_DEL_variants)
 
 total_alleles = int(re.search(
     f"step1:input:[ ]*([0-9,]+)[ ]* TOTAL alleles", stepA_log_contents).group(1).replace(",", ""))
@@ -113,7 +125,7 @@ print(f"{format_n(total_high_confidence_variants)} high-confidence SynDip varian
 print(f"{format_n(total_high_confidence_alleles)} high-confidence SynDip alleles")
 
 print(f"{format_n(high_confidence_INS_DEL_variants)} high-confidence INS or DEL variants")
-
+print(f"{format_np(total_high_confidence_multiallelic_variants, total_high_confidence_variants)} high confidence multiallelic variants")
 print(f"{format_np(high_confidence_INS_alleles, total_high_confidence_alleles)} high-confidence INS alleles")
 print(f"{format_np(high_confidence_DEL_alleles, total_high_confidence_alleles)} high-confidence DEL alleles")
 print(f"{format_np(high_confidence_INS_alleles + high_confidence_DEL_alleles, total_high_confidence_alleles)} high-confidence INS + DEL alleles")

@@ -272,7 +272,6 @@ def plot_distribution_by_num_repeats(
             horizontalalignment="right",
             rotation_mode="anchor",
             fontsize=14)
-
         if i == 1:
             # add n=.. above each bar
             n_lookup = dict(df.groupby(x_column).count().LocusId)
@@ -282,7 +281,8 @@ def plot_distribution_by_num_repeats(
     if tool_name:
         l = axes[0].get_legend()
         l.set_title(f"{tool_name} Call\nvs\nTrue Allele Size\n")
-        plt.setp(l.get_title(), multialignment="center")
+        axes[0].get_legend().get_title().set_horizontalalignment('center')
+        axes[0].get_legend().set_frame_on(False)
     else:
         axes[0].get_legend().set_title(f"")
 
@@ -687,7 +687,7 @@ def generate_fraction_exactly_right_plot(df, output_image_dir, plot_counter,
             fontsize=14)
         ax.set_yticklabels(ax.get_yticklabels(), fontsize=15)
         ax.get_legend().set_title(f"")
-        ax.get_legend().set_frame_on(False)
+        ax.get_legend().set_frame_on(True)
         if len(hue_values) > 4:
             ax.get_legend().set_bbox_to_anchor((0.15, 0.25))
         else:

@@ -120,6 +120,7 @@ def plot_str_variant_size_vs_gene_constraint(df, show_title=True):
     print(f"Saved {output_image_name}")
     plt.close()
 
+
 def main():
     constraint_df = pd.read_table("../ref/other/gnomad.v2.1.1.lof_metrics.by_gene.txt.bgz", compression="gzip")
     constraint_df = constraint_df[["gene_id", "pLI", "oe_lof_upper", "oe_mis_upper", "oe_syn_upper", "pRec", "mu_syn"]]
