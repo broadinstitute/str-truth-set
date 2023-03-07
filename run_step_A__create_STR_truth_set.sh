@@ -114,11 +114,13 @@ function print_liftover_output_stats {
   local prefix="$4"
   python3 scripts/vcf_stats.py --count-by-filter --prefix "${prefix}:failed-liftover:" --min-percent 0 "$output_failed_liftover_vcf"
 
-  echo Reasons for Liftover failure:
+  echo "${prefix}:STR:failed-liftover:          Reasons for Liftover failure:"
 
   # print more stats (disable pipefail in case vcf is empty)
   set +eo pipefail
-  gunzip -c "$output_failed_liftover_vcf" | grep -v ^# | cut -f 7  | sort | uniq -c | sort -n -r
+  for l in $(gunzip -c "$output_failed_liftover_vcf" | grep -v ^# | cut -f 7  | sort | uniq -c | sort -n -r); do
+      echo "${prefix}:STR:failed-liftover:          ${l}"
+  done
   set -eo pipefail
 }
 
