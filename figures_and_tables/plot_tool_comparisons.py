@@ -334,20 +334,17 @@ def generate_all_distribution_by_motif_size_plots(df, output_image_dir, plot_cou
     return plot_counter
 
 
-def compute_fraction_exactly_correct(df, tool):
-    diff_values_considered_exactly_correct = ["0",] # "1", "-1", "2", "-2"]
-
-    exact_match_counts = df[df[f"DiffRepeats: Allele: {tool} - Truth (bin)"].isin(
-        diff_values_considered_exactly_correct)].groupby("DiffFromRefRepeats: Allele: Truth (bin)").count()[["LocusId"]]
+def compute_fraction_exactly_right(df, tool):
+    exact_match_counts = df[df[f"DiffRepeats: Allele: {tool} - Truth (bin)"] == "0"].groupby("DiffFromRefRepeats: Allele: Truth (bin)").count()[["LocusId"]]
     total_counts = df.groupby("DiffFromRefRepeats: Allele: Truth (bin)").count()[["LocusId"]]
 
     total_exact_match = sum(exact_match_counts.LocusId)
     total = sum(total_counts.LocusId)
-    overall_fraction_exactly_correct = total_exact_match/total
+    overall_fraction_exactly_right = total_exact_match/total
 
-    result_df = (exact_match_counts/total_counts).fillna(0).rename(columns={"LocusId": "FractionExactlyCorrect"})
+    result_df = (exact_match_counts/total_counts).fillna(0).rename(columns={"LocusId": "FractionExactlyRight"})
 
-    return result_df, overall_fraction_exactly_correct
+    return result_df, overall_fraction_exactly_right
 
 
 def compute_tables_for_fraction_exactly_right_plots(df, coverage_values=("40x", "20x", "10x",)):
@@ -358,12 +355,12 @@ def compute_tables_for_fraction_exactly_right_plots(df, coverage_values=("40x", 
             df2 = df.copy()
             df2 = df2[df2["coverage"] == coverage]
 
-            df_tool, overall_fraction_exactly_correct = compute_fraction_exactly_correct(df2, tool)
+            df_tool, overall_fraction_exactly_right = compute_fraction_exactly_right(df2, tool)
             df_tool.loc[:, "tool"] = f"{tool}: {coverage} coverage" if len(coverage_values) > 1 else tool
             tables_by_coverage.append(df_tool)
 
-            print(f"Processed {tool:20s} --  {100*overall_fraction_exactly_correct:0.1f}% of calls by {tool} "
-                  f"@ {coverage} coverage were exactly correct for "
+            print(f"Processed {tool:20s} --  {100*overall_fraction_exactly_right:0.1f}% of calls by {tool} "
+                  f"@ {coverage} coverage were exactly right for "
                   f"{len(df2):,d} alleles at {len(set(df2.LocusId)):,d} loci")
 
     return pd.concat(tables_by_coverage, axis=0)
@@ -465,10 +462,12 @@ def generate_all_distribution_by_num_repeats_plots(df, output_image_dir, plot_co
                         print(figure_title_line1)
                         print(figure_title_line2)
 
+                        # skip_condition1: HipSTR doesn't support motifs larger than 9bp
                         skip_condition1 = tool_label == "HipSTR" and motif_size != "STR"
+                        # skip_condition2: not enough alleles to draw a histogram
                         skip_condition2 = len(df2) < 10
+
                         if skip_condition1 or skip_condition2:
-                            # HipSTR doesn't support motifs larger than 9bp
                             if skip_condition1:
                                 message = "HipSTR doesn't support motif sizes larger than 9bp"
                             elif skip_condition2:
@@ -533,7 +532,7 @@ def generate_all_distribution_by_num_repeats_plots(df, output_image_dir, plot_co
                             )
 
                             plt.savefig(f"{output_image_dir}/{output_image_filename}.svg")
-                            print(f"Saved {output_image_dir}/{output_image_filename}.svg")
+                            print(f"Saved plot #{plot_counter+1}: {output_image_dir}/{output_image_filename}.svg")
                             plt.close()
 
                         except Exception as e:
@@ -577,7 +576,8 @@ def generate_fraction_exactly_right_plot(df, output_image_dir, plot_counter,
         count_before = len(set(df[df["coverage"] == "40x"].LocusId))
         df = df[df[f"DiffRepeats: Allele: HipSTR - Truth (bin)"] != NO_CALL_LABEL]
         count_discarded = count_before - len(set(df[df["coverage"] == "40x"].LocusId))
-        print(f"Discarded {count_discarded:,d} ({100.0*count_discarded/count_before:0.1f}%) of loci due to HipSTR no call")
+        print(f"Discarded {count_discarded:,d} out of {count_before:,d} ({100.0*count_discarded/count_before:0.1f}%) "
+              f"of loci due to HipSTR no call")
 
     df_fraction = compute_tables_for_fraction_exactly_right_plots(df, coverage_values=("40x", "30x", "20x", "10x", "05x"))
 
@@ -658,7 +658,7 @@ def generate_fraction_exactly_right_plot(df, output_image_dir, plot_counter,
         sns.pointplot(
             data=df2,
             x=x_column,
-            y="FractionExactlyCorrect",
+            y="FractionExactlyRight",
             hue=hue_column,
             scale=0.8,
             hue_order=sorted(hue_values, key=hue_order),
@@ -673,9 +673,8 @@ def generate_fraction_exactly_right_plot(df, output_image_dir, plot_counter,
         ax.set_xlabel("True Allele Size Minus Number of Repeats in Reference Genome", fontsize=16)
         ax.set_ylabel("Fraction of Calls That Exactly Match True Allele Size", fontsize=16)
 
+        y_ticks = np.arange(0, 1.05, 0.1)
         ax.xaxis.labelpad = ax.yaxis.labelpad = 15
-        ax.set_ylim((0, 1))
-        ax.yaxis.set_ticks(np.arange(0, 1.05, 0.1))
         ax.grid(axis='y', color='#ECECEC')
 
         ax.set_xticks(ax.get_xticks())
@@ -685,16 +684,19 @@ def generate_fraction_exactly_right_plot(df, output_image_dir, plot_counter,
             horizontalalignment="right",
             rotation_mode='anchor',
             fontsize=14)
-        ax.set_yticklabels(ax.get_yticklabels(), fontsize=15)
+        ax.set_ylim((0, 1))
+        ax.set_yticks(y_ticks)
+        ax.set_yticklabels([f"{t}:0.1f" for t in y_ticks], fontsize=15)
         ax.get_legend().set_title(f"")
+        plt.rcParams.update({
+            "legend.fontsize": 14,
+        })
         ax.get_legend().set_frame_on(True)
         if len(hue_values) > 4:
             ax.get_legend().set_bbox_to_anchor((0.15, 0.25))
         else:
-            #ax.legend(loc="upper right", frameon=True)
             ax.get_legend().set_bbox_to_anchor((0.15, 0.15))
 
-        #fig.tight_layout()
         if show_title:
             suptitle_artist = fig.suptitle(figure_title, fontsize=17, y=1.01)
             extra_artists = [suptitle_artist]
@@ -730,9 +732,6 @@ def main():
 
     print(f"Loading {input_table_path}")
     df = pd.read_table(input_table_path)
-
-    #df = df[df.Motif.isin({"AAG", "AGA", "GAA", "CTT", "TCT", "TTC"})]
-    #df = df[df.MotifSize == 3]
 
     if args.verbose:
         print("Num loci:")

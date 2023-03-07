@@ -20,8 +20,8 @@ for i in ref/full.38.bed.gz \
 	     ref/other/gencode.v42.annotation.gtf.gz \
 	     ref/other/gencode.v42.annotation.sorted.gtf.gz \
 	     ref/other/gencode.v42.annotation.sorted.gtf.gz.tbi \
-	     ref/other/hg38_ver17.fixed.bed.gz \
-	     ref/other/hg38_ver17.fixed.bed.gz.tbi \
+	     ref/other/hg38_ver17.adjusted.bed.gz \
+	     ref/other/hg38_ver17.adjusted.bed.gz.tbi \
 	     ref/other/illumina_variant_catalog.sorted.bed.gz \
 	     ref/other/illumina_variant_catalog.sorted.bed.gz.tbi \
 	     ref/other/known_disease_associated_STR_loci.GRCh38.bed.gz \

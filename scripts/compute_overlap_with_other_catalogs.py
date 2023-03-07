@@ -16,8 +16,9 @@ from str_analysis.utils.canonical_repeat_unit import compute_canonical_motif
 # paths of other STR catalogs and genomic regions to intersect with
 OTHER_STR_CATALOGS = {
     "IlluminaSTRCatalog": "./ref/other/illumina_variant_catalog.sorted.bed.gz",
-    "GangSTRCatalog17": "./ref/other/hg38_ver17.fixed.bed.gz",
-    "GangSTRCatalog13": "./ref/other/hg38_ver13.fixed.bed.gz",
+    "GangSTRCatalog17": "./ref/other/hg38_ver17.adjusted.bed.gz",
+    "GangSTRCatalog13": "./ref/other/hg38_ver13.adjusted.bed.gz",
+    "HipSTRCatalog": "./ref/other/GRCh38.hipstr_reference.adjusted.bed.gz",
     "KnownDiseaseAssociatedSTRs": "./ref/other/known_disease_associated_STR_loci.GRCh38.bed.gz",
 
     "TRFPureRepeats15bp": "./ref/other/repeat_specs_GRCh38_without_mismatches.sorted.trimmed.at_least_15bp.bed.gz",

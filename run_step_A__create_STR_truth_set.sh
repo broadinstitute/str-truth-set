@@ -114,12 +114,12 @@ function print_liftover_output_stats {
   local prefix="$4"
   python3 scripts/vcf_stats.py --count-by-filter --prefix "${prefix}:failed-liftover:" --min-percent 0 "$output_failed_liftover_vcf"
 
-  echo "${prefix}:STR:failed-liftover:          Reasons for Liftover failure:"
+  echo "${prefix}:failed-liftover:          Reasons for Liftover failure:"
 
   # print more stats (disable pipefail in case vcf is empty)
   set +eo pipefail
   for l in $(gunzip -c "$output_failed_liftover_vcf" | grep -v ^# | cut -f 7  | sort | uniq -c | sort -n -r); do
-      echo "${prefix}:STR:failed-liftover:          ${l}"
+      echo "${prefix}:failed-liftover:          ${l}"
   done
   set -eo pipefail
 }
@@ -185,7 +185,10 @@ do
 
 
   # generate overlap statistics before liftover
-  python3 -u scripts/compute_overlap_with_other_catalogs.py --all-repeats --all-motifs ${output_prefix}.variants.tsv.gz  ${output_prefix}.variants.with_overlap_columns.tsv.gz -c IlluminaSTRCatalog -c GangSTRCatalog17 -c KnownDiseaseAssociatedSTRs
+  python3 -u scripts/compute_overlap_with_other_catalogs.py --all-repeats \
+    --all-motifs ${output_prefix}.variants.tsv.gz \
+    ${output_prefix}.variants.with_overlap_columns.tsv.gz \
+    -c IlluminaSTRCatalog -c GangSTRCatalog17 -c HipSTRCatalog -c KnownDiseaseAssociatedSTRs
 
   set +x
   print_output_stats $input_vcf $output_vcf "step2:${STR_type}"

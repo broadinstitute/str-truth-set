@@ -12,7 +12,7 @@ import pandas as pd
 from pprint import pprint
 import pybedtools
 import random
-
+import re
 from str_analysis.utils.canonical_repeat_unit import compute_canonical_motif
 
 random.seed(1)
@@ -23,17 +23,21 @@ def parse_args():
                    "The set of all STR loci in the truth set will be split into variant catalogs of this size.")
     p.add_argument("--gangstr-loci-per-run", type=int, default=10000, help="GangSTR batch size. "
                    "The set of all STR loci in the truth set will be split into repeat spec files of this size.")
-    p.add_argument("--output-dir", default="./tool_comparison/variant_catalogs/", help="Directory where to write output files")
     p.add_argument("--high-confidence-regions-bed", default="./ref/full.38.bed.gz",
                     help="Path of the SynDip high-confidence regions .bed file")
     p.add_argument("--all-repeats-bed", default="./ref/other/repeat_specs_GRCh38_without_mismatches.sorted.trimmed.at_least_9bp.bed.gz",
                    help="Path of bed file containing all repeats in the reference genome generated using a tool like "
-                        "TandmRepeatFinder")
-    p.add_argument("truth_set_variants_tsv", nargs="?", default="STR_truth_set.v1.variants.tsv",
-                   help="Path of the STR truth set .variants.tsv")
+                        "TandemRepeatFinder")
+    p.add_argument("--skip-negative-loci", action="store_true", help="Skip generating negative loci")
+    p.add_argument("--skip-eh-catalog", action="store_true", help="Skip generating an ExpansionHunter catalog")
+    p.add_argument("--skip-gangstr-catalog", action="store_true", help="Skip generating a GangSTR catalog")
+    p.add_argument("--skip-hipstr-catalog", action="store_true", help="Skip generating a HipSTR catalog")
+    p.add_argument("--output-dir", default="./tool_comparison/variant_catalogs/", help="Directory where to write output files")
+    p.add_argument("truth_set_variants_tsv_or_bed_path", nargs="?", default="STR_truth_set.v1.variants.tsv",
+                   help="Path of the STR truth set .variants.tsv or of an arbitrary bed file")
     args = p.parse_args()
 
-    for path in args.truth_set_variants_tsv, args.all_repeats_bed, args.high_confidence_regions_bed:
+    for path in args.truth_set_variants_tsv_or_bed_path, args.all_repeats_bed, args.high_confidence_regions_bed:
         if not os.path.isfile(path):
             p.error(f"{path} not found")
 
@@ -77,8 +81,6 @@ def generate_set_of_positive_loci(truth_set_df):
         positive_loci_counters[key] += 1
 
         truth_set_loci_interval_trees[chrom].add(Interval(start_0based, end, data=motif))
-
-    #pprint(sorted(positive_loci_counters.items(), key=lambda x: x[1]))
 
     return positive_loci, positive_loci_counters, truth_set_loci_interval_trees
 
@@ -137,8 +139,6 @@ def generate_set_of_negative_loci(
             if all(enough_negative_loci.values()):
                 break
 
-    #pprint(sorted(negative_loci_counters.items(), key=lambda x: x[1]))
-
     return negative_loci
 
 
@@ -163,38 +163,6 @@ def write_expansion_hunter_variant_catalogs(locus_set, output_path_prefix, loci_
             json.dump(current_variant_catalog, f, indent=3)
 
     print(f"Wrote {len(batches):,d} ExpansionHunter variant catalogs to {output_path_prefix}*.json")
-
-
-def write_expansion_hunter_v2_variant_catalogs(locus_set, output_path_prefix, loci_per_run=None):
-    variant_catalog = []
-    for chrom, start_0based, end_1based, motif in locus_set:
-        chrom = chrom.replace("chr", "")
-        variant_catalog.append({
-            "RepeatId": f"{chrom}-{start_0based}-{end_1based}-{motif}",
-            "TargetRegion": f"chr{chrom}:{start_0based+1}-{end_1based}",
-            "RepeatUnit": motif,
-            "CommonUnit": "true",
-        })
-
-    if loci_per_run is None:
-        batches = [variant_catalog]
-    else:
-        batches = [
-            variant_catalog[i:i+loci_per_run] for i in range(0, len(variant_catalog), loci_per_run)
-        ]
-
-    for batch_i, current_variant_catalog in enumerate(batches):
-        output_dir = f"{output_path_prefix}.{batch_i+1:03d}_of_{len(batches):03d}"
-        if not os.path.isdir(output_dir):
-            os.mkdir(output_dir)
-        for repeat_spec in current_variant_catalog:
-            with open(os.path.join(output_dir, repeat_spec['RepeatId'][:100] + ".json"), "wt") as f:
-                json.dump(repeat_spec, f, indent=3)
-
-        output_dir_name = os.path.basename(output_dir)
-        os.system(f"cd {output_dir}/..; tar czf {output_dir_name}.tar.gz {output_dir_name} && rm -rf {output_dir_name}")
-
-    print(f"Wrote {len(batches):,d} batches for ExpansionHunter v2.")
 
 
 def write_gangstr_or_hipstr_repeat_specs(locus_set, output_path_prefix, gangstr=False, hipstr=False, loci_per_run=None):
@@ -248,54 +216,77 @@ def write_bed_files(locus_set, output_path):
 def main():
     args = parse_args()
 
-    # Read in STR truth set
-    truth_set_df = pd.read_table(args.truth_set_variants_tsv)
-    print(f"Parsed {len(truth_set_df):,d} records from {args.truth_set_variants_tsv}")
+    if re.search(".bed(.gz)?$", args.truth_set_variants_tsv_or_bed_path):
+        truth_set_df = pd.read_table(args.truth_set_variants_tsv_or_bed_path,
+                                     names=["Chrom", "Start0Based", "End1Based", "Motif", "_"],
+                                     dtype={"Chrom": str, "Start0Based": int, "End1Based": int, "Motif": str})
+
+        truth_set_df.loc[:, "Start1Based"] = truth_set_df.Start0Based + 1
+        truth_set_df.loc[:, "IsFoundInReference"] = "Yes"
+    else:
+        # Read in STR truth set
+        truth_set_df = pd.read_table(args.truth_set_variants_tsv_or_bed_path)
+
+    print(f"Parsed {len(truth_set_df):,d} records from {args.truth_set_variants_tsv_or_bed_path}")
 
     # Must be found in reference for EH and GangSTR to work
     length_before = len(truth_set_df)
     truth_set_df = truth_set_df[truth_set_df["IsFoundInReference"] == "Yes"]
-    print(f"Discarded {length_before - len(truth_set_df):,d} loci without matching repeats in the reference")
+    if length_before > len(truth_set_df):
+        print(f"Discarded {length_before - len(truth_set_df):,d} loci without matching repeats in the reference")
 
     # Generate positive (ie. variant) and negative (non-variant) loci for the variant catalogs
     positive_loci, positive_loci_counters, truth_set_loci_interval_trees = generate_set_of_positive_loci(truth_set_df)
     print(f"Generated {len(positive_loci):,d} positive loci")
 
-    all_pure_repeats_in_syndip_high_confidence_regions = load_all_pure_repeats_in_syndip_confidence_regions(
-        args.all_repeats_bed, args.high_confidence_regions_bed)
-    print(f"Loaded {len(all_pure_repeats_in_syndip_high_confidence_regions):,d} STRs in hg38 within the SynDip high-confidence regions")
+    locus_sets = [("positive", positive_loci)]
+    if not args.skip_negative_loci:
+        all_pure_repeats_in_syndip_high_confidence_regions = load_all_pure_repeats_in_syndip_confidence_regions(
+            args.all_repeats_bed, args.high_confidence_regions_bed)
+        print(f"Loaded {len(all_pure_repeats_in_syndip_high_confidence_regions):,d} STRs in hg38 within the SynDip high-confidence regions")
 
-    negative_loci = generate_set_of_negative_loci(
-        all_pure_repeats_in_syndip_high_confidence_regions, truth_set_loci_interval_trees, positive_loci_counters)
-    print(f"Generated {len(negative_loci):,d} negative loci")
+        negative_loci = generate_set_of_negative_loci(
+            all_pure_repeats_in_syndip_high_confidence_regions, truth_set_loci_interval_trees, positive_loci_counters)
+        print(f"Generated {len(negative_loci):,d} negative loci")
+        locus_sets.append(("negative", negative_loci))
 
     # Generate variant catalogs
+    subdirs_to_create = []
+    if not args.skip_eh_catalog:       subdirs_to_create.append("expansion_hunter")
+    if not args.skip_gangstr_catalog:  subdirs_to_create.append("gangstr")
+    if not args.skip_hipstr_catalog:   subdirs_to_create.append("hipstr")
+
     output_dir = args.output_dir
-    for label, locus_set in [("positive", positive_loci), ("negative", negative_loci)]:
-        for subdir in "expansion_hunter", "gangstr", "hipstr":  # "expansion_hunter_v2", 
+    for label, locus_set in locus_sets:
+        for subdir in subdirs_to_create:
             subdir_path = os.path.join(output_dir, subdir)
             if not os.path.isdir(subdir_path):
                 print(f"Creating directory {subdir_path}")
                 os.makedirs(subdir_path)
 
-        write_expansion_hunter_variant_catalogs(locus_set, os.path.join(output_dir, f"expansion_hunter/{label}_loci.EHv5"),
-                                                loci_per_run=args.expansion_hunter_loci_per_run)
-        #write_expansion_hunter_v2_variant_catalogs(locus_set, os.path.join(output_dir, f"expansion_hunter_v2/{label}_loci.EHv2"),
-        #                                        loci_per_run=args.expansion_hunter_loci_per_run)
-        write_gangstr_or_hipstr_repeat_specs(locus_set, os.path.join(output_dir, f"gangstr/{label}_loci.GangSTR"),
-                                             gangstr=True, loci_per_run=args.gangstr_loci_per_run)
-        write_gangstr_or_hipstr_repeat_specs(locus_set, os.path.join(output_dir, f"hipstr/{label}_loci.HipSTR"),
-                                             hipstr=True, loci_per_run=args.gangstr_loci_per_run)
+        if not args.skip_eh_catalog:
+            write_expansion_hunter_variant_catalogs(locus_set,
+                os.path.join(output_dir, f"expansion_hunter/{label}_loci.EHv5"),
+                loci_per_run=args.expansion_hunter_loci_per_run)
+        if not args.skip_gangstr_catalog:
+            write_gangstr_or_hipstr_repeat_specs(locus_set,
+                 os.path.join(output_dir, f"gangstr/{label}_loci.GangSTR"),
+                 gangstr=True, loci_per_run=args.gangstr_loci_per_run)
+        if not args.skip_hipstr_catalog:
+            write_gangstr_or_hipstr_repeat_specs(locus_set,
+                 os.path.join(output_dir, f"hipstr/{label}_loci.HipSTR"),
+                 hipstr=True, loci_per_run=args.gangstr_loci_per_run)
         write_bed_files(locus_set, os.path.join(output_dir, f"{label}_loci.bed"))
 
     # Make sure positive regions and negative regions don't overlap.
     positive_loci_bedtool = pybedtools.BedTool(
         os.path.expanduser(os.path.join(output_dir, f"positive_loci.bed.gz")))
-    overlap_count = positive_loci_bedtool.intersect(
-        os.path.expanduser(os.path.join(output_dir, f"negative_loci.bed.gz"))).count()
+    if not args.skip_negative_loci:
+        overlap_count = positive_loci_bedtool.intersect(
+            os.path.expanduser(os.path.join(output_dir, f"negative_loci.bed.gz"))).count()
 
-    if overlap_count > 0:
-        raise ValueError(f"ERROR: {overlap_count} loci overlap between positive set and negative set")
+        if overlap_count > 0:
+            raise ValueError(f"ERROR: {overlap_count} loci overlap between positive set and negative set")
 
     print("Done")
 

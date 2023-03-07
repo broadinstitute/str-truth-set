@@ -148,7 +148,7 @@ Finished writing to  step2.pure_STRs.alleles.tsv
 Wrote 146566 to step2.pure_STRs.variants.bed.gz
 + python3 -u scripts/compute_overlap_with_other_catalogs.py --all-repeats --all-motifs step2.pure_STRs.variants.tsv.gz step2.pure_STRs.variants.with_overlap_columns.tsv.gz -c IlluminaSTRCatalog -c GangSTRCatalog17 -c KnownDiseaseAssociatedSTRs
 Parsed    174,300 intervals from IlluminaSTRCatalog                       ./ref/other/illumina_variant_catalog.sorted.bed.gz
-Parsed  1,340,266 intervals from GangSTRCatalog17                         ./ref/other/hg38_ver17.fixed.bed.gz
+Parsed  1,340,266 intervals from GangSTRCatalog17                         ./ref/other/hg38_ver17.adjusted.bed.gz
 Parsed         60 intervals from KnownDiseaseAssociatedSTRs               ./ref/other/known_disease_associated_STR_loci.GRCh38.bed.gz
 Processing rows from step2.pure_STRs.variants.tsv.gz
 Wrote 146,566 rows to the output tsv: step2.pure_STRs.variants.with_overlap_columns.tsv.gz
@@ -774,11 +774,11 @@ Wrote 144735 to step7.filtered_pure_STRs.variants.bed.gz
 + python3 -u scripts/compute_overlap_with_other_catalogs.py --all-repeats --all-motifs step7.filtered_pure_STRs.alleles.tsv.gz step7.filtered_pure_STRs.alleles.with_overlap_columns.tsv.gz
 Parsed    174,300 intervals from IlluminaSTRCatalog                       ./ref/other/illumina_variant_catalog.sorted.bed.gz
 Parsed    174,300 intervals from IlluminaSTRCatalog                       ./ref/other/illumina_variant_catalog.sorted.bed.gz
-Parsed  1,340,266 intervals from GangSTRCatalog17                         ./ref/other/hg38_ver17.fixed.bed.gz
-Parsed  1,340,266 intervals from GangSTRCatalog17                         ./ref/other/hg38_ver17.fixed.bed.gz
-Parsed    832,380 intervals from GangSTRCatalog13                         ./ref/other/hg38_ver13.fixed.bed.gz
+Parsed  1,340,266 intervals from GangSTRCatalog17                         ./ref/other/hg38_ver17.adjusted.bed.gz
+Parsed  1,340,266 intervals from GangSTRCatalog17                         ./ref/other/hg38_ver17.adjusted.bed.gz
+Parsed    832,380 intervals from GangSTRCatalog13                         ./ref/other/hg38_ver13.adjusted.bed.gz
 Parsed         60 intervals from KnownDiseaseAssociatedSTRs               ./ref/other/known_disease_associated_STR_loci.GRCh38.bed.gz
-Parsed    832,380 intervals from GangSTRCatalog13                         ./ref/other/hg38_ver13.fixed.bed.gz
+Parsed    832,380 intervals from GangSTRCatalog13                         ./ref/other/hg38_ver13.adjusted.bed.gz
 Parsed         60 intervals from KnownDiseaseAssociatedSTRs               ./ref/other/known_disease_associated_STR_loci.GRCh38.bed.gz
 Parsed    702,486 intervals from TRFPureRepeats15bp                       ./ref/other/repeat_specs_GRCh38_without_mismatches.sorted.trimmed.at_least_15bp.bed.gz
 Parsed    702,486 intervals from TRFPureRepeats15bp                       ./ref/other/repeat_specs_GRCh38_without_mismatches.sorted.trimmed.at_least_15bp.bed.gz
@@ -1264,7 +1264,7 @@ Finished writing to  step2.STRs.alleles.tsv
 Wrote 156994 to step2.STRs.variants.bed.gz
 + python3 -u scripts/compute_overlap_with_other_catalogs.py --all-repeats --all-motifs step2.STRs.variants.tsv.gz step2.STRs.variants.with_overlap_columns.tsv.gz -c IlluminaSTRCatalog -c GangSTRCatalog17 -c KnownDiseaseAssociatedSTRs
 Parsed    174,300 intervals from IlluminaSTRCatalog                       ./ref/other/illumina_variant_catalog.sorted.bed.gz
-Parsed  1,340,266 intervals from GangSTRCatalog17                         ./ref/other/hg38_ver17.fixed.bed.gz
+Parsed  1,340,266 intervals from GangSTRCatalog17                         ./ref/other/hg38_ver17.adjusted.bed.gz
 Parsed         60 intervals from KnownDiseaseAssociatedSTRs               ./ref/other/known_disease_associated_STR_loci.GRCh38.bed.gz
 Processing rows from step2.STRs.variants.tsv.gz
 Wrote 156,996 rows to the output tsv: step2.STRs.variants.with_overlap_columns.tsv.gz
@@ -1942,11 +1942,11 @@ Wrote 154582 to step7.filtered_STRs.variants.bed.gz
 + python3 -u scripts/compute_overlap_with_other_catalogs.py --all-repeats --all-motifs step7.filtered_STRs.variants.tsv.gz step7.filtered_STRs.variants.with_overlap_columns.tsv.gz
 Parsed    174,300 intervals from IlluminaSTRCatalog                       ./ref/other/illumina_variant_catalog.sorted.bed.gz
 Parsed    174,300 intervals from IlluminaSTRCatalog                       ./ref/other/illumina_variant_catalog.sorted.bed.gz
-Parsed  1,340,266 intervals from GangSTRCatalog17                         ./ref/other/hg38_ver17.fixed.bed.gz
-Parsed  1,340,266 intervals from GangSTRCatalog17                         ./ref/other/hg38_ver17.fixed.bed.gz
-Parsed    832,380 intervals from GangSTRCatalog13                         ./ref/other/hg38_ver13.fixed.bed.gz
+Parsed  1,340,266 intervals from GangSTRCatalog17                         ./ref/other/hg38_ver17.adjusted.bed.gz
+Parsed  1,340,266 intervals from GangSTRCatalog17                         ./ref/other/hg38_ver17.adjusted.bed.gz
+Parsed    832,380 intervals from GangSTRCatalog13                         ./ref/other/hg38_ver13.adjusted.bed.gz
 Parsed         60 intervals from KnownDiseaseAssociatedSTRs               ./ref/other/known_disease_associated_STR_loci.GRCh38.bed.gz
-Parsed    832,380 intervals from GangSTRCatalog13                         ./ref/other/hg38_ver13.fixed.bed.gz
+Parsed    832,380 intervals from GangSTRCatalog13                         ./ref/other/hg38_ver13.adjusted.bed.gz
 Parsed         60 intervals from KnownDiseaseAssociatedSTRs               ./ref/other/known_disease_associated_STR_loci.GRCh38.bed.gz
 Parsed    702,486 intervals from TRFPureRepeats15bp                       ./ref/other/repeat_specs_GRCh38_without_mismatches.sorted.trimmed.at_least_15bp.bed.gz
 Parsed    702,486 intervals from TRFPureRepeats15bp                       ./ref/other/repeat_specs_GRCh38_without_mismatches.sorted.trimmed.at_least_15bp.bed.gz
@@ -2233,8 +2233,8 @@ Done
 scripts/compute_overlap_with_other_catalogs.py:341: DtypeWarning: Columns (0) have mixed types.Specify dtype option on import or set low_memory=False.
   main()
 Parsed    174,300 intervals from IlluminaSTRCatalog                       ./ref/other/illumina_variant_catalog.sorted.bed.gz
-Parsed  1,340,266 intervals from GangSTRCatalog17                         ./ref/other/hg38_ver17.fixed.bed.gz
-Parsed    832,380 intervals from GangSTRCatalog13                         ./ref/other/hg38_ver13.fixed.bed.gz
+Parsed  1,340,266 intervals from GangSTRCatalog17                         ./ref/other/hg38_ver17.adjusted.bed.gz
+Parsed    832,380 intervals from GangSTRCatalog13                         ./ref/other/hg38_ver13.adjusted.bed.gz
 Parsed         60 intervals from KnownDiseaseAssociatedSTRs               ./ref/other/known_disease_associated_STR_loci.GRCh38.bed.gz
 Parsed    702,486 intervals from TRFPureRepeats15bp                       ./ref/other/repeat_specs_GRCh38_without_mismatches.sorted.trimmed.at_least_15bp.bed.gz
 Parsed  1,343,313 intervals from TRFPureRepeats12bp                       ./ref/other/repeat_specs_GRCh38_without_mismatches.sorted.trimmed.at_least_12bp.bed.gz
