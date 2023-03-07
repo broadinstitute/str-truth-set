@@ -66,15 +66,15 @@ look_up_liftover_stats("step2:pure_STR:output:", total_STR_variants_before_valid
 
 print("\nLiftover failed for:")
 liftover_failed_IndelStraddlesMultipleIntevals = int(
-    search(f"([0-9,]+) IndelStraddlesMultipleIntevals", stepA_log_contents, expected_number_of_matches=2).replace(",", ""))
+    search(f"step3:pure_STR:failed-liftover:[ ]+([0-9,]+) IndelStraddlesMultipleIntevals", stepA_log_contents).replace(",", ""))
 
 liftover_failed_for_other_reason = 0
 liftover_failed_for_other_reason += int(
-    search(f"([0-9,]+) CannotLiftOver", stepA_log_contents, expected_number_of_matches=2).replace(",", ""))
+    search(f"step3:pure_STR:failed-liftover:[ ]+([0-9,]+) CannotLiftOver", stepA_log_contents).replace(",", ""))
 liftover_failed_for_other_reason += int(
-    search(f"([0-9,]+) MismatchedRefAllele", stepA_log_contents, expected_number_of_matches=2).replace(",", ""))
+    search(f"step3:pure_STR:failed-liftover:[ ]+([0-9,]+) MismatchedRefAllele", stepA_log_contents).replace(",", ""))
 liftover_failed_for_other_reason += int(
-    search(f"([0-9,]+) NoTarget", stepA_log_contents, expected_number_of_matches=2).replace(",", ""))
+    search(f"step3:pure_STR:failed-liftover:[ ]+([0-9,]+) NoTarget", stepA_log_contents).replace(",", ""))
 
 print(f"{format_np(liftover_failed_IndelStraddlesMultipleIntevals, total_STR_variants_before_validation_step)} "
       f"STRs failed hg38 => T2T liftover due to IndelStraddlesMultipleIntevals error")
@@ -177,10 +177,10 @@ print("Validation diagram - level 4:")
 print("-"*100)
 
 liftover_failed__no_target = int(
-    search(f"step5:pure_STR:failed-liftover:[ ]*([0-9,]+).*NoTarget", stepA_log_contents).replace(",", ""))
+    search(f"step5:pure_STR:failed-liftover:[ ]+([0-9,]+)[ ]+NoTarget", stepA_log_contents).replace(",", ""))
 
 total_variants_passed_liftover_back_to_hg38 = int(search(
-    f"step5:pure_STR:output:[ ]*([0-9,]+)[ ]* TOTAL variants", stepA_log_contents).replace(",", ""))
+    f"step5:pure_STR:output:[ ]+([0-9,]+)[ ]* TOTAL variants", stepA_log_contents).replace(",", ""))
 
 print(f"{format_np(liftover_failed__no_target, total_STR_variants_before_validation_step)} "
       "Failed T2T => hg38 liftover: No Target")

@@ -1,10 +1,5 @@
-import collections
 import pandas as pd
-from pprint import pprint
-
-pd.set_option('display.max_rows', 500)
-pd.set_option('display.max_columns', 500)
-pd.set_option('display.width', 2000)
+from figures_and_tables.numbers_utils import format_np
 
 df_variants = pd.read_table("STR_truth_set.v1.variants.tsv.gz")
 df_variants = df_variants[df_variants.IsPureRepeat == "Yes"]
@@ -15,19 +10,6 @@ df_alleles_tool_comparison = pd.read_table("./tool_comparison/combined.results.a
 df_alleles_tool_comparison = df_alleles_tool_comparison[df_alleles_tool_comparison.IsPureRepeat]
 
 print("\n".join(df_alleles_tool_comparison.columns))
-#%%
-
-
-def format_p(count, total):
-    return f"{100*count/total:5.1f}%"
-
-
-def format_n(count, d=10):
-    return f"{count:{d},d}"
-
-
-def format_np(count, total, d=10):
-    return f"{format_n(count, d=d)} out of {total:{d},d}  ({format_p(count, total)})"
 
 #%%
 

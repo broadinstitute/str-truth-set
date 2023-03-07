@@ -1,4 +1,9 @@
 import re
+import pandas as pd
+
+pd.set_option('display.max_rows', 500)
+pd.set_option('display.max_columns', 500)
+pd.set_option('display.width', 2000)
 
 
 def search(regexp, content, expected_number_of_matches=1, use_match_i=0):

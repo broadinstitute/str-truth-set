@@ -118,9 +118,14 @@ function print_liftover_output_stats {
 
   # print more stats (disable pipefail in case vcf is empty)
   set +eo pipefail
+
+  OLDIFS="$IFS"
+  IFS=$'\n'
   for l in $(gunzip -c "$output_failed_liftover_vcf" | grep -v ^# | cut -f 7  | sort | uniq -c | sort -n -r); do
       echo "${prefix}:failed-liftover:          ${l}"
   done
+  IFS="$OLDIFS"
+
   set -eo pipefail
 }
 
