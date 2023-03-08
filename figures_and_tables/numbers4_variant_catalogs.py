@@ -11,6 +11,7 @@ columns = ["OverlapsIlluminaSTRCatalog: Locus",
            "OverlapsHipSTRCatalog: Locus"] + [f"OverlapsTRFPureRepeats{i}bp: Locus" for i in (6, 9, 12, 15)]
 
 
+print(format_np(len(df_variants[df_variants.MotifSize <= 6]), len(df_variants)), " of variants have 2-6bp motifs")
 for label, df in [
     ("all", df_variants), ("2-6bp", df_variants[df_variants.MotifSize <= 6])
 ]:
