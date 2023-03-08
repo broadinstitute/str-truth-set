@@ -10,7 +10,6 @@ df_alleles = df_alleles[df_alleles.IsPureRepeat == "Yes"]
 print("\n".join(df_variants.columns))
 #%%
 
-
 print("% STR truth set loci missed by different catalogs: ")
 columns = ["OverlapsIlluminaSTRCatalog: Locus",
            "OverlapsGangSTRCatalog13: Locus", "OverlapsGangSTRCatalog17: Locus",

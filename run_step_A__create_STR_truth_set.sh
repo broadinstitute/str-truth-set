@@ -376,4 +376,4 @@ mv ${output_prefix}.${suffix}.tsv.gz  ${output_prefix}.tsv.gz
 set +x
 
 echo ===============
-
+echo Done with step A
