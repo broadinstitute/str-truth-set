@@ -81,19 +81,23 @@ def main():
                 --def-stutter-model \
                 --min-reads 5 \
                 --max-str-len 1000000 \
-                --str-vcf {output_prefix}.vcf.gz""")
-                # --viz-out {output_prefix}.viz.gz
+                --log {output_prefix}.log \
+                --str-vcf {output_prefix}.vcf.gz \
+                --viz-out {output_prefix}.viz.gz""")
+
 
         s1.command("ls -lhrt")
 
         s1.command(f"python3.9 -m str_analysis.convert_hipstr_vcf_to_expansion_hunter_json {output_prefix}.vcf.gz")
+        s1.command(f"gzip {output_prefix}.log")
+        s1.output(f"{output_prefix}.vcf.gz", output_dir=os.path.join(output_dir, f"vcf"))
+        s1.output(f"{output_prefix}.log.gz", output_dir=os.path.join(output_dir, f"log"))
+        s1.output(f"{output_prefix}.viz.gz", output_dir=os.path.join(output_dir, f"viz"))
         s1.output(f"{output_prefix}.json", output_dir=os.path.join(output_dir, f"json"))
-        #s1.output(f"{output_prefix}.log", output_dir=os.path.join(output_dir, f"log"))
-        #s1.output(f"{output_prefix}.viz.gz", output_dir=os.path.join(output_dir, f"viz"))
 
         step1_output_json_paths.append(os.path.join(output_dir, f"json", f"{output_prefix}.json"))
 
-    # step2: combine vcf files
+    # step2: combine json files
     s2 = bp.new_step(name="Combine HipSTR outputs", step_number=2, image=DOCKER_IMAGE, storage="20Gi", cpu=1,
                      output_dir=output_dir)
     for step1 in step1s:

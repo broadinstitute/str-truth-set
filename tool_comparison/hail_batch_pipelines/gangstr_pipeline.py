@@ -78,10 +78,15 @@ def main():
             --ref {local_fasta} \
             --bam {local_bam} \
             --regions {local_repeat_spec} \
-            --out {output_prefix}""")
+            --out {output_prefix} |& tee {output_prefix}.log""")
 
         s1.command("ls -lhrt")
         s1.command(f"python3.9 -m str_analysis.convert_gangstr_vcf_to_expansion_hunter_json {output_prefix}.vcf")
+
+        s1.command(f"gzip {output_prefix}.vcf")
+        s1.command(f"gzip {output_prefix}.log")
+        s1.output(f"{output_prefix}.vcf.gz", output_dir=os.path.join(output_dir, f"vcf"))
+        s1.output(f"{output_prefix}.log.gz", output_dir=os.path.join(output_dir, f"log"))
         s1.output(f"{output_prefix}.json", output_dir=os.path.join(output_dir, f"json"))
 
         step1_output_json_paths.append(os.path.join(output_dir, f"json", f"{output_prefix}.json"))

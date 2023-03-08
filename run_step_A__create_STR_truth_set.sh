@@ -2,12 +2,14 @@
 
 # Required command-line tools:
 #
-#   bedtools
-#   gatk
-#   python3
+#   python3.7+
+#   curl
 #   bgzip
 #   tabix
-#   curl
+#   bedtools
+#   gatk v4+
+
+
 
 # Required data (will be downloaded if it's not available)
 #    reference_data_bundle.tar.gz from github.com/
@@ -312,7 +314,10 @@ do
     "${input_vcf}"
 
 
+
   # compute overlap with various reference annotations
+  ./scripts/compute_overlap_with_other_catalogs_using_bedtools.sh ./${STR_type}_truth_set.v1.variants.bed.gz "overlap:${STR_type}"
+
   suffix=with_overlap_columns
   python3 -u scripts/compute_overlap_with_other_catalogs.py --all-repeats --all-motifs ${output_prefix}.variants.tsv.gz  ${output_prefix}.variants.${suffix}.tsv.gz &
   python3 -u scripts/compute_overlap_with_other_catalogs.py --all-repeats --all-motifs ${output_prefix}.alleles.tsv.gz  ${output_prefix}.alleles.${suffix}.tsv.gz &

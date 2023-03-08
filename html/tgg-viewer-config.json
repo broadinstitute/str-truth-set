@@ -59,7 +59,7 @@
         }, {
           "name": "HipSTR catalog",
           "description": "The latest genome-wide STR catalog from the HipSTR reference github repo",
-          "data": [{"type": "bed", "url": "gs://str-truth-set/hg38/ref/other/GRCh38.hipstr_reference.adjusted.bed.gz"}]
+          "data": [{"type": "bed", "url": "gs://str-truth-set/hg38/ref/other/hg38.hipstr_reference.adjusted.bed.gz"}]
         }, {
           "name": "Known Disease-Causing Loci",
           "description": "STR loci known to be associated with Mendelian diseases",

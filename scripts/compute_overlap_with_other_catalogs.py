@@ -2,6 +2,8 @@
 genomic regions of interest.
 """
 
+print("compute_overlap_with_other_catalogs.py v1.1")
+
 import argparse
 import collections
 from intervaltree import Interval, IntervalTree
@@ -18,7 +20,7 @@ OTHER_STR_CATALOGS = {
     "IlluminaSTRCatalog": "./ref/other/illumina_variant_catalog.sorted.bed.gz",
     "GangSTRCatalog17": "./ref/other/hg38_ver17.adjusted.bed.gz",
     "GangSTRCatalog13": "./ref/other/hg38_ver13.adjusted.bed.gz",
-    "HipSTRCatalog": "./ref/other/GRCh38.hipstr_reference.adjusted.bed.gz",
+    "HipSTRCatalog": "./ref/other/hg38.hipstr_reference.adjusted.bed.gz",
     "KnownDiseaseAssociatedSTRs": "./ref/other/known_disease_associated_STR_loci.GRCh38.bed.gz",
 
     "TRFPureRepeats15bp": "./ref/other/repeat_specs_GRCh38_without_mismatches.sorted.trimmed.at_least_15bp.bed.gz",
@@ -62,7 +64,7 @@ def create_interval_trees(other_catalogs, counters, show_progress_bar=False, n=N
                     break
                 chrom, start_0based, end_1based, other_catalog_repeat_unit = parse_bed_row(i, line, is_STR_catalog)
                 chrom = chrom.replace("chr", "")
-                other_catalog_interval = Interval(start_0based, end_1based, data=other_catalog_repeat_unit)
+                other_catalog_interval = Interval(start_0based, end_1based + 0.1, data=other_catalog_repeat_unit)
                 other_catalog_interval_trees[chrom].add(other_catalog_interval)
                 counters[f"total:{other_catalog_label}"] += 1
 
@@ -88,7 +90,7 @@ def process_truth_set_row(
     truth_set_repeat_unit = truth_set_row.Motif
     truth_set_canonical_repeat_unit = compute_canonical_motif(truth_set_repeat_unit, include_reverse_complement=True)
     truth_set_chrom = str(truth_set_row.Chrom).replace("chr", "")
-    truth_set_locus_interval = Interval(truth_set_row.Start1Based - 1, truth_set_row.End1Based)
+    truth_set_locus_interval = Interval(truth_set_row.Start1Based - 1, truth_set_row.End1Based + 0.1)
     a1 = int(truth_set_locus_interval.begin)
     a2 = int(truth_set_locus_interval.end)
     counters["total:TruthSetLoci"] += 1
@@ -283,6 +285,10 @@ def main():
 
     else:
         truth_set_or_bed_df = pd.read_table(args.truth_set_tsv_or_bed_path)
+
+        # exclude novel STR loci (ie. those not present in the reference genome)
+        truth_set_or_bed_df = truth_set_or_bed_df[truth_set_or_bed_df.IsFoundInReference == "Yes"]
+
         if args.only_pure_repeats:
             truth_set_or_bed_df = truth_set_or_bed_df[truth_set_or_bed_df.IsPureRepeat == "Yes"]
         elif args.only_interrupted_repeats:

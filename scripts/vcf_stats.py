@@ -1,9 +1,8 @@
-"""This script takes a VCF file path and prints a summary of the number of variants and alleles"""
+"""This script takes a VCF file and prints summary stats about the number of variants and alleles"""
 
 import argparse
 import collections
 import gzip
-import sys
 
 p = argparse.ArgumentParser()
 p.add_argument("-p", "--prefix", help="Optional prefix string to print at the beginning of every line")

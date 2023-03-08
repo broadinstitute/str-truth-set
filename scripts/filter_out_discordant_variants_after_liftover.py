@@ -20,6 +20,7 @@ import os
 import pyfaidx
 import re
 
+
 def get_reference_sequence(ref_fasta_obj, chrom, pos_1based, sequence_length):
     """Return the reference sequence string at the given chromosome and position.
 
