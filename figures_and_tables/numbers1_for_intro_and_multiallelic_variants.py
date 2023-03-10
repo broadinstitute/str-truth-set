@@ -11,9 +11,6 @@ df_alleles = df_alleles[df_alleles.IsPureRepeat == "Yes"]
 
 #%%
 
-
-#%%
-
 # Total STR stats
 print("========")
 print("Truth set: pure STR loci\n")
@@ -30,13 +27,14 @@ with open("step_A.log", "rt") as f:
 print("-"*100)
 print("Numbers for intro:")
 print("-"*100)
+total = len(df_variants[df_variants.IsFoundInReference == "Yes"])
 percent_missed_by_gangstr_catalog = search(
-    f"GangSTRCatalog17.*{len(df_variants):,d} [(][ ]+([0-9]+[.][0-9]+)[%][)].* truth set loci:.*no overlap",
+    f"GangSTRCatalog17.*{total:,d} [(][ ]+([0-9]+[.][0-9]+)[%][)].* truth set loci:.*no overlap",
     stepA_log_contents)
 print(f"{percent_missed_by_gangstr_catalog}% missed by GangSTR catalog")
 
 percent_missed_by_illumina_catalog = search(
-    f"IlluminaSTRCatalog.*{len(df_variants):,d} [(][ ]+([0-9]+[.][0-9]+)[%][)].* truth set loci:.*no overlap",
+    f"IlluminaSTRCatalog.*{total:,d} [(][ ]+([0-9]+[.][0-9]+)[%][)].* truth set loci:.*no overlap",
     stepA_log_contents)
 print(f"{percent_missed_by_illumina_catalog}% missed by ExpansionHunter catalog")
 

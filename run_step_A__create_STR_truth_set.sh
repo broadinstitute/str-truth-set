@@ -1,14 +1,13 @@
 #!/usr/bin/env bash
 
-# Required command-line tools:
-#
-#   python3.7+
-#   curl
-#   bgzip
-#   tabix
-#   bedtools
-#   gatk v4+
-
+# Check for required command-line tools:
+for command in "python3" "curl" "bgzip" "tabix" "bedtools" "gatk"
+do 
+    if ! command -v "${command}" &> /dev/null; then
+	echo "${command} command not found. Please install it and add it to your PATH.";
+	exit 1
+    fi
+done
 
 
 # Required data (will be downloaded if it's not available)
@@ -41,7 +40,7 @@ then
   echo "Downloading the STR truth set reference data bundle..."
   set -x
   mkdir -p ./ref
-  curl --silent -L https://github.com/broadinstitute/str-truth-set/releases/download/v1/STR_truth_set_reference_bundle.v1.tar.gz -o STR_truth_set_reference_bundle.v1.tar.gz
+  curl --silent -L https://github.com/broadinstitute/str-truth-set/STR_truth_set_reference_bundle.v1.tar.gz -o STR_truth_set_reference_bundle.v1.tar.gz
   tar xzf STR_truth_set_reference_bundle.v1.tar.gz
   rm STR_truth_set_reference_bundle.v1.tar.gz
   set +x
@@ -232,7 +231,7 @@ do
   print_input_stats ${input_vcf} "STEP #4: Filter out variants that are true homozygous alt or multi-allelic after liftover since this means neither allele matches the T2T reference (chm13v2.0)"
   set -x
 
-  python3 -u scripts/filter_out_discordant_variants_after_liftover.py --reference-fasta ${t2t_fasta_path} ${input_vcf} ${output_vcf}
+  python3 -u scripts/filter_out_discordant_variants_after_liftover.py --log-prefix "step4:${STR_type}" --reference-fasta ${t2t_fasta_path} ${input_vcf} ${output_vcf}
 
   set +x
   print_output_stats ${input_vcf} ${output_vcf} "step4:${STR_type}"
@@ -288,6 +287,7 @@ do
   set -x
 
   python3 -u scripts/check_vcf_concordance_before_vs_after_liftover.py \
+    --log-prefix "step7:${STR_type}" \
     -o $output_vcf \
     step2.${STR_type}s.vcf.gz \
     step6.${STR_type}s.restored_dels_that_failed_liftover.vcf.gz
@@ -352,7 +352,7 @@ do
   mv ${output_prefix}.vcf.gz      ${final_output_prefix}.vcf.gz
   mv ${output_prefix}.vcf.gz.tbi  ${final_output_prefix}.vcf.gz.tbi
 
-  python3 tool_comparison/scripts/convert_truth_set_to_variant_catalogs.py \
+  python3 -u tool_comparison/scripts/convert_truth_set_to_variant_catalogs.py \
     --expansion-hunter-loci-per-run 500 \
     --gangstr-loci-per-run 10000 \
     --output-dir ./tool_comparison/variant_catalogs \

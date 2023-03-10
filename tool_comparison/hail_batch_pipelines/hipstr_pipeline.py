@@ -85,7 +85,6 @@ def main():
                 --str-vcf {output_prefix}.vcf.gz \
                 --viz-out {output_prefix}.viz.gz""")
 
-
         s1.command("ls -lhrt")
 
         s1.command(f"python3.9 -m str_analysis.convert_hipstr_vcf_to_expansion_hunter_json {output_prefix}.vcf.gz")

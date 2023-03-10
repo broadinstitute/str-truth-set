@@ -57,6 +57,7 @@ def parse_args():
 
 
 def trim_end_column(df):
+    """Make sure the locus coordinates span an integer multiple of the motif size. Truncate fractional motif."""
     trimmed_values = df["End1Based"] - (df["End1Based"] - df["Start0Based"]) % df["MotifSize"]
     trimmed_count = sum(df.loc[:, "End1Based"] != trimmed_values)
     if trimmed_count > 0:
@@ -65,6 +66,9 @@ def trim_end_column(df):
 
 
 def add_extra_columns(df):
+    """Add extra columns to the truth set genotypes so that they have the same columns that will be
+    there for tool output genotypes. This will make it easier to compare the two.
+    """
     df.loc[:, "LocusSize (bp)"] = df["End1Based"] - df["Start0Based"]
 
     df.loc[:, "NumRepeats: Allele 1"] = df["NumRepeatsShortAllele"]
@@ -102,20 +106,21 @@ def add_extra_columns(df):
 def main():
     args = parse_args()
 
+    # process truth set loci
     truth_set_variants_df = pd.read_table(args.truth_set_variants_tsv, low_memory=False, nrows=args.n, dtype={"Chrom": str})
+    truth_set_variants_df.loc[:, "TruthSetOrNegativeLocus"] = "TruthSet"
     truth_set_variants_df.loc[:, "Start0Based"] = truth_set_variants_df["Start1Based"] - 1
+    truth_set_variants_df.loc[:, "LocusId"] = truth_set_variants_df["LocusId"].str.replace("^chr", "", regex=True)
     trim_end_column(truth_set_variants_df)
-    
+
     # convert "Yes"/"No" columns to boolean
     for column_name in "IsPureRepeat", "IsFoundInReference", "IsMultiallelic", "OverlapsSegDupIntervals":
         truth_set_variants_df.loc[:, column_name] = truth_set_variants_df[column_name] == "Yes"
 
-    truth_set_variants_df.loc[:, "LocusId"] = truth_set_variants_df["LocusId"].str.replace("^chr", "", regex=True)
-    truth_set_variants_df.loc[:, "TruthSetOrNegativeLocus"] = "TruthSet"
-
     output_path = os.path.basename(args.truth_set_variants_tsv).replace(".tsv", ".for_comparison.tsv")
     write_to_tsv(truth_set_variants_df, os.path.join(args.output_dir, output_path))
 
+    # process negative loci
     negative_loci_df = pd.read_table(args.negative_loci_tsv, low_memory=False, nrows=args.n, dtype={"Chrom": str})
     trim_end_column(negative_loci_df)
     negative_loci_df.loc[:, "TruthSetOrNegativeLocus"] = "NegativeLocus"
@@ -148,13 +153,13 @@ def main():
 
 def write_to_tsv(df, output_path):
     add_extra_columns(df)
-
     df = df[TSV_HEADER]
-    df.to_csv(output_path, header=True, index=False, sep="\t")
-    print("Output columns:")
+    print(f"Output columns for {output_path}:")
     for column in sorted(df.columns):
         is_nan_count = sum(pd.isna(df[column]))
         print(f"\t{is_nan_count:7,d} of {len(df):,d} ({100*is_nan_count/len(df):5.1f}%) NaN values in {column}")
+
+    df.to_csv(output_path, header=True, index=False, sep="\t")
 
     print(f"Wrote {len(df):,d} rows to {output_path}")
 

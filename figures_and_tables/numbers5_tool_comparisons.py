@@ -6,7 +6,7 @@ df_variants = df_variants[df_variants.IsPureRepeat == "Yes"]
 df_alleles = pd.read_table("STR_truth_set.v1.alleles.tsv.gz")
 df_alleles = df_alleles[df_alleles.IsPureRepeat == "Yes"]
 
-df_alleles_tool_comparison = pd.read_table("./tool_comparison/combined.results.alleles.tsv")
+df_alleles_tool_comparison = pd.read_table("./tool_comparison/combined.results.alleles.tsv.gz")
 df_alleles_tool_comparison = df_alleles_tool_comparison[df_alleles_tool_comparison.IsPureRepeat]
 
 print("\n".join(df_alleles_tool_comparison.columns))

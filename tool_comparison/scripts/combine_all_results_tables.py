@@ -59,7 +59,7 @@ for coverage_label, results_directory in [
 #%%
 
 print(f"Combining {len(alleles_tables)} allele tables..")
-output_path = os.path.join(tool_comparison_base_dir, "combined.results.alleles.tsv")
+output_path = os.path.join(tool_comparison_base_dir, "combined.results.alleles.tsv.gz")
 alleles_df = pd.concat(alleles_tables)
 alleles_df.to_csv(output_path, sep="\t", header=True, index=False)
 print(f"Wrote {len(alleles_df):,d} rows to {output_path}")
@@ -72,7 +72,7 @@ print(alleles_df.groupby(["coverage", "PositiveOrNegative"]).count()[[
 alleles_df = None
 
 print(f"Combining {len(variants_tables)} variant tables..")
-output_path = os.path.join(tool_comparison_base_dir, "combined.results.variants.tsv")
+output_path = os.path.join(tool_comparison_base_dir, "combined.results.variants.tsv.gz")
 variants_df = pd.concat(variants_tables)
 variants_df.to_csv(output_path, sep="\t", header=True, index=False)
 print(f"Wrote {len(variants_df):,d} rows to {output_path}")
@@ -88,14 +88,14 @@ print(variants_df.groupby(["coverage", "PositiveOrNegative"]).count()[[
 variants_df = None
 
 print(f"Combining {len(ehdn_tables)} EHdn tables..")
-output_path = os.path.join(tool_comparison_base_dir, "combined.results.EHdn.tsv")
-edhn_df = pd.concat(ehdn_tables)
-edhn_df.to_csv(output_path, sep="\t", header=True, index=False)
-print(f"Wrote {len(edhn_df):,d} rows to {output_path}")
-print(edhn_df.groupby(["coverage"]).count()[[
+output_path = os.path.join(tool_comparison_base_dir, "combined.results.EHdn.tsv.gz")
+ehdn_df = pd.concat(ehdn_tables)
+ehdn_df.to_csv(output_path, sep="\t", header=True, index=False)
+print(f"Wrote {len(ehdn_df):,d} rows to {output_path}")
+print(ehdn_df.groupby(["coverage"]).count()[[
     "LocusId",
 ]])
-edhn_df = None
+ehdn_df = None
 
 
 

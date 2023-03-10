@@ -9,13 +9,13 @@ from intervaltree import Interval, IntervalTree
 import json
 import os
 import pandas as pd
-from pprint import pprint
 import pybedtools
 import random
 import re
 from str_analysis.utils.canonical_repeat_unit import compute_canonical_motif
 
 random.seed(1)
+
 
 def parse_args():
     p = argparse.ArgumentParser()
@@ -88,7 +88,7 @@ def generate_set_of_positive_loci(truth_set_df):
 def load_all_pure_repeats_in_syndip_confidence_regions(all_repeats_bed_path, high_confidence_repeats_bed_path):
     """Load the bed file containing all pure STR repeats in the reference genome (defined by running a tool like
     TandemRepeatFinder) and filter it to SynDip high-confidence regions.
-    This will be used to define the set of non-variable (ie. negative regions)
+    This will be used to define the set of non-variable loci (ie. negative regions).
     """
 
     # get all pure repeats in GRCh38 that are within syndip high confidence regions

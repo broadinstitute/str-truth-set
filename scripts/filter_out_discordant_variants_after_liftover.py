@@ -137,6 +137,7 @@ def does_variant_have_ref_allele(
 
 def main():
     p = argparse.ArgumentParser()
+    p.add_argument("-p", "--log-prefix", default="", help="Optional prefix string to print at the beginning of every line")
     p.add_argument("-R", "--reference-fasta", help="Reference genome fasta path (this is the target reference to "
                                                    "which all variants have been lifted over)", required=True)
     p.add_argument("post_liftover_vcf", help="Path of a VCF produced by gatk LiftoverVCF")
@@ -190,9 +191,10 @@ def main():
     os.system(f"tabix -f {output_path}.gz")
 
     print(f"Wrote {counter['total variants']} out of {i+1} ({100*counter['total variants']/(i+1):0.1f}%) lines to {output_path}.gz")
-    print("Stats: ")
+    print(f"{args.log_prefix} Stats: ")
     for key, count in sorted(counter.items(), key=lambda x: -x[1]):
-        print(f"    {count:6d} ({100*count/counter['total variants']:5.1f}%) {key}")
+        print(f"{args.log_prefix}    {count:6d} ({100*count/counter['total variants']:5.1f}%) {key}")
+
 
 if __name__ == "__main__":
     main()

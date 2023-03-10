@@ -1,4 +1,5 @@
 import argparse
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -121,12 +122,6 @@ def plot_allele_size_and_motif_distribution(df_truth_set, color_by=None, hue_ord
         df_truth_set = df_truth_set[df_truth_set.IsPureRepeat == "No"]
 
     output_image_name = "allele_size_distribution_by_number_of_repeats_and_motif_size"
-
-    plt.rcParams.update({
-        "legend.fontsize": 12,
-        "ytick.labelsize": 12,
-    })
-
     figure_title = "STR Allele Size Distribution"
     if color_by == "Multiallelic":
         figure_title = "Multiallelic Loci"
@@ -163,17 +158,20 @@ def plot_allele_size_and_motif_distribution(df_truth_set, color_by=None, hue_ord
             ax.set_xticklabels([f"{x}" if x <= 6 or x % 3 == 0 else "" for x in range(2, xlimit + 1, 1)], fontsize=12)
             ax.set_xlim(2 - 0.52, xlimit + 0.52)
 
-        sns.histplot(
-            df_truth_set,
-            x="NumRepeatsAwayFromReference" if i == 0 else "MotifSize",
-            hue=color_by,
-            hue_order=hue_order,
-            binwidth=1,
-            multiple="stack" if not color_by else "fill",
-            stat="proportion",
-            discrete=True,
-            legend=i == 1,
-            ax=ax)
+        with mpl.rc_context({
+            "legend.fontsize": 12, "ytick.labelsize": 12
+        }):
+            sns.histplot(
+                df_truth_set,
+                x="NumRepeatsAwayFromReference" if i == 0 else "MotifSize",
+                hue=color_by,
+                hue_order=hue_order,
+                binwidth=1,
+                multiple="stack" if not color_by else "fill",
+                stat="proportion",
+                discrete=True,
+                legend=i == 1,
+                ax=ax)
 
         if i == 0:
             ax.set_ylabel("Fraction of Alleles", fontsize=14)
@@ -447,34 +445,34 @@ def plot_motif_distribution(df, is_pure_repeats=True, show_title=True):
 
     ax.set_xlabel("# of Repeats in hg38", fontsize=14)
     ax.set_ylabel("Fraction of Alleles", fontsize=14)
-    plt.rcParams.update({
-        "text.usetex": True,
-        "legend.fontsize": 12,
-    })
-    ax.get_legend().set_title("\n".join([
-        "\# of Repeats in",
-        "Truth Set Allele",
-        "Relative to hg38",
-        "$_{contractions\ are\ <\ 0}$",
-        "$_{expansions\ are\ >\ 0}$",
-        "",
-    ]), prop={'size': 14})
-    sns.move_legend(ax, loc=(1.05, 0.15))
-    ax.get_legend()._legend_box.align = "left"
-    ax.get_legend().set_frame_on(False)
+
+    with mpl.rc_context({
+        "text.usetex": True, "legend.fontsize": 12,
+    }):
+        ax.get_legend().set_title("\n".join([
+            "\# of Repeats in",
+            "Truth Set Allele",
+            "Relative to hg38",
+            "$_{contractions\ are\ <\ 0}$",
+            "$_{expansions\ are\ >\ 0}$",
+            "",
+        ]), prop={'size': 14})
+        sns.move_legend(ax, loc=(1.05, 0.15))
+        ax.get_legend()._legend_box.align = "left"
+        ax.get_legend().set_frame_on(False)
 
     output_image_name = "reference_locus_size_distribution"
     if is_pure_repeats:
         output_image_name += ".pure_repeats"
     else:
         output_image_name += ".with_interruptions"
+
     output_image_name += ".svg"
     plt.savefig(f"{output_image_name}", bbox_inches="tight")
     plt.close()
     print(f"Saved {output_image_name}")
 
     print(f"Plotted {len(df):,d} allele records")
-    #plt.rcParams.update({"text.usetex": False})
 
 
 def main():

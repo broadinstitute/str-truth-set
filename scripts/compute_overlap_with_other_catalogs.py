@@ -2,8 +2,6 @@
 genomic regions of interest.
 """
 
-print("compute_overlap_with_other_catalogs.py v1.1")
-
 import argparse
 import collections
 from intervaltree import Interval, IntervalTree
@@ -35,6 +33,8 @@ GENOMIC_REGIONS = {
 
 MAX_NO_OVERLAP_EXAMPLES = 10
 
+NUCLEOTIDE_REGEXP = re.compile("^[ACGTNRYSWKMBDHV]+$")
+
 
 def parse_bed_row(line_i, line, is_STR_catalog):
     fields = line.strip().split("\t")
@@ -44,10 +44,11 @@ def parse_bed_row(line_i, line, is_STR_catalog):
     repeat_unit = None
     if is_STR_catalog and len(fields) > 3:
         fields[3] = fields[3].replace("(", "").replace(")", "").split("*")[0]
-        if re.match("^[ACGTNRYSWKMBDHV]+$", fields[3]):
+        if NUCLEOTIDE_REGEXP.match(fields[3]):
             repeat_unit = fields[3]
         else:
-            print(f"Unable to parse repeat unit in line {line_i}. Unexpected characters in column 4 '{fields[3]}' in line: {fields}. Discarding repeat unit...")
+            print(f"Unable to parse repeat unit in line {line_i}. Unexpected characters "
+                  f"in column 4 '{fields[3]}' in line: {fields}. Discarding repeat unit...")
 
     return chrom, start_0based, end_1based, repeat_unit
 
@@ -93,7 +94,10 @@ def process_truth_set_row(
     truth_set_locus_interval = Interval(truth_set_row.Start1Based - 1, truth_set_row.End1Based + 0.1)
     a1 = int(truth_set_locus_interval.begin)
     a2 = int(truth_set_locus_interval.end)
-    counters["total:TruthSetLoci"] += 1
+
+    # don't count loci that are not present in the reference since these can't really overlap with the another catalog
+    count_this_locus = "IsFoundInReference" not in truth_set_row.columns or truth_set_row.IsFoundInReference == "Yes"
+    if count_this_locus: counters["total:TruthSetLoci"] += 1
     for other_catalog_label, is_STR_catalog, _ in other_catalogs:
         final_locus_similarity = "no overlap"
         final_motif_similarity = ""
@@ -171,11 +175,13 @@ def process_truth_set_row(
         if is_STR_catalog:
             truth_set_df.at[truth_set_row_idx, locus_similarity_column_name] = final_locus_similarity
             truth_set_df.at[truth_set_row_idx, motif_similarity_column_name] = final_motif_similarity
-            counters[f"overlap:{is_STR_catalog}|{other_catalog_label}|{final_locus_similarity}|{final_motif_similarity}"] += 1
+            if count_this_locus:
+                counters[f"overlap:{is_STR_catalog}|{other_catalog_label}|{final_locus_similarity}|{final_motif_similarity}"] += 1
             bed_filename = f"STR_{other_catalog_label}_{final_locus_similarity}.bed"
         else:
             truth_set_df.at[truth_set_row_idx, locus_similarity_column_name] = "No" if final_locus_similarity == "no overlap" else "Yes"
-            counters[f"overlap:{is_STR_catalog}|{other_catalog_label}|{final_locus_similarity}|"] += 1
+            if count_this_locus:
+                counters[f"overlap:{is_STR_catalog}|{other_catalog_label}|{final_locus_similarity}|"] += 1
             bed_filename = f"region_{other_catalog_label}_{final_locus_similarity}.bed"
 
         if final_locus_similarity == "no overlap":
@@ -285,10 +291,6 @@ def main():
 
     else:
         truth_set_or_bed_df = pd.read_table(args.truth_set_tsv_or_bed_path)
-
-        # exclude novel STR loci (ie. those not present in the reference genome)
-        truth_set_or_bed_df = truth_set_or_bed_df[truth_set_or_bed_df.IsFoundInReference == "Yes"]
-
         if args.only_pure_repeats:
             truth_set_or_bed_df = truth_set_or_bed_df[truth_set_or_bed_df.IsPureRepeat == "Yes"]
         elif args.only_interrupted_repeats:

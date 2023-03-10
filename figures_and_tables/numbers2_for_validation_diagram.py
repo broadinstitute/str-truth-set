@@ -153,10 +153,10 @@ print("-"*100)
 # STR Validation Stats - 3rd row of figure: compare alleles with the T2T reference
 
 kept_het_variants = int(search(
-    f"([0-9,]+) .*kept variants: heterozygous reference genotype", stepA_log_contents).replace(",", ""))
+    f"step4:pure_STR[ ]+([0-9,]+) .*kept variants: heterozygous reference genotype", stepA_log_contents).replace(",", ""))
 
 kept_variants_insertions_that_match_adjacent_reference_sequence = int(search(
-    f"([0-9,]+) .*kept variants: insertion matches the adjacent reference sequence", stepA_log_contents).replace(",", ""))
+    f"step4:pure_STR[ ]+([0-9,]+) .*kept variants: insertion matches the adjacent reference sequence", stepA_log_contents).replace(",", ""))
 
 total_variants_passed_t2t_comparison = int(search(
     f"step4:pure_STR:output:[ ]*([0-9,]+)[ ]* TOTAL variants", stepA_log_contents).replace(",", ""))
@@ -188,7 +188,9 @@ print(f"{format_np(total_variants_passed_liftover_back_to_hg38, total_STR_varian
       "Total passed T2T => hg38 liftover")
 
 total_variants_with_different_position_after_hg38_to_t2t_to_hg38_liftovers = int(search(
-    f"([0-9,]+) .*variants had a different position after hg38 => T2T => hg38", stepA_log_contents).replace(",", ""))
+    f"([0-9,]+) .*variants had a different position after hg38 => T2T => hg38", stepA_log_contents,
+    expected_number_of_matches=2
+).replace(",", ""))
 print(f"{format_n(total_variants_with_different_position_after_hg38_to_t2t_to_hg38_liftovers)} "
       f"variants had a different position after hg38 => T2T => hg38 liftovers")
 

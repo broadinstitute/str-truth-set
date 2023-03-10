@@ -15,6 +15,7 @@ import os
 import re
 
 p = argparse.ArgumentParser()
+p.add_argument("-p", "--log-prefix", default="", help="Optional prefix string to print at the beginning of log lines")
 p.add_argument("-o", "--output-vcf", help="Optional output vcf path for variants that pass checks")
 p.add_argument("vcf_before_liftover", help="Variant calls before hg38 => T2T => hg38 liftover")
 p.add_argument("vcf_after_liftover", help="Variants calls after hg38 => T2T => hg38 liftover")
@@ -30,7 +31,6 @@ else:
 # #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	syndip
 # chr1	248752514	.	M	C	30	.	.	GT:AD	1|1:0,2
 
-#print(f"Parsing {args.vcf_before_liftover}")
 counters = collections.defaultdict(int)
 alleles_before_liftover = set()
 fopen = gzip.open if args.vcf_before_liftover.endswith("gz") else open
@@ -50,7 +50,6 @@ with fopen(args.vcf_before_liftover, "rt") as vcf_file_before_liftover:
             counters['TOTAL alleles before liftover'] += 1
 
 print(f"Parsed {counters['TOTAL variants before liftover']:,d} variants from {args.vcf_before_liftover}")
-#print(f"Parsed {counters['TOTAL alleles before liftover']:,d} alleles from {args.vcf_before_liftover}")
 
 
 fopen = gzip.open if args.vcf_after_liftover.endswith("gz") else open
@@ -91,10 +90,9 @@ os.system(f"bgzip -f {output_path}")
 os.system(f"tabix -f {output_path}.gz")
 
 print(f"Parsed {counters['TOTAL variants after liftover']:,d} variants from {args.vcf_after_liftover}")
-#print(f"Parsed {counters['TOTAL alleles after liftover']:,d} alleles from {args.vcf_after_liftover}")
 
 print(f"Wrote {counters['variants passed']:,d} out of {counters['TOTAL variants before liftover']:,d} "
       f"({100*counters['variants passed']/counters['TOTAL variants before liftover']:0.1f}%) "
       f"variants to {output_path}.gz")
 
-print("    ", counters["variants failed"], "variants had a different position after hg38 => T2T => hg38")
+print(args.log_prefix, "  ", counters["variants failed"], "variants had a different position after hg38 => T2T => hg38")

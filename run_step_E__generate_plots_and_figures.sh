@@ -12,7 +12,9 @@ python3 -u plot_tool_runtime_and_memory.py
 python3 -u plot_expansion_hunter_denovo_results.py
 python3 -u plot_gene_constraint_info.py
 
-python3 -u plot_tool_comparisons.py --verbose
+python3 -u plot_tool_comparisons_percent_exactly_right.py
+python3 -u plot_tool_comparisons_by_motif_size.py
+python3 -u plot_tool_comparisons_by_num_repeats.py --verbose
 
 # upload to gs://str-truth-set/
 gsutil -m cp *.png *.svg   gs://str-truth-set/hg38/figures/
