@@ -71,7 +71,7 @@ def main():
 
         local_repeat_spec = s1.input(repeat_spec_path)
 
-        output_prefix = re.sub(".json$", "", local_repeat_spec.filename)
+        output_prefix = re.sub(".bed$", "", local_repeat_spec.filename)
         s1.command(f"echo Genotyping $(cat {local_repeat_spec} | wc -l) loci")
         s1.command("set -ex")
         s1.command(f"""/usr/bin/time --verbose GangSTR \

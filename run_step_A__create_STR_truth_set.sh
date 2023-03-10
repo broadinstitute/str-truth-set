@@ -314,7 +314,6 @@ do
     "${input_vcf}"
 
 
-
   # compute overlap with various reference annotations
   ./scripts/compute_overlap_with_other_catalogs_using_bedtools.sh ./${STR_type}_truth_set.v1.variants.bed.gz "overlap:${STR_type}"
 
@@ -339,7 +338,6 @@ do
   mv ${output_prefix}.variants.${suffix}.tsv.gz ${output_prefix}.variants.tsv.gz
   mv ${output_prefix}.alleles.${suffix}.tsv.gz ${output_prefix}.alleles.tsv.gz
 
-
   # move files to final output filenames
   final_output_prefix=${STR_type}_truth_set.${version}
 
@@ -352,15 +350,16 @@ do
   mv ${output_prefix}.vcf.gz      ${final_output_prefix}.vcf.gz
   mv ${output_prefix}.vcf.gz.tbi  ${final_output_prefix}.vcf.gz.tbi
 
-  python3 -u tool_comparison/scripts/convert_truth_set_to_variant_catalogs.py \
-    --expansion-hunter-loci-per-run 500 \
-    --gangstr-loci-per-run 10000 \
-    --output-dir ./tool_comparison/variant_catalogs \
-    --high-confidence-regions-bed ./ref/full.38.bed.gz \
-    --all-repeats-bed ./ref/other/repeat_specs_GRCh38_without_mismatches.sorted.trimmed.at_least_9bp.bed.gz \
-    ${STR_type}_truth_set.v1.variants.tsv.gz
-
 done
+
+# generate catalogs
+python3 -u tool_comparison/scripts/convert_truth_set_to_variant_catalogs.py \
+  --expansion-hunter-loci-per-run 500 \
+  --gangstr-loci-per-run 10000 \
+  --output-dir ./tool_comparison/variant_catalogs \
+  --high-confidence-regions-bed ./ref/full.38.bed.gz \
+  --all-repeats-bed ./ref/other/repeat_specs_GRCh38_without_mismatches.sorted.trimmed.at_least_9bp.bed.gz \
+  STR_truth_set.v1.variants.tsv.gz
 
 # compute overlap with various reference annotations for negative loci
 negative_loci_bed_path=tool_comparison/variant_catalogs/negative_loci.bed.gz

@@ -152,7 +152,7 @@ def main():
         suffixes=(f": Truth", f": {args.tool}"))
 
     if len(df_merged) > len(truth_set_df):
-        print(f"WARNING: merged column has {len(df_merged) - len(truth_set_df):,d} more rows than truth set.")
+        raise ValueError(f"Merged table has {len(df_merged) - len(truth_set_df):,d} more rows than the truth set, which has {len(truth_set_df)} rows after merging on {MERGE_KEY_COLUMNS}.")
     elif len(df_merged) == len(truth_set_df):
         print(f"Merged table has the same number of rows ({len(truth_set_df):,d}) as the truth set.")
     else:

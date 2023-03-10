@@ -24,22 +24,6 @@ with open("step_A.log", "rt") as f:
     stepA_log_contents = f.read()
 
 #%%
-print("-"*100)
-print("Numbers for intro:")
-print("-"*100)
-total = len(df_variants[df_variants.IsFoundInReference == "Yes"])
-percent_missed_by_gangstr_catalog = search(
-    f"GangSTRCatalog17.*{total:,d} [(][ ]+([0-9]+[.][0-9]+)[%][)].* truth set loci:.*no overlap",
-    stepA_log_contents)
-print(f"{percent_missed_by_gangstr_catalog}% missed by GangSTR catalog")
-
-percent_missed_by_illumina_catalog = search(
-    f"IlluminaSTRCatalog.*{total:,d} [(][ ]+([0-9]+[.][0-9]+)[%][)].* truth set loci:.*no overlap",
-    stepA_log_contents)
-print(f"{percent_missed_by_illumina_catalog}% missed by ExpansionHunter catalog")
-
-
-#%%
 
 print("-"*100)
 # STR alleles > 30bp relative to reference
@@ -54,6 +38,32 @@ print(f"{format_np(sum(bp_diff_from_ref > 60), len(df_alleles))}    STR alleles 
 #%%
 
 print("-"*100)
+print("Numbers for intro:")
+print("-"*100)
+total = len(df_variants[df_variants.IsFoundInReference == "Yes"])
+percent_missed_by_gangstr_catalog = search(
+    f"GangSTRCatalog17.*{total:,d} [(][ ]+([0-9]+[.][0-9]+)[%][)].* truth set loci:.*no overlap",
+    stepA_log_contents)
+print(f"{percent_missed_by_gangstr_catalog}% missed by GangSTR catalog")
+
+percent_missed_by_illumina_catalog = search(
+    f"IlluminaSTRCatalog.*{total:,d} [(][ ]+([0-9]+[.][0-9]+)[%][)].* truth set loci:.*no overlap",
+    stepA_log_contents)
+print(f"{percent_missed_by_illumina_catalog}% missed by ExpansionHunter catalog")
+
+percent_missed_by_hipstr_catalog = search(
+    f"HipSTRCatalog.*{total:,d} [(][ ]+([0-9]+[.][0-9]+)[%][)].* truth set loci:.*no overlap",
+    stepA_log_contents)
+print(f"{percent_missed_by_hipstr_catalog}% missed by HipSTR catalog")
+
+percent_missed_by_9bp_catalog = search(
+    f"TRFPureRepeats9bp.*{total:,d} [(][ ]+([0-9]+[.][0-9]+)[%][)].* truth set loci:.*no overlap",
+    stepA_log_contents)
+print(f"{percent_missed_by_9bp_catalog}% missed by TRFPureRepeats9bp catalog")
+
+#%%
+
+print("-"*100)
 
 # Novel STR stats
 is_found_in_reference_counter = collections.Counter(df_variants.IsFoundInReference)
@@ -61,6 +71,9 @@ print(f"{format_np(is_found_in_reference_counter['Yes'], len(df_variants))}    F
 print(f"{format_np(is_found_in_reference_counter['No'], len(df_variants))}    NOVEL STR loci (not found in reference genome)")
 
 assert is_found_in_reference_counter['Yes'] + is_found_in_reference_counter['No'] == len(df_variants)
+
+
+
 #%%
 
 print("-"*100)
@@ -132,6 +145,7 @@ print(f"{format_np(high_confidence_INS_alleles + high_confidence_DEL_alleles, to
 
 print(f"{format_n(total_STR_variants_before_validation_step)} total pure STR variants")
 print(f"{format_np(total_STR_alleles_before_validation_step, total_high_confidence_alleles)} pure STR alleles")
+
 
 #%%
 
