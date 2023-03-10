@@ -281,12 +281,6 @@ def generate_all_distribution_by_num_repeats_plots(df, output_image_dir, max_plo
                             output_image_filename += f".{tool}"
 
                         coverage_label = f"exome data" if coverage == "exome" else f"{coverage} genome data"
-                        num_alleles_exactly_right = sum(df2[f"DiffRepeats: Allele: {tool} - Truth"] == 0)
-
-                        figure_title_line1 += f"{tool} got {num_alleles_exactly_right:,d} out of {len(df2):,d} alleles ({100*num_alleles_exactly_right/len(df2):0.1f}%) exactly right for {coverage_label}"
-                        print(figure_title_line1)
-                        figure_title_line2 += f"Showing results for {len(set(df2.LocusId)):,d} loci (" + ", ".join(filter_description) + f")"
-                        print(figure_title_line2)
 
                         # skip_condition1: HipSTR doesn't support motifs larger than 9bp
                         skip_condition1 = tool == "HipSTR" and motif_size != "STR"
@@ -299,6 +293,12 @@ def generate_all_distribution_by_num_repeats_plots(df, output_image_dir, max_plo
                             elif skip_condition2:
                                 message = "Not enough alleles to create plot"
 
+                            figure_title_line1 += f"{tool} {coverage_label}"
+                            print(figure_title_line1)
+                            #if len(df2) > 0:
+                            #    figure_title_line2 += f"{len(df2):,d} alleles at "
+                            figure_title_line2 += f"{len(set(df2.LocusId)):,d} loci ("+", ".join(filter_description)+")"
+
                             print(f"Skipping..  {message}")
                             plot_empty_image(figure_title_line1 + "\n\n" + figure_title_line2, message)
                             plt.savefig(f"{output_image_dir}/{output_image_filename}.svg")
@@ -306,7 +306,12 @@ def generate_all_distribution_by_num_repeats_plots(df, output_image_dir, max_plo
                             plt.close()
                             continue
 
+                        num_alleles_exactly_right = sum(df2[f"DiffRepeats: Allele: {tool} - Truth"] == 0)
                         print("Keeping", len(df2), "out of ", len(df), "rows")
+                        figure_title_line1 += f"{tool} got {num_alleles_exactly_right:,d} out of {len(df2):,d} alleles ({100*num_alleles_exactly_right/len(df2):0.1f}%) exactly right for {coverage_label}"
+                        print(figure_title_line1)
+                        figure_title_line2 += f"Showing results for {len(set(df2.LocusId)):,d} loci (" + ", ".join(filter_description) + f")"
+                        print(figure_title_line2)
 
                         print(tool, sum(df2[f"DiffFromRefRepeats: Allele: {tool}"].isna()), "out of", len(df2), f"{tool} - Ref' values are NaN")
                         print(tool, sum(df2[f"DiffRepeats: Allele: {tool} - Truth"].isna()), "out of", len(df2), f"{tool} - Truth' values are NaN")

@@ -96,7 +96,7 @@ def process_truth_set_row(
     a2 = int(truth_set_locus_interval.end)
 
     # don't count loci that are not present in the reference since these can't really overlap with the another catalog
-    count_this_locus = "IsFoundInReference" not in truth_set_row.columns or truth_set_row.IsFoundInReference == "Yes"
+    count_this_locus = not hasattr(truth_set_row, "IsFoundInReference") or truth_set_row.IsFoundInReference == "Yes"
     if count_this_locus: counters["total:TruthSetLoci"] += 1
     for other_catalog_label, is_STR_catalog, _ in other_catalogs:
         final_locus_similarity = "no overlap"

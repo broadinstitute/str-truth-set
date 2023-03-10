@@ -9,7 +9,7 @@ df_alleles = df_alleles[df_alleles.IsPureRepeat == "Yes"]
 df_alleles_tool_comparison = pd.read_table("./tool_comparison/combined.results.alleles.tsv.gz")
 df_alleles_tool_comparison = df_alleles_tool_comparison[df_alleles_tool_comparison.IsPureRepeat]
 
-print("\n".join(df_alleles_tool_comparison.columns))
+#print("\n".join(df_alleles_tool_comparison.columns))
 
 #%%
 
