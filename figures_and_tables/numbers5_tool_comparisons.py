@@ -33,7 +33,7 @@ df_alleles_tool_comparison_filtered = df_alleles_tool_comparison[
 for tool in ["ExpansionHunter", "GangSTR", "HipSTR"]:
     for coverage in "40x", "20x", "10x", "05x":
         df_alleles_tool_comparison_filtered_by_coverage = df_alleles_tool_comparison_filtered[
-            (df_alleles_tool_comparison.coverage == coverage) &
+            (df_alleles_tool_comparison["Coverage"] == coverage) &
             (df_alleles_tool_comparison["DiffFromRefRepeats: Allele: Truth"] != 0)
         ]
         column = f"DiffRepeats: Allele: {tool} - Truth"
@@ -49,7 +49,7 @@ for tool in ["ExpansionHunter", "GangSTR", "HipSTR"]:
 
 #%%
 df_alleles_tool_comparison_filtered_by_coverage = df_alleles_tool_comparison_filtered[
-    (df_alleles_tool_comparison.coverage == "40x") &
+    (df_alleles_tool_comparison["Coverage"] == "40x") &
     (df_alleles_tool_comparison["DiffFromRefRepeats: Allele: Truth"] != 0)
 ]
 print("% STR truth set loci not called by HipSTR")

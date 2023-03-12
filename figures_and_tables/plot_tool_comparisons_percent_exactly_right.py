@@ -26,7 +26,7 @@ def bin_num_repeats_wrapper(bin_size=1):
 
         sign = "-" if num_repeats < 0 else "+"
         num_repeats = abs(num_repeats)
-        if row["coverage"] == "exome":
+        if row["Coverage"] == "exome":
             if 13 <= num_repeats:
                 return f"{sign}13 or more"
         else:
@@ -70,7 +70,7 @@ def compute_tables_for_fraction_exactly_right_plots(df, coverage_values=("40x", 
         for tool in ("ExpansionHunter", "GangSTR", "HipSTR"):
 
             df_current = df.copy()
-            df_current = df_current[df_current["coverage"] == coverage]
+            df_current = df_current[df_current["Coverage"] == coverage]
 
             df_tool, overall_fraction_exactly_right = compute_fraction_exactly_right(df_current, tool)
             df_tool.loc[:, "tool"] = f"{tool}: {coverage} coverage" if len(coverage_values) > 1 else tool
@@ -198,12 +198,12 @@ def main():
 
     if args.verbose:
         print("Num loci:")
-        print(df.groupby(["PositiveOrNegative", "coverage", "IsPureRepeat"]).count().LocusId/2)
+        print(df.groupby(["PositiveOrNegative", "Coverage", "IsPureRepeat"]).count().LocusId/2)
 
     if args.exclude_hipstr_no_call_loci:
-        count_before = len(set(df[df["coverage"] == "40x"].LocusId))
+        count_before = len(set(df[df["Coverage"] == "40x"].LocusId))
         df = df[~df[f"DiffRepeats: Allele: HipSTR - Truth"].isna()]
-        count_discarded = count_before - len(set(df[df["coverage"] == "40x"].LocusId))
+        count_discarded = count_before - len(set(df[df["Coverage"] == "40x"].LocusId))
         print(f"Discarded {count_discarded:,d} out of {count_before:,d} ({100.0*count_discarded/count_before:0.1f}%) "
               f"of loci due to HipSTR no call")
 

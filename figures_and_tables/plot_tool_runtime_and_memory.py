@@ -33,7 +33,7 @@ def generate_plot(with_coverage=False):
     })
 
     if with_coverage:
-        df.loc[:, "coverage"] = df.coverage.replace({"40x genome": "40x"})
+        df.loc[:, "coverage"] = df["coverage"].replace({"40x genome": "40x"})
         df.loc[:, "tool_and_coverage"] = df["tool"] + " (" + df["coverage"] + ")"
 
         sort_by = "tool_and_coverage"

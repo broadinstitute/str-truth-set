@@ -30,7 +30,7 @@ def bin_num_repeats_wrapper(bin_size=1):
 
         sign = "-" if num_repeats < 0 else "+"
         num_repeats = abs(num_repeats)
-        if row["coverage"] == "exome":
+        if row["Coverage"] == "exome":
             if 13 <= num_repeats:
                 return f"{sign}13 or more"
         else:
@@ -213,7 +213,7 @@ def generate_all_distribution_by_num_repeats_plots(df, output_image_dir, max_plo
                         figure_title_line2 = ""
 
                         df2 = df.copy()
-                        df2 = df2[(df2["coverage"] == coverage)]
+                        df2 = df2[(df2["Coverage"] == coverage)]
 
                         if coverage == "exome":
                             df2 = df2[~df2["Genotype: GangSTR"].isna() | ~df2["Genotype: ExpansionHunter"].isna()]
@@ -389,7 +389,7 @@ def main():
 
     if args.verbose:
         print("Num loci:")
-        print(df.groupby(["PositiveOrNegative", "coverage", "IsPureRepeat"]).count().LocusId/2)
+        print(df.groupby(["PositiveOrNegative", "Coverage", "IsPureRepeat"]).count().LocusId/2)
 
     print("Computing additional columns...")
     df.loc[:, "DiffFromRefRepeats: Allele: Truth (bin)"] = df.apply(bin_num_repeats_wrapper(bin_size=2), axis=1)

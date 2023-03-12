@@ -3,6 +3,12 @@ import pandas as pd
 
 tool_comparison_base_dir = "tool_comparison"
 
+
+def locus_id_to_region(s):
+    chrom, start_0based, end, motif = s.split("-")
+    return f"{chrom}:{int(start_0based) + 1}-{end}"
+
+
 variants_tables = []
 alleles_tables = []
 ehdn_tables = []
@@ -30,8 +36,10 @@ for coverage_label, results_directory in [
         print(f"Loading {negative_df_path}")
         negative_df = pd.read_table(negative_df_path, dtype=str)
 
-        positive_df.loc[:, "coverage"] = coverage_label
-        negative_df.loc[:, "coverage"] = coverage_label
+        positive_df.loc[:, "Locus"] = positive_df.LocusId.apply(locus_id_to_region)
+        negative_df.loc[:, "Locus"] = negative_df.LocusId.apply(locus_id_to_region)
+        positive_df.loc[:, "Coverage"] = coverage_label
+        negative_df.loc[:, "Coverage"] = coverage_label
         positive_df.loc[:, "PositiveOrNegative"] = "positive"
         negative_df.loc[:, "PositiveOrNegative"] = "negative"
 
@@ -51,7 +59,7 @@ for coverage_label, results_directory in [
 
         print(f"Loading {ehdn_table_path}")
         ehdn_df = pd.read_table(ehdn_table_path, dtype=str)
-        ehdn_df.loc[:, "coverage"] = coverage_label
+        ehdn_df.loc[:, "Coverage"] = coverage_label
         ehdn_tables.append(ehdn_df)
         print(f"    Added {len(ehdn_df):,d} EHdn calls")
 
@@ -63,7 +71,7 @@ output_path = os.path.join(tool_comparison_base_dir, "combined.results.alleles.t
 alleles_df = pd.concat(alleles_tables)
 alleles_df.to_csv(output_path, sep="\t", header=True, index=False)
 print(f"Wrote {len(alleles_df):,d} rows to {output_path}")
-print(alleles_df.groupby(["coverage", "PositiveOrNegative"]).count()[[
+print(alleles_df.groupby(["Coverage", "PositiveOrNegative"]).count()[[
     "LocusId",
     "DiffRepeats: Allele: ExpansionHunter - Truth",
     "DiffRepeats: Allele: GangSTR - Truth",
@@ -76,7 +84,7 @@ output_path = os.path.join(tool_comparison_base_dir, "combined.results.variants.
 variants_df = pd.concat(variants_tables)
 variants_df.to_csv(output_path, sep="\t", header=True, index=False)
 print(f"Wrote {len(variants_df):,d} rows to {output_path}")
-print(variants_df.groupby(["coverage", "PositiveOrNegative"]).count()[[
+print(variants_df.groupby(["Coverage", "PositiveOrNegative"]).count()[[
     "LocusId",
     "DiffRepeats: Allele 1: ExpansionHunter - Truth",
     "DiffRepeats: Allele 1: GangSTR - Truth",
@@ -92,7 +100,7 @@ output_path = os.path.join(tool_comparison_base_dir, "combined.results.EHdn.tsv.
 ehdn_df = pd.concat(ehdn_tables)
 ehdn_df.to_csv(output_path, sep="\t", header=True, index=False)
 print(f"Wrote {len(ehdn_df):,d} rows to {output_path}")
-print(ehdn_df.groupby(["coverage"]).count()[[
+print(ehdn_df.groupby(["Coverage"]).count()[[
     "LocusId",
 ]])
 ehdn_df = None

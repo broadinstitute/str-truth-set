@@ -96,7 +96,7 @@ def plot_distribution_by_motif_size(df, figure_title, output_image_path, show_ti
 def generate_all_distribution_by_motif_size_plots(df, output_image_dir, max_plots=None):
     plot_counter = 0
     for coverage in "40x", "30x", "20x", "10x", "05x", "exome":
-        df_current = df[df["coverage"] == coverage]
+        df_current = df[df["Coverage"] == coverage]
 
         coverage_label = f"Exome Data" if coverage == "exome" else f"{coverage} Coverage WGS Data"
 
