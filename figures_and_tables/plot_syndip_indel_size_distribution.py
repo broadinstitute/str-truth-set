@@ -54,8 +54,6 @@ def main():
             ref = fields[3]
             alts = fields[4].split(",")
             for alt in alts:
-                #if len(alts) > 1:
-                #    print("ERROR:", line)
                 indel_size = len(alt) - len(ref)
                 if indel_size == 0:
                     continue
