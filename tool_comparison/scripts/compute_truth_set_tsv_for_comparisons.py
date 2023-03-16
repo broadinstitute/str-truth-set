@@ -113,10 +113,6 @@ def main():
     truth_set_variants_df.loc[:, "LocusId"] = truth_set_variants_df["LocusId"].str.replace("^chr", "", regex=True)
     trim_end_column(truth_set_variants_df)
 
-    # convert "Yes"/"No" columns to boolean
-    for column_name in "IsPureRepeat", "IsFoundInReference", "IsMultiallelic", "OverlapsSegDupIntervals":
-        truth_set_variants_df.loc[:, column_name] = truth_set_variants_df[column_name] == "Yes"
-
     output_path = os.path.basename(args.truth_set_variants_tsv).replace(".tsv", ".for_comparison.tsv")
     write_to_tsv(truth_set_variants_df, os.path.join(args.output_dir, output_path))
 

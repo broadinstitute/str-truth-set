@@ -62,7 +62,7 @@ def plot_truth_set_overlap_with_ehdn_calls(show_title=True):
 
     truth_set_df = pd.read_table("~/code/str-truth-set/tool_comparison/results/expansion_hunter_denovo/"
                                  "CHM1_CHM13_WGS2.truth_set_EHdn_comparison_table.tsv")
-    truth_set_df = truth_set_df[truth_set_df["IsPureRepeat"] == "Yes"]
+    truth_set_df = truth_set_df[truth_set_df["IsPureRepeat"]]
 
     truth_set_df.loc[:, "MotifSize bin"] = truth_set_df.MotifSize.apply(compute_motif_size_bin)
     truth_set_df.loc[:, x_column] = truth_set_df["RepeatSizeLongAllele (bp)"].apply(bin_repeat_size_bp)

@@ -3,7 +3,7 @@ import pandas as pd
 from figures_and_tables.numbers_utils import format_np
 
 df_variants = pd.read_table("STR_truth_set.v1.variants.tsv.gz")
-df_variants = df_variants[df_variants.IsPureRepeat == "Yes"]
+df_variants = df_variants[df_variants.IsPureRepeat]
 
 #print("\n".join(df_variants.columns))
 columns = ["OverlapsIlluminaSTRCatalog: Locus",

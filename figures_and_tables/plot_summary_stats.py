@@ -13,9 +13,9 @@ sns.set_context("paper", font_scale=1.1, rc={
 
 def plot_allele_size_distribution(df_truth_set, plot_type=1, color_by=None, hue_order=None, is_pure_repeats=True, show_title=True):
     if is_pure_repeats:
-        df_truth_set = df_truth_set[df_truth_set.IsPureRepeat == "Yes"]
+        df_truth_set = df_truth_set[df_truth_set.IsPureRepeat]
     else:
-        df_truth_set = df_truth_set[df_truth_set.IsPureRepeat == "No"]
+        df_truth_set = df_truth_set[~df_truth_set.IsPureRepeat]
 
     binwidth = None
     discrete = None
@@ -117,9 +117,9 @@ def plot_allele_size_distribution(df_truth_set, plot_type=1, color_by=None, hue_
 
 def plot_allele_size_and_motif_distribution(df_truth_set, color_by=None, hue_order=None, is_pure_repeats=True, show_title=True):
     if is_pure_repeats:
-        df_truth_set = df_truth_set[df_truth_set.IsPureRepeat == "Yes"]
+        df_truth_set = df_truth_set[df_truth_set.IsPureRepeat]
     else:
-        df_truth_set = df_truth_set[df_truth_set.IsPureRepeat == "No"]
+        df_truth_set = df_truth_set[~df_truth_set.IsPureRepeat]
 
     output_image_name = "allele_size_distribution_by_number_of_repeats_and_motif_size"
     figure_title = "STR Allele Size Distribution"
@@ -201,7 +201,7 @@ def plot_allele_size_and_motif_distribution(df_truth_set, color_by=None, hue_ord
 
 
 def plot_gene_info(df, excluding_introns_and_intergenic=False, use_MANE_genes=False, show_title=True):
-    df = df[df.IsPureRepeat == "Yes"]
+    df = df[df.IsPureRepeat]
 
     if use_MANE_genes:
         gene_region_column = "GeneRegionFromMane_V1"
@@ -300,9 +300,9 @@ def plot_allele_size_distribution_x3(df, is_pure_repeats=True, color_by=None, hu
 
     """Plot allele size distribution split into 3 plots by motif size ranges"""
     if is_pure_repeats:
-        df = df[df.IsPureRepeat == "Yes"]
+        df = df[df.IsPureRepeat]
     else:
-        df = df[df.IsPureRepeat == "No"]
+        df = df[~df.IsPureRepeat]
 
     fig, axes = plt.subplots(ncols=3, figsize=(30, 10), dpi=120, sharey=True)
 
@@ -381,9 +381,9 @@ def plot_allele_size_distribution_x3(df, is_pure_repeats=True, color_by=None, hu
 def plot_motif_distribution(df, is_pure_repeats=True, show_title=True):
     print("Plotting allele distribution by motif size")
     if is_pure_repeats:
-        df = df[df.IsPureRepeat == "Yes"]
+        df = df[df.IsPureRepeat]
     else:
-        df = df[df.IsPureRepeat == "No"]
+        df = df[~df.IsPureRepeat]
 
     hue_limit = 5
     df.loc[:, "NumRepeatsAwayFromReferenceTruncated"] = df["NumRepeatsAwayFromReference"]
@@ -491,8 +491,10 @@ def main():
     print(f"Parsed {len(df):,d} rows from {input_table_path}")
 
     df = df.rename(columns={"IsMultiallelic": "Multiallelic"})
-    df.loc[:, "NumRepeatsAwayFromReference"] = df.NumRepeats - df.NumRepeatsInReference
-    df.loc[:, "NumBasePairsAwayFromReference"] = df.NumRepeatsAwayFromReference * df.MotifSize
+    df["NumRepeatsAwayFromReference"] = df.NumRepeats - df.NumRepeatsInReference
+    df["NumBasePairsAwayFromReference"] = df.NumRepeatsAwayFromReference * df.MotifSize
+    df["Multiallelic"] = df["Multiallelic"].replace({True: "Yes", False: "No"})
+    df["OverlapsSegDupIntervals"] = df["OverlapsSegDupIntervals"].replace({True: "Yes", False: "No"})
 
     if not args.skip_plot1:
         plot_allele_size_distribution(df, plot_type=1, is_pure_repeats=True)

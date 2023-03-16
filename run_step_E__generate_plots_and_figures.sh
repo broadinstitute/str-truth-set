@@ -21,6 +21,7 @@ python3 -u plot_expansion_hunter_denovo_results.py
 python3 -u plot_gene_constraint_info.py
 
 python3 -u plot_tool_comparisons_percent_exactly_right.py
+python3 -u plot_tool_comparisons_percent_exactly_right.py --exclude-hipstr-no-call-loci
 python3 -u plot_tool_comparisons_by_motif_size.py
 python3 -u plot_tool_comparisons_by_num_repeats.py --verbose
 

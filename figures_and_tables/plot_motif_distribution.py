@@ -92,14 +92,14 @@ def main():
               title=f"Motifs of Pure STR Loci in hg38")
 
     df = pd.read_table("../STR_truth_set.v1.variants.tsv.gz")
-    df_pure = df[df["IsPureRepeat"] == "Yes"]
+    df_pure = df[df["IsPureRepeat"]]
     df_pure = add_columns(df_pure, existing_motif_labels=set(df_ref.MotifLabels))
     print(f"Plotting motifs from {len(df_pure):,d} pure truth set loci")
     plot_hist(df_pure, f"motif_distribution.pure_repeats.svg",
               y_label="Fraction of Pure STR Variants in Truth Set",
               title="Motifs of STR Variants In Truth Set")
 
-    df_with_interruptions = df[df["IsPureRepeat"] == "No"]
+    df_with_interruptions = df[~df["IsPureRepeat"]]
     df_with_interruptions = add_columns(df_with_interruptions)
     print(f"Plotting motifs from {len(df_with_interruptions):,d} truth set loci with interruptions")
     plot_hist(df_with_interruptions, f"motif_distribution.with_interruptions.svg",

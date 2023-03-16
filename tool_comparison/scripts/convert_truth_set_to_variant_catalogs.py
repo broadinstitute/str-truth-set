@@ -222,7 +222,7 @@ def main():
                                      dtype={"Chrom": str, "Start0Based": int, "End1Based": int, "Motif": str})
 
         truth_set_df.loc[:, "Start1Based"] = truth_set_df.Start0Based + 1
-        truth_set_df.loc[:, "IsFoundInReference"] = "Yes"
+        truth_set_df.loc[:, "IsFoundInReference"] = True
     else:
         # Read in STR truth set
         truth_set_df = pd.read_table(args.truth_set_variants_tsv_or_bed_path)
@@ -231,7 +231,7 @@ def main():
 
     # Must be found in reference for EH and GangSTR to work
     length_before = len(truth_set_df)
-    truth_set_df = truth_set_df[truth_set_df["IsFoundInReference"] == "Yes"]
+    truth_set_df = truth_set_df[truth_set_df["IsFoundInReference"]]
     if length_before > len(truth_set_df):
         print(f"Discarded {length_before - len(truth_set_df):,d} loci without matching repeats in the reference")
 

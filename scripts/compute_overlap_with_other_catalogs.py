@@ -96,7 +96,7 @@ def process_truth_set_row(
     a2 = int(truth_set_locus_interval.end)
 
     # don't count loci that are not present in the reference since these can't really overlap with the another catalog
-    count_this_locus = not hasattr(truth_set_row, "IsFoundInReference") or truth_set_row.IsFoundInReference == "Yes"
+    count_this_locus = not hasattr(truth_set_row, "IsFoundInReference") or truth_set_row.IsFoundInReference
     if count_this_locus: counters["total:TruthSetLoci"] += 1
     for other_catalog_label, is_STR_catalog, _ in other_catalogs:
         final_locus_similarity = "no overlap"
@@ -179,7 +179,7 @@ def process_truth_set_row(
                 counters[f"overlap:{is_STR_catalog}|{other_catalog_label}|{final_locus_similarity}|{final_motif_similarity}"] += 1
             bed_filename = f"STR_{other_catalog_label}_{final_locus_similarity}.bed"
         else:
-            truth_set_df.at[truth_set_row_idx, locus_similarity_column_name] = "No" if final_locus_similarity == "no overlap" else "Yes"
+            truth_set_df.at[truth_set_row_idx, locus_similarity_column_name] = final_locus_similarity != "no overlap"
             if count_this_locus:
                 counters[f"overlap:{is_STR_catalog}|{other_catalog_label}|{final_locus_similarity}|"] += 1
             bed_filename = f"region_{other_catalog_label}_{final_locus_similarity}.bed"
@@ -292,9 +292,9 @@ def main():
     else:
         truth_set_or_bed_df = pd.read_table(args.truth_set_tsv_or_bed_path)
         if args.only_pure_repeats:
-            truth_set_or_bed_df = truth_set_or_bed_df[truth_set_or_bed_df.IsPureRepeat == "Yes"]
+            truth_set_or_bed_df = truth_set_or_bed_df[truth_set_or_bed_df.IsPureRepeat]
         elif args.only_interrupted_repeats:
-            truth_set_or_bed_df = truth_set_or_bed_df[truth_set_or_bed_df.IsPureRepeat == "No"]
+            truth_set_or_bed_df = truth_set_or_bed_df[~truth_set_or_bed_df.IsPureRepeat]
 
     if args.only_2to6bp_motifs:
         truth_set_or_bed_df = truth_set_or_bed_df[truth_set_or_bed_df.MotifSize <= 6]

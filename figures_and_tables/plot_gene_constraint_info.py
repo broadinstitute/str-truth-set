@@ -145,7 +145,7 @@ def main():
     print(f"Loaded {len(known_pathogenic_df):,d} coding known disease-associated STR loci")
 
     truth_set_df = pd.read_table("../STR_truth_set.v1.alleles.tsv.gz")
-    truth_set_df = truth_set_df[truth_set_df["IsPureRepeat"] == "Yes"]
+    truth_set_df = truth_set_df[truth_set_df["IsPureRepeat"]]
     truth_set_df = truth_set_df.set_index("GeneIdFromMane_V1")
     truth_set_df = truth_set_df[truth_set_df.GeneRegionFromMane_V1 == "CDS"]
     print(f"Loaded {len(truth_set_df):,d} truth set loci that overlap MANE v1 coding regions")

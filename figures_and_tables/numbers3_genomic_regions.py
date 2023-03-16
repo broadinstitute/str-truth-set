@@ -3,13 +3,13 @@ import pandas as pd
 from figures_and_tables.numbers_utils import format_np
 
 df_variants = pd.read_table("STR_truth_set.v1.variants.tsv.gz")
-df_variants = df_variants[df_variants.IsPureRepeat == "Yes"]
+df_variants = df_variants[df_variants.IsPureRepeat]
 df_alleles = pd.read_table("STR_truth_set.v1.alleles.tsv.gz")
-df_alleles = df_alleles[df_alleles.IsPureRepeat == "Yes"]
+df_alleles = df_alleles[df_alleles.IsPureRepeat]
 
 #%%
 
-num_STRs_overlap_segdups = sum(df_variants.OverlapsSegDupIntervals == 'Yes')
+num_STRs_overlap_segdups = sum(df_variants.OverlapsSegDupIntervals)
 print(f"{format_np(num_STRs_overlap_segdups, len(df_variants))}    STR loci overlap segdups")
 
 for gene_region_column in "GeneRegionFromGencode_V42", "GeneRegionFromMane_V1":
@@ -31,9 +31,9 @@ print(df_MANE_CDS_alleles_not_multiple_of_3bp[["Locus", "MotifSize", "Motif", "R
 
 #%%
 
-print(format_np(len(df_variants[df_variants.IsFoundInReference != "Yes"]), len(df_variants)), "are novel STR loci")
-print(format_np(len(df_variants[df_variants.IsFoundInReference == "Yes"]), len(df_variants)), "of STRs exist in the hg38")
-print("Gene regions of novel variants: ", set(df_variants[df_variants.IsFoundInReference != "Yes"].GeneRegionFromGencode_V42))
+print(format_np(len(df_variants[~df_variants.IsFoundInReference]), len(df_variants)), "are novel STR loci")
+print(format_np(len(df_variants[df_variants.IsFoundInReference]), len(df_variants)), "of STRs exist in the hg38")
+print("Gene regions of novel variants: ", set(df_variants[~df_variants.IsFoundInReference].GeneRegionFromGencode_V42))
 #%%
 
 

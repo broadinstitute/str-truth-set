@@ -5,11 +5,12 @@ import pandas as pd
 from figures_and_tables.numbers_utils import format_n, format_np, search
 
 df_variants = pd.read_table("STR_truth_set.v1.variants.tsv.gz")
-df_variants_with_interruptions = df_variants[df_variants.IsPureRepeat == "No"]
-df_variants = df_variants[df_variants.IsPureRepeat == "Yes"]
+df_variants_with_interruptions = df_variants[~df_variants.IsPureRepeat]
+df_variants = df_variants[df_variants.IsPureRepeat]
+
 df_alleles = pd.read_table("STR_truth_set.v1.alleles.tsv.gz")
-df_alleles_with_interruptions = df_alleles[df_alleles.IsPureRepeat == "No"]
-df_alleles = df_alleles[df_alleles.IsPureRepeat == "Yes"]
+df_alleles_with_interruptions = df_alleles[~df_alleles.IsPureRepeat]
+df_alleles = df_alleles[df_alleles.IsPureRepeat]
 
 #%%
 print("Paper: Abstract")
@@ -49,7 +50,7 @@ print(f"{format_np(sum(bp_diff_from_ref > 60), len(df_alleles))}    STR alleles 
 print("-"*100)
 print("Numbers for intro:")
 print("-"*100)
-total = len(df_variants[df_variants.IsFoundInReference == "Yes"])
+total = len(df_variants[df_variants.IsFoundInReference])
 percent_missed_by_gangstr_catalog = search(
     f"GangSTRCatalog17.*{total:,d} [(][ ]+([0-9]+[.][0-9]+)[%][)].* truth set loci:.*no overlap",
     stepA_log_contents)
@@ -76,10 +77,10 @@ print("-"*100)
 
 # Novel STR stats
 is_found_in_reference_counter = collections.Counter(df_variants.IsFoundInReference)
-print(f"{format_np(is_found_in_reference_counter['Yes'], len(df_variants))}    FOUND IN REF STR loci (found in reference genome)")
-print(f"{format_np(is_found_in_reference_counter['No'], len(df_variants))}    NOVEL STR loci (not found in reference genome)")
+print(f"{format_np(is_found_in_reference_counter[True], len(df_variants))}    FOUND IN REF STR loci (found in reference genome)")
+print(f"{format_np(is_found_in_reference_counter[False], len(df_variants))}    NOVEL STR loci (not found in reference genome)")
 
-assert is_found_in_reference_counter['Yes'] + is_found_in_reference_counter['No'] == len(df_variants)
+assert is_found_in_reference_counter[True] + is_found_in_reference_counter[False] == len(df_variants)
 
 
 
@@ -101,7 +102,6 @@ total_high_confidence_multiallelic_variants = total_high_confidence_variants - (
     total_high_confidence_monoallelic_INS_variants +
     total_high_confidence_monoallelic_DEL_variants)
 
-
 total_alleles = int(search(f"step1:input:[ ]*([0-9,]+)[ ]* TOTAL alleles", stepA_log_contents).replace(",", ""))
 total_high_confidence_alleles = int(search(f"step1:output:[ ]*([0-9,]+)[ ]* TOTAL alleles", stepA_log_contents).replace(",", ""))
 
@@ -111,6 +111,11 @@ high_confidence_DEL_alleles = int(search(f"step1:output:[ ]*([0-9,]+) out of[ ]*
 
 total_STR_variants_before_validation_step = int(search(f"step2:pure_STR:output:[ ]*([0-9,]+)[ ]* TOTAL variants", stepA_log_contents).replace(",", ""))
 total_STR_alleles_before_validation_step = int(search(f"step2:pure_STR:output:[ ]*([0-9,]+)[ ]* TOTAL alleles", stepA_log_contents).replace(",", ""))
+
+total_multiallelic_STR_variants_before_validation_step = 0
+for label in "multiallelic INS", "multiallelic DEL", "mixed multiallelic INS/DEL":
+    total_multiallelic_STR_variants_before_validation_step += int(
+        search(f"step2:pure_STR:output:[ ]*([0-9,]+)[ ]* out of[ ]* {total_STR_variants_before_validation_step:,d}.* {label} variants", stepA_log_contents).replace(",", ""))
 
 
 total_high_confidence_multiallelic_INS_variants = int(search(f"step1:output:[ ]*([0-9,]+)[ ]* out of[ ]* {total_high_confidence_variants:,d}.*[)] multiallelic INS variants", stepA_log_contents).replace(",", ""))
@@ -155,11 +160,13 @@ print(f"{format_np(high_confidence_INS_alleles + high_confidence_DEL_alleles, to
 print(f"{format_n(total_STR_variants_before_validation_step)} total pure STR variants")
 print(f"{format_np(total_STR_alleles_before_validation_step, total_high_confidence_alleles)} pure STR alleles")
 
+print(f"{format_np(total_multiallelic_STR_variants_before_validation_step, total_STR_variants_before_validation_step)} " 
+      "multiallelic STR variants before validation")
 
 #%%
 
 is_multiallelic_counter = collections.Counter(df_variants.IsMultiallelic)
-total_multiallelic_STR_variants = is_multiallelic_counter["Yes"]
+total_multiallelic_STR_variants = is_multiallelic_counter[True]
 
 print("Fraction of STRs that is multi-allelic: ")
 print(f"{format_np(total_multiallelic_STR_variants, len(df_variants))} fraction multiallelic STR variants")
