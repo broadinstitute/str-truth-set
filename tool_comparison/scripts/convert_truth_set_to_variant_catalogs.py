@@ -5,16 +5,21 @@ number of loci from other places in the genome to use as true-negatives.
 
 import argparse
 import collections
-from intervaltree import Interval, IntervalTree
 import json
 import os
 import pandas as pd
 import pybedtools
 import random
 import re
+
 from str_analysis.utils.canonical_repeat_unit import compute_canonical_motif
 
-random.seed(1)
+
+"""This threshold defines how far away an STR locus must be from any indels in the syndip truth set before it is 
+considered a negative (ie. non-variant locus).
+"""
+
+MIN_DISTANCE_TO_INDELS_AROUND_NEGATIVE_LOCI = 100  # base pairs
 
 
 def parse_args():
@@ -23,9 +28,12 @@ def parse_args():
                    "The set of all STR loci in the truth set will be split into variant catalogs of this size.")
     p.add_argument("--gangstr-loci-per-run", type=int, default=10000, help="GangSTR batch size. "
                    "The set of all STR loci in the truth set will be split into repeat spec files of this size.")
-    p.add_argument("--high-confidence-regions-bed", default="./ref/full.38.bed.gz",
+    p.add_argument("--syndip-high-confidence-regions-bed", default="./ref/full.38.bed.gz",
                     help="Path of the SynDip high-confidence regions .bed file")
-    p.add_argument("--all-repeats-bed", default="./ref/other/repeat_specs_GRCh38_without_mismatches.sorted.trimmed.at_least_9bp.bed.gz",
+    p.add_argument("--syndip-indels-vcf", default="./ref/full.38.INDELs.vcf.gz",
+                   help="Path of the original SynDip vcf")
+    p.add_argument("--truth-set-bed", default="./STR_truth_set.v1.variants.bed.gz")
+    p.add_argument("--all-hg38-repeats-bed", default="./ref/other/repeat_specs_GRCh38_without_mismatches.sorted.trimmed.at_least_9bp.bed.gz",
                    help="Path of bed file containing all repeats in the reference genome generated using a tool like "
                         "TandemRepeatFinder")
     p.add_argument("--skip-negative-loci", action="store_true", help="Skip generating negative loci")
@@ -37,24 +45,30 @@ def parse_args():
                    help="Path of the STR truth set .variants.tsv or of an arbitrary bed file")
     args = p.parse_args()
 
-    for path in args.truth_set_variants_tsv_or_bed_path, args.all_repeats_bed, args.high_confidence_regions_bed:
+    for i, path in enumerate([
+        args.truth_set_variants_tsv_or_bed_path,
+        args.syndip_high_confidence_regions_bed,
+        args.syndip_indels_vcf,
+        args.truth_set_bed,
+        args.all_hg38_repeats_bed,
+    ]):
         if not os.path.isfile(path):
             p.error(f"{path} not found")
-
+        print(f"Input {i+1}: {path}")
     return args
 
 
 def compute_row_key(motif):
-    # above this threshold, stratify loci only by motif size and not hte motif itself
-    if len(motif) == 2:
-        key = (len(motif), motif)
-    elif len(motif) == 3 or len(motif) == 4:
+    if len(motif) <= 4:
+        # stratify loci only by their canonical motif
         canonical_motif = compute_canonical_motif(motif, include_reverse_complement=True)
         key = (len(canonical_motif), canonical_motif)
-    elif len(motif) > 30:
-        key = (30, None)
-    else:
+    elif len(motif) <= 24:
+        # above 4 repeats, stratify loci only by motif size and not the motif itself
         key = (len(motif), None)
+    else:
+        # group motifs of size 25bp or larger into one bin
+        key = (25, None)
 
     return key
 
@@ -66,71 +80,51 @@ def generate_set_of_positive_loci(truth_set_df):
 
     positive_loci = set()  # loci with STR variants in CHM1-CHM13
     positive_loci_counters = collections.defaultdict(int)
-    truth_set_loci_interval_trees = collections.defaultdict(IntervalTree)
     for _, row in truth_set_df.iterrows():
         motif = row.Motif
-        chrom = row.Chrom.replace("chr", "")
+        chrom = row.Chrom
         start_0based = int(row.Start1Based) - 1
         end = int(row.End1Based)
-        end -= (end - start_0based) % len(motif)
-        if end != int(row.End1Based):
-            print("Trimmed", row)
+        if (end - start_0based) % len(motif) != 0:
+            raise ValueError(f"{row.to_dict()} reference interval size is not a multiple of the motif")
 
         key = compute_row_key(motif)
         positive_loci.add((chrom, start_0based, end, motif))
         positive_loci_counters[key] += 1
 
-        truth_set_loci_interval_trees[chrom].add(Interval(start_0based, end, data=motif))
-
-    return positive_loci, positive_loci_counters, truth_set_loci_interval_trees
-
-
-def load_all_pure_repeats_in_syndip_confidence_regions(all_repeats_bed_path, high_confidence_repeats_bed_path):
-    """Load the bed file containing all pure STR repeats in the reference genome (defined by running a tool like
-    TandemRepeatFinder) and filter it to SynDip high-confidence regions.
-    This will be used to define the set of non-variable loci (ie. negative regions).
-    """
-
-    # get all pure repeats in GRCh38 that are within syndip high confidence regions
-    pure_repeats_bedtool = pybedtools.BedTool(os.path.expanduser(all_repeats_bed_path))
-    all_pure_repeats_in_syndip_high_confidence_regions_iter = pure_repeats_bedtool.intersect(
-        os.path.expanduser(high_confidence_repeats_bed_path), f=1, wa=True, u=True)
-
-    all_pure_repeats_in_syndip_high_confidence_regions = []
-    for row in all_pure_repeats_in_syndip_high_confidence_regions_iter:
-        motif = row.name
-        chrom = row.chrom.replace("chr", "")
-        start_0based = int(row.start)
-        end = int(row.end)
-        end -= (end - start_0based) % len(motif)
-        if int(end) != int(row.end):
-            print("Trimmed", row)
-
-        all_pure_repeats_in_syndip_high_confidence_regions.append((chrom, start_0based, end, motif))
-
-    return all_pure_repeats_in_syndip_high_confidence_regions
+    return positive_loci, positive_loci_counters
 
 
 def generate_set_of_negative_loci(
-        all_pure_repeats_in_syndip_high_confidence_regions, truth_set_loci_interval_trees, positive_loci_counters):
+        all_hg38_repeats_bed_path,
+        syndip_high_confidence_regions_bed_path,
+        syndip_indels_vcf_path,
+        truth_set_loci_bed_path,
+        positive_loci_counters):
 
-    # shuffle so that negative examples are distributed throughout the genome
-    random.shuffle(all_pure_repeats_in_syndip_high_confidence_regions)
+    pure_repeats_bedtool = pybedtools.BedTool(os.path.expanduser(all_hg38_repeats_bed_path))
+    negative_loci_bedtool = pure_repeats_bedtool.intersect(syndip_high_confidence_regions_bed_path, f=1, wa=True, u=True)
+    negative_loci_bedtool = negative_loci_bedtool.window(syndip_indels_vcf_path, w=MIN_DISTANCE_TO_INDELS_AROUND_NEGATIVE_LOCI, v=True)
+    negative_loci_bedtool = negative_loci_bedtool.intersect(truth_set_loci_bed_path, v=True)
+
+    negative_loci = []
+    for bed_row in negative_loci_bedtool:
+        negative_loci.append(bed_row[:4])
+    random.seed(0)
+
+    # shuffle records to avoid selecting negative loci mostly from chr1
+    random.shuffle(negative_loci)
 
     # compute negative loci
     negative_loci = set()
     negative_loci_counters = collections.defaultdict(int)
     enough_negative_loci = collections.defaultdict(bool)
-    for chrom, start_0based, end, motif in all_pure_repeats_in_syndip_high_confidence_regions:
+    for chrom, start_0based, end, motif in negative_loci:
         key = compute_row_key(motif)
         if enough_negative_loci[key]:
             continue
 
-        # skip variant loci (ie. loci that overlap the truth set)
-        if truth_set_loci_interval_trees[chrom].overlap(Interval(start_0based, end, data=motif)):
-            continue
-
-        negative_loci.add((chrom, start_0based, end, motif))
+        negative_loci.add((chrom, int(start_0based), int(end), motif))
         negative_loci_counters[key] += 1
         if negative_loci_counters[key] >= positive_loci_counters[key]:
             enough_negative_loci[key] = True
@@ -182,7 +176,7 @@ def write_gangstr_or_hipstr_repeat_specs(locus_set, output_path_prefix, gangstr=
     for batch_i, current_repeat_specs in enumerate(batches):
         with open(f"{output_path_prefix}.{batch_i+1:03d}_of_{len(batches):03d}.bed", "wt") as f:
             for chrom, start_0based, end_1based, motif in current_repeat_specs:
-                chrom = f"chr" + chrom.replace("chr", "")
+                chrom = chrom
                 if gangstr:
                     output_fields = [chrom, start_0based + 1, end_1based, len(motif), motif]
                 elif hipstr:
@@ -235,18 +229,21 @@ def main():
     if length_before > len(truth_set_df):
         print(f"Discarded {length_before - len(truth_set_df):,d} loci without matching repeats in the reference")
 
-    # Generate positive (ie. variant) and negative (non-variant) loci for the variant catalogs
-    positive_loci, positive_loci_counters, truth_set_loci_interval_trees = generate_set_of_positive_loci(truth_set_df)
+    # Generate positive (ie. variant) loci for the variant catalogs
+    positive_loci, positive_loci_counters = generate_set_of_positive_loci(truth_set_df)
     print(f"Generated {len(positive_loci):,d} positive loci")
 
     locus_sets = [("positive", positive_loci)]
-    if not args.skip_negative_loci:
-        all_pure_repeats_in_syndip_high_confidence_regions = load_all_pure_repeats_in_syndip_confidence_regions(
-            args.all_repeats_bed, args.high_confidence_regions_bed)
-        print(f"Loaded {len(all_pure_repeats_in_syndip_high_confidence_regions):,d} STRs in hg38 within the SynDip high-confidence regions")
 
+    if not args.skip_negative_loci:
+        # generate negative (non-variant) loci for the variant catalogs
         negative_loci = generate_set_of_negative_loci(
-            all_pure_repeats_in_syndip_high_confidence_regions, truth_set_loci_interval_trees, positive_loci_counters)
+            args.all_hg38_repeats_bed,
+            args.syndip_high_confidence_regions_bed,
+            args.syndip_indels_vcf,
+            args.truth_set_bed,
+            positive_loci_counters)
+
         print(f"Generated {len(negative_loci):,d} negative loci")
         locus_sets.append(("negative", negative_loci))
 

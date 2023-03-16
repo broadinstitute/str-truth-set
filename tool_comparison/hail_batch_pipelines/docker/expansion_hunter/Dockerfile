@@ -90,6 +90,6 @@ RUN wget https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud
 
 ENV PATH=/google-cloud-sdk/bin:$PATH
 
-RUN python3 -m pip install str_analysis==0.9.15
+RUN python3 -m pip install str_analysis==0.9.18
 
 ENTRYPOINT ["/bin/bash"]

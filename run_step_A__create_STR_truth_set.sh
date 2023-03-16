@@ -133,10 +133,14 @@ function print_liftover_output_stats {
 
 set -euo pipefail
 
+
 echo ===============
 input_vcf=${syndip_truth_vcf}
 output_vcf=step1.high_confidence_regions.vcf.gz
 
+python3 scripts/get_indels_from_vcf.py ${input_vcf}
+
+echo ===============
 print_input_stats $input_vcf "STEP #1: Filter SynDip truth set to SynDip high confidence regions"
 set -x
 
@@ -146,7 +150,13 @@ bedtools intersect -header -f 1 -wa -u \
     | bgzip > ${output_vcf}
 
 set +x
+
+
 print_output_stats ${input_vcf} ${output_vcf} "step1"
+
+echo ===============
+python3 scripts/get_indels_from_vcf.py ${output_vcf}
+
 
 for pure_STRs_only in "true" "false"
 do
@@ -182,6 +192,7 @@ do
   python3 -u -m str_analysis.filter_vcf_to_STR_variants ${allow_interruptions_arg} \
     -R "${hg38_fasta_path}" \
     --write-bed-file \
+    --discard-loci-with-multiple-indels \
     --min-str-length "${min_str_length}" \
     --min-str-repeats "${min_str_repeats}" \
     --output-prefix "${output_prefix}" \
