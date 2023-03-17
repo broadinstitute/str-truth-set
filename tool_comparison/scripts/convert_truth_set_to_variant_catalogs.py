@@ -101,22 +101,36 @@ def generate_set_of_negative_loci(
         syndip_indels_vcf_path,
         truth_set_loci_bed_path,
         positive_loci_counters):
+    """Generate negative loci by starting with all pure repeats in hg38, filtering them to those that are within
+    SynDip high-confidence regions, and then excluding all that are near SynDip InDels (in case these are STRs)
+    or are in the STR truth set. Finally, downsample this set of negative loci to a smaller set so that the number of
+    negative loci for each motif size is approximately equal to the number of positive loci for that motif size.
+    """
 
     pure_repeats_bedtool = pybedtools.BedTool(os.path.expanduser(all_hg38_repeats_bed_path))
-    negative_loci_bedtool = pure_repeats_bedtool.intersect(syndip_high_confidence_regions_bed_path, f=1, wa=True, u=True)
-    negative_loci_bedtool = negative_loci_bedtool.window(syndip_indels_vcf_path, w=MIN_DISTANCE_TO_INDELS_AROUND_NEGATIVE_LOCI, v=True)
-    negative_loci_bedtool = negative_loci_bedtool.intersect(truth_set_loci_bed_path, v=True)
+
+    negative_loci_bedtool = pure_repeats_bedtool.intersect(
+        syndip_high_confidence_regions_bed_path, f=1, wa=True, u=True)
+
+    negative_loci_bedtool = negative_loci_bedtool.window(
+        syndip_indels_vcf_path, w=MIN_DISTANCE_TO_INDELS_AROUND_NEGATIVE_LOCI, v=True)
+
+    negative_loci_bedtool = negative_loci_bedtool.intersect(
+        truth_set_loci_bed_path, v=True)
 
     negative_loci = []
     for bed_row in negative_loci_bedtool:
         negative_loci.append(bed_row[:4])
     random.seed(0)
 
+    print(f"Got {len(negative_loci):,d} total negative loci")
+
     # shuffle records to avoid selecting negative loci mostly from chr1
     random.shuffle(negative_loci)
 
     # compute negative loci
-    negative_loci = set()
+    print(f"Downsampling this to match the number of positive loci for each motif size")
+    downsampled_negative_loci = []
     negative_loci_counters = collections.defaultdict(int)
     enough_negative_loci = collections.defaultdict(bool)
     for chrom, start_0based, end, motif in negative_loci:
@@ -124,7 +138,7 @@ def generate_set_of_negative_loci(
         if enough_negative_loci[key]:
             continue
 
-        negative_loci.add((chrom, int(start_0based), int(end), motif))
+        downsampled_negative_loci.append((chrom, int(start_0based), int(end), motif))
         negative_loci_counters[key] += 1
         if negative_loci_counters[key] >= positive_loci_counters[key]:
             enough_negative_loci[key] = True
@@ -133,7 +147,11 @@ def generate_set_of_negative_loci(
             if all(enough_negative_loci.values()):
                 break
 
-    return negative_loci
+    num_duplicate_loci = len(downsampled_negative_loci) - len(set(downsampled_negative_loci))
+    if num_duplicate_loci > 0:
+        raise ValueError(f"{num_duplicate_loci} negative loci are duplicates")
+    
+    return downsampled_negative_loci
 
 
 def write_expansion_hunter_variant_catalogs(locus_set, output_path_prefix, loci_per_run=None):
