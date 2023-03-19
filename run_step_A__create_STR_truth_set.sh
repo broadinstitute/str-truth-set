@@ -138,7 +138,22 @@ echo ===============
 input_vcf=${syndip_truth_vcf}
 output_vcf=step1.high_confidence_regions.vcf.gz
 
+
+set -x
+
+# generate stats and summary files for the raw SynDip VCF before filtering to high-confidence regions. These files aren't used in downstream analysis.
 python3 scripts/get_indels_from_vcf.py ${input_vcf}
+
+python3 -u -m str_analysis.filter_vcf_to_STR_variants \
+	--allow-interruptions \
+	-R ${hg38_fasta_path} \
+	--write-bed-file \
+	--write-vcf-with-filtered-out-variants \
+	--min-str-length 9 \
+	--min-str-repeats 3 \
+	--output-prefix ./ref/full.38.STRs \
+	${input_vcf}
+set +x
 
 echo ===============
 print_input_stats $input_vcf "STEP #1: Filter SynDip truth set to SynDip high confidence regions"
@@ -192,14 +207,13 @@ do
   python3 -u -m str_analysis.filter_vcf_to_STR_variants ${allow_interruptions_arg} \
     -R "${hg38_fasta_path}" \
     --write-bed-file \
-    --discard-loci-with-multiple-indels \
     --min-str-length "${min_str_length}" \
     --min-str-repeats "${min_str_repeats}" \
     --output-prefix "${output_prefix}" \
+    --write-vcf-with-filtered-out-variants \
     "${input_vcf}"
 
   #   -n 10000 \
-
 
   # generate overlap statistics before liftover
   python3 -u scripts/compute_overlap_with_other_catalogs.py --all-repeats \
