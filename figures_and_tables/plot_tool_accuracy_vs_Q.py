@@ -3,7 +3,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import seaborn as sns
-import sys
 
 from matplotlib import patches
 
@@ -55,9 +54,8 @@ def plot(df, figure_title=None):
         x="Q",
         y="alleles filtered out",
         hue="tool",
-        #style="tool",
         ci=None,
-        markers=True,
+        marker="o",
         legend=True,
         ax=ax0,
     )
@@ -67,42 +65,35 @@ def plot(df, figure_title=None):
         x="Q",
         y="accuracy",
         hue="tool",
-        #style="tool",
-        markers=True,
+        marker="o",
         legend=False,
         ax=ax1,
     )
 
+    for ax in ax0, ax1:
+        ax.set_xticks(np.arange(0.0, 1.01, 0.1))
+        ax.xaxis.grid(True, color="#F0F0F0")
+        ax.xaxis.labelpad = ax.yaxis.labelpad = 15
+        ax.spines.right.set_visible(False)
+        ax.spines.top.set_visible(False)
+
     ax0.set_xlim(-0.02, 1.02)
-    ax0.set_xticks(np.arange(0.0, 1.01, 0.1))
-    ax1.set_xticks(np.arange(0.0, 1.01, 0.1))
-
-    ax0.set_ylim(0, df_plot["alleles filtered out"].max())
-
-    ax0.xaxis.grid(True, color="#F0F0F0")
-    ax1.xaxis.grid(True, color="#F0F0F0")
-
+    ax0.set_ylim(0, df_plot["alleles filtered out"].max()+0.02)
     ax0.yaxis.set_major_formatter(lambda y, pos: f"{int(y*total_allele_count):,d} ({100*y:0.0f}%)")
-
     ax0.set_ylabel(ax0.get_ylabel(), fontsize=13)
     ax0.get_legend().set_title("")
     ax0.get_legend().set_frame_on(False)
 
-    #ax1.set_ylim(df_plot.accuracy.min(), df_plot.accuracy.max())
-    ax1.set_ylim(0.5 if df_plot.accuracy.min() > 0.5 else 0, 1)
     ax1.set_xlabel("Q threshold", fontsize=13)
+    ymin = 0
+    if df_plot[df_plot["Q"] < 0.99].accuracy.min() > 0.5:
+        ymin = 0.5
+    ax1.set_ylim(ymin, 1)
     ax1.set_ylabel(ax1.get_ylabel(), fontsize=13)
-
-    ax0.xaxis.labelpad = ax0.yaxis.labelpad = 15
-    ax1.xaxis.labelpad = ax1.yaxis.labelpad = 15
-    ax0.spines.right.set_visible(False)
-    ax0.spines.top.set_visible(False)
-    ax1.spines.right.set_visible(False)
-    ax1.spines.top.set_visible(False)
 
 
 def plot_empty_image(figure_title, message):
-    fig, ax = plt.subplots(1, 1, figsize=FIGURE_SIZE, dpi=80)
+    fig, ax = plt.subplots(1, 1, figsize=FIGURE_SIZE)
     fig.suptitle(figure_title, fontsize=TITLE_FONT_SIZE)
     ax.axis('off')
     text = ax.text(0.5, 0.5, message, ha='center', va='center', fontsize=24)
@@ -119,25 +110,53 @@ def plot_empty_image(figure_title, message):
 
 def generate_all_plots(df, output_image_dir, max_plots=None):
     plot_counter = 0
-    for motif_size in "all_motifs", "2-6bp", "7-24bp", "25+bp":
-        for pure_repeats in "both", True, False:
-            for exclude_hipstr_no_call_loci in False, True:
-                for coverage in "40x", "30x", "20x", "10x", "exome":
-                    for genotype_subset in "all_genotypes", "HET", "HOM", "MULTI":
-                        if max_plots is not None and plot_counter >= max_plots:
-                            print(f"Exiting after generating {plot_counter} plot(s)")
-                            sys.exit(0)
+    for coverage in "40x", "30x", "20x", "10x", "exome":
+        df2 = df[df["Coverage"] == coverage]
+        if coverage == "exome":
+            #df2 = df2[~df2["Genotype: GangSTR"].isna() | ~df2["Genotype: ExpansionHunter"].isna()]
+            df2 = df2[~df2["GeneRegionFromGencode_V42"].isin({"intergenic", "intron", "promoter"})]
+
+        for motif_size in "all_motifs", "2-6bp", "7-24bp", "25+bp":
+            if motif_size == "all_motifs":
+                df3 = df2[(2 <= df2["MotifSize"]) & (df2["MotifSize"] <= 50)]
+            elif motif_size == "2-6bp":
+                df3 = df2[(2 <= df2["MotifSize"]) & (df2["MotifSize"] <= 6)]
+            elif motif_size == "7-24bp":
+                df3 = df2[(7 <= df2["MotifSize"]) & (df2["MotifSize"] <= 24)]
+            elif motif_size == "25+bp":
+                df3 = df2[(25 <= df2["MotifSize"]) & (df2["MotifSize"] <= 50)]
+            else:
+                raise ValueError(f"Unexpected motif_size value: {motif_size}")
+
+            for genotype_subset in "all_genotypes", "HET", "HOM", "MULTI":
+                if genotype_subset == "all_genotypes":
+                    df4 = df3
+                elif genotype_subset == "HET":
+                    df4 = df3[df3["SummaryString"].str.contains(":HET")]
+                elif genotype_subset == "HOM":
+                    df4 = df3[df3["SummaryString"].str.contains(":HOM")]
+                elif genotype_subset == "MULTI":
+                    df4 = df3[df3["SummaryString"].str.contains(":MULTI")]
+                else:
+                    raise ValueError(f"Unexpected genotype_subset value: {genotype_subset}")
+
+                for pure_repeats in "both", True, False:
+                    if pure_repeats == "both":
+                        df5 = df4
+                    elif pure_repeats:
+                        df5 = df4[df4["IsPureRepeat"]]
+                    else:
+                        df5 = df4[~df4["IsPureRepeat"]]
+
+                    for exclude_hipstr_no_call_loci in False, True:
+                        if exclude_hipstr_no_call_loci:
+                            df_plot = df5[~df5["Genotype: HipSTR"].isna()]
+                        else:
+                            df_plot = df5
 
                         print("-"*100)
 
                         figure_title_line = ""
-
-                        df2 = df.copy()
-                        df2 = df2[(df2["Coverage"] == coverage)]
-
-                        if coverage == "exome":
-                            df2 = df2[~df2["Genotype: GangSTR"].isna() | ~df2["Genotype: ExpansionHunter"].isna()]
-                            df2 = df2[~df2["GeneRegionFromGencode_V42"].isin({"intergenic", "intron", "promoter"})]
 
                         coverage_label = f"exome" if coverage == "exome" else f"{coverage} coverage"
 
@@ -146,19 +165,15 @@ def generate_all_plots(df, output_image_dir, max_plots=None):
                         if motif_size == "all_motifs":
                             filter_description.append("all motif sizes")
                             output_image_filename += ".all_motifs"
-                            df2 = df2[(2 <= df2["MotifSize"]) & (df2["MotifSize"] <= 50)]
                         elif motif_size == "2-6bp":
                             filter_description.append("2bp to 6bp motifs")
                             output_image_filename += ".2to6bp_motifs"
-                            df2 = df2[(2 <= df2["MotifSize"]) & (df2["MotifSize"] <= 6)]
                         elif motif_size == "7-24bp":
                             filter_description.append(f"7bp to 24bp motifs")
                             output_image_filename += ".7to24bp_motifs"
-                            df2 = df2[(7 <= df2["MotifSize"]) & (df2["MotifSize"] <= 24)]
                         elif motif_size == "25+bp":
                             filter_description.append(f"25bp to 50bp motifs")
                             output_image_filename += ".25to50bp_motifs"
-                            df2 = df2[(25 <= df2["MotifSize"]) & (df2["MotifSize"] <= 50)]
                         else:
                             raise ValueError(f"Unexpected motif_size value: {motif_size}")
 
@@ -167,15 +182,12 @@ def generate_all_plots(df, output_image_dir, max_plots=None):
                         elif genotype_subset == "HET":
                             filter_description.append("HET")
                             output_image_filename += ".HET"
-                            df2 = df2[df2["SummaryString"].str.contains(":HET")]
                         elif genotype_subset == "HOM":
                             filter_description.append(f"HOM")
                             output_image_filename += ".HOM"
-                            df2 = df2[df2["SummaryString"].str.contains(":HOM")]
                         elif genotype_subset == "MULTI":
                             filter_description.append(f"multi-allelic")
                             output_image_filename += ".MULTI"
-                            df2 = df2[df2["SummaryString"].str.contains(":MULTI")]
                         else:
                             raise ValueError(f"Unexpected genotype_subset value: {genotype_subset}")
 
@@ -184,47 +196,48 @@ def generate_all_plots(df, output_image_dir, max_plots=None):
                         elif pure_repeats:
                             filter_description.append("pure repeats")
                             output_image_filename += ".pure_repeats"
-                            df2 = df2[df2["IsPureRepeat"]]
                         else:
                             filter_description.append("repeats with interruptions")
                             output_image_filename += ".with_interruptions"
-                            df2 = df2[~df2["IsPureRepeat"]]
 
                         output_image_filename += f".{coverage}"
 
                         if exclude_hipstr_no_call_loci:
                             filter_description.append(f"only loci with HipSTR call")
                             output_image_filename += f".exclude_HipSTR_no_call_loci"
-                            df2 = df2[~df2["Genotype: HipSTR"].isna()]
 
-
-                        if len(df2) < 10:
+                        n_locus_ids = len(set(df_plot.LocusId))
+                        if len(df_plot) < 10:
                             message = "Not enough alleles to create plot"
 
-                            figure_title_line += f"{len(set(df2.LocusId)):,d} loci ("+", ".join(filter_description)+")"
+                            figure_title_line += f"{n_locus_ids:,d} loci ("+", ".join(filter_description)+")"
 
                             print(f"Skipping..  {message}")
                             plot_empty_image(figure_title_line, message)
-                            plt.savefig(f"{output_image_dir}/{output_image_filename}.png")
-                            print(f"Saved {output_image_dir}/{output_image_filename}.png")
+                            plt.savefig(f"{output_image_dir}/{output_image_filename}.svg")
+                            print(f"Saved {output_image_dir}/{output_image_filename}.svg")
                             plt.close()
                             continue
 
-                        print("Keeping", len(df2), "out of ", len(df), "rows")
-                        figure_title_line += f"Showing data for {len(set(df2.LocusId)):,d} loci (" + ", ".join(filter_description) + f")"
+                        print("Keeping", len(df_plot), "out of ", len(df), "rows")
+                        figure_title_line += f"Showing data for {n_locus_ids:,d} loci\n\n" + ", ".join(filter_description) + f""
                         print(figure_title_line)
 
                         try:
-                            plot(df2, figure_title=figure_title_line)
+                            plot(df_plot, figure_title=figure_title_line)
 
-                            plt.savefig(f"{output_image_dir}/{output_image_filename}.png", bbox_inches='tight')
-                            print(f"Saved plot #{plot_counter+1}: {output_image_dir}/{output_image_filename}.png")
+                            plt.savefig(f"{output_image_dir}/{output_image_filename}.svg", bbox_inches='tight')
+                            print(f"Saved plot #{plot_counter+1}: {output_image_dir}/{output_image_filename}.svg")
                             plt.close()
 
                         except Exception as e:
                             print(f"ERROR: {e}")
 
                         plot_counter += 1
+
+                        if max_plots is not None and plot_counter >= max_plots:
+                            print(f"Exiting after generating {plot_counter} plot(s)")
+                            return
 
 
 def main():

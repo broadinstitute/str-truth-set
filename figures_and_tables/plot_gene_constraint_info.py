@@ -14,7 +14,7 @@ sns.set_context("paper", font_scale=1.1, rc={
 
 
 def plot_gene_constraint(df, show_title=True):
-    fig, axes = plt.subplots(1, 3, sharex=False, sharey=True, figsize=(20, 6), dpi=80)
+    fig, axes = plt.subplots(1, 3, sharex=False, sharey=True, figsize=(20, 6))
     if show_title:
         suptitle_artist = fig.suptitle("Gene Constraint Metrics and STR Alleles", fontsize=16, y=0.97)
         extra_artists = [suptitle_artist]
@@ -94,7 +94,7 @@ def plot_gene_constraint(df, show_title=True):
 
 
 def plot_str_variant_size_vs_gene_constraint(df, show_title=True):
-    fig, axes = plt.subplots(1, 3, sharex=False, sharey=True, figsize=(20, 6), dpi=80)
+    fig, axes = plt.subplots(1, 3, sharex=False, sharey=True, figsize=(20, 6))
     if show_title:
         suptitle_artist = fig.suptitle("Gene Constraint Metrics by STR Allele Size", fontsize=16, y=0.97)
         extra_artists = [suptitle_artist]

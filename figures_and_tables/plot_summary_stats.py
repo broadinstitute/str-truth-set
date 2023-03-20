@@ -67,7 +67,7 @@ def plot_allele_size_distribution(df_truth_set, plot_type=1, color_by=None, hue_
         output_image_name += ".with_interruptions"
         figure_title += "\n(interrupted repeats only)"
 
-    _, ax = plt.subplots(figsize=(8, 7), dpi=80)
+    _, ax = plt.subplots(figsize=(8, 7))
     ax.xaxis.labelpad = ax.yaxis.labelpad = 15
     ax.set_xlabel(xlabel, fontsize=14)
     ax.set_ylabel("Fraction of Alleles", fontsize=14)
@@ -134,7 +134,7 @@ def plot_allele_size_and_motif_distribution(df_truth_set, color_by=None, hue_ord
         output_image_name += ".with_interruptions"
         figure_title += "  (interrupted repeats only)"
 
-    fig, axes = plt.subplots(1, 2, figsize=(16, 6), dpi=80)
+    fig, axes = plt.subplots(1, 2, figsize=(16, 6))
     if show_title:
         suptitle_artist = fig.suptitle(figure_title, fontsize=15)
         extra_artists = [suptitle_artist]
@@ -230,7 +230,7 @@ def plot_gene_info(df, excluding_introns_and_intergenic=False, use_MANE_genes=Fa
     if not excluding_introns_and_intergenic:
         plt.rcParams.update({"legend.loc": "lower left" if use_MANE_genes else "upper left"})
 
-    fig, axes = plt.subplots(1, 2, figsize=(16, 6), dpi=80)
+    fig, axes = plt.subplots(1, 2, figsize=(16, 6))
     if show_title:
         suptitle_artist = fig.suptitle(f"Truth Set STR Alleles: Gene Region Overlap ({title_string})", fontsize=15)
         extra_artists = [suptitle_artist]
@@ -404,7 +404,7 @@ def plot_motif_distribution(df, is_pure_repeats=True, show_title=True):
         "xtick.labelsize": 12,
         "ytick.labelsize": 12,
     })
-    _, axes = plt.subplots(2, 1, figsize=(8, 12), dpi=80)
+    _, axes = plt.subplots(2, 1, figsize=(8, 12))
 
     title = "# of Repeats in hg38 at Truth Set STR Loci"
     if not is_pure_repeats:

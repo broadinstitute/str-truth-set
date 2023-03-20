@@ -121,7 +121,7 @@ def generate_fraction_exactly_right_plot(df, output_image_dir, exclude_hipstr_no
         num_hipstr_colors = len([h for h in hue_values if h.lower().startswith("hipstr")])
 
         # plot figure
-        fig, ax = plt.subplots(1, 1, figsize=(12, 10), dpi=80)
+        fig, ax = plt.subplots(1, 1, figsize=(12, 10))
 
         def hue_order(h):
             tokens = h.split(": ")
