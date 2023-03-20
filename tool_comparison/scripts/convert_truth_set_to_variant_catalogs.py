@@ -150,13 +150,14 @@ def generate_set_of_negative_loci(
     num_duplicate_loci = len(downsampled_negative_loci) - len(set(downsampled_negative_loci))
     if num_duplicate_loci > 0:
         raise ValueError(f"{num_duplicate_loci} negative loci are duplicates")
-    
+
     return downsampled_negative_loci
 
 
 def write_expansion_hunter_variant_catalogs(locus_set, output_path_prefix, loci_per_run=None):
     variant_catalog = []
     for chrom, start_0based, end_1based, motif in locus_set:
+        chrom = chrom.replace("chr", "")
         variant_catalog.append({
             "LocusId": f"{chrom}-{start_0based}-{end_1based}-{motif}",
             "ReferenceRegion": f"{chrom}:{start_0based}-{end_1based}",

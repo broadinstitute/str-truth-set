@@ -1,11 +1,11 @@
 import argparse
 import matplotlib.pyplot as plt
-from matplotlib import patches
 import numpy as np
 import pandas as pd
 import seaborn as sns
 import sys
 
+from matplotlib import patches
 
 sns.set_context("paper", font_scale=1.1, rc={
     "font.family": "sans-serif",
@@ -101,11 +101,11 @@ def define_hue_column(df, tool):
         df[f"DiffRepeats: Allele: {tool} - Truth (bin)"])
 
 
-DISTRIBUTION_BY_NUM_REPEATS_FIGURE_SIZE = (20, 9)
+FIGURE_SIZE = (20, 9)
 
 
 def plot_empty_image(figure_title, message):
-    fig, ax = plt.subplots(1, 1, figsize=DISTRIBUTION_BY_NUM_REPEATS_FIGURE_SIZE, dpi=80)
+    fig, ax = plt.subplots(1, 1, figsize=FIGURE_SIZE, dpi=80)
     fig.suptitle(figure_title, fontsize=20)
     ax.axis('off')
     text = ax.text(0.5, 0.5, message, ha='center', va='center', fontsize=24)
@@ -198,13 +198,13 @@ def hue_sorter(value):
 
 def generate_all_distribution_by_num_repeats_plots(df, output_image_dir, max_plots=None):
     plot_counter = 0
-    for motif_size in ("all_motifs", "STR", "TR", "TR25+"):
-        for pure_repeats in ("both", True, False,):
-            for exclude_hipstr_no_call_loci in (False, True):
-                for coverage in ("40x", "30x", "20x", "10x", "05x", "exome"):
-                    for tool in ("ExpansionHunter", "GangSTR", "HipSTR"):
-                        for genotype_subset in ("all_genotypes", "HET", "HOM", "MULTI"):
-                            for q_threshold in (0, 0.1, 0.5, 0.9):
+    for motif_size in "all_motifs", "2-6bp", "7-24bp", "25+bp":
+        for pure_repeats in "both", True, False:
+            for exclude_hipstr_no_call_loci in False, True:
+                for coverage in "40x", "30x", "20x", "10x", "exome":
+                    for tool in "ExpansionHunter", "GangSTR", "HipSTR":
+                        for genotype_subset in "all_genotypes", "HET", "HOM", "MULTI":
+                            for q_threshold in 0, 0.1, 0.5, 0.9:
                                 if max_plots is not None and plot_counter >= max_plots:
                                     print(f"Exiting after generating {plot_counter} plot(s)")
                                     sys.exit(0)
@@ -227,15 +227,15 @@ def generate_all_distribution_by_num_repeats_plots(df, output_image_dir, max_plo
                                     filter_description.append("all motif sizes")
                                     output_image_filename += ".all_motifs"
                                     df2 = df2[(2 <= df2["MotifSize"]) & (df2["MotifSize"] <= 50)]
-                                elif motif_size == "STR":
+                                elif motif_size == "2-6bp":
                                     filter_description.append("2bp to 6bp motifs")
                                     output_image_filename += ".2to6bp_motifs"
                                     df2 = df2[(2 <= df2["MotifSize"]) & (df2["MotifSize"] <= 6)]
-                                elif motif_size == "TR":
+                                elif motif_size == "7-24bp":
                                     filter_description.append(f"7bp to 24bp motifs")
                                     output_image_filename += ".7to24bp_motifs"
                                     df2 = df2[(7 <= df2["MotifSize"]) & (df2["MotifSize"] <= 24)]
-                                elif motif_size == "TR25+":
+                                elif motif_size == "25+bp":
                                     filter_description.append(f"25bp to 50bp motifs")
                                     output_image_filename += ".25to50bp_motifs"
                                     df2 = df2[(25 <= df2["MotifSize"]) & (df2["MotifSize"] <= 50)]
@@ -288,7 +288,7 @@ def generate_all_distribution_by_num_repeats_plots(df, output_image_dir, max_plo
                                 coverage_label = f"exome data" if coverage == "exome" else f"{coverage} genome data"
 
                                 # skip_condition1: HipSTR doesn't support motifs larger than 9bp
-                                skip_condition1 = tool == "HipSTR" and motif_size != "STR"
+                                skip_condition1 = tool == "HipSTR" and motif_size != "2-6bp"
                                 # skip_condition2: not enough alleles to draw a histogram
                                 skip_condition2 = len(df2) < 10
 

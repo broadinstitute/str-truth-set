@@ -25,7 +25,7 @@
       ]
     },
     {
-      "categoryName": "CHM1-CHM13",
+      "categoryName": "CHM1-CHM13 SynDip Benchmark",
       "rows": [
         {
           "name": "SynDip truth: raw VCF",
@@ -107,23 +107,23 @@
         {
           "name": "40x coverage genome: EH",
           "description": "Results from running ExpansionHunter on the original CHM1-CHM13 WGS sample with 40x coverage",
-          "data": [{"type": "bed", "url": "gs://str-truth-set/hg38/tool_results/expansion_hunter/positive_loci/combined.positive_loci.308_json_files.bed.gz"}]
+          "data": [{"type": "bed", "url": "gs://str-truth-set/hg38/tool_results/expansion_hunter/positive_loci/combined.positive_loci.307_json_files.bed.gz"}]
         }, {
           "name": "30x coverage genome: EH",
           "description": "Results from running ExpansionHunter on CHM1-CHM13 downsampled to 30x coverage",
-          "data": [{"type": "bed", "url": "gs://str-truth-set/hg38/tool_results_for_downsampled_30x_bam/expansion_hunter/positive_loci/combined.positive_loci.308_json_files.bed.gz"}]
+          "data": [{"type": "bed", "url": "gs://str-truth-set/hg38/tool_results_for_downsampled_30x_bam/expansion_hunter/positive_loci/combined.positive_loci.307_json_files.bed.gz"}]
         }, {
           "name": "20x coverage genome: EH",
           "description": "Results from running ExpansionHunter on CHM1-CHM13 downsampled to 20x coverage",
-          "data": [{"type": "bed", "url": "gs://str-truth-set/hg38/tool_results_for_downsampled_20x_bam/expansion_hunter/positive_loci/combined.positive_loci.308_json_files.bed.gz"}]
+          "data": [{"type": "bed", "url": "gs://str-truth-set/hg38/tool_results_for_downsampled_20x_bam/expansion_hunter/positive_loci/combined.positive_loci.307_json_files.bed.gz"}]
         }, {
           "name": "10x coverage genome: EH",
           "description": "Results from running ExpansionHunter on CHM1-CHM13 downsampled to 10x coverage",
-          "data": [{"type": "bed", "url": "gs://str-truth-set/hg38/tool_results_for_downsampled_10x_bam/expansion_hunter/positive_loci/combined.positive_loci.308_json_files.bed.gz"}]
+          "data": [{"type": "bed", "url": "gs://str-truth-set/hg38/tool_results_for_downsampled_10x_bam/expansion_hunter/positive_loci/combined.positive_loci.307_json_files.bed.gz"}]
         }, {
           "name": "5x coverage genome: EH",
           "description": "Results from running ExpansionHunter on CHM1-CHM13 downsampled to 5x coverage",
-          "data": [{"type": "bed", "url": "gs://str-truth-set/hg38/tool_results_for_downsampled_5x_bam/expansion_hunter/positive_loci/combined.positive_loci.308_json_files.bed.gz"}]
+          "data": [{"type": "bed", "url": "gs://str-truth-set/hg38/tool_results_for_downsampled_5x_bam/expansion_hunter/positive_loci/combined.positive_loci.307_json_files.bed.gz"}]
         }, {
           "name": "40x coverage genome: GangSTR",
           "description": "Results from running GangSTR on the original CHM1-CHM13 WGS sample with 40x coverage",
@@ -179,7 +179,7 @@
         }, {
           "name": "exome: EH",
           "description": "Results from running ExpansionHunter on the CHM1-CHM13 exome with 85x mean target coverage",
-          "data": [{"type": "bed", "url": "gs://str-truth-set/hg38/tool_results_for_exome/expansion_hunter/positive_loci/combined.positive_loci.308_json_files.bed.gz"}]
+          "data": [{"type": "bed", "url": "gs://str-truth-set/hg38/tool_results_for_exome/expansion_hunter/positive_loci/combined.positive_loci.307_json_files.bed.gz"}]
         }, {
           "name": "exome: GangSTR",
           "description": "Results from running GangSTR on the CHM1-CHM13 exome with 85x mean target coverage",
@@ -201,6 +201,27 @@
         {
           "name": "Gencode v42",
           "data": [{"type": "gtf", "url": "gs://str-truth-set/hg38/ref/other/gencode.v42.annotation.sorted.gtf.gz"}]
+        }
+      ]
+    }, {
+      "categoryName": "CHM1-CHM13 SynDip Benchmark Filtered Subsets",
+      "rows": [
+        {
+          "name": "filtered out INDELs (all regions)",
+          "data": [{"type": "vcf", "url": "gs://str-truth-set/hg38/ref/full.38.STR.filtered_out_indels.vcf.gz"}],
+          "description": "These are InDels from the original SynDip VCF that didn't pass basic STR filters for reasons described in the VCF filter field."
+        }, {
+          "name": "filtered out  STRs (all regions)",
+          "data": [{"type": "vcf", "url": "gs://str-truth-set/hg38/ref/full.38.STR.filtered_out_strs.vcf.gz"}],
+          "description": "These are InDels from the original SynDip VCF where at least one allele that contained repeats, but were filtered out for reasons described in the VCF filter field."
+        }, {
+          "name": "filtered out INDELs (h.c. regions)",
+          "data": [{"type": "vcf", "url": "gs://str-truth-set/hg38/ref/full.38.STR.filtered_out_indels.vcf.gz"}],
+          "description": "These are InDels that are within SynDip high-confidence regions and didn't pass basic STR filters for reasons described in the VCF filter field."
+        }, {
+          "name": "filtered out STRs (h.c. regions)",
+          "data": [{"type": "vcf", "url": "gs://str-truth-set/hg38/ref/full.38.STR.filtered_out_strs.vcf.gz"}],
+          "description": "These are InDels that are within SynDip high-confidence regions and had at least one allele that contained repeats, but were filtered out for reasons described in the VCF filter field."
         }
       ]
     }

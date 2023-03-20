@@ -72,7 +72,7 @@ def main():
     tool_df_columns_to_keep = list(TOOL_DF_COLUMNS_TO_KEEP)
     if args.tool == "ExpansionHunter":
         tool_df_columns_to_keep += EH_AND_GANGSTR_COLUMNS
-        tool_df_columns_to_keep += ["NumAllelesSupportedTotal"]
+        tool_df_columns_to_keep += ["Q: Allele 1", "Q: Allele 2", "NumAllelesSupportedTotal"]
     elif args.tool == "GangSTR":
         tool_df_columns_to_keep += EH_AND_GANGSTR_COLUMNS
         tool_df_columns_to_keep += ["Q"]

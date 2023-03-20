@@ -3,7 +3,7 @@
 import pandas as pd
 from figures_and_tables.numbers_utils import format_n, format_np, search
 
-df_variants = pd.read_table("STR_truth_set.v1.variants.tsv.gz")
+df_variants = pd.read_table("pure_STR_truth_set.v1.variants.tsv.gz")
 df_variants = df_variants[df_variants.IsPureRepeat]
 
 #%%

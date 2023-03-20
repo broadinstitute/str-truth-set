@@ -18,8 +18,8 @@ current_data_group_number = collections.defaultdict(int)
 
 # get batch
 for b in list(
-        bc.list_batches(limit=1, last_batch_id=7102273)) + list(
-        bc.list_batches(limit=1, last_batch_id=7102275)):  # last_batch_id=6958349, 6954002, 6958255, 6958288
+        bc.list_batches(limit=1, last_batch_id=7159065)) + list(
+        bc.list_batches(limit=1, last_batch_id=7159064)):  # last_batch_id=6958349, 6954002, 6958255, 6958288
 
     batch_name = b.attributes["name"]
     if not batch_name.startswith("STR Truth Set:"):
@@ -140,6 +140,7 @@ for b in list(
 bc.close()
 
 #%%
+
 
 output_dir = "./tool_comparison/hail_batch_pipelines"
 for positive_or_negative in "positive", "negative":
