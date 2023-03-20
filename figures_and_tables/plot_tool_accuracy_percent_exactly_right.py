@@ -1,11 +1,13 @@
 import argparse
 import matplotlib.pyplot as plt
 import numpy as np
+import os
 import pandas as pd
 import seaborn as sns
 
 sns.set_context("paper", font_scale=1.1, rc={
     "font.family": "sans-serif",
+    "svg.fonttype": "none",  # add text as text rather than curves
     "legend.fontsize": 14,
     "legend.loc": "upper right",
 })
@@ -83,7 +85,7 @@ def compute_tables_for_fraction_exactly_right_plots(df, coverage_values=("40x", 
     return pd.concat(tables_by_coverage, axis=0)
 
 
-def generate_fraction_exactly_right_plot(df, output_image_dir, exclude_hipstr_no_call_loci=False, verbose=False, show_title=True):
+def generate_fraction_exactly_right_plot(df, output_dir, exclude_hipstr_no_call_loci=False, verbose=False, show_title=True):
 
     df_fraction = compute_tables_for_fraction_exactly_right_plots(df, coverage_values=("40x","20x", "10x"))
     df_fraction = df_fraction.reset_index()
@@ -173,9 +175,9 @@ def generate_fraction_exactly_right_plot(df, output_image_dir, exclude_hipstr_no
 
         output_image_filename = "tool_accuracy_by_true_allele_size_exactly_matching_calls"
 
-        plt.savefig(f"{output_image_dir}/{output_image_filename}{filename_suffix}.svg",
+        plt.savefig(os.path.join(output_dir, f"{output_image_filename}{filename_suffix}.svg"),
                     bbox_extra_artists=extra_artists, bbox_inches="tight")
-        print(f"Saved {output_image_dir}/{output_image_filename}{filename_suffix}.svg")
+        print(f"Saved {output_dir}/{output_image_filename}{filename_suffix}.svg")
 
         plt.close()
 
@@ -183,7 +185,7 @@ def generate_fraction_exactly_right_plot(df, output_image_dir, exclude_hipstr_no
 def main():
     p = argparse.ArgumentParser()
     p.add_argument("--exclude-hipstr-no-call-loci", action="store_true", help="In the plot, exclude HipSTR no-call loci")
-    p.add_argument("--output-dir", default="../tool_comparison/figures")
+    p.add_argument("--output-dir", default=".")
     p.add_argument("--verbose", action="store_true", help="Print additional info")
     p.add_argument("combined_tool_results_tsv", nargs="?", default="../tool_comparison/combined.results.alleles.tsv.gz")
     args = p.parse_args()

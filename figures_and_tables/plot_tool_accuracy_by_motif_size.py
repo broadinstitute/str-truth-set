@@ -1,11 +1,13 @@
 import argparse
 import matplotlib.pyplot as plt
+import os
 import pandas as pd
 import seaborn as sns
 
 
 sns.set_context("paper", font_scale=1.1, rc={
     "font.family": "sans-serif",
+    "svg.fonttype": "none",  # add text as text rather than curves
 })
 
 GREEN_COLOR = "#50AA44"
@@ -88,7 +90,7 @@ def plot_distribution_by_motif_size(df, figure_title, output_image_path, show_ti
     else:
         extra_artists = []
 
-    plt.savefig(f"{output_image_path}", bbox_extra_artists=extra_artists, bbox_inches="tight")
+    plt.savefig(output_image_path, bbox_extra_artists=extra_artists, bbox_inches="tight")
     plt.close()
     print(f"Saved {output_image_path}")
 
@@ -104,7 +106,7 @@ def generate_all_distribution_by_motif_size_plots(df, output_image_dir, max_plot
         output_image_filename += ".pure_repeats"
         output_image_filename += f".{coverage}"
 
-        output_image_path = f"{output_image_dir}/{output_image_filename}.svg"
+        output_image_path = os.path.join(output_image_dir, f"{output_image_filename}.svg")
         df_current = df_current.sort_values("RepeatSize (bp): Allele: Truth")
         plot_distribution_by_motif_size(df_current, f"Accuracy by Motif Size ({coverage_label})", output_image_path)
 
@@ -117,7 +119,7 @@ def generate_all_distribution_by_motif_size_plots(df, output_image_dir, max_plot
 def main():
     p = argparse.ArgumentParser()
     p.add_argument("-n", type=int, help="If specified, only generate this many plots. Useful for testing")
-    p.add_argument("--output-dir", default="../tool_comparison/figures")
+    p.add_argument("--output-dir", default=".")
     p.add_argument("combined_tool_results_tsv", nargs="?", default="../tool_comparison/combined.results.alleles.tsv.gz")
     args = p.parse_args()
 

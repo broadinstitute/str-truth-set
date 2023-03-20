@@ -1,6 +1,7 @@
 import argparse
 import matplotlib.pyplot as plt
 import numpy as np
+import os
 import pandas as pd
 import seaborn as sns
 
@@ -8,12 +9,13 @@ from matplotlib import patches
 
 sns.set_context(font_scale=1.1, rc={
     "font.family": "sans-serif",
+    "svg.fonttype": "none",  # add text as text rather than curves
 })
 sns.set_palette(["purple", "blue", "red", "orange"])
 
 
 FIGURE_SIZE = (10, 10)
-TITLE_FONT_SIZE = 14
+TITLE_FONT_SIZE = 13
 
 
 def plot(df, figure_title=None):
@@ -46,7 +48,7 @@ def plot(df, figure_title=None):
     df_plot = pd.DataFrame(rows)
 
     fig, axes = plt.subplots(2, 1, figsize=(10, 10), sharex=True, gridspec_kw={'height_ratios': [1.2, 1.7]})
-    fig.suptitle(figure_title, fontsize=TITLE_FONT_SIZE, y=0.95)
+    fig.suptitle(figure_title, fontsize=TITLE_FONT_SIZE, y=0.97)
 
     ax0, ax1 = axes
     sns.lineplot(
@@ -70,6 +72,7 @@ def plot(df, figure_title=None):
         ax=ax1,
     )
 
+    ax0.set_xlim(-0.02, 1.02)
     for ax in ax0, ax1:
         ax.set_xticks(np.arange(0.0, 1.01, 0.1))
         ax.xaxis.grid(True, color="#F0F0F0")
@@ -77,18 +80,30 @@ def plot(df, figure_title=None):
         ax.spines.right.set_visible(False)
         ax.spines.top.set_visible(False)
 
-    ax0.set_xlim(-0.02, 1.02)
-    ax0.set_ylim(0, df_plot["alleles filtered out"].max()+0.02)
+    ymax_ax0 = df_plot[df_plot["Q"] < 0.99]["alleles filtered out"].max()
+    if ymax_ax0 > 0.5:
+        ymax_ax0 = 1
+    elif ymax_ax0 > 0.25:
+        ymax_ax0 = 0.5
+    else:
+        ymax_ax0 = 0.25
+    ax0.set_ylim(0, ymax_ax0+0.02)
     ax0.yaxis.set_major_formatter(lambda y, pos: f"{int(y*total_allele_count):,d} ({100*y:0.0f}%)")
     ax0.set_ylabel(ax0.get_ylabel(), fontsize=13)
     ax0.get_legend().set_title("")
     ax0.get_legend().set_frame_on(False)
 
     ax1.set_xlabel("Q threshold", fontsize=13)
-    ymin = 0
-    if df_plot[df_plot["Q"] < 0.99].accuracy.min() > 0.5:
-        ymin = 0.5
-    ax1.set_ylim(ymin, 1)
+
+    ymin_ax1 = df_plot[df_plot["Q"] < 0.99].accuracy.min()
+    if ymin_ax1 > 0.75:
+        ymin_ax1 = 0.75
+    elif ymin_ax1 > 0.5:
+        ymin_ax1 = 0.5
+    else:
+        ymin_ax1 = 0
+
+    ax1.set_ylim(ymin_ax1, 1)
     ax1.set_ylabel(ax1.get_ylabel(), fontsize=13)
 
 
@@ -96,7 +111,7 @@ def plot_empty_image(figure_title, message):
     fig, ax = plt.subplots(1, 1, figsize=FIGURE_SIZE)
     fig.suptitle(figure_title, fontsize=TITLE_FONT_SIZE)
     ax.axis('off')
-    text = ax.text(0.5, 0.5, message, ha='center', va='center', fontsize=24)
+    text = ax.text(0.5, 0.5, message, ha='center', va='center', fontsize=20)
 
     plt.gcf().canvas.draw()
 
@@ -108,8 +123,13 @@ def plot_empty_image(figure_title, message):
     ax.add_patch(rect)
 
 
-def generate_all_plots(df, output_image_dir, max_plots=None):
+def generate_all_plots(df, output_dir, start_with_plot_i=None, max_plots=None):
     plot_counter = 0
+    if start_with_plot_i is None or start_with_plot_i < 0:
+        start_with_plot_i = 0
+    if max_plots is None:
+        max_plots = 10**9
+
     for coverage in "40x", "30x", "20x", "10x", "exome":
         df2 = df[df["Coverage"] == coverage]
         if coverage == "exome":
@@ -153,6 +173,10 @@ def generate_all_plots(df, output_image_dir, max_plots=None):
                             df_plot = df5[~df5["Genotype: HipSTR"].isna()]
                         else:
                             df_plot = df5
+
+                        if plot_counter < start_with_plot_i:
+                            plot_counter += 1
+                            continue
 
                         print("-"*100)
 
@@ -207,43 +231,47 @@ def generate_all_plots(df, output_image_dir, max_plots=None):
                             output_image_filename += f".exclude_HipSTR_no_call_loci"
 
                         n_locus_ids = len(set(df_plot.LocusId))
-                        if len(df_plot) < 10:
+                        if len(df_plot) < 50:
+                            figure_title_line += f"{n_locus_ids:,d} loci\n\n"+", ".join(filter_description)
                             message = "Not enough alleles to create plot"
 
-                            figure_title_line += f"{n_locus_ids:,d} loci ("+", ".join(filter_description)+")"
-
-                            print(f"Skipping..  {message}")
+                            print(f"Skipping plot {plot_counter}:  {message}")
                             plot_empty_image(figure_title_line, message)
-                            plt.savefig(f"{output_image_dir}/{output_image_filename}.svg")
-                            print(f"Saved {output_image_dir}/{output_image_filename}.svg")
+
+                            output_path = os.path.join(output_dir, f"{output_image_filename}.svg")
+                            plt.savefig(output_path)
+                            print(f"Saved {output_path}")
                             plt.close()
+
                             continue
 
+                        print(f"Generating plot #{plot_counter}")
                         print("Keeping", len(df_plot), "out of ", len(df), "rows")
-                        figure_title_line += f"Showing data for {n_locus_ids:,d} loci\n\n" + ", ".join(filter_description) + f""
+                        figure_title_line += f"Showing data for {n_locus_ids:,d} loci and {len(df_plot):,d} alleles\n\n" + ", ".join(filter_description) + f""
                         print(figure_title_line)
 
                         try:
                             plot(df_plot, figure_title=figure_title_line)
 
-                            plt.savefig(f"{output_image_dir}/{output_image_filename}.svg", bbox_inches='tight')
-                            print(f"Saved plot #{plot_counter+1}: {output_image_dir}/{output_image_filename}.svg")
+                            output_path = os.path.join(output_dir, f"{output_image_filename}.svg")
+                            plt.savefig(output_path, bbox_inches='tight')
+                            print(f"Saved plot #{plot_counter}: {output_path}")
                             plt.close()
 
                         except Exception as e:
                             print(f"ERROR: {e}")
 
                         plot_counter += 1
-
-                        if max_plots is not None and plot_counter >= max_plots:
-                            print(f"Exiting after generating {plot_counter} plot(s)")
+                        if plot_counter >= start_with_plot_i + max_plots:
+                            print(f"Exiting after generating {plot_counter-start_with_plot_i} plot(s)")
                             return
 
 
 def main():
     p = argparse.ArgumentParser()
-    p.add_argument("-n", type=int, help="If specified, only generate this many plots. Useful for testing")
-    p.add_argument("--output-dir", default="../tool_comparison/figures")
+    p.add_argument("--start-with-plot-i", type=int, help="If specified, start with this plot number")
+    p.add_argument("-n", type=int, help="If specified, only generate this many plots")
+    p.add_argument("--output-dir", default=".")
     p.add_argument("--verbose", action="store_true", help="Print additional info")
     p.add_argument("combined_tool_results_tsv", nargs="?", default="../tool_comparison/combined.results.alleles.tsv.gz")
     args = p.parse_args()
@@ -259,7 +287,7 @@ def main():
     print("Computing additional columns...")
 
     df.loc[:, "Q: ExpansionHunter: Q from CIs"] = 1/np.exp(
-        4*df["CI size: Allele: ExpansionHunter"]/df["NumRepeats: Allele: ExpansionHunter"]
+        4 * df["CI size: Allele: ExpansionHunter"]/df["NumRepeats: Allele: ExpansionHunter"]
     )
 
     df.loc[:, "Q: ExpansionHunter: Q from read counts"] = np.where(
@@ -272,8 +300,9 @@ def main():
     df.loc[:, "DiffRepeats: Allele: ExpansionHunter: Q from read counts - Truth"] = df[
         "DiffRepeats: Allele: ExpansionHunter - Truth"]
 
-    print("Generating plots...")
-    generate_all_plots(df, args.output_dir, max_plots=args.n)
+    print(f"Generating {str(args.n) + ' ' if args.n else ''}plots",
+          f"starting with plot #{args.start_with_plot_i}" if args.start_with_plot_i else "")
+    generate_all_plots(df, args.output_dir, start_with_plot_i=args.start_with_plot_i, max_plots=args.n)
 
     print(f"Done")
 

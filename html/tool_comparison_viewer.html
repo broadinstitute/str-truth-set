@@ -30,25 +30,21 @@
 </head>
 <body>
 <div class="ui stackable grid" style="padding: 0px 0px 0px 30px">
-    <div class="ui row" style="padding-top: 20px; margin-top: 10px">
+    <div class="ui row">
         <div class="ui eight wide column" style="min-width:820px">
+            <div class="ui form" style="padding: 30px 30px 0px 30px">
+                <div class="inline fields">
+                    <label style="min-width:160px">Plot Type:</label>
+                    <div class="field"><div class="ui radio checkbox"><input type="radio" value="AccuracyVsQ" name="plot-type" checked="checked"><label><b>Accuracy vs. Q Threshold</b></label></div></div>
+                    <div class="field"><div class="ui radio checkbox"><input type="radio" value="AccuracyByAlleleSize" name="plot-type"><label><b>Accuracy by Allele Size</b></b></label></div></div>
+                </div>
+            </div>
             <ul>
                 <li>
                     <div class="ui form">
                         <div class="inline fields">
-                            <label style="min-width:150px">Tool:</label>
-                            <div style="min-width: 70px">[<a class="prev-button" class="prev-button" id="prev-tool" href="#">&lt;</a> <a class="next-button" id="next-tool" href="#">&gt;</a>]</div>
-                            <div class="field"><div class="ui radio checkbox"><input type="radio" value="ExpansionHunter" name="tool" checked="checked"><label>ExpansionHunter</label></div></div>
-                            <div class="field"><div class="ui radio checkbox"><input type="radio" value="GangSTR" name="tool"><label>GangSTR</label></div></div>
-                            <div class="field"><div class="ui radio checkbox"><input type="radio" value="HipSTR" name="tool"><label>HipSTR</label></div></div>
-                        </div>
-                    </div>
-                </li>
-                <li>
-                    <div class="ui form">
-                        <div class="inline fields">
                             <label style="min-width:150px">Motif Size:</label>
-                            <div style="min-width: 70px">[<a class="prev-button" id="prev-motif-size" href="#">&lt;</a> <a class="next-button" id="next-motif-size" href="#">&gt;</a>]</div>
+                            <div style="min-width: 70px">[<a class="prev-button" id="prev-motif-size" href="#">←</a> <a class="next-button" id="next-motif-size" href="#">→</a>]</div>
                             <div class="field"><div class="ui radio checkbox"><input type="radio" value="all_motifs" name="motif-size"><label>any</label></div></div>
                             <div class="field"><div class="ui radio checkbox"><input type="radio" value="2to6bp_motifs" name="motif-size" checked="checked"><label>2-6bp</label></div></div>
                             <div class="field"><div class="ui radio checkbox"><input type="radio" value="7to24bp_motifs" name="motif-size"><label>7-24bp</label></div></div>
@@ -60,7 +56,7 @@
                     <div class="ui form">
                         <div class="inline fields">
                             <label style="min-width:150px">Genotype:</label>
-                            <div style="min-width: 70px">[<a class="prev-button" id="prev-genotype" href="#">&lt;</a> <a class="next-button" id="next-genotype" href="#">&gt;</a>]</div>
+                            <div style="min-width: 70px">[<a class="prev-button" id="prev-genotype" href="#">←</a> <a class="next-button" id="next-genotype" href="#">→</a>]</div>
                             <div class="field"><div class="ui radio checkbox"><input type="radio" value="all_genotypes" name="genotype" checked="checked"><label>any</label></div></div>
                             <div class="field"><div class="ui radio checkbox"><input type="radio" value="HET" name="genotype"><label>heterozygous</label></div></div>
                             <div class="field"><div class="ui radio checkbox"><input type="radio" value="HOM" name="genotype"><label>homozygous</label></div></div>
@@ -72,12 +68,11 @@
                     <div class="ui form">
                         <div class="inline fields">
                             <label style="min-width:150px">Coverage:</label>
-                            <div style="min-width: 70px">[<a class="prev-button" id="prev-coverage" href="#">&lt;</a> <a class="next-button" id="next-coverage" href="#">&gt;</a>]</div>
+                            <div style="min-width: 70px">[<a class="prev-button" id="prev-coverage" href="#">←</a> <a class="next-button" id="next-coverage" href="#">→</a>]</div>
                             <div class="field"><div class="ui radio checkbox"><input type="radio" value="40x" name="coverage" checked="checked"><label  style="white-space:nowrap">40x</label></div></div>
                             <div class="field"><div class="ui radio checkbox"><input type="radio" value="30x" name="coverage"><label style="white-space:nowrap">30x</label></div></div>
                             <div class="field"><div class="ui radio checkbox"><input type="radio" value="20x" name="coverage"><label style="white-space:nowrap">20x</label></div></div>
                             <div class="field"><div class="ui radio checkbox"><input type="radio" value="10x" name="coverage"><label style="white-space:nowrap">10x</label></div></div>
-                            <div class="field"><div class="ui radio checkbox"><input type="radio" value="05x" name="coverage"><label style="white-space:nowrap">5x</label></div></div>
                             <div class="field"><div class="ui radio checkbox"><input type="radio" value="exome" name="coverage"><label style="white-space:nowrap">exome (85x)</label></div></div>
                         </div>
                     </div>
@@ -85,17 +80,43 @@
                 <li>
                     <div class="ui form">
                         <div class="inline fields">
-                            <label style="min-width:150px">Allow Interruptions:</label>
-                            <div style="min-width: 70px">[<a class="prev-button" id="prev-interruptions" href="#">&lt;</a> <a class="next-button" id="next-interruptions" href="#">&gt;</a>]</div>
-                            <div class="field"><div class="ui radio checkbox"><input type="radio" value="pure_repeats" name="interruptions" checked="checked"><label>No: only pure repeats</label></div></div>
-                            <div class="field"><div class="ui radio checkbox"><input type="radio" value="with_interruptions" name="interruptions"><label>Yes: only interrupted repeats</label></div></div>
+                            <label style="min-width:150px">Pure or Interrupted:</label>
+                            <div style="min-width: 70px">[<a class="prev-button" id="prev-interruptions" href="#">←</a> <a class="next-button" id="next-interruptions" href="#">→</a>]</div>
+                            <div class="field"><div class="ui radio checkbox"><input type="radio" value="both" name="interruptions" checked="checked"><label>both</label></div></div>
+                            <div class="field"><div class="ui radio checkbox"><input type="radio" value="pure_repeats" name="interruptions"><label>only pure repeats</label></div></div>
+                            <div class="field"><div class="ui radio checkbox"><input type="radio" value="with_interruptions" name="interruptions"><label>only interrupted repeats</label></div></div>
+                        </div>
+                    </div>
+                </li>
+                <li id="li-q-threshold">
+                    <div class="ui form">
+                        <div class="inline fields">
+                            <label style="min-width:150px">Q Threshold:</label>
+                            <div style="min-width: 70px">[<a class="prev-button" id="prev-q-threshold" href="#">←</a> <a class="next-button" id="next-q-threshold" href="#">→</a>]</div>
+                            <div class="field"><div class="ui radio checkbox"><input type="radio" value="Q0" name="q-threshold" checked="checked"><label>none</label></div></div>
+                            <div class="field"><div class="ui radio checkbox"><input type="radio" value="Q10" name="q-threshold"><label>≥ 0.1</label></div></div>
+                            <div class="field"><div class="ui radio checkbox"><input type="radio" value="Q50" name="q-threshold"><label>≥ 0.5</label></div></div>
+                            <div class="field"><div class="ui radio checkbox"><input type="radio" value="Q90" name="q-threshold"><label>≥ 0.9</label></div></div>
+                            <div class="field"><div class="ui radio checkbox"><input type="radio" value="Q98" name="q-threshold"><label>≥ 0.98</label></div></div>
+                        </div>
+                    </div>
+                </li>
+                <li id="li-tool">
+                    <div class="ui form">
+                        <div class="inline fields">
+                            <label style="min-width:150px">Tool:</label>
+                            <div style="min-width: 70px">[<a class="prev-button" class="prev-button" id="prev-tool" href="#">←</a> <a class="next-button" id="next-tool" href="#">→</a>]</div>
+                            <div class="field"><div class="ui radio checkbox"><input type="radio" value="ExpansionHunter" name="tool" checked="checked"><label>ExpansionHunter</label></div></div>
+                            <div class="field"><div class="ui radio checkbox"><input type="radio" value="GangSTR" name="tool"><label>GangSTR</label></div></div>
+                            <div class="field"><div class="ui radio checkbox"><input type="radio" value="HipSTR" name="tool"><label>HipSTR</label></div></div>
+                            <div class="ui checkbox"><input type="checkbox" name="only-loci-with-hipstr-call"></div>Only loci with HipSTR call
                         </div>
                     </div>
                 </li>
             </ul>
         </div>
-        <div id="legend-row" style="padding-left:50px">
-                <div style="float:right; padding: 0px 25px 25px 10px">[<a href="#" id="hide-legend">hide this legend</a>]</div>
+        <div id="accuracy-by-allele-size-legend" style="padding-left:50px">
+                <div style="float:right; padding: 0px 25px 25px 10px">[<a href="#" id="hide-accuracy-by-allele-size-legend">hide this legend</a>]</div>
                 <b>x-axis:</b> represents the true allele size. Positive values are
                 STR expansions, negative values are STR contractions.<br />
                 <br />
@@ -108,11 +129,11 @@
                 <b>Orange</b> is for alleles that the tool overestimated (darker orange means a larger overestimate).<br />
         </div>
     </div>
+    <div style="margin-top:0px">
+        <img alt="image" id="tool-comparison-plot-viewer" height="800" src="https://storage.googleapis.com/str-truth-set/hg38/figures/tool_accuracy_by_true_allele_size.2to6bp_motifs.all_genotypes.pure_repeats.40x.ExpansionHunter.svg" />
+    </div>
 </div>
 
-<p>
-    <img style="padding-top:30px; max-width:87%;" alt="image" id="tool-comparison-plot-viewer" src="https://storage.googleapis.com/str-truth-set/hg38/figures/tool_accuracy_by_true_allele_size.2to6bp_motifs.all_genotypes.pure_repeats.40x.ExpansionHunter.svg" />
-</p>
 
 <!-- script section -->
 <script src="https://code.jquery.com/jquery-3.1.1.min.js"  integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
@@ -143,25 +164,53 @@
         radioButtons[idx].checked = true;
     });
 
+    let hideAccuracyVsQLegend = false
+    let hideAccuracyByAlleleSizeLegend = false
     let update_tool_comparison_plot_viewer_image_url = () => {
-        const tool = $('input[name="tool"]:checked').val()
-        const motif_size = $('input[name="motif-size"]:checked').val()
-        const genotype = $('input[name="genotype"]:checked').val()
-        const coverage = $('input[name="coverage"]:checked').val()
-        const interruptions = $('input[name="interruptions"]:checked').val()
+        const plotType = $('input[name="plot-type"]:checked').val()
+        const motif_size = "." + $('input[name="motif-size"]:checked').val()
+        const genotype = "." + $('input[name="genotype"]:checked').val()
+        const coverage = "." + $('input[name="coverage"]:checked').val()
+        let interruptions = "." + $('input[name="interruptions"]:checked').val()
+        const qThreshold = "." + $('input[name="q-threshold"]:checked').val()
+        const tool = "." + $('input[name="tool"]:checked').val()
+        const excludeHipSTRNoCallLoci = $('input[name="only-loci-with-hipstr-call"]:checked').val() ? ".exclude_HipSTR_no_call_loci" : ""
+        if (interruptions == ".both") {
+            interruptions = ""
+        }
+
+        $("#li-hipstr-loci").toggle(plotType == "AccuracyVsQ")
+        $("#li-q-threshold").toggle(plotType == "AccuracyByAlleleSize")
+        $("input[name='tool']").parent().parent().toggle(plotType == "AccuracyByAlleleSize")
 
 
-        //let img_url = "https://broadinstitute.github.io/str-truth-set/tool_comparison/figures/"
-        let img_url = "https://storage.googleapis.com/str-truth-set/hg38/figures/"
-        img_url += `tool_accuracy_by_true_allele_size.${motif_size}.${genotype}.${interruptions}.${coverage}.${tool}.svg`
+        $("#accuracy-vs-q-legend").toggle(!hideAccuracyVsQLegend && (plotType == "AccuracyVsQ"))
+        $("#accuracy-by-allele-size-legend").toggle(!hideAccuracyByAlleleSizeLegend && (plotType == "AccuracyByAlleleSize"))
 
-        $('#tool-comparison-plot-viewer').attr("src", img_url)
+        let imgUrl = "https://storage.googleapis.com/str-truth-set/hg38/figures"
+        if (plotType == "AccuracyVsQ") {
+            imgUrl += `/accuracy_vs_Q/tool_accuracy_vs_Q${motif_size}${genotype}${interruptions}${coverage}${excludeHipSTRNoCallLoci}.svg`
+        } else if (plotType == "AccuracyByAlleleSize") {
+            imgUrl += `/accuracy_by_allele_size/tool_accuracy_by_true_allele_size${motif_size}${genotype}${interruptions}${coverage}${qThreshold}${tool}${excludeHipSTRNoCallLoci}.svg`
+        }
+
+        $("#tool-comparison-plot-viewer").attr("src", imgUrl)
     }
 
-    $('input[type="radio"]').on("change", update_tool_comparison_plot_viewer_image_url);
-    $('#hide-legend').click(() => {
-        $('#legend-row').hide()
+    $("input[type='radio']").on("change", update_tool_comparison_plot_viewer_image_url);
+    $("input[type='checkbox']").on("change", update_tool_comparison_plot_viewer_image_url);
+
+    $("#hide-accuracy-vs-q-legend").click(() => {
+        hideAccuracyVsQLegend = true
+        $("#accuracy-vs-q-legend").hide()
     })
+    $("#hide-accuracy-by-allele-size-legend").click(() => {
+        hideAccuracyByAlleleSizeLegend = true
+        $("#accuracy-by-allele-size-legend").hide()
+    })
+
+    //init the view
+    update_tool_comparison_plot_viewer_image_url()
     
 </script>
 </body>

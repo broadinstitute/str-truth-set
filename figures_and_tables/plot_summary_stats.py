@@ -2,16 +2,19 @@ import argparse
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
+import os
 import pandas as pd
 import seaborn as sns
 
 
 sns.set_context("paper", font_scale=1.1, rc={
     "font.family": "sans-serif",
+    "svg.fonttype": "none",  # add text as text rather than curves
 })
 
 
-def plot_allele_size_distribution(df_truth_set, plot_type=1, color_by=None, hue_order=None, is_pure_repeats=True, show_title=True):
+def plot_allele_size_distribution(df_truth_set, output_dir,
+                                  plot_type=1, color_by=None, hue_order=None, is_pure_repeats=True, show_title=True):
     if is_pure_repeats:
         df_truth_set = df_truth_set[df_truth_set.IsPureRepeat]
     else:
@@ -107,15 +110,16 @@ def plot_allele_size_distribution(df_truth_set, plot_type=1, color_by=None, hue_
         if plot_type == 3:
             sns.move_legend(ax, loc="upper right")
 
-    output_image_name += ".svg"
-    plt.savefig(f"{output_image_name}", bbox_inches="tight")
+    output_path = os.path.join(output_dir, output_image_name + ".svg")
+    plt.savefig(output_path, bbox_inches="tight")
     plt.close()
-    print(f"Saved {output_image_name}")
+    print(f"Saved {output_path}")
 
     print(f"Plotted {len(df_truth_set):,d} allele records")
 
 
-def plot_allele_size_and_motif_distribution(df_truth_set, color_by=None, hue_order=None, is_pure_repeats=True, show_title=True):
+def plot_allele_size_and_motif_distribution(df_truth_set, output_dir,
+                                            color_by=None, hue_order=None, is_pure_repeats=True, show_title=True):
     if is_pure_repeats:
         df_truth_set = df_truth_set[df_truth_set.IsPureRepeat]
     else:
@@ -192,15 +196,17 @@ def plot_allele_size_and_motif_distribution(df_truth_set, color_by=None, hue_ord
 
     if color_by:
         output_image_name += f".color_by_{color_by.lower()}"
-    output_image_name += ".svg"
-    plt.savefig(f"{output_image_name}", bbox_extra_artists=extra_artists, bbox_inches="tight")
+
+    output_path = os.path.join(output_dir, output_image_name + ".svg")
+    plt.savefig(output_path, bbox_extra_artists=extra_artists, bbox_inches="tight")
     plt.close()
-    print(f"Saved {output_image_name}")
+    print(f"Saved {output_path}")
 
     print(f"Plotted {len(df_truth_set):,d} allele records")
 
 
-def plot_gene_info(df, excluding_introns_and_intergenic=False, use_MANE_genes=False, show_title=True):
+def plot_gene_info(df, output_dir,
+                   excluding_introns_and_intergenic=False, use_MANE_genes=False, show_title=True):
     df = df[df.IsPureRepeat]
 
     if use_MANE_genes:
@@ -289,14 +295,15 @@ def plot_gene_info(df, excluding_introns_and_intergenic=False, use_MANE_genes=Fa
         output_image_name += ".all_regions"
     output_image_name += f"{output_image_filename_suffix}.svg"
 
-    plt.savefig(f"{output_image_name}", bbox_extra_artists=extra_artists, bbox_inches="tight")
+    output_path = os.path.join(output_dir, output_image_name + ".svg")
+    plt.savefig(output_path, bbox_extra_artists=extra_artists, bbox_inches="tight")
     plt.close()
-    print(f"Saved {output_image_name}")
+    print(f"Saved {output_path}")
 
     print(f"Plotted {len(df):,d} allele records")
 
 
-def plot_allele_size_distribution_x3(df, is_pure_repeats=True, color_by=None, hue_order=None):
+def plot_allele_size_distribution_x3(df, output_dir, is_pure_repeats=True, color_by=None, hue_order=None):
 
     """Plot allele size distribution split into 3 plots by motif size ranges"""
     if is_pure_repeats:
@@ -370,15 +377,15 @@ def plot_allele_size_distribution_x3(df, is_pure_repeats=True, color_by=None, hu
         if color_by:
             output_image_name += f".color_by_{color_by.lower()}"
 
-        output_image_name += ".svg"
-
-        fig.savefig(f"{output_image_name}", bbox_inches="tight")
-        print(f"Saved {output_image_name}")
+        output_path = os.path.join(output_dir, output_image_name + ".svg")
+        fig.savefig(output_path, bbox_inches="tight")
+        print(f"Saved {output_path}")
 
         print(f"Plotted {len(df):,d} allele records")
 
 
-def plot_motif_distribution(df, is_pure_repeats=True, show_title=True):
+def plot_motif_distribution(df, output_dir, is_pure_repeats=True, show_title=True):
+
     print("Plotting allele distribution by motif size")
     if is_pure_repeats:
         df = df[df.IsPureRepeat]
@@ -467,10 +474,10 @@ def plot_motif_distribution(df, is_pure_repeats=True, show_title=True):
     else:
         output_image_name += ".with_interruptions"
 
-    output_image_name += ".svg"
-    plt.savefig(f"{output_image_name}", bbox_inches="tight")
+    output_path = os.path.join(output_dir, output_image_name + ".svg")
+    plt.savefig(output_path, bbox_inches="tight")
     plt.close()
-    print(f"Saved {output_image_name}")
+    print(f"Saved {output_path}")
 
     print(f"Plotted {len(df):,d} allele records")
 
@@ -482,9 +489,11 @@ def main():
     p.add_argument("--skip-plot3", action="store_true")
     p.add_argument("--skip-plot4", action="store_true")
     p.add_argument("--skip-plot5", action="store_true")
+    p.add_argument("--output-dir", default=".")
+    p.add_argument("--truth-set-alleles-table", default="../STR_truth_set.v1.alleles.tsv.gz")
     args = p.parse_args()
 
-    input_table_path = "../STR_truth_set.v1.alleles.tsv.gz"
+    input_table_path = args.truth_set_alleles_table
 
     print(f"Reading {input_table_path}")
     df = pd.read_table(input_table_path)
@@ -497,35 +506,44 @@ def main():
     df["OverlapsSegDupIntervals"] = df["OverlapsSegDupIntervals"].replace({True: "Yes", False: "No"})
 
     if not args.skip_plot1:
-        plot_allele_size_distribution(df, plot_type=1, is_pure_repeats=True)
-        plot_allele_size_distribution(df, plot_type=1, is_pure_repeats=False)
-        plot_allele_size_distribution(df, plot_type=2, is_pure_repeats=True)
-        plot_allele_size_distribution(df, plot_type=2, is_pure_repeats=False)
+        plot_allele_size_distribution(df, args.output_dir, plot_type=1, is_pure_repeats=True)
+        plot_allele_size_distribution(df, args.output_dir, plot_type=1, is_pure_repeats=False)
+        plot_allele_size_distribution(df, args.output_dir, plot_type=2, is_pure_repeats=True)
+        plot_allele_size_distribution(df, args.output_dir, plot_type=2, is_pure_repeats=False)
 
     if not args.skip_plot2:
-        plot_allele_size_distribution(df, plot_type=1, color_by="Multiallelic", hue_order=["No", "Yes"], is_pure_repeats=True)
-        plot_allele_size_distribution(df, plot_type=1, color_by="Multiallelic", hue_order=["No", "Yes"], is_pure_repeats=False)
-        plot_allele_size_distribution(df, plot_type=3, color_by="Multiallelic", hue_order=["No", "Yes"], is_pure_repeats=True)
-        plot_allele_size_distribution(df, plot_type=3, color_by="Multiallelic", hue_order=["No", "Yes"], is_pure_repeats=False)
+        plot_allele_size_distribution(df, args.output_dir, plot_type=1, color_by="Multiallelic",
+                                      hue_order=["No", "Yes"], is_pure_repeats=True)
+        plot_allele_size_distribution(df, args.output_dir, plot_type=1, color_by="Multiallelic",
+                                      hue_order=["No", "Yes"], is_pure_repeats=False)
+        plot_allele_size_distribution(df, args.output_dir, plot_type=3, color_by="Multiallelic",
+                                      hue_order=["No", "Yes"], is_pure_repeats=True)
+        plot_allele_size_distribution(df, args.output_dir, plot_type=3, color_by="Multiallelic",
+                                      hue_order=["No", "Yes"], is_pure_repeats=False)
 
-        plot_allele_size_distribution(df, plot_type=1, color_by="OverlapsSegDupIntervals", hue_order=["No", "Yes"], is_pure_repeats=True)
+        plot_allele_size_distribution(df, args.output_dir, plot_type=1, color_by="OverlapsSegDupIntervals",
+                                      hue_order=["No", "Yes"], is_pure_repeats=True)
 
-        plot_allele_size_and_motif_distribution(df, color_by="Multiallelic", hue_order=["No", "Yes"], is_pure_repeats=True)
-        plot_allele_size_and_motif_distribution(df, color_by="Multiallelic", hue_order=["No", "Yes"], is_pure_repeats=False)
-        plot_allele_size_and_motif_distribution(df, color_by="OverlapsSegDupIntervals", hue_order=["No", "Yes"], is_pure_repeats=True)
+        plot_allele_size_and_motif_distribution(df, args.output_dir, color_by="Multiallelic",
+                                                hue_order=["No", "Yes"], is_pure_repeats=True)
+        plot_allele_size_and_motif_distribution(df, args.output_dir, color_by="Multiallelic",
+                                                hue_order=["No", "Yes"], is_pure_repeats=False)
+        plot_allele_size_and_motif_distribution(df, args.output_dir, color_by="OverlapsSegDupIntervals",
+                                                hue_order=["No", "Yes"], is_pure_repeats=True)
 
     if not args.skip_plot3:
-        plot_allele_size_distribution_x3(df, is_pure_repeats=True)
-        plot_allele_size_distribution_x3(df, is_pure_repeats=True, color_by="Multiallelic", hue_order=["No", "Yes"])
+        plot_allele_size_distribution_x3(df, args.output_dir, is_pure_repeats=True)
+        plot_allele_size_distribution_x3(df, args.output_dir, is_pure_repeats=True, color_by="Multiallelic",
+                                         hue_order=["No", "Yes"])
 
     if not args.skip_plot4:
-        plot_gene_info(df, excluding_introns_and_intergenic=False, use_MANE_genes=False)
-        plot_gene_info(df, excluding_introns_and_intergenic=False, use_MANE_genes=True)
-        plot_gene_info(df, excluding_introns_and_intergenic=True, use_MANE_genes=False)
-        plot_gene_info(df, excluding_introns_and_intergenic=True, use_MANE_genes=True)
+        plot_gene_info(df, args.output_dir, excluding_introns_and_intergenic=False, use_MANE_genes=False)
+        plot_gene_info(df, args.output_dir, excluding_introns_and_intergenic=False, use_MANE_genes=True)
+        plot_gene_info(df, args.output_dir, excluding_introns_and_intergenic=True, use_MANE_genes=False)
+        plot_gene_info(df, args.output_dir, excluding_introns_and_intergenic=True, use_MANE_genes=True)
 
     if not args.skip_plot5:
-        plot_motif_distribution(df, is_pure_repeats=True)
+        plot_motif_distribution(df, args.output_dir, is_pure_repeats=True)
 
 
 if __name__ == "__main__":

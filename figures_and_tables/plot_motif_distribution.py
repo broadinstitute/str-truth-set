@@ -1,12 +1,16 @@
+import argparse
 import matplotlib.pyplot as plt
 import numpy as np
+import os
 import pandas as pd
 import seaborn as sns
+
 from str_analysis.utils.canonical_repeat_unit import compute_canonical_motif
 
 
 sns.set_context("paper", font_scale=1.1, rc={
     "font.family": "sans-serif",
+    "svg.fonttype": "none",  # add text as text rather than curves
     "legend.fontsize": 12,
 })
 
@@ -78,31 +82,37 @@ def add_columns(df, existing_motif_labels=()):
 
 
 def main():
+    p = argparse.ArgumentParser()
+    p.add_argument("--output-dir", default=".")
+    p.add_argument("--ref-dir", default="../ref")
+    p.add_argument("--truth-set-variants-table", default="../STR_truth_set.v1.variants.tsv.gz")
+    args = p.parse_args()
+
     min_ref_bp = "12bp"
-    df_ref = pd.read_table(
-        f"../ref/other/repeat_specs_GRCh38_without_mismatches.sorted.trimmed.at_least_{min_ref_bp}.bed.gz",
+    df_ref = pd.read_table(os.path.join(args.ref_dir,
+                           f"other/repeat_specs_GRCh38_without_mismatches.sorted.trimmed.at_least_{min_ref_bp}.bed.gz"),
         names=["chrom", "start_0based", "end", "Motif", "num_repeats"],
         index_col=False)
     df_ref.loc[:, "MotifSize"] = df_ref.Motif.apply(lambda m: len(m))
     df_ref.loc[:, "CanonicalMotif"] = df_ref.Motif.apply(lambda m: compute_canonical_motif(m, include_reverse_complement=True))
     df_ref = add_columns(df_ref)
     print(f"Plotting motifs from {len(df_ref):,d} reference loci")
-    plot_hist(df_ref, f"motif_distribution_in_hg38_with_atleast_{min_ref_bp}.svg",
+    plot_hist(df_ref, os.path.join(args.output_dir, f"motif_distribution_in_hg38_with_atleast_{min_ref_bp}.svg"),
               y_label="Fraction of Pure STR Loci in hg38",
               title=f"Motifs of Pure STR Loci in hg38")
 
-    df = pd.read_table("../STR_truth_set.v1.variants.tsv.gz")
+    df = pd.read_table(args.truth_set_variants_table)
     df_pure = df[df["IsPureRepeat"]]
     df_pure = add_columns(df_pure, existing_motif_labels=set(df_ref.MotifLabels))
     print(f"Plotting motifs from {len(df_pure):,d} pure truth set loci")
-    plot_hist(df_pure, f"motif_distribution.pure_repeats.svg",
+    plot_hist(df_pure, os.path.join(args.output_dir, f"motif_distribution.pure_repeats.svg"),
               y_label="Fraction of Pure STR Variants in Truth Set",
               title="Motifs of STR Variants In Truth Set")
 
     df_with_interruptions = df[~df["IsPureRepeat"]]
     df_with_interruptions = add_columns(df_with_interruptions)
     print(f"Plotting motifs from {len(df_with_interruptions):,d} truth set loci with interruptions")
-    plot_hist(df_with_interruptions, f"motif_distribution.with_interruptions.svg",
+    plot_hist(df_with_interruptions, os.path.join(args.output_dir, f"motif_distribution.with_interruptions.svg"),
               y_label="Fraction of Interrupted STR Variants in Truth Set",
               title="Motifs of STR Variants In Truth Set\n(interrupted repeats only)")
 

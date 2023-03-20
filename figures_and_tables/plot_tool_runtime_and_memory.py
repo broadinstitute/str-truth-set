@@ -1,4 +1,7 @@
+import argparse
+
 import matplotlib.pyplot as plt
+import os
 import pandas as pd
 import seaborn as sns
 
@@ -7,17 +10,13 @@ from matplotlib.ticker import MultipleLocator
 
 sns.set_context("paper", font_scale=1.1, rc={
     "font.family": "sans-serif",
+    "svg.fonttype": "none",  # add text as text rather than curves
 })
 
 
-def generate_plot(with_coverage=False):
+def generate_plot(input_table_path, output_dir, with_coverage=False):
 
-    if with_coverage:
-        input_path = "../tool_comparison/STR_tool_timing.with_coverage.tsv"
-    else:
-        input_path = "../tool_comparison/STR_tool_timing.tsv"
-
-    df = pd.read_table(input_path)
+    df = pd.read_table(input_table_path)
 
     df = df[df["positive_or_negative_loci"] == "positive_loci"]
 
@@ -157,16 +156,21 @@ def generate_plot(with_coverage=False):
         print("---")
 
     print(f"Plotted {len(df):,d} records")
-
-    output_image_name = f"tool_runtime_and_memory{output_image_name_suffix}.svg"
-    plt.savefig(f"{output_image_name}", bbox_inches="tight")
-    print(f"Saved {output_image_name}")
+    output_path = os.path.join(output_dir, f"tool_runtime_and_memory{output_image_name_suffix}.svg")
+    plt.savefig(output_path, bbox_inches="tight")
+    print(f"Saved {output_path}")
     plt.close()
 
 
 def main():
-    generate_plot(with_coverage=False)
-    generate_plot(with_coverage=True)
+    p = argparse.ArgumentParser()
+    p.add_argument("--output-dir", default=".")
+    p.add_argument("--timing-table", default="../tool_comparison/STR_tool_timing.tsv")
+    p.add_argument("--timing-table-with-coverage", default="../tool_comparison/STR_tool_timing.with_coverage.tsv")
+    args = p.parse_args()
+
+    generate_plot(args.timing_table, args.output_dir, with_coverage=False)
+    generate_plot(args.timing_table_with_coverage, args.output_dir, with_coverage=True)
 
 
 if __name__ == "__main__":

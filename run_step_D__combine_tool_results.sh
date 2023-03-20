@@ -92,3 +92,6 @@ python3 -u ./tool_comparison/scripts/intersect_expansion_hunter_denovo_results_w
 
 # combine all
 python3 -u ./tool_comparison/scripts/combine_all_results_tables.py
+
+gsutil -m cp ./tool_comparison/combined.results.*.tsv.gz  gs://str-truth-set/hg38/
+

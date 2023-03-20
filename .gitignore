@@ -1,8 +1,7 @@
 .idea
 *.iml
 .DS_Store
-tool_comparison/figures/*.svg
-tool_comparison/figures/*.png
+*.png
 
 ref
 *.tar.gz

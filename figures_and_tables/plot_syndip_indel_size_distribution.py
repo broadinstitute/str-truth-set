@@ -1,15 +1,18 @@
+import argparse
 import gzip
 import matplotlib.pyplot as plt
+import os
 import pandas as pd
 import seaborn as sns
 from tqdm import tqdm
 
 sns.set_context("paper", font_scale=1.1, rc={
     "font.family": "sans-serif",
+    "svg.fonttype": "none",  # add text as text rather than curves
 })
 
 
-def plot_distribution(df):
+def plot_distribution(df, output_dir):
 
     fig, ax = plt.subplots(figsize=(20, 3.5), dpi=80, tight_layout=True)
 
@@ -34,17 +37,22 @@ def plot_distribution(df):
 
     print(f"Plotted {len(df):,d} allele records")
 
-    output_image_name = "syndip_indel_size_distribution.svg"
-    plt.savefig(f"{output_image_name}", bbox_inches="tight")
-    print(f"Saved {output_image_name}")
+    output_path = os.path.join(output_dir, "syndip_indel_size_distribution.svg")
+    plt.savefig(output_path, bbox_inches="tight")
+    print(f"Saved {output_path}")
     plt.close()
 
 
 def main():
+    p = argparse.ArgumentParser()
+    p.add_argument("--syndip-vcf", default="../step1.high_confidence_regions.vcf.gz")
+    p.add_argument("--output-dir", default=".")
+    args = p.parse_args()
+
     indels = set()
     indel_sizes = []
 
-    with gzip.open("../step1.high_confidence_regions.vcf.gz", "rt") as f:
+    with gzip.open(args.syndip_vcf, "rt") as f:
         for line in tqdm(f, unit=" lines", total=4_081_580):
             if line.startswith("#"):
                 continue
@@ -70,7 +78,7 @@ def main():
     print("Largest deletion size: ", min(df.indel_kb), "kb")
     print("Mean event size: ", df.indel_size.mean(), "kb")
 
-    plot_distribution(df)
+    plot_distribution(df, args.output_dir)
 
 
 if __name__ == "__main__":
