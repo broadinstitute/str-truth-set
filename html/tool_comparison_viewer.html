@@ -141,12 +141,13 @@
                 using the information provide in ExpansionHunter's json output for each locus.<br />
 
         </div>
-        <div id="accuracy-by-allele-size-legend" style="padding-left:50px; padding-top:30px; display:none;">
+        <div id="accuracy-by-allele-size-legend" style="padding-left:50px; padding-top:30px; display:none; max-width: 850px">
             <div style="float:right; padding: 0px 25px 25px 10px">[<a href="#" id="hide-accuracy-by-allele-size-legend">hide this text</a>]</div>
             <b>x-axis:</b> represents the true allele size. Positive values are
             STR expansions, negative values are STR contractions.<br />
             <br />
-            <b>Gray</b> represents loci where the tool didn't produce a genotype (i.e. due to errors or insufficient coverage).<br />
+            <b>Gray</b> represents loci where the tool didn't produce a genotype (i.e. due to errors or insufficient coverage), or where the call
+                        didn't pass the minimum quality score (Q) threshold selected on the left.<br />
             <b>Red</b> is for loci that the tool called as homozygous reference and so entirely missed the variant. <br />
             <b>Brown</b> is when the tool incorrectly called an allele as being heterozygous reference.<br />
             <b>Teal</b> is where it called a contraction when the true allele is an expansion or vice versa.<br />
@@ -231,7 +232,7 @@
             imgUrl += `/accuracy_by_allele_size/tool_accuracy_by_true_allele_size${motif_size}${genotype}${interruptions}${coverage}${excludeToolNoCallLoci}${qThreshold}${tool}.svg`
             $("#tool-comparison-plot-viewer").attr({
                 "src": imgUrl,
-                "style": "max-width:87%",
+                "style": "max-width:90%",
             })
         }
 

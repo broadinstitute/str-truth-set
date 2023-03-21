@@ -253,7 +253,7 @@ def generate_all_plots(df, output_dir, start_with_plot_i=None, max_plots=None):
 
                             for only_loci_with_calls_by_this_tool in False, True:
                                 if only_loci_with_calls_by_this_tool:
-                                    df_plot = df6[~df6[f"Genotype: {tool}"].isna()]
+                                    df_plot = df6[df6[f"DiffRepeats: Allele: {tool} - Truth (bin)"] != NO_CALL_LABEL]
                                 else:
                                     df_plot = df6
 
@@ -344,7 +344,7 @@ def generate_all_plots(df, output_dir, start_with_plot_i=None, max_plots=None):
                                     continue
 
                                 print(f"Generating plot #{plot_counter}")
-                                num_alleles_exactly_right = sum(df_plot[f"DiffRepeats: Allele: {tool} - Truth"] == 0)
+                                num_alleles_exactly_right = sum(df_plot[f"DiffRepeats: Allele: {tool} - Truth (bin)"] == "0")
                                 hue_values = set(df_plot.loc[:, f"DiffRepeats: Allele: {tool} - Truth (bin)"])
 
                                 figure_title_line1 += f"{tool} got {num_alleles_exactly_right:,d} out of {len(df_plot):,d} alleles ({100*num_alleles_exactly_right/len(df_plot):0.1f}%) exactly right for {coverage_label}"
@@ -353,8 +353,6 @@ def generate_all_plots(df, output_dir, start_with_plot_i=None, max_plots=None):
                                 print(figure_title_line1)
                                 print(figure_title_line2)
                                 print(f"Plotting {len(df_plot):,d} out of {len(df):,d} rows")
-                                print(tool, sum(df_plot[f"DiffFromRefRepeats: Allele: {tool}"].isna()), "out of", len(df_plot), f"{tool} - Ref' values are NaN")
-                                print(tool, sum(df_plot[f"DiffRepeats: Allele: {tool} - Truth"].isna()), "out of", len(df_plot), f"{tool} - Truth' values are NaN")
                                 print("Hue values:", sorted(hue_values, key=hue_sorter))
 
                                 palette = []
