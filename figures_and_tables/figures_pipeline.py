@@ -2,7 +2,7 @@ import os
 
 from step_pipeline import pipeline, Backend, Localize, Delocalize
 
-DOCKER_IMAGE = "docker.io/weisburd/truth-set-figures@sha256:2cb7241a44ac462f65a1a10a04e701ce08590accba6cbf0ee0dbdd2cb68fd86e"
+DOCKER_IMAGE = "docker.io/weisburd/truth-set-figures@sha256:898d5a061872311e5816b6aac98fb81c9d62a9c914aba1ab7dd7d3675343319c"
 
 
 def main():
@@ -19,7 +19,7 @@ def main():
     args = bp.parse_known_args()
 
     # generate tool accuracy by allele size
-    for i in range(0, 3*4*5*4*4*3*2, args.batch_size):
+    for i in range(0, 10_080, args.batch_size):
         if args.n is not None and i >= args.n:
             break
 

@@ -11,6 +11,7 @@ sns.set_context(font_scale=1.1, rc={
     "font.family": "sans-serif",
     "svg.fonttype": "none",  # add text as text rather than curves
 })
+
 sns.set_palette(["purple", "blue", "red", "orange"])
 
 
@@ -123,17 +124,22 @@ def plot_empty_image(figure_title, message):
     ax.add_patch(rect)
 
 
-def generate_all_plots(df, output_dir, start_with_plot_i=None, max_plots=None):
+def generate_all_plots(df, args):
     plot_counter = 0
+
+    start_with_plot_i = args.start_with_plot_i
     if start_with_plot_i is None or start_with_plot_i < 0:
         start_with_plot_i = 0
+
+    max_plots = args.n
     if max_plots is None:
         max_plots = 10**9
+
+    output_dir = args.output_dir
 
     for coverage in "40x", "30x", "20x", "10x", "exome":
         df2 = df[df["Coverage"] == coverage]
         if coverage == "exome":
-            #df2 = df2[~df2["Genotype: GangSTR"].isna() | ~df2["Genotype: ExpansionHunter"].isna()]
             df2 = df2[~df2["GeneRegionFromGencode_V42"].isin({"intergenic", "intron", "promoter"})]
 
         for motif_size in "all_motifs", "2-6bp", "7-24bp", "25+bp":
@@ -306,7 +312,7 @@ def main():
 
     print(f"Generating {str(args.n) + ' ' if args.n else ''}plots",
           f"starting with plot #{args.start_with_plot_i}" if args.start_with_plot_i else "")
-    generate_all_plots(df, args.output_dir, start_with_plot_i=args.start_with_plot_i, max_plots=args.n)
+    generate_all_plots(df, args)
 
     print(f"Done")
 

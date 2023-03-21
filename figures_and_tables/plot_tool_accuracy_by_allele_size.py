@@ -1,6 +1,7 @@
 import argparse
 import matplotlib.pyplot as plt
 import numpy as np
+import os
 import pandas as pd
 import seaborn as sns
 
@@ -196,55 +197,69 @@ def hue_sorter(value):
         return int(float(value.split(" ")[0]))
 
 
-def generate_all_plots(df, output_dir, start_with_plot_i=None, max_plots=None):
+def generate_all_plots(df, args):
     plot_counter = 0
+
+    start_with_plot_i = args.start_with_plot_i
     if start_with_plot_i is None or start_with_plot_i < 0:
         start_with_plot_i = 0
+
+    max_plots = args.n
     if max_plots is None:
         max_plots = 10**9
 
+    output_dir = args.output_dir
+
     for tool in "ExpansionHunter", "GangSTR", "HipSTR":
         for q_threshold in 0, 0.1, 0.5, 0.9:
-            if q_threshold > 0:
+            if q_threshold > 0 and not args.only_print_total_number_of_plots:
                 df2 = df.copy()
                 q_column = f"Q: Allele: {tool}" if tool == "ExpansionHunter" else f"Q: {tool}"
-                df2.loc[df2[q_column] < q_threshold, f"DiffRepeats: Allele: {tool} - Truth (bin)"] = NO_CALL_LABEL
+                df2.loc[df2[q_column] < q_threshold, f"DiffRepeats: Allele: {tool} - Truth (bin)"] = FILTERED_CALL_LABEL
             else:
                 df2 = df
 
             for coverage in "40x", "30x", "20x", "10x", "exome":
-                df3 = df2[(df2["Coverage"] == coverage)]
+                if not args.only_print_total_number_of_plots:
+                    df3 = df2[(df2["Coverage"] == coverage)]
+                else:
+                    df3 = df2
 
-                if coverage == "exome":
-                    #df3 = df3[~df3["Genotype: GangSTR"].isna() | ~df3["Genotype: ExpansionHunter"].isna()]
+                if coverage == "exome" and not args.only_print_total_number_of_plots:
                     df3 = df3[~df3["GeneRegionFromGencode_V42"].isin({"intergenic", "intron", "promoter"})]
 
                 for motif_size in "all_motifs", "2-6bp", "7-24bp", "25+bp":
-                    if motif_size == "all_motifs":
-                        df4 = df3[(2 <= df3["MotifSize"]) & (df3["MotifSize"] <= 50)]
-                    elif motif_size == "2-6bp":
-                        df4 = df3[(2 <= df3["MotifSize"]) & (df3["MotifSize"] <= 6)]
-                    elif motif_size == "7-24bp":
-                        df4 = df3[(7 <= df3["MotifSize"]) & (df3["MotifSize"] <= 24)]
-                    elif motif_size == "25+bp":
-                        df4 = df3[(25 <= df3["MotifSize"]) & (df3["MotifSize"] <= 50)]
+                    if not args.only_print_total_number_of_plots:
+                        if motif_size == "all_motifs":
+                            df4 = df3[(2 <= df3["MotifSize"]) & (df3["MotifSize"] <= 50)]
+                        elif motif_size == "2-6bp":
+                            df4 = df3[(2 <= df3["MotifSize"]) & (df3["MotifSize"] <= 6)]
+                        elif motif_size == "7-24bp":
+                            df4 = df3[(7 <= df3["MotifSize"]) & (df3["MotifSize"] <= 24)]
+                        elif motif_size == "25+bp":
+                            df4 = df3[(25 <= df3["MotifSize"]) & (df3["MotifSize"] <= 50)]
+                        else:
+                            raise ValueError(f"Unexpected motif_size value: {motif_size}")
                     else:
-                        raise ValueError(f"Unexpected motif_size value: {motif_size}")
+                        df4 = df3
 
                     for genotype_subset in "all_genotypes", "HET", "HOM", "MULTI":
-                        if genotype_subset == "all_genotypes":
-                            df5 = df4
-                        elif genotype_subset == "HET":
-                            df5 = df4[df4["SummaryString"].str.contains(":HET")]
-                        elif genotype_subset == "HOM":
-                            df5 = df4[df4["SummaryString"].str.contains(":HOM")]
-                        elif genotype_subset == "MULTI":
-                            df5 = df4[df4["SummaryString"].str.contains(":MULTI")]
+                        if not args.only_print_total_number_of_plots:
+                            if genotype_subset == "all_genotypes":
+                                df5 = df4
+                            elif genotype_subset == "HET":
+                                df5 = df4[df4["SummaryString"].str.contains(":HET")]
+                            elif genotype_subset == "HOM":
+                                df5 = df4[df4["SummaryString"].str.contains(":HOM")]
+                            elif genotype_subset == "MULTI":
+                                df5 = df4[df4["SummaryString"].str.contains(":MULTI")]
+                            else:
+                                raise ValueError(f"Unexpected genotype_subset value: {genotype_subset}")
                         else:
-                            raise ValueError(f"Unexpected genotype_subset value: {genotype_subset}")
+                            df5 = df4
 
                         for pure_repeats in "both", True, False:
-                            if pure_repeats == "both":
+                            if pure_repeats == "both" or args.only_print_total_number_of_plots:
                                 df6 = df5
                             elif pure_repeats:
                                 df6 = df5[df5["IsPureRepeat"]]
@@ -252,152 +267,167 @@ def generate_all_plots(df, output_dir, start_with_plot_i=None, max_plots=None):
                                 df6 = df5[~df5["IsPureRepeat"]]
 
                             for only_loci_with_calls_by_this_tool in False, True:
-                                if only_loci_with_calls_by_this_tool:
-                                    df_plot = df6[df6[f"DiffRepeats: Allele: {tool} - Truth (bin)"] != NO_CALL_LABEL]
+                                if only_loci_with_calls_by_this_tool and not args.only_print_total_number_of_plots:
+                                    df7 = df6[df6[f"DiffRepeats: Allele: {tool} - Truth (bin)"] != NO_CALL_LABEL]
                                 else:
-                                    df_plot = df6
+                                    df7 = df6
 
-                                if plot_counter < start_with_plot_i:
-                                    plot_counter += 1
-                                    continue
+                                for exclude_filtered_loci in [False, True] if q_threshold > 0 else [False]:
+                                    if exclude_filtered_loci and not args.only_print_total_number_of_plots:
+                                        df_plot = df7[df7[f"DiffRepeats: Allele: {tool} - Truth (bin)"] != FILTERED_CALL_LABEL]
+                                    else:
+                                        df_plot = df7
 
-                                print("-"*100)
+                                    if plot_counter < start_with_plot_i or args.only_print_total_number_of_plots:
+                                        plot_counter += 1
+                                        continue
 
-                                figure_title_line1 = ""
-                                figure_title_line2 = ""
+                                    print("-"*100)
 
-                                filter_description = []
-                                output_image_filename = "tool_accuracy_by_true_allele_size"
-                                if motif_size == "all_motifs":
-                                    filter_description.append("all motif sizes")
-                                    output_image_filename += ".all_motifs"
-                                elif motif_size == "2-6bp":
-                                    filter_description.append("2bp to 6bp motifs")
-                                    output_image_filename += ".2to6bp_motifs"
-                                elif motif_size == "7-24bp":
-                                    filter_description.append(f"7bp to 24bp motifs")
-                                    output_image_filename += ".7to24bp_motifs"
-                                elif motif_size == "25+bp":
-                                    filter_description.append(f"25bp to 50bp motifs")
-                                    output_image_filename += ".25to50bp_motifs"
-                                else:
-                                    raise ValueError(f"Unexpected motif_size value: {motif_size}")
+                                    figure_title_line1 = ""
+                                    figure_title_line2 = ""
 
-                                if genotype_subset == "all_genotypes":
-                                    output_image_filename += ".all_genotypes"
-                                elif genotype_subset == "HET":
-                                    filter_description.append("HET")
-                                    output_image_filename += ".HET"
-                                elif genotype_subset == "HOM":
-                                    filter_description.append(f"HOM")
-                                    output_image_filename += ".HOM"
-                                elif genotype_subset == "MULTI":
-                                    filter_description.append(f"multi-allelic")
-                                    output_image_filename += ".MULTI"
-                                else:
-                                    raise ValueError(f"Unexpected genotype_subset value: {genotype_subset}")
+                                    filter_description = []
+                                    output_image_filename = "tool_accuracy_by_true_allele_size"
+                                    if motif_size == "all_motifs":
+                                        filter_description.append("all motif sizes")
+                                        output_image_filename += ".all_motifs"
+                                    elif motif_size == "2-6bp":
+                                        filter_description.append("2bp to 6bp motifs")
+                                        output_image_filename += ".2to6bp_motifs"
+                                    elif motif_size == "7-24bp":
+                                        filter_description.append(f"7bp to 24bp motifs")
+                                        output_image_filename += ".7to24bp_motifs"
+                                    elif motif_size == "25+bp":
+                                        filter_description.append(f"25bp to 50bp motifs")
+                                        output_image_filename += ".25to50bp_motifs"
+                                    else:
+                                        raise ValueError(f"Unexpected motif_size value: {motif_size}")
 
-                                if pure_repeats == "both":
-                                    pass
-                                elif pure_repeats:
-                                    filter_description.append("pure repeats")
-                                    output_image_filename += ".pure_repeats"
-                                else:
-                                    filter_description.append("repeats with interruptions")
-                                    output_image_filename += ".with_interruptions"
+                                    if genotype_subset == "all_genotypes":
+                                        output_image_filename += ".all_genotypes"
+                                    elif genotype_subset == "HET":
+                                        filter_description.append("HET")
+                                        output_image_filename += ".HET"
+                                    elif genotype_subset == "HOM":
+                                        filter_description.append(f"HOM")
+                                        output_image_filename += ".HOM"
+                                    elif genotype_subset == "MULTI":
+                                        filter_description.append(f"multi-allelic")
+                                        output_image_filename += ".MULTI"
+                                    else:
+                                        raise ValueError(f"Unexpected genotype_subset value: {genotype_subset}")
 
-                                output_image_filename += f".{coverage}"
+                                    if pure_repeats == "both":
+                                        pass
+                                    elif pure_repeats:
+                                        filter_description.append("pure repeats")
+                                        output_image_filename += ".pure_repeats"
+                                    else:
+                                        filter_description.append("repeats with interruptions")
+                                        output_image_filename += ".with_interruptions"
 
-                                if only_loci_with_calls_by_this_tool:
-                                    filter_description.append(f"exclude no-call loci")
-                                    output_image_filename += f".exclude_no_call_loci"
+                                    output_image_filename += f".{coverage}"
 
-                                if q_threshold > 0:
-                                    filter_description.append(f"Q ≥ {q_threshold}")
-                                    output_image_filename += f".Q{int(100*q_threshold)}"
+                                    if only_loci_with_calls_by_this_tool:
+                                        filter_description.append(f"exclude no-call loci")
+                                        output_image_filename += f".exclude_no_call_loci"
 
-                                output_image_filename += f".{tool}"
+                                    if exclude_filtered_loci:
+                                        filter_description.append(f"exclude filtered loci")
+                                        output_image_filename += f".exclude_filtered_loci"
 
-                                coverage_label = f"exome data" if coverage == "exome" else f"{coverage} genome data"
+                                    if q_threshold > 0:
+                                        filter_description.append(f"Q ≥ {q_threshold}")
+                                        output_image_filename += f".Q{int(100*q_threshold)}"
 
-                                # skip_condition1: HipSTR doesn't support motifs larger than 9bp
-                                skip_condition1 = tool == "HipSTR" and motif_size != "2-6bp"
-                                # skip_condition2: not enough alleles to draw a histogram
-                                skip_condition2 = len(df_plot) < 10
+                                    output_image_filename += f".{tool}"
 
-                                n_locus_ids = len(set(df_plot.LocusId))
-                                if skip_condition1 or skip_condition2:
-                                    if skip_condition1:
-                                        message = "HipSTR doesn't support motif sizes larger than 9bp"
-                                    elif skip_condition2:
-                                        message = "Not enough alleles to create plot"
+                                    coverage_label = f"exome data" if coverage == "exome" else f"{coverage} genome data"
 
-                                    figure_title_line1 += f"{tool} {coverage_label}"
-                                    figure_title_line2 += f"{n_locus_ids:,d} loci ("+", ".join(filter_description)+")"
+                                    # skip_condition1: HipSTR doesn't support motifs larger than 9bp
+                                    skip_condition1 = tool == "HipSTR" and motif_size != "2-6bp"
+                                    # skip_condition2: not enough alleles to draw a histogram
+                                    skip_condition2 = len(df_plot) < 10
+
+                                    n_locus_ids = len(set(df_plot.LocusId))
+                                    if skip_condition1 or skip_condition2:
+                                        if skip_condition1:
+                                            message = "HipSTR doesn't support motif sizes larger than 9bp"
+                                        elif skip_condition2:
+                                            message = "Not enough alleles to create plot"
+
+                                        figure_title_line1 += f"{tool} {coverage_label}"
+                                        figure_title_line2 += f"{n_locus_ids:,d} loci ("+", ".join(filter_description)+")"
+                                        print(figure_title_line1)
+                                        print(figure_title_line2)
+                                        print(f"Skipping..  {message}")
+                                        plot_empty_image(figure_title_line1 + "\n\n" + figure_title_line2, message)
+                                        plt.savefig(f"{output_dir}/{output_image_filename}.svg")
+                                        print(f"Saved {output_dir}/{output_image_filename}.svg")
+                                        plt.close()
+                                        continue
+
+                                    print(f"Generating plot #{plot_counter}")
+                                    num_alleles_exactly_right = sum(df_plot[f"DiffRepeats: Allele: {tool} - Truth (bin)"] == "0")
+                                    hue_values = set(df_plot.loc[:, f"DiffRepeats: Allele: {tool} - Truth (bin)"])
+
+                                    figure_title_line1 += f"{tool} got {num_alleles_exactly_right:,d} out of {len(df_plot):,d} alleles ({100*num_alleles_exactly_right/len(df_plot):0.1f}%) exactly right for {coverage_label}"
+                                    figure_title_line2 += f"Showing results for {n_locus_ids:,d} loci (" + ", ".join(filter_description) + f")"
+
                                     print(figure_title_line1)
                                     print(figure_title_line2)
-                                    print(f"Skipping..  {message}")
-                                    plot_empty_image(figure_title_line1 + "\n\n" + figure_title_line2, message)
-                                    plt.savefig(f"{output_dir}/{output_image_filename}.svg")
-                                    print(f"Saved {output_dir}/{output_image_filename}.svg")
-                                    plt.close()
-                                    continue
+                                    print(f"Plotting {len(df_plot):,d} out of {len(df):,d} rows")
+                                    print("Hue values:", sorted(hue_values, key=hue_sorter))
 
-                                print(f"Generating plot #{plot_counter}")
-                                num_alleles_exactly_right = sum(df_plot[f"DiffRepeats: Allele: {tool} - Truth (bin)"] == "0")
-                                hue_values = set(df_plot.loc[:, f"DiffRepeats: Allele: {tool} - Truth (bin)"])
+                                    palette = []
+                                    if FILTERED_CALL_LABEL in hue_values:
+                                        palette.append("#f5f5f5")
+                                    if NO_CALL_LABEL in hue_values:
+                                        palette.append("#c5c5c5")
+                                    if HOM_REF_LABEL in hue_values:
+                                        palette.append("#C9342A")
+                                    if HET_REF_LABEL in hue_values:
+                                        palette.append("#734B4B")
+                                    if WRONG_DIRECTION_LABEL in hue_values:
+                                        palette.append("#99FFEF")
 
-                                figure_title_line1 += f"{tool} got {num_alleles_exactly_right:,d} out of {len(df_plot):,d} alleles ({100*num_alleles_exactly_right/len(df_plot):0.1f}%) exactly right for {coverage_label}"
-                                figure_title_line2 += f"Showing results for {n_locus_ids:,d} loci (" + ", ".join(filter_description) + f")"
+                                    n_blue_colors = sum(1 for h in hue_values if h.startswith("-"))
+                                    if n_blue_colors > 0:
+                                        palette += list(sns.color_palette("Blues_r", n_colors=n_blue_colors))
+                                    if '0' in hue_values:
+                                        palette += [GREEN_COLOR]
+                                    n_orange_colors = len(hue_values) - len(palette)
+                                    if n_orange_colors > 0:
+                                        palette += list(sns.color_palette("Oranges_r", n_colors=n_orange_colors)[::-1])
 
-                                print(figure_title_line1)
-                                print(figure_title_line2)
-                                print(f"Plotting {len(df_plot):,d} out of {len(df):,d} rows")
-                                print("Hue values:", sorted(hue_values, key=hue_sorter))
+                                    try:
+                                        plot_accuracy_by_allele_size(
+                                            df_plot,
+                                            x_column="DiffFromRefRepeats: Allele: Truth (bin)",
+                                            hue_column=f"DiffRepeats: Allele: {tool} - Truth (bin)",
+                                            hue_order=sorted(hue_values, key=hue_sorter),
+                                            tool_name=tool,
+                                            palette=palette,
+                                            figure_title=figure_title_line1 + "\n\n" + figure_title_line2
+                                        )
 
-                                palette = []
-                                if FILTERED_CALL_LABEL in hue_values:
-                                    palette.append("#f5f5f5")
-                                if NO_CALL_LABEL in hue_values:
-                                    palette.append("#c9c9c9")
-                                if HOM_REF_LABEL in hue_values:
-                                    palette.append("#C9342A")
-                                if HET_REF_LABEL in hue_values:
-                                    palette.append("#734B4B")
-                                if WRONG_DIRECTION_LABEL in hue_values:
-                                    palette.append("#99FFEF")
+                                        output_path = os.path.join(output_dir, f"{output_image_filename}.svg")
+                                        plt.savefig(output_path)
+                                        print(f"Saved plot #{plot_counter}: {output_path}")
+                                        plt.close()
 
-                                n_blue_colors = sum(1 for h in hue_values if h.startswith("-"))
-                                if n_blue_colors > 0:
-                                    palette += list(sns.color_palette("Blues_r", n_colors=n_blue_colors))
-                                if '0' in hue_values:
-                                    palette += [GREEN_COLOR]
-                                n_orange_colors = len(hue_values) - len(palette)
-                                if n_orange_colors > 0:
-                                    palette += list(sns.color_palette("Oranges_r", n_colors=n_orange_colors)[::-1])
+                                    except Exception as e:
+                                        print(f"ERROR: {e}")
 
-                                try:
-                                    plot_accuracy_by_allele_size(
-                                        df_plot,
-                                        x_column="DiffFromRefRepeats: Allele: Truth (bin)",
-                                        hue_column=f"DiffRepeats: Allele: {tool} - Truth (bin)",
-                                        hue_order=sorted(hue_values, key=hue_sorter),
-                                        tool_name=tool,
-                                        palette=palette,
-                                        figure_title=figure_title_line1 + "\n\n" + figure_title_line2
-                                    )
+                                    plot_counter += 1
+                                    if plot_counter >= start_with_plot_i + max_plots:
+                                        print(f"Exiting after generating {plot_counter-start_with_plot_i} plot(s)")
+                                        return
 
-                                    plt.savefig(f"{output_dir}/{output_image_filename}.svg")
-                                    print(f"Saved plot #{plot_counter}: {output_dir}/{output_image_filename}.svg")
-                                    plt.close()
+    if args.only_print_total_number_of_plots:
+        print(f"Total: {plot_counter:,d} plots")
 
-                                except Exception as e:
-                                    print(f"ERROR: {e}")
-
-                                plot_counter += 1
-                                if plot_counter >= start_with_plot_i + max_plots:
-                                    print(f"Exiting after generating {plot_counter-start_with_plot_i} plot(s)")
-                                    return
 
 
 def main():
@@ -406,8 +436,15 @@ def main():
     p.add_argument("-n", type=int, help="If specified, only generate this many plots")
     p.add_argument("--output-dir", default=".")
     p.add_argument("--verbose", action="store_true", help="Print additional info")
+    p.add_argument("--only-print-total-number-of-plots", action="store_true", help="Don't generate any plots. Only "
+                   "print the total number of plots that would be generated.")
     p.add_argument("combined_tool_results_tsv", nargs="?", default="../tool_comparison/combined.results.alleles.tsv.gz")
     args = p.parse_args()
+
+    if args.only_print_total_number_of_plots:
+        df = pd.DataFrame()
+        generate_all_plots(df, args)
+        return
 
     print(f"Loading {args.combined_tool_results_tsv}")
     df = pd.read_table(args.combined_tool_results_tsv)
@@ -426,7 +463,7 @@ def main():
 
     print(f"Generating {str(args.n) + ' ' if args.n else ''}plots",
           f"starting with plot #{args.start_with_plot_i}" if args.start_with_plot_i else "")
-    generate_all_plots(df, args.output_dir, start_with_plot_i=args.start_with_plot_i, max_plots=args.n)
+    generate_all_plots(df, args)
 
     print(f"Done")
 

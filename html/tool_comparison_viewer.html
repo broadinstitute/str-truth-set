@@ -31,7 +31,7 @@
 <body>
 <div class="ui stackable grid" style="padding: 0px 0px 0px 30px">
     <div class="ui row">
-        <div class="ui eight wide column" style="min-width:820px">
+        <div class="ui eight wide column" style="min-width:870px">
             <div class="ui form" style="padding: 30px 30px 0px 30px">
                 <div class="inline fields">
                     <label style="min-width:160px">Plot Type:</label>
@@ -97,6 +97,8 @@
                             <div class="field"><div class="ui radio checkbox"><input type="radio" value="Q10" name="q-threshold"><label>≥ 0.1</label></div></div>
                             <div class="field"><div class="ui radio checkbox"><input type="radio" value="Q50" name="q-threshold"><label>≥ 0.5</label></div></div>
                             <div class="field"><div class="ui radio checkbox"><input type="radio" value="Q90" name="q-threshold"><label>≥ 0.9</label></div></div>
+                            <div class="ui checkbox" style="padding-left:15px"><input type="checkbox" id="exclude-tool-filtered-loci" name="exclude-tool-filtered-loci"></div>
+                            <label for="exclude-tool-filtered-loci" style="font-weight: normal; cursor: pointer;">Hide Filtered loci</label>
                         </div>
                     </div>
                 </li>
@@ -117,8 +119,8 @@
                             <div class="field"><div class="ui radio checkbox"><input type="radio" value="ExpansionHunter" name="tool" checked="checked"><label>ExpansionHunter</label></div></div>
                             <div class="field"><div class="ui radio checkbox"><input type="radio" value="GangSTR" name="tool"><label>GangSTR</label></div></div>
                             <div class="field"><div class="ui radio checkbox"><input type="radio" value="HipSTR" name="tool"><label>HipSTR</label></div></div>
-                            <div class="ui checkbox"><input type="checkbox" id="exclude-tool-no-call-loci" name="exclude-tool-no-call-loci"></div>
-                            <label for="exclude-tool-no-call-loci" style="font-weight: normal; cursor: pointer;">Exclude "No Call" loci</label>
+                            <div class="ui checkbox" style="padding-left:15px"><input type="checkbox" id="exclude-tool-no-call-loci" name="exclude-tool-no-call-loci"></div>
+                            <label for="exclude-tool-no-call-loci" style="font-weight: normal; cursor: pointer;">Hide "No Call" loci</label>
                         </div>
                     </div>
                 </li>
@@ -146,8 +148,8 @@
             <b>x-axis:</b> represents the true allele size. Positive values are
             STR expansions, negative values are STR contractions.<br />
             <br />
-            <b>Gray</b> represents loci where the tool didn't produce a genotype (i.e. due to errors or insufficient coverage), or where the call
-                        didn't pass the minimum quality score (Q) threshold selected on the left.<br />
+            <b>White</b> represents loci that didn't pass the selected minimum quality score (Q) threshold.<br/>
+            <b>Gray</b> represents loci where the tool didn't produce a genotype (i.e. due to errors or insufficient coverage).<br />
             <b>Red</b> is for loci that the tool called as homozygous reference and so entirely missed the variant. <br />
             <b>Brown</b> is when the tool incorrectly called an allele as being heterozygous reference.<br />
             <b>Teal</b> is where it called a contraction when the true allele is an expansion or vice versa.<br />
@@ -203,6 +205,7 @@
         const tool = "." + $('input[name="tool"]:checked').val()
         const excludeAllNoCallLoci = $('input[name="exclude-all-no-call-loci"]:checked').val() ? ".exclude_no_call_loci" : ""
         const excludeToolNoCallLoci = $('input[name="exclude-tool-no-call-loci"]:checked').val() ? ".exclude_no_call_loci" : ""
+        const excludeToolFilteredLoci = $('input[name="exclude-tool-filtered-loci"]:checked').val() ? ".exclude_filtered_loci" : ""
 
         if (interruptions == ".both") {
             interruptions = ""
@@ -229,7 +232,7 @@
                 "max-width": "100%",
             })
         } else if (plotType == "AccuracyByAlleleSize") {
-            imgUrl += `/accuracy_by_allele_size/tool_accuracy_by_true_allele_size${motif_size}${genotype}${interruptions}${coverage}${excludeToolNoCallLoci}${qThreshold}${tool}.svg`
+            imgUrl += `/accuracy_by_allele_size/tool_accuracy_by_true_allele_size${motif_size}${genotype}${interruptions}${coverage}${excludeToolNoCallLoci}${excludeToolFilteredLoci}${qThreshold}${tool}.svg`
             $("#tool-comparison-plot-viewer").attr({
                 "src": imgUrl,
                 "style": "max-width:90%",
