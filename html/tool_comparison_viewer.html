@@ -205,7 +205,7 @@
         const tool = "." + $('input[name="tool"]:checked').val()
         const excludeAllNoCallLoci = $('input[name="exclude-all-no-call-loci"]:checked').val() ? ".exclude_no_call_loci" : ""
         const excludeToolNoCallLoci = $('input[name="exclude-tool-no-call-loci"]:checked').val() ? ".exclude_no_call_loci" : ""
-        const excludeToolFilteredLoci = $('input[name="exclude-tool-filtered-loci"]:checked').val() ? ".exclude_filtered_loci" : ""
+        const excludeToolFilteredLoci = ($('input[name="exclude-tool-filtered-loci"]:checked').val() && qThreshold != ".Q0") ? ".exclude_filtered_loci" : ""
 
         if (interruptions == ".both") {
             interruptions = ""
