@@ -2,7 +2,7 @@ import os
 
 from step_pipeline import pipeline, Backend, Localize, Delocalize
 
-DOCKER_IMAGE = "docker.io/weisburd/truth-set-figures@sha256:a568b7f5288162d65ba66ef472270be1488872c094f93ae26a1d1457e4785fdd"
+DOCKER_IMAGE = "docker.io/weisburd/truth-set-figures@sha256:e25eae2d2447eccc5d53ad73fa3f3fa91f895eef363a43c411e21172a2788b50"
 
 
 def main():
@@ -12,18 +12,18 @@ def main():
 
     parser = bp.get_config_arg_parser()
     parser.add_argument("-n", type=int, help="Only run the first n batches for each type of plot. Useful for testing.")
-    parser.add_argument("--batch-size", type=int, default=10, help="Number of figures to generate per job")
+    parser.add_argument("--batch-size", type=int, default=50, help="Number of figures to generate per job")
     parser.add_argument("--output-dir", default="gs://str-truth-set/hg38/figures",
                         help="Google storage output directory for figures.")
     parser.add_argument("--input-table", default="gs://str-truth-set/hg38/combined.results.alleles.tsv.gz")
     args = bp.parse_known_args()
 
-    # generate tool accuracy by num repeats plots
-    for i in range(0, 5*4*4*3*2*3, args.batch_size):
+    # generate tool accuracy by allele size
+    for i in range(0, 3*4*5*4*4*3*2, args.batch_size):
         if args.n is not None and i >= args.n:
             break
 
-        s1 = bp.new_step(f"tool accuracy by num repeats plots #{i+1}-{i+args.batch_size}",
+        s1 = bp.new_step(f"tool accuracy by allele size plots #{i+1}-{i+args.batch_size}",
                          arg_suffix="accuracy-by-allele-size", image=DOCKER_IMAGE, cpu=2, memory="highmem",
                          output_dir=os.path.join(args.output_dir, "accuracy_by_allele_size"))
         local_truth_set_tsv = s1.input(args.input_table, localize_by=Localize.COPY)

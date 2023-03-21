@@ -106,9 +106,9 @@ FIGURE_SIZE = (20, 9)
 
 def plot_empty_image(figure_title, message):
     fig, ax = plt.subplots(1, 1, figsize=FIGURE_SIZE)
-    fig.suptitle(figure_title, fontsize=20)
+    fig.suptitle(figure_title, fontsize=17)
     ax.axis('off')
-    text = ax.text(0.5, 0.5, message, ha='center', va='center', fontsize=24)
+    text = ax.text(0.5, 0.5, message, ha='center', va='center', fontsize=17)
 
     plt.gcf().canvas.draw()
 
@@ -132,7 +132,7 @@ def plot_accuracy_by_allele_size(
     fig, axes = plt.subplots(1, 2, figsize=FIGURE_SIZE)
 
     if figure_title:
-        fig.suptitle(figure_title, fontsize=20)
+        fig.suptitle(figure_title, fontsize=17)
 
     for i, ax in enumerate(axes):
         ax.xaxis.labelpad = ax.yaxis.labelpad = 15
@@ -251,9 +251,9 @@ def generate_all_plots(df, output_dir, start_with_plot_i=None, max_plots=None):
                             else:
                                 df6 = df5[~df5["IsPureRepeat"]]
 
-                            for exclude_hipstr_no_call_loci in False, True:
-                                if exclude_hipstr_no_call_loci:
-                                    df_plot = df6[~df6["Genotype: HipSTR"].isna()]
+                            for only_loci_with_calls_by_this_tool in False, True:
+                                if only_loci_with_calls_by_this_tool:
+                                    df_plot = df6[~df6[f"Genotype: {tool}"].isna()]
                                 else:
                                     df_plot = df6
 
@@ -308,9 +308,9 @@ def generate_all_plots(df, output_dir, start_with_plot_i=None, max_plots=None):
 
                                 output_image_filename += f".{coverage}"
 
-                                if exclude_hipstr_no_call_loci:
-                                    filter_description.append(f"only loci with HipSTR call")
-                                    output_image_filename += f".exclude_HipSTR_no_call_loci"
+                                if only_loci_with_calls_by_this_tool:
+                                    filter_description.append(f"exclude no-call loci")
+                                    output_image_filename += f".exclude_no_call_loci"
 
                                 if q_threshold > 0:
                                     filter_description.append(f"Q ≥ {q_threshold}")

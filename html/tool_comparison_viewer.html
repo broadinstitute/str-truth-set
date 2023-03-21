@@ -45,7 +45,7 @@
                         <div class="inline fields">
                             <label style="min-width:150px">Motif Size:</label>
                             <div style="min-width: 70px">[<a class="prev-button" id="prev-motif-size" href="#">←</a> <a class="next-button" id="next-motif-size" href="#">→</a>]</div>
-                            <div class="field"><div class="ui radio checkbox"><input type="radio" value="all_motifs" name="motif-size"><label>any</label></div></div>
+                            <div class="field"><div class="ui radio checkbox"><input type="radio" value="all_motifs" name="motif-size"><label>all</label></div></div>
                             <div class="field"><div class="ui radio checkbox"><input type="radio" value="2to6bp_motifs" name="motif-size" checked="checked"><label>2-6bp</label></div></div>
                             <div class="field"><div class="ui radio checkbox"><input type="radio" value="7to24bp_motifs" name="motif-size"><label>7-24bp</label></div></div>
                             <div class="field"><div class="ui radio checkbox"><input type="radio" value="25to50bp_motifs" name="motif-size"><label>25-50bp</label></div></div>
@@ -57,7 +57,7 @@
                         <div class="inline fields">
                             <label style="min-width:150px">Genotype:</label>
                             <div style="min-width: 70px">[<a class="prev-button" id="prev-genotype" href="#">←</a> <a class="next-button" id="next-genotype" href="#">→</a>]</div>
-                            <div class="field"><div class="ui radio checkbox"><input type="radio" value="all_genotypes" name="genotype" checked="checked"><label>any</label></div></div>
+                            <div class="field"><div class="ui radio checkbox"><input type="radio" value="all_genotypes" name="genotype" checked="checked"><label>all</label></div></div>
                             <div class="field"><div class="ui radio checkbox"><input type="radio" value="HET" name="genotype"><label>heterozygous</label></div></div>
                             <div class="field"><div class="ui radio checkbox"><input type="radio" value="HOM" name="genotype"><label>homozygous</label></div></div>
                             <div class="field"><div class="ui radio checkbox"><input type="radio" value="MULTI" name="genotype"><label>multi-allelic</label></div></div>
@@ -97,7 +97,6 @@
                             <div class="field"><div class="ui radio checkbox"><input type="radio" value="Q10" name="q-threshold"><label>≥ 0.1</label></div></div>
                             <div class="field"><div class="ui radio checkbox"><input type="radio" value="Q50" name="q-threshold"><label>≥ 0.5</label></div></div>
                             <div class="field"><div class="ui radio checkbox"><input type="radio" value="Q90" name="q-threshold"><label>≥ 0.9</label></div></div>
-                            <div class="field"><div class="ui radio checkbox"><input type="radio" value="Q98" name="q-threshold"><label>≥ 0.98</label></div></div>
                         </div>
                     </div>
                 </li>
@@ -105,32 +104,59 @@
                     <div class="ui form">
                         <div class="inline fields">
                             <label style="min-width:150px">Tool:</label>
+                            <div class="ui checkbox"><input type="checkbox" id="exclude-all-no-call-loci" name="exclude-all-no-call-loci"></div>
+                            <label for="exclude-all-no-call-loci" style="font-weight: normal; cursor: pointer;">Only include loci called by all 3 tools</label>
+                        </div>
+                    </div>
+                </li>
+                <li id="li-tool2">
+                    <div class="ui form">
+                        <div class="inline fields">
+                            <label style="min-width:150px">Tool:</label>
                             <div style="min-width: 70px">[<a class="prev-button" class="prev-button" id="prev-tool" href="#">←</a> <a class="next-button" id="next-tool" href="#">→</a>]</div>
                             <div class="field"><div class="ui radio checkbox"><input type="radio" value="ExpansionHunter" name="tool" checked="checked"><label>ExpansionHunter</label></div></div>
                             <div class="field"><div class="ui radio checkbox"><input type="radio" value="GangSTR" name="tool"><label>GangSTR</label></div></div>
                             <div class="field"><div class="ui radio checkbox"><input type="radio" value="HipSTR" name="tool"><label>HipSTR</label></div></div>
-                            <div class="ui checkbox"><input type="checkbox" name="only-loci-with-hipstr-call"></div>Only loci with HipSTR call
+                            <div class="ui checkbox"><input type="checkbox" id="exclude-tool-no-call-loci" name="exclude-tool-no-call-loci"></div>
+                            <label for="exclude-tool-no-call-loci" style="font-weight: normal; cursor: pointer;">Exclude "No Call" loci</label>
                         </div>
                     </div>
                 </li>
             </ul>
         </div>
-        <div id="accuracy-by-allele-size-legend" style="padding-left:50px">
-                <div style="float:right; padding: 0px 25px 25px 10px">[<a href="#" id="hide-accuracy-by-allele-size-legend">hide this legend</a>]</div>
-                <b>x-axis:</b> represents the true allele size. Positive values are
-                STR expansions, negative values are STR contractions.<br />
-                <br />
-                <b>Gray</b> represents loci where the tool didn't produce a genotype (i.e. due to errors or insufficient coverage).<br />
-                <b>Red</b> is for loci that the tool called as homozygous reference and so entirely missed the variant. <br />
-                <b>Brown</b> is when the tool incorrectly called an allele as being heterozygous reference.<br />
-                <b>Teal</b> is where it called a contraction when the true allele is an expansion or vice versa.<br />
-                <b>Blue</b> is for underestimated alleles (darker blue means underestimated by more repeats).<br />
-                <b>Green</b> represents alleles where the tool exactly matched the true allele size. <br />
-                <b>Orange</b> is for alleles that the tool overestimated (darker orange means a larger overestimate).<br />
+        <div id="accuracy-vs-q-legend" style="padding-left:50px; padding-top:30px; display:none; max-width: 850px">
+            <div style="float:right; padding: 0px 25px 25px 10px">[<a href="#" id="hide-accuracy-vs-q-legend">hide this text</a>]</div>
+            This plot shows how different minimum quality score thresholds affect post-filtering accuracy for each tool.
+            The top panel shows the overall number (and fraction) of alleles (y-axis) that didn't pass a given minimum quality score threshold (x-axis).
+            The bottom panel shows the accuracy (y-axis) of alleles that did pass the threshold. Here, accuracy is defined as
+            <b>(true positive alleles + true negative alleles)/(total alleles)</b> and computed as follows: <br />
+            <b>True positive alleles:</b> where the tool's call exactly equals the true allele size and has a quality score above the minimum threshold<br />
+            <b>True negative alleles:</b> where the tool's call doesn't equal the true allele size and has a quality score below the minimum threshold<br />
+            <b>Total alleles:</b> the total number of genotyped alleles, including those above and below the quality score threshold<br />
+            <br />
+            For GangSTR and HipSTR, the plot uses quality scores provided by the tools themselves. Since ExpansionHunter doesn't output a
+            single quality score, the plot compares two different quality scores computed based on ExpansionHunter output:<br/>
+            <b>Q from CIs = 1/exp(4 * (confidence interval size)/(called allele size))</b>  based on the approach used by EnsemblTR<br />
+            <b>Q from reads = the fraction of reads that support the allele size vs. all allele sizes considered by ExpansionHunter at the given locus</b>. This is computed
+                using the information provide in ExpansionHunter's json output for each locus.<br />
+
+        </div>
+        <div id="accuracy-by-allele-size-legend" style="padding-left:50px; padding-top:30px; display:none;">
+            <div style="float:right; padding: 0px 25px 25px 10px">[<a href="#" id="hide-accuracy-by-allele-size-legend">hide this text</a>]</div>
+            <b>x-axis:</b> represents the true allele size. Positive values are
+            STR expansions, negative values are STR contractions.<br />
+            <br />
+            <b>Gray</b> represents loci where the tool didn't produce a genotype (i.e. due to errors or insufficient coverage).<br />
+            <b>Red</b> is for loci that the tool called as homozygous reference and so entirely missed the variant. <br />
+            <b>Brown</b> is when the tool incorrectly called an allele as being heterozygous reference.<br />
+            <b>Teal</b> is where it called a contraction when the true allele is an expansion or vice versa.<br />
+            <b>Blue</b> is for underestimated alleles (darker blue means underestimated by more repeats).<br />
+            <b>Green</b> represents alleles where the tool exactly matched the true allele size. <br />
+            <b>Orange</b> is for alleles that the tool overestimated (darker orange means a larger overestimate).<br />
         </div>
     </div>
     <div style="margin-top:0px">
-        <img alt="image" id="tool-comparison-plot-viewer" height="800" src="https://storage.googleapis.com/str-truth-set/hg38/figures/tool_accuracy_by_true_allele_size.2to6bp_motifs.all_genotypes.pure_repeats.40x.ExpansionHunter.svg" />
+        <img id="tool-comparison-plot-viewer" src="https://storage.googleapis.com/str-truth-set/hg38/figures/accuracy_vs_Q/tool_accuracy_vs_Q.2to6bp_motifs.all_genotypes.40x.svg" />
     </div>
 </div>
 
@@ -172,16 +198,22 @@
         const genotype = "." + $('input[name="genotype"]:checked').val()
         const coverage = "." + $('input[name="coverage"]:checked').val()
         let interruptions = "." + $('input[name="interruptions"]:checked').val()
-        const qThreshold = "." + $('input[name="q-threshold"]:checked').val()
+        let qThreshold = "." + $('input[name="q-threshold"]:checked').val()
         const tool = "." + $('input[name="tool"]:checked').val()
-        const excludeHipSTRNoCallLoci = $('input[name="only-loci-with-hipstr-call"]:checked').val() ? ".exclude_HipSTR_no_call_loci" : ""
+        const excludeAllNoCallLoci = $('input[name="exclude-all-no-call-loci"]:checked').val() ? ".exclude_no_call_loci" : ""
+        const excludeToolNoCallLoci = $('input[name="exclude-tool-no-call-loci"]:checked').val() ? ".exclude_no_call_loci" : ""
+
         if (interruptions == ".both") {
             interruptions = ""
         }
+        if (qThreshold == ".Q0") {
+            qThreshold = ""
+        }
 
-        $("#li-hipstr-loci").toggle(plotType == "AccuracyVsQ")
+        $("#li-no-call-loci").toggle(plotType == "AccuracyVsQ")
         $("#li-q-threshold").toggle(plotType == "AccuracyByAlleleSize")
-        $("input[name='tool']").parent().parent().toggle(plotType == "AccuracyByAlleleSize")
+        $("#li-tool").toggle(plotType == "AccuracyVsQ")
+        $("#li-tool2").toggle(plotType == "AccuracyByAlleleSize")
 
 
         $("#accuracy-vs-q-legend").toggle(!hideAccuracyVsQLegend && (plotType == "AccuracyVsQ"))
@@ -189,12 +221,20 @@
 
         let imgUrl = "https://storage.googleapis.com/str-truth-set/hg38/figures"
         if (plotType == "AccuracyVsQ") {
-            imgUrl += `/accuracy_vs_Q/tool_accuracy_vs_Q${motif_size}${genotype}${interruptions}${coverage}${excludeHipSTRNoCallLoci}.svg`
+            imgUrl += `/accuracy_vs_Q/tool_accuracy_vs_Q${motif_size}${genotype}${interruptions}${coverage}${excludeAllNoCallLoci}.svg`
+            $("#tool-comparison-plot-viewer").attr({
+                "src": imgUrl,
+                "height": "800",
+                "max-width": "100%",
+            })
         } else if (plotType == "AccuracyByAlleleSize") {
-            imgUrl += `/accuracy_by_allele_size/tool_accuracy_by_true_allele_size${motif_size}${genotype}${interruptions}${coverage}${qThreshold}${tool}${excludeHipSTRNoCallLoci}.svg`
+            imgUrl += `/accuracy_by_allele_size/tool_accuracy_by_true_allele_size${motif_size}${genotype}${interruptions}${coverage}${excludeToolNoCallLoci}${qThreshold}${tool}.svg`
+            $("#tool-comparison-plot-viewer").attr({
+                "src": imgUrl,
+                "style": "max-width:87%",
+            })
         }
 
-        $("#tool-comparison-plot-viewer").attr("src", imgUrl)
     }
 
     $("input[type='radio']").on("change", update_tool_comparison_plot_viewer_image_url);

@@ -111,7 +111,7 @@ def plot_empty_image(figure_title, message):
     fig, ax = plt.subplots(1, 1, figsize=FIGURE_SIZE)
     fig.suptitle(figure_title, fontsize=TITLE_FONT_SIZE)
     ax.axis('off')
-    text = ax.text(0.5, 0.5, message, ha='center', va='center', fontsize=20)
+    text = ax.text(0.5, 0.5, message, ha='center', va='center', fontsize=17)
 
     plt.gcf().canvas.draw()
 
@@ -168,9 +168,13 @@ def generate_all_plots(df, output_dir, start_with_plot_i=None, max_plots=None):
                     else:
                         df5 = df4[~df4["IsPureRepeat"]]
 
-                    for exclude_hipstr_no_call_loci in False, True:
-                        if exclude_hipstr_no_call_loci:
-                            df_plot = df5[~df5["Genotype: HipSTR"].isna()]
+                    for exclude_no_call_loci in False, True:
+                        if exclude_no_call_loci:
+                            df_plot = df5[
+                                ~df5["Genotype: ExpansionHunter"].isna() &
+                                ~df5["Genotype: GangSTR"].isna() &
+                                ~df5["Genotype: HipSTR"].isna()
+                            ]
                         else:
                             df_plot = df5
 
@@ -226,9 +230,9 @@ def generate_all_plots(df, output_dir, start_with_plot_i=None, max_plots=None):
 
                         output_image_filename += f".{coverage}"
 
-                        if exclude_hipstr_no_call_loci:
-                            filter_description.append(f"only loci with HipSTR call")
-                            output_image_filename += f".exclude_HipSTR_no_call_loci"
+                        if exclude_no_call_loci:
+                            filter_description.append(f"only loci called by all tools")
+                            output_image_filename += f".exclude_no_call_loci"
 
                         n_locus_ids = len(set(df_plot.LocusId))
                         if len(df_plot) < 50:
