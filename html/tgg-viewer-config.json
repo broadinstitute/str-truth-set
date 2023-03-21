@@ -28,19 +28,19 @@
       "categoryName": "CHM1-CHM13 SynDip Benchmark",
       "rows": [
         {
-          "name": "SynDip truth: raw VCF",
+          "name": "SynDip: raw VCF",
           "data": [{"type": "vcf", "url": "gs://str-truth-set/hg38/ref/full.38.vcf.gz"}],
           "description": "Original truth data from [Li 2018]. This includes variants both within and outside of high-confidence regions."
         }, {
-          "name": "SynDip truth: confidence regions",
+          "name": "high confidence (HC) regions",
           "data": [{"type": "bed", "url": "gs://str-truth-set/hg38/ref/full.38.bed.gz"}],
           "description": "Original high-confidence regions from [Li 2018]. Variants outside these regions have lower-quality genotypes."
         }, {
-          "name": "CHM1-CHM13 genome",
+          "name": "CHM1-CHM13 genome data",
           "data": [{"type": "alignment", "url": "gs://broad-public-datasets/CHM1_CHM13_WGS2/CHM1_CHM13_WGS2.cram"}]
         },
         {
-          "name": "CHM1-CHM13 exome",
+          "name": "CHM1-CHM13 exome data",
           "data": [{"type": "alignment", "url": "gs://broad-public-datasets/CHM1_CHM13_WES/CHMI_CHMI3_Nex1.cram"}]
         }
       ]
@@ -215,11 +215,11 @@
           "data": [{"type": "vcf", "url": "gs://str-truth-set/hg38/ref/full.38.STR.filtered_out_strs.vcf.gz"}],
           "description": "These are InDels from the original SynDip VCF where at least one allele that contained repeats, but were filtered out for reasons described in the VCF filter field."
         }, {
-          "name": "filtered out INDELs (h.c. regions)",
+          "name": "filtered out INDELs (HC regions)",
           "data": [{"type": "vcf", "url": "gs://str-truth-set/hg38/ref/full.38.STR.filtered_out_indels.vcf.gz"}],
           "description": "These are InDels that are within SynDip high-confidence regions and didn't pass basic STR filters for reasons described in the VCF filter field."
         }, {
-          "name": "filtered out STRs (h.c. regions)",
+          "name": "filtered out STRs (HC regions)",
           "data": [{"type": "vcf", "url": "gs://str-truth-set/hg38/ref/full.38.STR.filtered_out_strs.vcf.gz"}],
           "description": "These are InDels that are within SynDip high-confidence regions and had at least one allele that contained repeats, but were filtered out for reasons described in the VCF filter field."
         }
@@ -233,10 +233,8 @@
     ],
     "Tool Results": [
       "40x coverage genome: EH",
-      "40x coverage genome: GangSTR"
-    ],
-    "Mappability Tracks": [
-      "36-mer mappability"
+      "40x coverage genome: GangSTR",
+      "40x coverage genome: HipSTR"
     ]
   },
   "selectedSamplesByCategoryNameAndRowName": {},
