@@ -295,7 +295,7 @@ def plot_gene_info(df, output_dir,
         output_image_name += ".all_regions"
     output_image_name += f"{output_image_filename_suffix}.svg"
 
-    output_path = os.path.join(output_dir, output_image_name + ".svg")
+    output_path = os.path.join(output_dir, output_image_name)
     plt.savefig(output_path, bbox_extra_artists=extra_artists, bbox_inches="tight")
     plt.close()
     print(f"Saved {output_path}")

@@ -130,8 +130,7 @@
             <div style="float:right; padding: 0px 25px 25px 10px">[<a href="#" id="hide-accuracy-vs-q-legend">hide this text</a>]</div>
             This plot shows how different minimum quality score thresholds affect post-filtering accuracy for each tool.
             The top panel shows the overall number (and fraction) of alleles (y-axis) that didn't pass a given minimum quality score threshold (x-axis).
-            The bottom panel shows the accuracy (y-axis) of the given threshold for separating correct from incorrect calls.
-            Here, accuracy is defined as <b>(true positive alleles + true negative alleles)/(total alleles)</b> and computed as follows: <br />
+            The bottom panel shows the accuracy (y-axis) for the given threshold, where accuracy is defined as <b>(true positive alleles + true negative alleles)/(total alleles)</b> and computed as follows: <br />
             <b>True positive alleles:</b> where the tool's call exactly equals the true allele size and has a quality score above the minimum threshold<br />
             <b>True negative alleles:</b> where the tool's call doesn't equal the true allele size and has a quality score below the minimum threshold<br />
             <b>Total alleles:</b> the total number of genotyped alleles, including those above and below the quality score threshold<br />
@@ -152,7 +151,7 @@
             <b>Gray</b> represents loci where the tool didn't produce a genotype (i.e. due to errors or insufficient coverage).<br />
             <b>Red</b> is for loci that the tool called as homozygous reference and so entirely missed the variant. <br />
             <b>Brown</b> is when the tool incorrectly called an allele as being heterozygous reference.<br />
-            <b>Teal</b> is where it called a contraction when the true allele is an expansion or vice versa.<br />
+            <b>Teal</b> is where the tool called a contraction when the true allele is an expansion, or vice versa.<br />
             <b>Blue</b> is for underestimated alleles (darker blue means underestimated by more repeats).<br />
             <b>Green</b> represents alleles where the tool exactly matched the true allele size. <br />
             <b>Orange</b> is for alleles that the tool overestimated (darker orange means a larger overestimate).<br />
