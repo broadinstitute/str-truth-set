@@ -1,5 +1,26 @@
 #!/usr/bin/env bash
 
+# Optional Args:
+#   --only-pure-repeats: only include STRs that are present in the reference genome context
+#   --only-high-confidence-variants: only include variants within SynDip high confidence regions
+#   --include-homopolymers: include homopolymer variants in the STR truth set
+
+
+pure_STRs_only="false"
+only_high_confidence_regions="false"
+include_homopolymers="false"
+
+if [[ " $@ " =~ " --only-pure-repeats " ]]; then
+    pure_STRs_only="true"
+fi
+if [[ " $@ " =~ " --only-high-confidence-regions " ]]; then
+    only_high_confidence_regions="true"
+fi
+if [[ " $@ " =~ " --include-homopolymers " ]]; then
+    include_homopolymers="true"
+fi
+
+
 # Check for required command-line tools:
 for command in "python3" "curl" "bgzip" "tabix" "bedtools" "gatk"
 do 
@@ -20,6 +41,7 @@ set -o pipefail
 
 version=v1
 
+# Reference data paths
 syndip_truth_vcf=./ref/full.38.vcf.gz
 syndip_confidence_regions_bed=./ref/full.38.bed.gz
 
@@ -28,6 +50,8 @@ t2t_fasta_path=./ref/chm13v2.0.fa
 
 hg38_t2t_chain_path=./ref/hg38-chm13v2.chain
 t2t_hg38_chain_path=./ref/chm13v2-hg38.chain
+
+
 
 # Install python dependencies
 set -x
@@ -134,7 +158,6 @@ function print_liftover_output_stats {
 set -euo pipefail
 
 
-
 # NOTE: these parameter values were chosen so that the subset of known disease-associated STR loci that have
 # non-reference genotypes in the SynDip truth set would be added to the STR truth set and would have the expected
 # reference start and end coordinates despite some of the repeat interruptions in the hg38 reference sequence at some
@@ -142,10 +165,10 @@ set -euo pipefail
 
 min_str_length=9
 min_str_repeats=3
-pure_STRs_only="false"
+min_repeat_unit_length=2
 
-if [ $pure_STRs_only == "true" ]
-then
+
+if [ $pure_STRs_only == "true" ]; then
   STR_type="pure_STR"
   allow_interruptions_arg=""
 else
@@ -153,52 +176,49 @@ else
   allow_interruptions_arg="--allow-interruptions"
 fi
 
+if [ $include_homopolymers == "true" ]; then
+  STR_type="${STR_type}s_including_homopolymer"
+  min_repeat_unit_length=1
+fi
+
+if [ $only_high_confidence_regions == "false" ]; then
+  STR_type="raw_${STR_type}"
+fi
 
 
 echo ===============
 input_vcf=${syndip_truth_vcf}
-output_vcf=step1.high_confidence_regions.vcf.gz
-
-
-set -x
 
 # generate stats and summary files for the raw SynDip VCF before filtering to high-confidence regions. These files aren't used in downstream analysis.
-python3 scripts/get_indels_from_vcf.py ${input_vcf}
+python3 scripts/get_indels_from_vcf.py ${input_vcf}  | python3 -u scripts/add_prefix_to_stdout.py "step0:${STR_type}:  "
 
-python3 -u -m str_analysis.filter_vcf_to_STR_variants ${allow_interruptions_arg} \
-	-R ${hg38_fasta_path} \
-	--write-bed-file \
-	--write-vcf-with-filtered-out-variants \
-	--min-str-length "${min_str_length}" \
-	--min-str-repeats "${min_str_repeats}" \
-	--output-prefix "./ref/full.38.${STR_type}" \
-	${input_vcf}
-set +x
+if [ $only_high_confidence_regions == "true" ]
+then
+  output_vcf=step1.high_confidence_regions.vcf.gz
 
-echo ===============
-print_input_stats $input_vcf "STEP #1: Filter SynDip truth set to SynDip high confidence regions"
-set -x
+  echo ===============
+  print_input_stats $input_vcf "STEP #1: Filter SynDip truth set to SynDip high confidence regions"
+  set -x
 
-bedtools intersect -header -f 1 -wa -u \
-    -a $input_vcf  \
-    -b ${syndip_confidence_regions_bed} \
-    | bgzip > ${output_vcf}
+  bedtools intersect -header -f 1 -wa -u \
+      -a $input_vcf  \
+      -b ${syndip_confidence_regions_bed} \
+      | bgzip > ${output_vcf}
 
-set +x
+  set +x
 
+  print_output_stats ${input_vcf} ${output_vcf} "step1"
 
-print_output_stats ${input_vcf} ${output_vcf} "step1"
+  python3 scripts/get_indels_from_vcf.py ${output_vcf}  | python3 -u scripts/add_prefix_to_stdout.py "step1:${STR_type}:  "
 
-echo ===============
-python3 scripts/get_indels_from_vcf.py ${output_vcf}
+  input_vcf=${output_vcf}
+fi
 
-
-input_vcf=step1.high_confidence_regions.vcf.gz
 output_prefix=step2.${STR_type}s
 output_vcf="${output_prefix}.vcf.gz"
 
 echo ===============
-echo Starting to process ${STR_type}s: ${allow_interruptions_arg}
+echo Starting to process ${STR_type}s: ${allow_interruptions_arg} --min-repeat-unit-length ${min_repeat_unit_length}
 
 print_input_stats $input_vcf "STEP #2: Filter variants to the subset that are actually STR expansion or contractions"
 set -x
@@ -208,17 +228,21 @@ python3 -u -m str_analysis.filter_vcf_to_STR_variants ${allow_interruptions_arg}
   --write-bed-file \
   --min-str-length "${min_str_length}" \
   --min-str-repeats "${min_str_repeats}" \
+  --min-repeat-unit-length ${min_repeat_unit_length} \
+  --max-repeat-unit-length 50 \
   --output-prefix "${output_prefix}" \
   --write-vcf-with-filtered-out-variants \
-  "${input_vcf}"
+  "${input_vcf}" \
+  | python3 -u scripts/add_prefix_to_stdout.py "step2:${STR_type}:  "
 
 #   -n 10000 \
 
 # generate overlap statistics before liftover
-python3 -u scripts/compute_overlap_with_other_catalogs.py --all-repeats \
-  --all-motifs ${output_prefix}.variants.tsv.gz \
-  ${output_prefix}.variants.with_overlap_columns.tsv.gz \
-  -c IlluminaSTRCatalog -c GangSTRCatalog17 -c HipSTRCatalog -c KnownDiseaseAssociatedSTRs
+#python3 -u scripts/compute_overlap_with_other_catalogs.py --all-repeats \
+#  --all-motifs ${output_prefix}.variants.tsv.gz \
+#  ${output_prefix}.variants.with_overlap_columns.tsv.gz \
+#  -c IlluminaSTRCatalog -c GangSTRCatalog17 -c HipSTRCatalog -c KnownDiseaseAssociatedSTRs \
+#  | python3 -u scripts/add_prefix_to_stdout.py "step2: "
 
 set +x
 print_output_stats $input_vcf $output_vcf "step2:${STR_type}"
@@ -244,7 +268,8 @@ gatk --java-options "-Xmx7g" LiftoverVcf \
     --LIFTOVER_MIN_MATCH 0.00001 \
     --WRITE_ORIGINAL_POSITION \
     --WRITE_ORIGINAL_ALLELES \
-    --ALLOW_MISSING_FIELDS_IN_HEADER
+    --ALLOW_MISSING_FIELDS_IN_HEADER \
+    | python3 -u scripts/add_prefix_to_stdout.py "step3:${STR_type}:  "
 
 set +x
 print_liftover_output_stats $input_vcf $output_vcf $output_failed_liftover1_vcf  "step3:${STR_type}"
@@ -280,7 +305,8 @@ gatk --java-options "-Xmx7g" LiftoverVcf \
      --LIFTOVER_MIN_MATCH 0.00001 \
      --WRITE_ORIGINAL_POSITION \
      --WRITE_ORIGINAL_ALLELES \
-     --ALLOW_MISSING_FIELDS_IN_HEADER
+     --ALLOW_MISSING_FIELDS_IN_HEADER \
+     | python3 -u scripts/add_prefix_to_stdout.py "step5:${STR_type}: "
 
 set +x
 print_liftover_output_stats $input_vcf $output_vcf $output_failed_liftover2_vcf  "step5:${STR_type}"
@@ -333,30 +359,30 @@ python3 -u -m str_analysis.filter_vcf_to_STR_variants ${allow_interruptions_arg}
   --write-bed-file \
   --min-str-length "${min_str_length}" \
   --min-str-repeats "${min_str_repeats}" \
+  --min-repeat-unit-length ${min_repeat_unit_length} \
+  --max-repeat-unit-length 50 \
   --output-prefix "${output_prefix}" \
-  "${input_vcf}"
+  "${input_vcf}" | python3 -u scripts/add_prefix_to_stdout.py "step8:${STR_type}:  "
 
 
-# compute overlap with various reference annotations
-./scripts/compute_overlap_with_other_catalogs_using_bedtools.sh ./${STR_type}_truth_set.v1.variants.bed.gz "overlap:${STR_type}"
-
+# detailed overlap check
 suffix=with_overlap_columns
-python3 -u scripts/compute_overlap_with_other_catalogs.py --all-repeats --all-motifs ${output_prefix}.variants.tsv.gz  ${output_prefix}.variants.${suffix}.tsv.gz &
-python3 -u scripts/compute_overlap_with_other_catalogs.py --all-repeats --all-motifs ${output_prefix}.alleles.tsv.gz  ${output_prefix}.alleles.${suffix}.tsv.gz &
+python3 -u scripts/compute_overlap_with_other_catalogs.py --all-repeats --all-motifs ${output_prefix}.variants.tsv.gz  ${output_prefix}.variants.${suffix}.tsv.gz | python3 -u scripts/add_prefix_to_stdout.py "step8:${STR_type}:  " &
+python3 -u scripts/compute_overlap_with_other_catalogs.py --all-repeats --all-motifs ${output_prefix}.alleles.tsv.gz  ${output_prefix}.alleles.${suffix}.tsv.gz | python3 -u scripts/add_prefix_to_stdout.py "step8:${STR_type}: " &
 wait
 mv ${output_prefix}.variants.${suffix}.tsv.gz ${output_prefix}.variants.tsv.gz
 mv ${output_prefix}.alleles.${suffix}.tsv.gz  ${output_prefix}.alleles.tsv.gz
 
 suffix=with_gencode_v42_columns
-python3 -u scripts/compute_overlap_with_gene_models.py ./ref/other/gencode.v42.annotation.sorted.gtf.gz  ${output_prefix}.variants.tsv.gz  ${output_prefix}.variants.${suffix}.tsv.gz &
-python3 -u scripts/compute_overlap_with_gene_models.py ./ref/other/gencode.v42.annotation.sorted.gtf.gz  ${output_prefix}.alleles.tsv.gz   ${output_prefix}.alleles.${suffix}.tsv.gz &
+python3 -u scripts/compute_overlap_with_gene_models.py ./ref/other/gencode.v42.annotation.sorted.gtf.gz  ${output_prefix}.variants.tsv.gz  ${output_prefix}.variants.${suffix}.tsv.gz | python3 -u scripts/add_prefix_to_stdout.py "step8:${STR_type}:  " &
+python3 -u scripts/compute_overlap_with_gene_models.py ./ref/other/gencode.v42.annotation.sorted.gtf.gz  ${output_prefix}.alleles.tsv.gz   ${output_prefix}.alleles.${suffix}.tsv.gz | python3 -u scripts/add_prefix_to_stdout.py "step8:${STR_type}:  " &
 wait
 mv ${output_prefix}.variants.${suffix}.tsv.gz ${output_prefix}.variants.tsv.gz
 mv ${output_prefix}.alleles.${suffix}.tsv.gz ${output_prefix}.alleles.tsv.gz
 
 suffix=with_MANE_columns
-python3 -u scripts/compute_overlap_with_gene_models.py ./ref/other/MANE.v1.0.ensembl_genomic.sorted.gtf.gz  ${output_prefix}.variants.tsv.gz ${output_prefix}.variants.${suffix}.tsv.gz &
-python3 -u scripts/compute_overlap_with_gene_models.py ./ref/other/MANE.v1.0.ensembl_genomic.sorted.gtf.gz  ${output_prefix}.alleles.tsv.gz  ${output_prefix}.alleles.${suffix}.tsv.gz &
+python3 -u scripts/compute_overlap_with_gene_models.py ./ref/other/MANE.v1.0.ensembl_genomic.sorted.gtf.gz  ${output_prefix}.variants.tsv.gz ${output_prefix}.variants.${suffix}.tsv.gz | python3 -u scripts/add_prefix_to_stdout.py "step8:${STR_type}:  " &
+python3 -u scripts/compute_overlap_with_gene_models.py ./ref/other/MANE.v1.0.ensembl_genomic.sorted.gtf.gz  ${output_prefix}.alleles.tsv.gz  ${output_prefix}.alleles.${suffix}.tsv.gz | python3 -u scripts/add_prefix_to_stdout.py "step8:${STR_type}:  " &
 wait
 mv ${output_prefix}.variants.${suffix}.tsv.gz ${output_prefix}.variants.tsv.gz
 mv ${output_prefix}.alleles.${suffix}.tsv.gz ${output_prefix}.alleles.tsv.gz
@@ -373,16 +399,8 @@ mv ${output_prefix}.variants.bed.gz.tbi ${final_output_prefix}.variants.bed.gz.t
 mv ${output_prefix}.vcf.gz      ${final_output_prefix}.vcf.gz
 mv ${output_prefix}.vcf.gz.tbi  ${final_output_prefix}.vcf.gz.tbi
 
-
-# generate catalogs
-python3 -u tool_comparison/scripts/convert_truth_set_to_variant_catalogs.py \
-  --expansion-hunter-loci-per-run 500 \
-  --gangstr-loci-per-run 10000 \
-  --output-dir ./tool_comparison/variant_catalogs \
-  --syndip-high-confidence-regions-bed ./ref/full.38.bed.gz \
-  --syndip-indels-vcf ./ref/full.38.INDELs.vcf.gz \
-  --all-hg38-repeats-bed ./ref/other/repeat_specs_GRCh38_without_mismatches.sorted.trimmed.at_least_9bp.bed.gz \
-  STR_truth_set.v1.variants.tsv.gz
+# fast overlap check with various reference annotations
+./scripts/compute_overlap_with_other_catalogs_using_bedtools.sh ./${STR_type}_truth_set.v1.variants.bed.gz "step8:overlap:${STR_type}"
 
 # compute overlap with various reference annotations for negative loci
 negative_loci_bed_path=tool_comparison/variant_catalogs/negative_loci.bed.gz
