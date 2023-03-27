@@ -6,13 +6,14 @@ pd.set_option('display.max_columns', 500)
 pd.set_option('display.width', 2000)
 
 
-def search(regexp, content, expected_number_of_matches=1, use_match_i=0):
+def search(regexp, content, expected_number_of_matches=1, use_match_i=0, type=str):
     """Runs re.search and checks that assumptions are met
     Args:
         regexp (str): regular expression
         content (str): text to search
         expected_number_of_matches (int): total number of expected matches.
         use_match_i (int): use this match # (counting from 0).
+        type (type): return type
     """
 
     results = list(re.finditer(regexp, content))
@@ -33,7 +34,11 @@ def search(regexp, content, expected_number_of_matches=1, use_match_i=0):
     if len(match.groups()) != 1:
         raise ValueError(f"Regexp has {len(match.groups())} groups instead of 1: {regexp}")
 
-    return match.group(1)
+    result = match.group(1)
+    if type == int:
+        result = int(result.replace(",", ""))
+
+    return result
 
 
 def format_p(count, total):
