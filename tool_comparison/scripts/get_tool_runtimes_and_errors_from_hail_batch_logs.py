@@ -17,11 +17,11 @@ number_of_data_groups = 8
 current_data_group_number = collections.defaultdict(int)
 
 # get batch
-for b in list(
-        bc.list_batches(limit=1, last_batch_id=7159065)) + list(
-        bc.list_batches(limit=1, last_batch_id=7159064)):  # last_batch_id=6958349, 6954002, 6958255, 6958288
+for b in bc.list_batches(limit=2, last_batch_id=7196167):
 
     batch_name = b.attributes["name"]
+    print("Processing batch:", batch_name)
+
     if not batch_name.startswith("STR Truth Set:"):
         continue
     batch_name_fields = batch_name.split(": ")
@@ -141,14 +141,13 @@ bc.close()
 
 #%%
 
-
 output_dir = "./tool_comparison/hail_batch_pipelines"
 for positive_or_negative in "positive", "negative":
     filename_prefix = "truth_set" if positive_or_negative == "positive" else "negative"
     output_filename = f"{output_dir}/{filename_prefix}_loci_that_cause_illumina_expansion_hunter_error.txt"
     counter = 0
     with open(output_filename, "wt") as f:
-        for row in loci_with_expansion_hunter_errors:
+        for row in sorted(loci_with_expansion_hunter_errors, key=lambda r: r["locus"]):
             if row["positive_or_negative_loci"] == f"{positive_or_negative}_loci":
                 counter += 1
                 f.write(row["locus"] + "\n")
