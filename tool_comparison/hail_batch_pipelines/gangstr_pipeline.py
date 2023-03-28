@@ -52,7 +52,11 @@ def main():
 
     step1s = []
     step1_output_json_paths = []
-    for repeat_spec_i, repeat_spec_file_stats in enumerate(hl.hadoop_ls(repeat_spec_paths)):
+    repeat_spec_file_stats_list = hl.hadoop_ls(repeat_spec_paths)
+    if len(repeat_spec_file_stats_list) == 0:
+        raise ValueError(f"No files found matching {repeat_spec_paths}")
+
+    for repeat_spec_i, repeat_spec_file_stats in enumerate(repeat_spec_file_stats_list):
         repeat_spec_path = repeat_spec_file_stats["path"]
 
         if args.n and repeat_spec_i >= args.n:

@@ -13,8 +13,8 @@ REFERENCE_FASTA_FAI_PATH = "gs://gcp-public-data--broad-references/hg38/v0/Homo_
 CHM1_CHM13_CRAM_PATH = "gs://broad-public-datasets/CHM1_CHM13_WGS2/CHM1_CHM13_WGS2.cram"
 CHM1_CHM13_CRAI_PATH = "gs://broad-public-datasets/CHM1_CHM13_WGS2/CHM1_CHM13_WGS2.cram.crai"
 
-VARIANT_CATALOG_POSITIVE_LOCI = "gs://str-truth-set/hg38/variant_catalogs/expansion_hunter/positive_loci.EHv5.*_of_307.json"
-VARIANT_CATALOG_NEGATIVE_LOCI = "gs://str-truth-set/hg38/variant_catalogs/expansion_hunter/negative_loci.EHv5.*_of_303.json"
+VARIANT_CATALOG_POSITIVE_LOCI = "gs://str-truth-set/hg38/variant_catalogs/expansion_hunter/positive_loci.EHv5.*_of_310.json"
+VARIANT_CATALOG_NEGATIVE_LOCI = "gs://str-truth-set/hg38/variant_catalogs/expansion_hunter/negative_loci.EHv5.*_of_307.json"
 
 OUTPUT_BASE_DIR = "gs://str-truth-set/hg38/tool_results/expansion_hunter"
 
@@ -81,7 +81,11 @@ def main():
 
     step1s = []
     step1_output_json_paths = []
-    for catalog_i, variant_catalog_file_stats in enumerate(hl.hadoop_ls(variant_catalog_paths)):
+    variant_catalog_file_stats_list = hl.hadoop_ls(variant_catalog_paths)
+    if len(variant_catalog_file_stats_list) == 0:
+        raise ValueError(f"No files found matching {variant_catalog_paths}")
+
+    for catalog_i, variant_catalog_file_stats in enumerate(variant_catalog_file_stats_list):
         variant_catalog_path = variant_catalog_file_stats["path"]
 
         if args.n and catalog_i >= args.n:

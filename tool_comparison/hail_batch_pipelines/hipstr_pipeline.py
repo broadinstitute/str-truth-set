@@ -35,10 +35,10 @@ def main():
     args = bp.parse_known_args()
 
     if args.positive_loci:
-        regions_bed__paths = REGIONS_BED_POSITIVE_LOCI
+        regions_bed_paths = REGIONS_BED_POSITIVE_LOCI
         positive_or_negative_loci = "positive_loci"
     elif args.negative_loci:
-        regions_bed__paths = REGIONS_BED_NEGATIVE_LOCI
+        regions_bed_paths = REGIONS_BED_NEGATIVE_LOCI
         positive_or_negative_loci = "negative_loci"
     else:
         parser.error("Must specify either --positive-loci or --negative-loci")
@@ -52,7 +52,11 @@ def main():
 
     step1s = []
     step1_output_json_paths = []
-    for repeat_spec_i, regions_bed_file_stats in enumerate(hl.hadoop_ls(regions_bed__paths)):
+    regions_bed_file_stats_list = hl.hadoop_ls(regions_bed_paths)
+    if len(regions_bed_file_stats_list) == 0:
+        raise ValueError(f"No files found matching {regions_bed_paths}")
+    
+    for repeat_spec_i, regions_bed_file_stats in enumerate(regions_bed_file_stats_list):
         regions_bed_path = regions_bed_file_stats["path"]
 
         if args.n and repeat_spec_i >= args.n:

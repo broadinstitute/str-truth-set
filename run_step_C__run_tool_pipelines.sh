@@ -17,9 +17,6 @@ function run_pipelines {
     local_dir=$4
     run_illumina_expansion_hunter=$5
     min_locus_coverage_arg=$6
-    
-    # ExpansionHunterDenovo
-    $debug python3 ./tool_comparison/hail_batch_pipelines/expansion_hunter_denovo_pipeline.py --input-bam ${input_bam} --input-bai ${input_bai} --output-dir ${output_dir}/expansion_hunter_denovo &
 
     # ExpansionHunter
     $debug python3 ./tool_comparison/hail_batch_pipelines/expansion_hunter_pipeline.py  --positive-loci --input-bam ${input_bam} --input-bai ${input_bai} --output-dir ${output_dir}/expansion_hunter ${min_locus_coverage_arg} ${force} &
@@ -40,7 +37,14 @@ function run_pipelines {
     $debug python3 ./tool_comparison/hail_batch_pipelines/hipstr_pipeline.py  --positive-loci --input-bam ${input_bam} --input-bai ${input_bai} --output-dir ${output_dir}/hipstr ${force} &
     $debug python3 ./tool_comparison/hail_batch_pipelines/hipstr_pipeline.py  --negative-loci --input-bam ${input_bam} --input-bai ${input_bai} --output-dir ${output_dir}/hipstr ${force} &
 
-    wait
+    # wait for all pipelines except ExpansionHunterDenovo because that one takes a long time and uses few jobs, so it
+    # can just run in the background
+    wait_for_pids="$(jobs -p)"
+
+    # ExpansionHunterDenovo
+    $debug python3 ./tool_comparison/hail_batch_pipelines/expansion_hunter_denovo_pipeline.py --input-bam ${input_bam} --input-bai ${input_bai} --output-dir ${output_dir}/expansion_hunter_denovo &
+
+    wait < <(echo ${wait_for_pids})
 
     # download results
     $debug mkdir -p ${local_dir}/expansion_hunter_denovo
@@ -90,9 +94,9 @@ wait   # wait for downsampling to finish
 # Process other coverage levels
 for coverage in 30 20 10 5; do    
     if [ "$coverage" == "10" ] || [ "$coverage" == "5" ]; then
-	min_locus_coverage="--min-locus-coverage 3"
+	      min_locus_coverage="--min-locus-coverage 3"
     else
-	min_locus_coverage=""
+	      min_locus_coverage=""
     fi
     
     # Rerun pipelines on downsampled bam
@@ -112,12 +116,13 @@ python3 ./tool_comparison/hail_batch_pipelines/expansion_hunter_pipeline.py  --p
 python3 ./tool_comparison/hail_batch_pipelines/expansion_hunter_pipeline.py  --negative-loci --run-reviewer \
 	--input-bam gs://broad-public-datasets/CHM1_CHM13_WGS2/CHM1_CHM13_WGS2.cram --input-bai gs://broad-public-datasets/CHM1_CHM13_WGS2/CHM1_CHM13_WGS2.cram.crai \
 	--output-dir gs://str-truth-set/hg38/tool_results/expansion_hunter &
-wait
 
 python3 ./tool_comparison/scripts/add_reviewer_image_url_to_bed.py -i ./STR_truth_set.v1.variants.bed.gz
 python3 ./tool_comparison/scripts/add_reviewer_image_url_to_bed.py -i ./tool_comparison/variant_catalogs/negative_loci.bed.gz
 
 gsutil -m cp ./STR_truth_set.v1.variants.with_reviewer_image_urls.bed.gz* gs://str-truth-set/hg38/
 gsutil -m cp ./tool_comparison/variant_catalogs/negative_loci.with_reviewer_image_urls.bed.gz* gs://str-truth-set/hg38/tool_comparison/variant_catalogs/
+
+wait  # wait for any remaining jobs to finish
 
 echo Done with step C
