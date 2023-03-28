@@ -51,8 +51,6 @@ t2t_fasta_path=./ref/chm13v2.0.fa
 hg38_t2t_chain_path=./ref/hg38-chm13v2.chain
 t2t_hg38_chain_path=./ref/chm13v2-hg38.chain
 
-
-
 # Install python dependencies
 set -x
 python3 -m pip install -r requirements.txt -qq
@@ -166,7 +164,7 @@ set -euo pipefail
 min_str_length=9
 min_str_repeats=3
 min_repeat_unit_length=2
-
+max_repeat_unit_length=50
 
 if [ $pure_STRs_only == "true" ]; then
   STR_type="pure_STR"
@@ -218,7 +216,9 @@ output_prefix=step2.${STR_type}s
 output_vcf="${output_prefix}.vcf.gz"
 
 echo ===============
-echo Starting to process ${STR_type}s: ${allow_interruptions_arg} --min-repeat-unit-length ${min_repeat_unit_length}
+echo Starting to process ${STR_type}s: ${allow_interruptions_arg} \
+  --min-repeat-unit-length ${min_repeat_unit_length} --max-repeat-unit-length ${max_repeat_unit_length}
+
 
 print_input_stats $input_vcf "STEP #2: Filter variants to the subset that are actually STR expansion or contractions"
 set -x
@@ -229,9 +229,10 @@ python3 -u -m str_analysis.filter_vcf_to_STR_variants ${allow_interruptions_arg}
   --min-str-length "${min_str_length}" \
   --min-str-repeats "${min_str_repeats}" \
   --min-repeat-unit-length ${min_repeat_unit_length} \
-  --max-repeat-unit-length 50 \
+  --max-repeat-unit-length ${max_repeat_unit_length} \
   --output-prefix "${output_prefix}" \
   --write-vcf-with-filtered-out-variants \
+  --verbose \
   "${input_vcf}" \
   | python3 -u scripts/add_prefix_to_stdout.py "step2:${STR_type}:  "
 
@@ -360,30 +361,30 @@ python3 -u -m str_analysis.filter_vcf_to_STR_variants ${allow_interruptions_arg}
   --min-str-length "${min_str_length}" \
   --min-str-repeats "${min_str_repeats}" \
   --min-repeat-unit-length ${min_repeat_unit_length} \
-  --max-repeat-unit-length 50 \
+  --max-repeat-unit-length ${max_repeat_unit_length} \
   --output-prefix "${output_prefix}" \
+  --verbose \
   "${input_vcf}" | python3 -u scripts/add_prefix_to_stdout.py "step8:${STR_type}:  "
 
 
-# detailed overlap check
+# compute overlap with various reference annotations
+./scripts/compute_overlap_with_other_catalogs_using_bedtools.sh ${output_prefix}.variants.bed.gz "step8:overlap:${STR_type}"
+
 suffix=with_overlap_columns
-python3 -u scripts/compute_overlap_with_other_catalogs.py --all-repeats --all-motifs ${output_prefix}.variants.tsv.gz  ${output_prefix}.variants.${suffix}.tsv.gz | python3 -u scripts/add_prefix_to_stdout.py "step8:${STR_type}:  " &
-python3 -u scripts/compute_overlap_with_other_catalogs.py --all-repeats --all-motifs ${output_prefix}.alleles.tsv.gz  ${output_prefix}.alleles.${suffix}.tsv.gz | python3 -u scripts/add_prefix_to_stdout.py "step8:${STR_type}: " &
-wait
+python3 -u scripts/compute_overlap_with_other_catalogs.py --all-repeats --all-motifs ${output_prefix}.variants.tsv.gz  ${output_prefix}.variants.${suffix}.tsv.gz | python3 -u scripts/add_prefix_to_stdout.py "step8:${STR_type}:  "
+python3 -u scripts/compute_overlap_with_other_catalogs.py --all-repeats --all-motifs ${output_prefix}.alleles.tsv.gz  ${output_prefix}.alleles.${suffix}.tsv.gz | python3 -u scripts/add_prefix_to_stdout.py "step8:${STR_type}: "
 mv ${output_prefix}.variants.${suffix}.tsv.gz ${output_prefix}.variants.tsv.gz
 mv ${output_prefix}.alleles.${suffix}.tsv.gz  ${output_prefix}.alleles.tsv.gz
 
 suffix=with_gencode_v42_columns
-python3 -u scripts/compute_overlap_with_gene_models.py ./ref/other/gencode.v42.annotation.sorted.gtf.gz  ${output_prefix}.variants.tsv.gz  ${output_prefix}.variants.${suffix}.tsv.gz | python3 -u scripts/add_prefix_to_stdout.py "step8:${STR_type}:  " &
-python3 -u scripts/compute_overlap_with_gene_models.py ./ref/other/gencode.v42.annotation.sorted.gtf.gz  ${output_prefix}.alleles.tsv.gz   ${output_prefix}.alleles.${suffix}.tsv.gz | python3 -u scripts/add_prefix_to_stdout.py "step8:${STR_type}:  " &
-wait
+python3 -u scripts/compute_overlap_with_gene_models.py ./ref/other/gencode.v42.annotation.sorted.gtf.gz  ${output_prefix}.variants.tsv.gz  ${output_prefix}.variants.${suffix}.tsv.gz | python3 -u scripts/add_prefix_to_stdout.py "step8:${STR_type}:  "
+python3 -u scripts/compute_overlap_with_gene_models.py ./ref/other/gencode.v42.annotation.sorted.gtf.gz  ${output_prefix}.alleles.tsv.gz   ${output_prefix}.alleles.${suffix}.tsv.gz | python3 -u scripts/add_prefix_to_stdout.py "step8:${STR_type}:  "
 mv ${output_prefix}.variants.${suffix}.tsv.gz ${output_prefix}.variants.tsv.gz
 mv ${output_prefix}.alleles.${suffix}.tsv.gz ${output_prefix}.alleles.tsv.gz
 
 suffix=with_MANE_columns
-python3 -u scripts/compute_overlap_with_gene_models.py ./ref/other/MANE.v1.0.ensembl_genomic.sorted.gtf.gz  ${output_prefix}.variants.tsv.gz ${output_prefix}.variants.${suffix}.tsv.gz | python3 -u scripts/add_prefix_to_stdout.py "step8:${STR_type}:  " &
-python3 -u scripts/compute_overlap_with_gene_models.py ./ref/other/MANE.v1.0.ensembl_genomic.sorted.gtf.gz  ${output_prefix}.alleles.tsv.gz  ${output_prefix}.alleles.${suffix}.tsv.gz | python3 -u scripts/add_prefix_to_stdout.py "step8:${STR_type}:  " &
-wait
+python3 -u scripts/compute_overlap_with_gene_models.py ./ref/other/MANE.v1.0.ensembl_genomic.sorted.gtf.gz  ${output_prefix}.variants.tsv.gz ${output_prefix}.variants.${suffix}.tsv.gz | python3 -u scripts/add_prefix_to_stdout.py "step8:${STR_type}:  "
+python3 -u scripts/compute_overlap_with_gene_models.py ./ref/other/MANE.v1.0.ensembl_genomic.sorted.gtf.gz  ${output_prefix}.alleles.tsv.gz  ${output_prefix}.alleles.${suffix}.tsv.gz | python3 -u scripts/add_prefix_to_stdout.py "step8:${STR_type}:  "
 mv ${output_prefix}.variants.${suffix}.tsv.gz ${output_prefix}.variants.tsv.gz
 mv ${output_prefix}.alleles.${suffix}.tsv.gz ${output_prefix}.alleles.tsv.gz
 
@@ -398,25 +399,6 @@ mv ${output_prefix}.variants.bed.gz.tbi ${final_output_prefix}.variants.bed.gz.t
 
 mv ${output_prefix}.vcf.gz      ${final_output_prefix}.vcf.gz
 mv ${output_prefix}.vcf.gz.tbi  ${final_output_prefix}.vcf.gz.tbi
-
-# fast overlap check with various reference annotations
-./scripts/compute_overlap_with_other_catalogs_using_bedtools.sh ./${STR_type}_truth_set.v1.variants.bed.gz "step8:overlap:${STR_type}"
-
-# compute overlap with various reference annotations for negative loci
-negative_loci_bed_path=tool_comparison/variant_catalogs/negative_loci.bed.gz
-output_prefix=tool_comparison/variant_catalogs/negative_loci
-
-suffix=with_overlap_columns
-python3 -u scripts/compute_overlap_with_other_catalogs.py --all-repeats --all-motifs ${negative_loci_bed_path}  ${output_prefix}.${suffix}.tsv.gz
-mv ${output_prefix}.${suffix}.tsv.gz  ${output_prefix}.tsv.gz
-
-suffix=with_gencode_v42_columns
-python3 -u scripts/compute_overlap_with_gene_models.py ./ref/other/gencode.v42.annotation.sorted.gtf.gz  ${output_prefix}.tsv.gz  ${output_prefix}.${suffix}.tsv.gz
-mv ${output_prefix}.${suffix}.tsv.gz  ${output_prefix}.tsv.gz
-
-suffix=with_MANE_columns
-python3 -u scripts/compute_overlap_with_gene_models.py ./ref/other/MANE.v1.0.ensembl_genomic.sorted.gtf.gz  ${output_prefix}.tsv.gz ${output_prefix}.${suffix}.tsv.gz
-mv ${output_prefix}.${suffix}.tsv.gz  ${output_prefix}.tsv.gz
 
 set +x
 

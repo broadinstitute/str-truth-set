@@ -127,3 +127,5 @@ for keyword in "genotype", "variants", "alleles":
         percent = f"{100*value / total:5.1f}%" if total > 0 else ""
 
         print(f"{prefix}{value:10,d} out of {total:10,d} ({percent}) {key}")
+
+print("--------------")
