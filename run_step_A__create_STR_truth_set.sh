@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 
-# Optional Args:
-#   --only-pure-repeats: only include STRs that are present in the reference genome context
-#   --only-high-confidence-variants: only include variants within SynDip high confidence regions
-#   --include-homopolymers: include homopolymer variants in the STR truth set
+# Optional command-line args:
+#   --only-pure-repeats: only include STRs that don't contain interruptions
+#   --only-high-confidence-variants: only include variants that are within SynDip high confidence regions
+#   --include-homopolymers: include homopolymer variants in the truth set
 
 
 pure_STRs_only="false"
@@ -21,7 +21,7 @@ if [[ " $@ " =~ " --include-homopolymers " ]]; then
 fi
 
 
-# Check for required command-line tools:
+# Check that required command-line tools are installed
 for command in "python3" "curl" "bgzip" "tabix" "bedtools" "gatk"
 do 
     if ! command -v "${command}" &> /dev/null; then
