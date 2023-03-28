@@ -40,3 +40,4 @@ gsutil -m cp -r gs://str-truth-set/hg38/figures/accuracy_by_allele_size  .
 #python3 -u plot_tool_accuracy_vs_Q.py --verbose
 #python3 -u plot_tool_accuracy_by_allele_size.py --verbose
 
+echo Done with step E

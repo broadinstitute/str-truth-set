@@ -69,3 +69,5 @@ do
     echo ${i}
     gsutil -q -m cp -n ${i} gs://str-truth-set/hg38/${i}
 done
+
+echo Done with step B

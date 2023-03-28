@@ -95,3 +95,4 @@ python3 -u ./tool_comparison/scripts/combine_all_results_tables.py
 
 gsutil -m cp ./tool_comparison/combined.results.*.tsv.gz  gs://str-truth-set/hg38/
 
+echo Done with step D

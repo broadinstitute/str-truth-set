@@ -120,4 +120,4 @@ python3 ./tool_comparison/scripts/add_reviewer_image_url_to_bed.py -i ./tool_com
 gsutil -m cp ./STR_truth_set.v1.variants.with_reviewer_image_urls.bed.gz* gs://str-truth-set/hg38/
 gsutil -m cp ./tool_comparison/variant_catalogs/negative_loci.with_reviewer_image_urls.bed.gz* gs://str-truth-set/hg38/tool_comparison/variant_catalogs/
 
-echo Done
+echo Done with step C
