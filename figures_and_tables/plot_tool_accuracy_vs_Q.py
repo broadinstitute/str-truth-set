@@ -142,11 +142,13 @@ def generate_all_plots(df, args):
         if coverage == "exome":
             df2 = df2[~df2["GeneRegionFromGencode_V42"].isin({"intergenic", "intron", "promoter"})]
 
-        for motif_size in "all_motifs", "2-6bp", "7-24bp", "25+bp":
+        for motif_size in "all_motifs", "2bp", "3-6bp", "7-24bp", "25+bp":
             if motif_size == "all_motifs":
                 df3 = df2[(2 <= df2["MotifSize"]) & (df2["MotifSize"] <= 50)]
-            elif motif_size == "2-6bp":
-                df3 = df2[(2 <= df2["MotifSize"]) & (df2["MotifSize"] <= 6)]
+            elif motif_size == "2bp":
+                df3 = df2[df2["MotifSize"] == 2]
+            elif motif_size == "3-6bp":
+                df3 = df2[(3 <= df2["MotifSize"]) & (df2["MotifSize"] <= 6)]
             elif motif_size == "7-24bp":
                 df3 = df2[(7 <= df2["MotifSize"]) & (df2["MotifSize"] <= 24)]
             elif motif_size == "25+bp":
@@ -199,9 +201,12 @@ def generate_all_plots(df, args):
                         if motif_size == "all_motifs":
                             filter_description.append("all motif sizes")
                             output_image_filename += ".all_motifs"
-                        elif motif_size == "2-6bp":
-                            filter_description.append("2bp to 6bp motifs")
-                            output_image_filename += ".2to6bp_motifs"
+                        elif motif_size == "2bp":
+                            filter_description.append("2bp motifs")
+                            output_image_filename += ".2bp_motifs"
+                        elif motif_size == "3-6bp":
+                            filter_description.append("3bp to 6bp motifs")
+                            output_image_filename += ".3to6bp_motifs"
                         elif motif_size == "7-24bp":
                             filter_description.append(f"7bp to 24bp motifs")
                             output_image_filename += ".7to24bp_motifs"

@@ -228,12 +228,14 @@ def generate_all_plots(df, args):
                 if coverage == "exome" and not args.only_print_total_number_of_plots:
                     df3 = df3[~df3["GeneRegionFromGencode_V42"].isin({"intergenic", "intron", "promoter"})]
 
-                for motif_size in "all_motifs", "2-6bp", "7-24bp", "25+bp":
+                for motif_size in "all_motifs", "2bp", "3-6bp", "7-24bp", "25+bp":
                     if not args.only_print_total_number_of_plots:
                         if motif_size == "all_motifs":
                             df4 = df3[(2 <= df3["MotifSize"]) & (df3["MotifSize"] <= 50)]
-                        elif motif_size == "2-6bp":
-                            df4 = df3[(2 <= df3["MotifSize"]) & (df3["MotifSize"] <= 6)]
+                        elif motif_size == "2bp":
+                            df4 = df3[df3["MotifSize"] == 2]
+                        elif motif_size == "3-6bp":
+                            df4 = df3[(3 <= df3["MotifSize"]) & (df3["MotifSize"] <= 6)]
                         elif motif_size == "7-24bp":
                             df4 = df3[(7 <= df3["MotifSize"]) & (df3["MotifSize"] <= 24)]
                         elif motif_size == "25+bp":
@@ -292,9 +294,12 @@ def generate_all_plots(df, args):
                                     if motif_size == "all_motifs":
                                         filter_description.append("all motif sizes")
                                         output_image_filename += ".all_motifs"
-                                    elif motif_size == "2-6bp":
-                                        filter_description.append("2bp to 6bp motifs")
-                                        output_image_filename += ".2to6bp_motifs"
+                                    elif motif_size == "2bp":
+                                        filter_description.append("2bp motifs")
+                                        output_image_filename += ".2bp_motifs"
+                                    elif motif_size == "3-6bp":
+                                        filter_description.append("3bp to 6bp motifs")
+                                        output_image_filename += ".3to6bp_motifs"
                                     elif motif_size == "7-24bp":
                                         filter_description.append(f"7bp to 24bp motifs")
                                         output_image_filename += ".7to24bp_motifs"
@@ -346,7 +351,7 @@ def generate_all_plots(df, args):
                                     coverage_label = f"exome data" if coverage == "exome" else f"{coverage} genome data"
 
                                     # skip_condition1: HipSTR doesn't support motifs larger than 9bp
-                                    skip_condition1 = tool == "HipSTR" and motif_size != "2-6bp"
+                                    skip_condition1 = tool == "HipSTR" and motif_size not in ("2bp", "3-6bp")
                                     # skip_condition2: not enough alleles to draw a histogram
                                     skip_condition2 = len(df_plot) < 10
 

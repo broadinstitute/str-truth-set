@@ -5,23 +5,16 @@ import pandas as pd
 import numpy as np
 from figures_and_tables.numbers_utils import format_n, format_np, search
 
+
+
+#%%
+print("---")
+print("Numbers from the Abstract:")
+
 with open("step_A.log", "rt") as f:
     stepA_log_contents = f.read()
 
 
-#%%
-all_high_confidence_regions = []
-with gzip.open("./ref/full.38.bed.gz", "rt") as f:
-    for line in f:
-        fields = line.strip().split("\t")
-        all_high_confidence_regions.append(int(fields[2]) - int(fields[1]))
-
-
-print(f"{sum(all_high_confidence_regions):,d}bp total size of high confidence regions")
-print(f"{len(all_high_confidence_regions):,d} high confidence regions")
-print(f"{np.mean(all_high_confidence_regions):,.0f}bp mean size of high confidence regions")
-
-#%%
 total_variants_in_syndip = search(f"[ ]+([0-9,]+)[ ]+total[ ]variants",
                                   stepA_log_contents, expected_number_of_matches=2, use_match_i=0, type=int)
 total_indels_in_syndip = search(f"[ ]+([0-9,]+)[ ]+INDELs",
@@ -31,10 +24,36 @@ high_confidence_variants_in_syndip = search(f"[ ]+([0-9,]+)[ ]+total[ ]variants"
 high_confidence_indels_in_syndip = search(f"[ ]+([0-9,]+)[ ]+INDELs",
                                           stepA_log_contents, expected_number_of_matches=4, use_match_i=2, type=int)
 
-print(f"{total_variants_in_syndip:10,d} total variants in SynDip")
-print(f"{total_indels_in_syndip:10,d} total INDELs in SynDip")
-print(f"{high_confidence_variants_in_syndip:10,d} high-confidence variants in SynDip")
-print(f"{high_confidence_indels_in_syndip:10,d} high-confidence INDELs in SynDip")
+print(f"{format_n(total_variants_in_syndip)} total variants in SynDip")
+print(f"{format_np(total_indels_in_syndip, total_variants_in_syndip)} total INDELs in SynDip")
+print("")
+print(f"{format_n(high_confidence_variants_in_syndip)} high-confidence variants in SynDip")
+print(f"{format_np(high_confidence_indels_in_syndip, high_confidence_variants_in_syndip)} high-confidence INDELs in SynDip")
+
+
+#%%
+print("---")
+all_high_confidence_regions = []
+with gzip.open("./ref/full.38.bed.gz", "rt") as f:
+    for line in f:
+        fields = line.strip().split("\t")
+        all_high_confidence_regions.append(int(fields[2]) - int(fields[1]))
+
+
+print(f"{format_n(sum(all_high_confidence_regions))}bp total size of high confidence regions")
+print(f"{format_n(int(np.mean(all_high_confidence_regions)))}bp mean size of high confidence regions")
+print(f"{format_n(len(all_high_confidence_regions))} high confidence regions")
+
+#%%
+print("---")
+df_variants = pd.read_table("STR_truth_set.v1.variants.tsv.gz")
+df_pure_variants = df_variants[df_variants.IsPureRepeat]
+df_interrupted_variants = df_variants[~df_variants.IsPureRepeat]
+
+total_variants = len(df_variants)
+print(f"{format_n(total_variants)} total variants in the TR truth set")
+print(f"{format_np(len(df_pure_variants), total_variants)} pure repeats")
+print(f"{format_np(len(df_interrupted_variants), total_variants)} repeats with interruptions")
 
 
 #%%
@@ -69,16 +88,6 @@ print(f"{a:,d} TR loci ({100*a/total2:,.0f}%) of loci with 3-24bp motifs are pur
 b = sum(~df_variants_before_validation_3_to_24bp_motifs.IsPureRepeat)
 print(f"{b:,d} TR loci ({100*b/total2:,.0f}%) of loci with 3-24bp motifs have interruptions")
 
-
-#%%
-print("---")
-df_variants = pd.read_table("STR_truth_set.v1.variants.tsv.gz")
-df_pure_variants = df_variants[df_variants.IsPureRepeat]
-df_interrupted_variants = df_variants[~df_variants.IsPureRepeat]
-
-print(f"{len(df_variants):,d} total TR variants")
-print(f"{len(df_variants):,d} TR variants with interruptions")
-print(f"{len(df_interrupted_variants):,d} pure variants")
 
 #%%
 print("---")

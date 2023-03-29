@@ -35,7 +35,12 @@ gsutil -q -m cp -r tool_comparison/variant_catalogs/hipstr            gs://str-t
 
 set +x
 
-gsutil -q -m cp STR_truth_set.v1.*.bed.gz* STR_truth_set.v1.*.tsv* STR_truth_set.v1.vcf*   gs://str-truth-set/hg38/
+gsutil -q -m cp \
+  STR*_truth_set.v1.*.bed.gz* \
+  STR*_truth_set.v1.*.tsv* \
+  STR*_truth_set.v1.vcf*  \
+  step2.STR*.filtered_out_indels.vcf* \
+  gs://str-truth-set/hg38/
 
 for i in ref/full.38.* \
        ref/chm13v2.0.fa* \
@@ -51,6 +56,8 @@ for i in ref/full.38.* \
        ref/other/gencode.v42.annotation.sorted.gtf.gz.tbi \
        ref/other/hg38_ver17.adjusted.bed.gz \
        ref/other/hg38_ver17.adjusted.bed.gz.tbi \
+       ref/other/hg38.hipstr_reference.adjusted.bed.gz \
+       ref/other/hg38.hipstr_reference.adjusted.bed.gz.tbi \
        ref/other/illumina_variant_catalog.sorted.bed.gz \
        ref/other/illumina_variant_catalog.sorted.bed.gz.tbi \
        ref/other/known_disease_associated_STR_loci.GRCh38.bed.gz \
