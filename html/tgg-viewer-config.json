@@ -15,7 +15,7 @@
       "categoryName": "STR Truth Set",
       "rows": [
         {
-          "name": "STR Truth Set VCF",
+          "name": "STR Truth Set",
           "data": [{"type": "vcf", "url": "gs://str-truth-set/hg38/STR_truth_set.v1.vcf.gz"}],
           "description": "All truth set loci in VCF format."
         },
@@ -25,7 +25,7 @@
           "description": "All truth set loci in BED format."
         },
         {
-          "name": "Filtered out INDELs VCF",
+          "name": "Filtered out INDELs",
           "data": [{"type": "vcf", "url": "gs://str-truth-set/hg38/step2.STRs.filtered_out_indels.vcf.gz"}],
           "description": "These are InDels that are within SynDip high-confidence regions and didn't pass STR filters for reasons described in the VCF filter field."
         }
@@ -35,19 +35,19 @@
       "categoryName": "CHM1-CHM13 SynDip Benchmark",
       "rows": [
         {
-          "name": "SynDip: raw VCF",
+          "name": "SynDip: raw variants",
           "data": [{"type": "vcf", "url": "gs://str-truth-set/hg38/ref/full.38.vcf.gz"}],
           "description": "Original truth data from [Li 2018]. This includes variants both within and outside of high-confidence regions."
         }, {
-          "name": "high confidence (HC) regions",
+          "name": "high confidence (HC) regions BED",
           "data": [{"type": "bed", "url": "gs://str-truth-set/hg38/ref/full.38.bed.gz"}],
           "description": "Original high-confidence regions from [Li 2018]. Variants outside these regions have lower-quality genotypes."
         }, {
-          "name": "CHM1-CHM13 genome data",
+          "name": "SynDip WGS reads",
           "data": [{"type": "alignment", "url": "gs://broad-public-datasets/CHM1_CHM13_WGS2/CHM1_CHM13_WGS2.cram"}]
         },
         {
-          "name": "CHM1-CHM13 exome data",
+          "name": "SynDip exome reads",
           "data": [{"type": "alignment", "url": "gs://broad-public-datasets/CHM1_CHM13_WES/CHMI_CHMI3_Nex1.cram"}]
         }
       ]
@@ -211,10 +211,10 @@
         }
       ]
     }, {
-      "categoryName": "STR Truth Set including hompolymers",
+      "categoryName": "STR Truth Set Including Hompolymers",
       "rows": [
         {
-          "name": "Truth Set VCF + homopolymers",
+          "name": "Truth Set + homopolymers",
           "data": [{"type": "vcf", "url": "gs://str-truth-set/hg38/STRs_including_homopolymer_truth_set.v1.vcf.gz"}],
           "description": "All truth set loci in VCF format, including homopolymers."
         },
