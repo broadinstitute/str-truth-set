@@ -198,10 +198,14 @@ then
   print_input_stats $input_vcf "STEP #1: Filter SynDip truth set to SynDip high confidence regions"
   set -x
 
+  tabix -f ${syndip_confidence_regions_bed}
+
   bedtools intersect -header -f 1 -wa -u \
       -a $input_vcf  \
       -b ${syndip_confidence_regions_bed} \
       | bgzip > ${output_vcf}
+
+  tabix -f ${output_vcf}
 
   set +x
 

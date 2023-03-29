@@ -35,19 +35,26 @@
       "categoryName": "CHM1-CHM13 SynDip Benchmark",
       "rows": [
         {
+          "name": "SynDip: high confidence regions BED",
+          "data": [{"type": "bed", "url": "gs://str-truth-set/hg38/ref/full.38.bed.gz"}],
+          "description": "High-confidence regions from [Li 2018] spanning 2.7 gigabases (90%) of hg38."
+        }, {
           "name": "SynDip: raw variants",
           "data": [{"type": "vcf", "url": "gs://str-truth-set/hg38/ref/full.38.vcf.gz"}],
-          "description": "Original truth data from [Li 2018]. This includes variants both within and outside of high-confidence regions."
+          "description": "Truth data from [Li 2018], including variants both within and outside of the provided high-confidence regions."
         }, {
-          "name": "high confidence (HC) regions BED",
-          "data": [{"type": "bed", "url": "gs://str-truth-set/hg38/ref/full.38.bed.gz"}],
-          "description": "Original high-confidence regions from [Li 2018]. Variants outside these regions have lower-quality genotypes."
+          "name": "SynDip: high confidence variants",
+          "data": [{"type": "vcf", "url": "gs://str-truth-set/hg38/step1.high_confidence_regions.vcf.gz"}],
+          "description": "Truth data from [Li 2018], excluding variants outside the SynDip high confidence regions."
         }, {
-          "name": "SynDip WGS reads",
+          "name": "SynDip: high confidence INDELs",
+          "data": [{"type": "vcf", "url": "gs://str-truth-set/hg38/step1.high_confidence_regions.INDELs.vcf.gz"}],
+          "description": "Truth data from [Li 2018] filtered to all INDELs within high confidence regions."
+        }, {
+          "name": "SynDip: WGS reads",
           "data": [{"type": "alignment", "url": "gs://broad-public-datasets/CHM1_CHM13_WGS2/CHM1_CHM13_WGS2.cram"}]
-        },
-        {
-          "name": "SynDip exome reads",
+        }, {
+          "name": "SynDip: exome reads",
           "data": [{"type": "alignment", "url": "gs://broad-public-datasets/CHM1_CHM13_WES/CHMI_CHMI3_Nex1.cram"}]
         }
       ]

@@ -39,8 +39,10 @@ with gzip.open("./ref/full.38.bed.gz", "rt") as f:
         fields = line.strip().split("\t")
         all_high_confidence_regions.append(int(fields[2]) - int(fields[1]))
 
+chrY_size = 57_227_415   # based on https://www.ncbi.nlm.nih.gov/grc/human/data
+hg38_genome_total_size = 3_088_269_832 - chrY_size
 
-print(f"{format_n(sum(all_high_confidence_regions))}bp total size of high confidence regions")
+print(f"{format_np(sum(all_high_confidence_regions), hg38_genome_total_size)} bp total size of high confidence regions")
 print(f"{format_n(int(np.mean(all_high_confidence_regions)))}bp mean size of high confidence regions")
 print(f"{format_n(len(all_high_confidence_regions))} high confidence regions")
 

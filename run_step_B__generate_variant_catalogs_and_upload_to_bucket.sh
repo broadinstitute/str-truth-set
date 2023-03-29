@@ -39,6 +39,7 @@ gsutil -q -m cp \
   STR*_truth_set.v1.*.bed.gz* \
   STR*_truth_set.v1.*.tsv* \
   STR*_truth_set.v1.vcf*  \
+  step1.high_confidence_regions*.vcf* \
   step2.STR*.filtered_out_indels.vcf* \
   gs://str-truth-set/hg38/
 
