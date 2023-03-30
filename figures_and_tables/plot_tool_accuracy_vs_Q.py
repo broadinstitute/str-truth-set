@@ -15,11 +15,10 @@ sns.set_context(font_scale=1.1, rc={
 sns.set_palette(["purple", "blue", "red", "orange"])
 
 
-FIGURE_SIZE = (10, 10)
 TITLE_FONT_SIZE = 13
 
 
-def plot(df, figure_title=None):
+def plot(df, width, height, figure_title=None):
     total_allele_count = len(df)
 
     # generate table
@@ -48,7 +47,7 @@ def plot(df, figure_title=None):
 
     df_plot = pd.DataFrame(rows)
 
-    fig, axes = plt.subplots(2, 1, figsize=(10, 10), sharex=True, gridspec_kw={'height_ratios': [1.2, 1.7]})
+    fig, axes = plt.subplots(2, 1, figsize=(width, height), sharex=True, gridspec_kw={'height_ratios': [1.2, 1.7]})
     fig.suptitle(figure_title, fontsize=TITLE_FONT_SIZE, y=0.97)
 
     ax0, ax1 = axes
@@ -108,8 +107,8 @@ def plot(df, figure_title=None):
     ax1.set_ylabel(ax1.get_ylabel(), fontsize=13)
 
 
-def plot_empty_image(figure_title, message):
-    fig, ax = plt.subplots(1, 1, figsize=FIGURE_SIZE)
+def plot_empty_image(figure_title, message, width, height):
+    fig, ax = plt.subplots(1, 1, figsize=(width, height))
     fig.suptitle(figure_title, fontsize=TITLE_FONT_SIZE)
     ax.axis('off')
     text = ax.text(0.5, 0.5, message, ha='center', va='center', fontsize=17)
@@ -251,9 +250,9 @@ def generate_all_plots(df, args):
                             message = "Not enough alleles to create plot"
 
                             print(f"Skipping plot {plot_counter}:  {message}")
-                            plot_empty_image(figure_title_line, message)
+                            plot_empty_image(figure_title_line, message, args.width, args.height)
 
-                            output_path = os.path.join(output_dir, f"{output_image_filename}.svg")
+                            output_path = os.path.join(output_dir, f"{output_image_filename}.{args.image_type}")
                             plt.savefig(output_path)
                             print(f"Saved {output_path}")
                             plt.close()
@@ -266,9 +265,9 @@ def generate_all_plots(df, args):
                         print(figure_title_line)
 
                         try:
-                            plot(df_plot, figure_title=figure_title_line)
+                            plot(df_plot, args.width, args.height, figure_title=figure_title_line)
 
-                            output_path = os.path.join(output_dir, f"{output_image_filename}.svg")
+                            output_path = os.path.join(output_dir, f"{output_image_filename}.{args.image_type}")
                             plt.savefig(output_path, bbox_inches='tight')
                             print(f"Saved plot #{plot_counter}: {output_path}")
                             plt.close()
@@ -286,6 +285,10 @@ def main():
     p = argparse.ArgumentParser()
     p.add_argument("--start-with-plot-i", type=int, help="If specified, start with this plot number")
     p.add_argument("-n", type=int, help="If specified, only generate this many plots")
+    p.add_argument("--show-title", action="store_true", help="Show title in plot")
+    p.add_argument("--width", default=10, type=float)
+    p.add_argument("--height", default=10, type=float)
+    p.add_argument("--image-type", default="svg", choices=["svg", "png"], help="Image type to generate")
     p.add_argument("--output-dir", default=".")
     p.add_argument("--verbose", action="store_true", help="Print additional info")
     p.add_argument("combined_tool_results_tsv", nargs="?", default="../tool_comparison/combined.results.alleles.tsv.gz")

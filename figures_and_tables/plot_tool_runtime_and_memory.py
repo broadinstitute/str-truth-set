@@ -14,7 +14,7 @@ sns.set_context("paper", font_scale=1.1, rc={
 })
 
 
-def generate_plot(input_table_path, output_dir, with_coverage=False):
+def generate_plot(input_table_path, args, with_coverage=False):
 
     df = pd.read_table(input_table_path)
 
@@ -76,7 +76,7 @@ def generate_plot(input_table_path, output_dir, with_coverage=False):
 
     for i, ax in enumerate(axes):
         if i == 0:
-            title = f"Run Time{title_suffix}"
+            title = f"Runtime{title_suffix}"
             y_column = "minutes_per_10k_loci"
             y_label = "Minutes per 10,000 loci"
             y_limit = y_limit1
@@ -87,12 +87,14 @@ def generate_plot(input_table_path, output_dir, with_coverage=False):
             title = f"Memory Usage{title_suffix}"
             y_column = "max_resident_set_kbytes"
             y_label = "Max memory used (Gb)"
-            y_limit = 2
-            y_ticks = np.arange(0, 2, 0.25)
+            y_limit = 2.01
+            y_ticks = np.arange(0, y_limit, 0.25)
             y_minor_ticks = 0.125
             y_major_ticks = 0.25
+            print(y_ticks)
         else:
             raise ValueError(f"i: {i}")
+
 
         sns.stripplot(
             x=x_column,
@@ -124,17 +126,20 @@ def generate_plot(input_table_path, output_dir, with_coverage=False):
         ax.set_title(title, fontsize=16, pad=20, fontweight=500)
         ax.set_xlabel(None)
         ax.set_ylabel(y_label, labelpad=15, fontsize=14)
-
         ax.set_xticklabels(ax.get_xticklabels(), rotation=45, ha="right", fontsize=14)
 
+        print("Setting ylimit to", y_limit)
         ax.set_ylim(0, y_limit)
         ax.yaxis.set_ticks(y_ticks)
+        ax.set_yticklabels(y_ticks, fontsize=14)
         ax.yaxis.set_major_locator(MultipleLocator(y_major_ticks))
         ax.yaxis.set_minor_locator(MultipleLocator(y_minor_ticks))
 
         ax.yaxis.grid(True)
         ax.yaxis.grid(which='minor', color='lightgray', linewidth=0.5, linestyle=':', alpha=0.9)
         ax.yaxis.grid(which='major', color='lightgray', linewidth=0.5, linestyle='-', alpha=0.9)
+
+
 
         if with_coverage:
             ax.vlines([3.5, 7.5], ymin=0, ymax=ax.get_ylim()[-1])
@@ -152,11 +157,11 @@ def generate_plot(input_table_path, output_dir, with_coverage=False):
                 verticalalignment='center',
                 color='black',
                 fontsize=12,
-                )
+            )
         print("---")
 
     print(f"Plotted {len(df):,d} records")
-    output_path = os.path.join(output_dir, f"tool_runtime_and_memory{output_image_name_suffix}.svg")
+    output_path = os.path.join(args.output_dir, f"tool_runtime_and_memory{output_image_name_suffix}.{args.image_type}")
     plt.savefig(output_path, bbox_inches="tight")
     print(f"Saved {output_path}")
     plt.close()
@@ -165,12 +170,13 @@ def generate_plot(input_table_path, output_dir, with_coverage=False):
 def main():
     p = argparse.ArgumentParser()
     p.add_argument("--output-dir", default=".")
+    p.add_argument("--image-type", default="svg", choices=["svg", "png"], help="Image type to generate")
     p.add_argument("--timing-table", default="../tool_comparison/STR_tool_timing.tsv")
     p.add_argument("--timing-table-with-coverage", default="../tool_comparison/STR_tool_timing.with_coverage.tsv")
     args = p.parse_args()
 
-    generate_plot(args.timing_table, args.output_dir, with_coverage=False)
-    generate_plot(args.timing_table_with_coverage, args.output_dir, with_coverage=True)
+    generate_plot(args.timing_table, args, with_coverage=False)
+    generate_plot(args.timing_table_with_coverage, args, with_coverage=True)
 
 
 if __name__ == "__main__":

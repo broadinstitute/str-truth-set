@@ -127,13 +127,18 @@ multiallelic_DEL_variants_failed_hg38_to_t2t_liftover = search(
 mixed_multiallelic_INS_DEL_variants_failed_hg38_to_t2t_liftover = search(
     f"step3:STR:failed-liftover:[ ]*([0-9,]+) out of .* filtered:  mixed multiallelic INS/DEL variants", stepA_log_contents, type=int)
 
-print(f"{format_n(DEL_variants_failed_hg38_to_t2t_liftover + multiallelic_DEL_variants_failed_hg38_to_t2t_liftover - DEL_variants_failed_hg38_to_t2t_liftover_due_to_IndelStraddlesMultipleIntevals - multiallelic_DEL_variants_failed_hg38_to_t2t_liftover_due_to_IndelStraddlesMultipleIntevals)} "
+total_DEL_variants_failed_hg38_to_t2t_liftover_due_to_other_errors =  DEL_variants_failed_hg38_to_t2t_liftover + multiallelic_DEL_variants_failed_hg38_to_t2t_liftover - DEL_variants_failed_hg38_to_t2t_liftover_due_to_IndelStraddlesMultipleIntevals - multiallelic_DEL_variants_failed_hg38_to_t2t_liftover_due_to_IndelStraddlesMultipleIntevals
+print(f"{format_n(total_DEL_variants_failed_hg38_to_t2t_liftover_due_to_other_errors)} "
       f"DEL variants failed hg38 to T2T liftover due to other errors")
-print(f"{format_n(mixed_multiallelic_INS_DEL_variants_failed_hg38_to_t2t_liftover - mixed_variants_failed_hg38_to_t2t_liftover_due_to_IndelStraddlesMultipleIntevals)} "
+total_mixed_multiallelic_variants_failed_hg38_to_t2t_liftover_due_to_other_errors = mixed_multiallelic_INS_DEL_variants_failed_hg38_to_t2t_liftover - mixed_variants_failed_hg38_to_t2t_liftover_due_to_IndelStraddlesMultipleIntevals
+print(f"{format_n(total_mixed_multiallelic_variants_failed_hg38_to_t2t_liftover_due_to_other_errors)} "
       f"MIXED variants failed hg38 to T2T liftover due to other errors")
-print(f"{format_n(INS_variants_failed_hg38_to_t2t_liftover + multiallelic_INS_variants_failed_hg38_to_t2t_liftover - INS_variants_failed_hg38_to_t2t_liftover_due_to_IndelStraddlesMultipleIntevals - multiallelic_INS_variants_failed_hg38_to_t2t_liftover_due_to_IndelStraddlesMultipleIntevals)} "
+total_INS_variants_failed_hg38_to_t2t_liftover_due_to_other_errors = INS_variants_failed_hg38_to_t2t_liftover + multiallelic_INS_variants_failed_hg38_to_t2t_liftover - INS_variants_failed_hg38_to_t2t_liftover_due_to_IndelStraddlesMultipleIntevals - multiallelic_INS_variants_failed_hg38_to_t2t_liftover_due_to_IndelStraddlesMultipleIntevals
+print(f"{format_n(total_INS_variants_failed_hg38_to_t2t_liftover_due_to_other_errors)} "
       f"INS variants failed hg38 to T2T liftover due to other errors")
 
+print(F"{format_np(total_DEL_variants_failed_hg38_to_t2t_liftover_due_to_other_errors + total_mixed_multiallelic_variants_failed_hg38_to_t2t_liftover_due_to_other_errors + total_INS_variants_failed_hg38_to_t2t_liftover_due_to_other_errors, total)} "
+      F"total variants failed hg38 to T2T liftover due to other errors")
 #%%
 
 print("-"*100)

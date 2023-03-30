@@ -12,13 +12,13 @@ sns.set_context("paper", font_scale=1.1, rc={
 })
 
 
-def plot_distribution(df, output_dir):
-
-    fig, ax = plt.subplots(figsize=(20, 3.5), dpi=80, tight_layout=True)
+def plot_distribution(df, args):
+    print(f"Rendering indel size distribution with width: {args.width}")
+    fig, ax = plt.subplots(figsize=(args.width, args.height), dpi=80, tight_layout=True)
 
     ax.spines.right.set_visible(False)
     ax.spines.top.set_visible(False)
-    ax.set_xlabel("CHM1-CHM13 Deletion or Insertion Size (Kb)", labelpad=15, fontsize=16)
+    ax.set_xlabel("CHM1-CHM13 Deletion & Insertion Size (Kb)", labelpad=15, fontsize=16)
     ax.set_ylabel("Allele Count", labelpad=15, fontsize=16)
     ax.set_yscale('log')
     ax.set_xlim((-20, 20))
@@ -37,7 +37,7 @@ def plot_distribution(df, output_dir):
 
     print(f"Plotted {len(df):,d} allele records")
 
-    output_path = os.path.join(output_dir, "syndip_indel_size_distribution.svg")
+    output_path = os.path.join(args.output_dir, f"syndip_indel_size_distribution.{args.image_type}")
     plt.savefig(output_path, bbox_inches="tight")
     print(f"Saved {output_path}")
     plt.close()
@@ -46,6 +46,10 @@ def plot_distribution(df, output_dir):
 def main():
     p = argparse.ArgumentParser()
     p.add_argument("--syndip-vcf", default="../step1.high_confidence_regions.vcf.gz")
+
+    p.add_argument("--width", default=20, type=float)
+    p.add_argument("--height", default=3.5, type=float)
+    p.add_argument("--image-type", default="svg", choices=["svg", "png"])
     p.add_argument("--output-dir", default=".")
     args = p.parse_args()
 
@@ -78,7 +82,7 @@ def main():
     print("Largest deletion size: ", min(df.indel_kb), "kb")
     print("Mean event size: ", df.indel_size.mean(), "kb")
 
-    plot_distribution(df, args.output_dir)
+    plot_distribution(df, args)
 
 
 if __name__ == "__main__":

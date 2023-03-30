@@ -24,8 +24,8 @@ python3 -u plot_tool_runtime_and_memory.py --output-dir ${output_dir}
 python3 -u plot_expansion_hunter_denovo_results.py --output-dir ${output_dir}
 python3 -u plot_gene_constraint_info.py --output-dir ${output_dir}
 
-python3 -u plot_tool_accuracy_percent_exactly_right.py --output-dir ${output_dir}
-python3 -u plot_tool_accuracy_percent_exactly_right.py --exclude-hipstr-no-call-loci --output-dir ${output_dir}
+python3 -u plot_tool_accuracy_percent_exactly_right.py --show-title --output-dir ${output_dir}
+python3 -u plot_tool_accuracy_percent_exactly_right.py --show-title --exclude-hipstr-no-call-loci --output-dir ${output_dir}
 python3 -u plot_tool_accuracy_by_motif_size.py --output-dir ${output_dir}
 
 # upload figures to gs://str-truth-set/

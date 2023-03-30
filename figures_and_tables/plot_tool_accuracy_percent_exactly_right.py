@@ -85,7 +85,7 @@ def compute_tables_for_fraction_exactly_right_plots(df, coverage_values=("40x", 
     return pd.concat(tables_by_coverage, axis=0)
 
 
-def generate_fraction_exactly_right_plot(df, output_dir, exclude_hipstr_no_call_loci=False, verbose=False, show_title=True):
+def generate_fraction_exactly_right_plot(df, args):
 
     df_fraction = compute_tables_for_fraction_exactly_right_plots(df, coverage_values=("40x","20x", "10x"))
     df_fraction = df_fraction.reset_index()
@@ -107,7 +107,7 @@ def generate_fraction_exactly_right_plot(df, output_dir, exclude_hipstr_no_call_
         else:
             filename_suffix += f".{coverage}_coverage"
 
-        if exclude_hipstr_no_call_loci:
+        if args.exclude_hipstr_no_call_loci:
             filter_description.append("excluding HipSTR no-call loci")
             filename_suffix += f".excluding_hipstr_no_call_loci"
 
@@ -123,14 +123,14 @@ def generate_fraction_exactly_right_plot(df, output_dir, exclude_hipstr_no_call_
         num_hipstr_colors = len([h for h in hue_values if h.lower().startswith("hipstr")])
 
         # plot figure
-        fig, ax = plt.subplots(1, 1, figsize=(12, 10))
+        fig, ax = plt.subplots(1, 1, figsize=(args.width, args.height))
 
         def hue_order(h):
             tokens = h.split(": ")
             try:
                 return tokens[0], -1*int(tokens[1][0:2])
             except Exception as e:
-                if verbose:
+                if args.verbose:
                     print(f"Unable to parse hue value: {h}: {e}")
                 return h
 
@@ -167,7 +167,7 @@ def generate_fraction_exactly_right_plot(df, output_dir, exclude_hipstr_no_call_
         if coverage == "all":
             ax.get_legend().set_bbox_to_anchor((0.15, 0.35))
 
-        if show_title:
+        if args.show_title:
             suptitle_artist = fig.suptitle(figure_title, fontsize=17, y=1.01)
             extra_artists = [suptitle_artist]
         else:
@@ -175,9 +175,9 @@ def generate_fraction_exactly_right_plot(df, output_dir, exclude_hipstr_no_call_
 
         output_image_filename = "tool_accuracy_by_true_allele_size_exactly_matching_calls"
 
-        plt.savefig(os.path.join(output_dir, f"{output_image_filename}{filename_suffix}.svg"),
+        plt.savefig(os.path.join(args.output_dir, f"{output_image_filename}{filename_suffix}.svg"),
                     bbox_extra_artists=extra_artists, bbox_inches="tight")
-        print(f"Saved {output_dir}/{output_image_filename}{filename_suffix}.svg")
+        print(f"Saved {args.output_dir}/{output_image_filename}{filename_suffix}.svg")
 
         plt.close()
 
@@ -186,6 +186,11 @@ def main():
     p = argparse.ArgumentParser()
     p.add_argument("--exclude-hipstr-no-call-loci", action="store_true", help="In the plot, exclude HipSTR no-call loci")
     p.add_argument("--output-dir", default=".")
+    p.add_argument("--show-title", action="store_true", help="Show title in plot")
+    p.add_argument("--width", default=12, type=float)
+    p.add_argument("--height", default=10, type=float)
+    p.add_argument("--image-type", default="svg", choices=["svg", "png"])
+
     p.add_argument("--verbose", action="store_true", help="Print additional info")
     p.add_argument("combined_tool_results_tsv", nargs="?", default="../tool_comparison/combined.results.alleles.tsv.gz")
     args = p.parse_args()
@@ -215,8 +220,7 @@ def main():
     print("Sorting by 'DiffFromRefRepeats: Allele: Truth' column")
     df = df.sort_values("DiffFromRefRepeats: Allele: Truth")
 
-    generate_fraction_exactly_right_plot(
-        df, args.output_dir, exclude_hipstr_no_call_loci=args.exclude_hipstr_no_call_loci, verbose=args.verbose)
+    generate_fraction_exactly_right_plot(df, args)
 
 
 if __name__ == "__main__":
