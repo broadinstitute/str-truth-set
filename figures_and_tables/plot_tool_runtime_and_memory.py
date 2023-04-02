@@ -125,13 +125,13 @@ def generate_plot(input_table_path, args, with_coverage=False):
 
         ax.set_title(title, fontsize=16, pad=20, fontweight=500)
         ax.set_xlabel(None)
-        ax.set_ylabel(y_label, labelpad=15, fontsize=14)
-        ax.set_xticklabels(ax.get_xticklabels(), rotation=45, ha="right", fontsize=14)
+        ax.set_ylabel(y_label, labelpad=15, fontsize=13)
+        ax.set_xticklabels(ax.get_xticklabels(), rotation=45, ha="right", fontsize=12)
 
         print("Setting ylimit to", y_limit)
         ax.set_ylim(0, y_limit)
         ax.yaxis.set_ticks(y_ticks)
-        ax.set_yticklabels(y_ticks, fontsize=14)
+        ax.set_yticklabels(y_ticks, fontsize=13)
         ax.yaxis.set_major_locator(MultipleLocator(y_major_ticks))
         ax.yaxis.set_minor_locator(MultipleLocator(y_minor_ticks))
 
@@ -162,7 +162,7 @@ def generate_plot(input_table_path, args, with_coverage=False):
 
     print(f"Plotted {len(df):,d} records")
     output_path = os.path.join(args.output_dir, f"tool_runtime_and_memory{output_image_name_suffix}.{args.image_type}")
-    plt.savefig(output_path, bbox_inches="tight")
+    plt.savefig(output_path, bbox_inches="tight", dpi=300)
     print(f"Saved {output_path}")
     plt.close()
 

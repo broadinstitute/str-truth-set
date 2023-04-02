@@ -59,19 +59,23 @@ def compute_concordance_summary(row):
     return "No expansion in truth set & no matching pure repeats in hg38"
 
 
-def plot_truth_set_overlap_with_ehdn_calls(args, show_title=True):
+def plot_truth_set_overlap_with_ehdn_calls(args):
     x_column = "RepeatSizeLongAllele (bin)"
     hue_column = "EHdn Concordance"
 
+    filename_suffix = ""
+
     truth_set_df = pd.read_table(args.truth_set_ehdn_input_table)
-    truth_set_df = truth_set_df[truth_set_df["IsPureRepeat"]]
+    if args.only_pure_repeats:
+        filename_suffix += ".pure_repeats"
+        truth_set_df = truth_set_df[truth_set_df["IsPureRepeat"]]
 
     truth_set_df.loc[:, "MotifSize bin"] = truth_set_df.MotifSize.apply(compute_motif_size_bin)
     truth_set_df.loc[:, x_column] = truth_set_df["RepeatSizeLongAllele (bp)"].apply(bin_repeat_size_bp)
     truth_set_df.loc[:, hue_column] = truth_set_df.apply(compute_hue_column, axis=1)
     truth_set_df = truth_set_df.sort_values("RepeatSizeLongAllele (bp)", key=lambda values: [int(v) for v in values])
 
-    fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(10, 8), dpi=80, tight_layout=True)
+    fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(args.width, args.height), dpi=80, tight_layout=True)
 
     ax.spines.right.set_visible(False)
     ax.spines.top.set_visible(False)
@@ -91,7 +95,7 @@ def plot_truth_set_overlap_with_ehdn_calls(args, show_title=True):
 
     fig.tight_layout()
 
-    if show_title:
+    if args.show_title:
         ax.set_title("Truth Set vs ExpansionHunterDenovo (EHdn) Calls", pad=75, fontsize=15)
     ax.get_legend().set_title(f"")
 
@@ -108,19 +112,19 @@ def plot_truth_set_overlap_with_ehdn_calls(args, show_title=True):
 
     ax.get_legend().set_bbox_to_anchor((0.51, 0.25))
 
-    output_path = os.path.join(args.output_dir, "truth_set_overlap_with_expansion_hunter_denovo_calls.svg")
-    plt.savefig(output_path, bbox_inches="tight")
+    output_path = os.path.join(args.output_dir, f"truth_set_overlap_with_expansion_hunter_denovo_calls{filename_suffix}.{args.image_type}")
+    plt.savefig(output_path, bbox_inches="tight", dpi=300)
     plt.close()
 
     print(f"Saved {output_path}")
 
 
-def plot_ehdn_calls_overlap_with_truth_set(args, show_title=True):
+def plot_ehdn_calls_overlap_with_truth_set(args):
     ehdn_df = pd.read_table(args.ehdn_truth_set_input_table)
 
     ehdn_df.loc[:, "EHdn Concordance Summary"] = ehdn_df.apply(compute_concordance_summary, axis=1)
 
-    fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(10, 8), dpi=80, tight_layout=True)
+    fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(args.width, args.height), tight_layout=True)
 
     ax.spines.right.set_visible(False)
     ax.spines.top.set_visible(False)
@@ -142,14 +146,14 @@ def plot_ehdn_calls_overlap_with_truth_set(args, show_title=True):
         legend=True,
         ax=ax)
 
-    if show_title:
+    if args.show_title:
         ax.set_title("\n\nExpansionHunterDenovo Calls vs Truth Set", pad=20, fontsize=15)
 
     ax.get_legend().set_title(f"")
     ax.get_legend().set_frame_on(False)
 
-    output_path = os.path.join(args.output_dir, "expansion_hunter_denovo_calls_overlap_with_truth_set.svg")
-    plt.savefig(output_path, bbox_inches="tight")
+    output_path = os.path.join(args.output_dir, f"expansion_hunter_denovo_calls_overlap_with_truth_set.{args.image_type}")
+    plt.savefig(output_path, bbox_inches="tight", dpi=300)
     plt.close()
 
     print(f"Saved {output_path}")
@@ -158,6 +162,14 @@ def plot_ehdn_calls_overlap_with_truth_set(args, show_title=True):
 def main():
     p = argparse.ArgumentParser()
     p.add_argument("--output-dir", default=".")
+    p.add_argument("--width", default=10, type=float)
+    p.add_argument("--height", default=8, type=float)
+    p.add_argument("--image-type", default="svg", choices=["svg", "png"], help="Image type to generate")
+    p.add_argument("--show-title", action="store_true", help="Show plot title")
+
+    g = p.add_argument_group("Filters")
+    g.add_argument("--only-pure-repeats", action="store_true", help="Plot only loci with pure repeats")
+
     p.add_argument("--truth-set-ehdn-input-table",
                    default="../tool_comparison/results/expansion_hunter_denovo/CHM1_CHM13_WGS2.truth_set_EHdn_comparison_table.tsv")
     p.add_argument("--ehdn-truth-set-input-table",

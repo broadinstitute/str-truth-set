@@ -1,18 +1,26 @@
 #!/usr/bin/env bash
 
 # Optional command-line args:
-#   --only-pure-repeats: only include STRs that don't contain interruptions
 #   --only-high-confidence-variants: only include variants that are within SynDip high confidence regions
 #   --include-homopolymers: include homopolymer variants in the truth set
+#   --only-pure-repeats: only include STRs that don't contain interruptions
+#   --always-extend-locus-coordinates-to-include-interruptions This option is mutually-exclusive with
+#       --only-pure-repeats and tells the STR filter to extend locus coordinates to include the interruptions even
+#       when the variant passes the filter based on only pure repeats. By default, the STR filter will only looks for
+#       pure repeats in the reference context in these situations.
 
 
-pure_STRs_only="false"
+allow_interruptions="only-if-pure-repeats-not-found"
+always_look_for_interrupted_repeats="false"
 only_high_confidence_regions="false"
 include_homopolymers="false"
 
 if [[ " $@ " =~ " --only-pure-repeats " ]]; then
-    pure_STRs_only="true"
+    allow_interruptions="no"
+elif [[ " $@ " =~ " --always-extend-locus-coordinates-to-include-interruptions " ]]; then
+    allow_interruptions="always"
 fi
+
 if [[ " $@ " =~ " --only-high-confidence-regions " ]]; then
     only_high_confidence_regions="true"
 fi
@@ -166,13 +174,16 @@ min_str_repeats=3
 min_repeat_unit_length=2
 max_repeat_unit_length=50
 
-if [ $pure_STRs_only == "true" ]; then
+
+if [ $allow_interruptions == "no" ]; then
   STR_type="pure_STR"
-  allow_interruptions_arg=""
-else
+elif [ $allow_interruptions == "only-if-pure-repeats-not-found" ]; then
   STR_type="STR"
-  allow_interruptions_arg="--allow-interruptions"
+elif [ $allow_interruptions == "always" ]; then
+  STR_type="STR_loci_extended_with_interruption"
 fi
+
+allow_interruptions_arg="--allow-interruptions ${allow_interruptions}"
 
 if [ $include_homopolymers == "true" ]; then
   STR_type="${STR_type}s_including_homopolymer"

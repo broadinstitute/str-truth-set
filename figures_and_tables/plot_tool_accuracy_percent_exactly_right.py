@@ -85,31 +85,36 @@ def compute_tables_for_fraction_exactly_right_plots(df, coverage_values=("40x", 
     return pd.concat(tables_by_coverage, axis=0)
 
 
-def generate_fraction_exactly_right_plot(df, args):
+def generate_fraction_exactly_right_plot(df, args, filter_description, image_name):
 
-    df_fraction = compute_tables_for_fraction_exactly_right_plots(df, coverage_values=("40x","20x", "10x"))
+    df_fraction = compute_tables_for_fraction_exactly_right_plots(df, coverage_values=("40x", "30x", "20x", "10x"))
     df_fraction = df_fraction.reset_index()
     df_fraction = df_fraction.sort_values("DiffFromRefRepeats: Allele: Truth (bin)", key=lambda c: c.str.split(" ").str[0].astype(int))
 
-    for coverage in "40x", "all":
+    coverage_levels_to_plot = []
+    if args.by_coverage:
+        coverage_levels_to_plot.append("all")
+    elif args.coverage:
+        coverage_levels_to_plot.append(args.coverage)
+    else:
+        coverage_levels_to_plot = ["30x", "all"]
+
+    for coverage in coverage_levels_to_plot:
         df_current = df_fraction.copy()
         if coverage == "all":
             # exclude HipSTR to make plot clearer
             df_current = df_current[~df_current.tool.str.contains("HipSTR")]
+            df_current = df_current[
+                df_current.tool.str.contains("40x") | df_current.tool.str.contains("20x") | df_current.tool.str.contains("10x")
+            ]
         else:
             df_current = df_current[df_current.tool.str.contains(coverage)]
             df_current.loc[:, "tool"] = df_current["tool"].apply(lambda s: s.split(":")[0])
 
-        filter_description = ["2bp to 6bp motifs"]
-        filename_suffix = ".2to6bp_motifs.pure_repeats"
         if coverage == "all":
-            filename_suffix += ".compare_different_coverages"
+            image_name += ".compare_different_coverages"
         else:
-            filename_suffix += f".{coverage}_coverage"
-
-        if args.exclude_hipstr_no_call_loci:
-            filter_description.append("excluding HipSTR no-call loci")
-            filename_suffix += f".excluding_hipstr_no_call_loci"
+            image_name += f".{coverage}_coverage"
 
         figure_title = f"Accuracy of " + ", ".join(sorted(set([t.split(":")[0] for t in set(df_current.tool)])))
         figure_title += "\n\n"
@@ -164,6 +169,10 @@ def generate_fraction_exactly_right_plot(df, args):
 
         ax.get_legend().set_title(f"")
         ax.get_legend().set_frame_on(False)
+
+        ax.spines['top'].set_visible(False)
+        ax.spines['right'].set_visible(False)
+
         if coverage == "all":
             ax.get_legend().set_bbox_to_anchor((0.15, 0.35))
 
@@ -173,11 +182,9 @@ def generate_fraction_exactly_right_plot(df, args):
         else:
             extra_artists = []
 
-        output_image_filename = "tool_accuracy_by_true_allele_size_exactly_matching_calls"
-
-        plt.savefig(os.path.join(args.output_dir, f"{output_image_filename}{filename_suffix}.svg"),
-                    bbox_extra_artists=extra_artists, bbox_inches="tight")
-        print(f"Saved {args.output_dir}/{output_image_filename}{filename_suffix}.svg")
+        output_path = os.path.join(args.output_dir, f"{image_name}.{args.image_type}")
+        plt.savefig(output_path, bbox_extra_artists=extra_artists, bbox_inches="tight", dpi=300)
+        print(f"Saved {output_path}")
 
         plt.close()
 
@@ -191,6 +198,16 @@ def main():
     p.add_argument("--height", default=10, type=float)
     p.add_argument("--image-type", default="svg", choices=["svg", "png"])
 
+    g = p.add_mutually_exclusive_group()
+    g.add_argument("--by-coverage", action="store_true", help="Compare different coverages")
+    g.add_argument("--coverage", help="Plot by coverage", choices=["40x", "30x", "20x", "10x"])
+
+    g = p.add_argument_group("Filters")
+    g.add_argument("--min-motif-size", type=int, help="Min motif size")
+    g.add_argument("--max-motif-size", type=int, help="Max motif size")
+    g.add_argument("--only-pure-repeats", action="store_true", help="Plot only loci with pure repeats")
+    g.add_argument("--exclude-no-call-loci", action="store_true", help="Exclude loci with no call")
+
     p.add_argument("--verbose", action="store_true", help="Print additional info")
     p.add_argument("combined_tool_results_tsv", nargs="?", default="../tool_comparison/combined.results.alleles.tsv.gz")
     args = p.parse_args()
@@ -200,19 +217,43 @@ def main():
     print(f"Loaded {len(df)} from {args.combined_tool_results_tsv}")
 
     print("Filtering table...")
-    df = df[(df["PositiveOrNegative"] == "positive") & df["IsFoundInReference"] & df["IsPureRepeat"] &
-            (2 <= df["MotifSize"]) & (df["MotifSize"] <= 6)]
+    image_name = "tool_accuracy_by_true_allele_size_exactly_matching_calls"
+    filter_description = []
+
+    df = df[(df["PositiveOrNegative"] == "positive") & df["IsFoundInReference"]]
+    if args.coverage:
+        filter_description.append(args.coverage)
+        image_name += f".{args.coverage}"
+        df[df["Coverage"] == args.coverage]
+
+    if args.only_pure_repeats:
+        df = df[df["IsPureRepeat"]]
+        filter_description.append("pure repeats")
+        image_name += ".pure_repeats"
+
+    if args.min_motif_size or args.max_motif_size:
+        filter_description.append(f"{args.min_motif_size}bp to {args.max_motif_size}bp motifs")
+        image_name += f".{args.min_motif_size}bp_to_{args.max_motif_size}bp_motifs"
+
+        if args.min_motif_size:
+            df = df[2 <= df["MotifSize"]]
+        if args.max_motif_size:
+            df = df[df["MotifSize"] <= args.max_motif_size]
+
+    if args.exclude_no_call_loci:
+        count_before = len(set(df[df["Coverage"] == "40x"].LocusId))
+        df = df[~df[f"DiffRepeats: Allele: HipSTR - Truth"].isna()]
+        df = df[~df[f"DiffRepeats: Allele: GangSTR - Truth"].isna()]
+        df = df[~df[f"DiffRepeats: Allele: ExpansionHunter - Truth"].isna()]
+        count_discarded = count_before - len(set(df[df["Coverage"] == "40x"].LocusId))
+        print(f"Discarded {count_discarded:,d} out of {count_before:,d} ({100.0*count_discarded/count_before:0.1f}%) "
+              f"loci where at least one tool had no call")
+        filter_description.append(f"excluding no-call loci")
+        image_name += f".excluding_no_call_loci"
 
     if args.verbose:
         print("Num loci:")
         print(df.groupby(["PositiveOrNegative", "Coverage", "IsPureRepeat"]).count().LocusId/2)
-
-    if args.exclude_hipstr_no_call_loci:
-        count_before = len(set(df[df["Coverage"] == "40x"].LocusId))
-        df = df[~df[f"DiffRepeats: Allele: HipSTR - Truth"].isna()]
-        count_discarded = count_before - len(set(df[df["Coverage"] == "40x"].LocusId))
-        print(f"Discarded {count_discarded:,d} out of {count_before:,d} ({100.0*count_discarded/count_before:0.1f}%) "
-              f"of loci due to HipSTR no call")
 
     print("Computing bin column: 'DiffFromRefRepeats: Allele: Truth (bin)' ")
     df.loc[:, "DiffFromRefRepeats: Allele: Truth (bin)"] = df.apply(bin_num_repeats_wrapper(bin_size=2), axis=1)
@@ -220,7 +261,7 @@ def main():
     print("Sorting by 'DiffFromRefRepeats: Allele: Truth' column")
     df = df.sort_values("DiffFromRefRepeats: Allele: Truth")
 
-    generate_fraction_exactly_right_plot(df, args)
+    generate_fraction_exactly_right_plot(df, args, filter_description, image_name)
 
 
 if __name__ == "__main__":

@@ -89,7 +89,7 @@ def plot(df, width, height, figure_title=None):
         ymax_ax0 = 0.25
     ax0.set_ylim(0, ymax_ax0+0.02)
     ax0.yaxis.set_major_formatter(lambda y, pos: f"{int(y*total_allele_count):,d} ({100*y:0.0f}%)")
-    ax0.set_ylabel(ax0.get_ylabel(), fontsize=13)
+    ax0.set_ylabel("Alleles Filtered Out", fontsize=13)
     ax0.get_legend().set_title("")
     ax0.get_legend().set_frame_on(False)
 
@@ -104,7 +104,7 @@ def plot(df, width, height, figure_title=None):
         ymin_ax1 = 0
 
     ax1.set_ylim(ymin_ax1, 1)
-    ax1.set_ylabel(ax1.get_ylabel(), fontsize=13)
+    ax1.set_ylabel("Accuracy", fontsize=13)
 
 
 def plot_empty_image(figure_title, message, width, height):
@@ -136,12 +136,12 @@ def generate_all_plots(df, args):
 
     output_dir = args.output_dir
 
-    for coverage in "40x", "30x", "20x", "10x", "exome":
+    for coverage in ["40x", "30x", "20x", "10x", "exome"] if not args.coverage else [args.coverage]:
         df2 = df[df["Coverage"] == coverage]
         if coverage == "exome":
             df2 = df2[~df2["GeneRegionFromGencode_V42"].isin({"intergenic", "intron", "promoter"})]
 
-        for motif_size in "all_motifs", "2bp", "3-6bp", "7-24bp", "25+bp":
+        for motif_size in ["all_motifs", "2bp", "3-6bp", "7-24bp", "25+bp"] if args.min_motif_size is None and args.max_motif_size is None else [f"{args.min_motif_size}-{args.max_motif_size}bp"]:
             if motif_size == "all_motifs":
                 df3 = df2[(2 <= df2["MotifSize"]) & (df2["MotifSize"] <= 50)]
             elif motif_size == "2bp":
@@ -153,10 +153,17 @@ def generate_all_plots(df, args):
             elif motif_size == "25+bp":
                 df3 = df2[(25 <= df2["MotifSize"]) & (df2["MotifSize"] <= 50)]
             else:
-                raise ValueError(f"Unexpected motif_size value: {motif_size}")
+                if args.min_motif_size is None and args.max_motif_size is None:
+                    raise ValueError(f"Unexpected motif_size value: {motif_size}")
 
-            for genotype_subset in "all_genotypes", "HET", "HOM", "MULTI":
-                if genotype_subset == "all_genotypes":
+                df3 = df2
+                if args.min_motif_size:
+                    df3 = df3[(args.min_motif_size <= df3["MotifSize"])]
+                if args.max_motif_size:
+                    df3 = df3[(df3["MotifSize"] <= args.max_motif_size)]
+
+            for genotype_subset in ["all", "HET", "HOM", "MULTI"] if not args.genotype else [args.genotype]:
+                if genotype_subset == "all":
                     df4 = df3
                 elif genotype_subset == "HET":
                     df4 = df3[df3["SummaryString"].str.contains(":HET")]
@@ -167,7 +174,7 @@ def generate_all_plots(df, args):
                 else:
                     raise ValueError(f"Unexpected genotype_subset value: {genotype_subset}")
 
-                for pure_repeats in "both", True, False:
+                for pure_repeats in ["both", True, False] if args.only_pure_repeats is None else [True]:
                     if pure_repeats == "both":
                         df5 = df4
                     elif pure_repeats:
@@ -175,7 +182,7 @@ def generate_all_plots(df, args):
                     else:
                         df5 = df4[~df4["IsPureRepeat"]]
 
-                    for exclude_no_call_loci in False, True:
+                    for exclude_no_call_loci in [False, True] if (args.hide_no_call_loci is None and args.show_no_call_loci is None) else ([True] if args.hide_no_call_loci else [False]):
                         if exclude_no_call_loci:
                             df_plot = df5[
                                 ~df5["Genotype: ExpansionHunter"].isna() &
@@ -213,9 +220,12 @@ def generate_all_plots(df, args):
                             filter_description.append(f"25bp to 50bp motifs")
                             output_image_filename += ".25to50bp_motifs"
                         else:
-                            raise ValueError(f"Unexpected motif_size value: {motif_size}")
+                            if args.min_motif_size is None and args.max_motif_size is None:
+                                raise ValueError(f"Unexpected motif_size value: {motif_size}")
+                            filter_description.append(f"{args.min_motif_size}bp to {args.max_motif_size}bp motifs")
+                            output_image_filename += "." + motif_size.replace("-", "to") + "_motifs"
 
-                        if genotype_subset == "all_genotypes":
+                        if genotype_subset == "all":
                             output_image_filename += ".all_genotypes"
                         elif genotype_subset == "HET":
                             filter_description.append("HET")
@@ -253,7 +263,7 @@ def generate_all_plots(df, args):
                             plot_empty_image(figure_title_line, message, args.width, args.height)
 
                             output_path = os.path.join(output_dir, f"{output_image_filename}.{args.image_type}")
-                            plt.savefig(output_path)
+                            plt.savefig(output_path, dpi=300)
                             print(f"Saved {output_path}")
                             plt.close()
 
@@ -265,10 +275,10 @@ def generate_all_plots(df, args):
                         print(figure_title_line)
 
                         try:
-                            plot(df_plot, args.width, args.height, figure_title=figure_title_line)
+                            plot(df_plot, args.width, args.height, figure_title=figure_title_line if args.show_title else None)
 
                             output_path = os.path.join(output_dir, f"{output_image_filename}.{args.image_type}")
-                            plt.savefig(output_path, bbox_inches='tight')
+                            plt.savefig(output_path, bbox_inches='tight', dpi=300)
                             print(f"Saved plot #{plot_counter}: {output_path}")
                             plt.close()
 
@@ -285,10 +295,21 @@ def main():
     p = argparse.ArgumentParser()
     p.add_argument("--start-with-plot-i", type=int, help="If specified, start with this plot number")
     p.add_argument("-n", type=int, help="If specified, only generate this many plots")
-    p.add_argument("--show-title", action="store_true", help="Show title in plot")
     p.add_argument("--width", default=10, type=float)
     p.add_argument("--height", default=10, type=float)
     p.add_argument("--image-type", default="svg", choices=["svg", "png"], help="Image type to generate")
+    p.add_argument("--show-title", action="store_true", help="Show title in plot")
+
+    g = p.add_argument_group("Filters")
+    g.add_argument("--coverage", choices=["40x", "30x", "20x", "10x", "exome"], help="Plot only this coverage")
+    g.add_argument("--min-motif-size", type=int, help="Min motif size")
+    g.add_argument("--max-motif-size", type=int, help="Max motif size")
+    g.add_argument("--genotype", choices=["all", "HET", "HOM", "MULTI"], help="Plot only this genotype")
+    g.add_argument("--only-pure-repeats", action="store_true", help="Plot only loci with pure repeats")
+    g2 = g.add_mutually_exclusive_group()
+    g2.add_argument("--show-no-call-loci", action="store_true", help="Show loci with no call")
+    g2.add_argument("--hide-no-call-loci", action="store_true", help="Hide loci with no call")
+
     p.add_argument("--output-dir", default=".")
     p.add_argument("--verbose", action="store_true", help="Print additional info")
     p.add_argument("combined_tool_results_tsv", nargs="?", default="../tool_comparison/combined.results.alleles.tsv.gz")

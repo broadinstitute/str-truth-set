@@ -28,7 +28,7 @@ def main():
                          output_dir=os.path.join(args.output_dir, "accuracy_by_allele_size"))
         local_truth_set_tsv = s1.input(args.input_table, localize_by=Localize.COPY)
         s1.command("set -ex")
-        s1.command(f"python3 plot_tool_accuracy_by_allele_size.py --output-dir . --start-with-plot-i {i} -n {args.batch_size} {local_truth_set_tsv}")
+        s1.command(f"python3 plot_tool_accuracy_by_allele_size.py --output-dir . --show-title --start-with-plot-i {i} -n {args.batch_size} {local_truth_set_tsv}")
         s1.output(f"*.svg", delocalize_by=Delocalize.GSUTIL_COPY)
 
     # generate tool accuracy vs Q plots
@@ -42,7 +42,7 @@ def main():
 
         local_truth_set_tsv = s2.input(args.input_table, localize_by=Localize.COPY)
         s2.command("set -ex")
-        s2.command(f"python3 plot_tool_accuracy_vs_Q.py --output-dir . --start-with-plot-i {i} -n {args.batch_size} {local_truth_set_tsv}")
+        s2.command(f"python3 plot_tool_accuracy_vs_Q.py --output-dir . --show-title --start-with-plot-i {i} -n {args.batch_size} {local_truth_set_tsv}")
         s2.output(f"*.svg", delocalize_by=Delocalize.GSUTIL_COPY)
 
     bp.run()

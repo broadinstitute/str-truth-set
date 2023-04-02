@@ -16,10 +16,10 @@ sns.set_context("paper", font_scale=1.1, rc={
 })
 
 
-def plot_gene_constraint(df, output_dir, show_title=True):
+def plot_gene_constraint(df, args):
     fig, axes = plt.subplots(1, 3, sharex=False, sharey=True, figsize=(20, 6))
-    if show_title:
-        suptitle_artist = fig.suptitle("Gene Constraint Metrics and STR Alleles", fontsize=16, y=0.97)
+    if args.show_title:
+        suptitle_artist = fig.suptitle("Gene Constraint Metrics and TR Alleles", fontsize=16, y=0.97)
         extra_artists = [suptitle_artist]
     else:
         extra_artists = []
@@ -89,17 +89,17 @@ def plot_gene_constraint(df, output_dir, show_title=True):
         ax.set_ylim(ylim)
         ax.set_ylabel("")
 
-    output_path = os.path.join(output_dir, "gene_constraint_metrics_and_STRs.svg")
-    plt.savefig(output_path, bbox_extra_artists=extra_artists, bbox_inches="tight")
+    output_path = os.path.join(args.output_dir, f"gene_constraint_metrics_and_STRs.{args.image_type}")
+    plt.savefig(output_path, bbox_extra_artists=extra_artists, bbox_inches="tight", dpi=300)
 
     print(f"Saved {output_path}")
     plt.close()
 
 
-def plot_str_variant_size_vs_gene_constraint(df, output_dir, show_title=True):
+def plot_str_variant_size_vs_gene_constraint(df, args):
     fig, axes = plt.subplots(1, 3, sharex=False, sharey=True, figsize=(20, 6))
-    if show_title:
-        suptitle_artist = fig.suptitle("Gene Constraint Metrics by STR Allele Size", fontsize=16, y=0.97)
+    if args.show_title:
+        suptitle_artist = fig.suptitle("Gene Constraint Metrics by TR Allele Size", fontsize=16, y=0.97)
         extra_artists = [suptitle_artist]
     else:
         extra_artists = []
@@ -110,15 +110,15 @@ def plot_str_variant_size_vs_gene_constraint(df, output_dir, show_title=True):
         "O/E missense upperbound",
         #'pRecessive',
     ], axes):
-        sns.scatterplot(data=df, x=column, y="STR Allele Size (bp)", ax=ax)
+        sns.scatterplot(data=df, x=column, y="TR Allele Size (bp)", ax=ax)
         xlim = list(ax.get_xlim())
         xlim[0] = -0.05
         ax.set_xlim(xlim)
         ax.set_ylim([-100, 100])
         ax.grid(which='major', linewidth=0.5)
 
-    output_path = os.path.join(output_dir, "gene_constraint_metrics_vs_STR_allele_size.svg")
-    plt.savefig(output_path, bbox_extra_artists=extra_artists, bbox_inches="tight")
+    output_path = os.path.join(args.output_dir, f"gene_constraint_metrics_vs_STR_allele_size.{args.image_type}")
+    plt.savefig(output_path, bbox_extra_artists=extra_artists, bbox_inches="tight", dpi=300)
 
     print(f"Saved {output_path}")
     plt.close()
@@ -127,12 +127,12 @@ def plot_str_variant_size_vs_gene_constraint(df, output_dir, show_title=True):
 def main():
     p = argparse.ArgumentParser()
     p.add_argument("--output-dir", default=".")
-    p.add_argument("--constraint-table",
-                   default="../ref/other/gnomad.v2.1.1.lof_metrics.by_gene.txt.bgz")
-    p.add_argument("--disease-associated-loci-table",
-                   default="../ref/other/known_disease_associated_STR_loci.tsv")
-    p.add_argument("--truth-set-alleles-table",
-                   default="../STR_truth_set.v1.alleles.tsv.gz")
+    p.add_argument("--show-title", action="store_true")
+    p.add_argument("--image-type", default="svg", choices=["svg", "png"])
+
+    p.add_argument("--constraint-table", default="../ref/other/gnomad.v2.1.1.lof_metrics.by_gene.txt.bgz")
+    p.add_argument("--disease-associated-loci-table", default="../ref/other/known_disease_associated_STR_loci.tsv")
+    p.add_argument("--truth-set-alleles-table", default="../STR_truth_set.v1.alleles.tsv.gz")
     args = p.parse_args()
 
     constraint_df = pd.read_table(args.constraint_table, compression="gzip")
@@ -181,8 +181,8 @@ def main():
     df3 = constraint_df
     print(f"{len(df3):,d} genes with constraint info total")
 
-    df1.loc[:, "Source"] = "Genes Containing\nDisease Associated STR Loci"
-    df2.loc[:, "Source"] = "Genes Containing\nTruth Set STR Alleles"
+    df1.loc[:, "Source"] = "Genes Containing\nDisease Associated TR Loci"
+    df2.loc[:, "Source"] = "Genes Containing\nTruth Set TR Alleles"
     df3.loc[:, "Source"] = "All Genes"
 
     df2.loc[:, "InheritanceMode"] = ""
@@ -196,14 +196,14 @@ def main():
 
     df_final = df_final.sort_values("Source", ascending=False)
 
-    plot_gene_constraint(df_final, args.output_dir)
+    plot_gene_constraint(df_final, args)
 
     truth_set_df = truth_set_df[truth_set_df.GeneRegionFromMane_V1 == "CDS"]
     truth_set_df.loc[:, 'NumRepeatsDiffFromReference'] = truth_set_df.NumRepeats - truth_set_df.NumRepeatsInReference
-    truth_set_df.loc[:, 'STR Allele Size (bp)'] = truth_set_df.NumRepeatsDiffFromReference * truth_set_df.MotifSize
+    truth_set_df.loc[:, 'TR Allele Size (bp)'] = truth_set_df.NumRepeatsDiffFromReference * truth_set_df.MotifSize
     truthset_with_constraint_df = truth_set_df.join(constraint_df, how="inner")
 
-    plot_str_variant_size_vs_gene_constraint(truthset_with_constraint_df, args.output_dir)
+    plot_str_variant_size_vs_gene_constraint(truthset_with_constraint_df, args)
 
 
 if __name__ == "__main__":

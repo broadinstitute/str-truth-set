@@ -57,7 +57,7 @@ def plot_mutation_rate_by_allele_size(df, args):
 
     # save figure
     output_path = os.path.join(args.output_dir, f"mutation_rates_by_allele_size.{args.image_type}")
-    fig.savefig(output_path, bbox_inches="tight")
+    fig.savefig(output_path, bbox_inches="tight", dpi=300)
     print(f"Saved {output_path}")
 
 
@@ -85,7 +85,7 @@ def plot_mutation_rate_by_fraction_interrupted_repeats(df, args):
 
     # save figure
     output_path = os.path.join(args.output_dir, f"mutation_rates_by_fraction_interrupted_repeats.{args.image_type}")
-    fig.savefig(output_path, bbox_inches="tight")
+    fig.savefig(output_path, bbox_inches="tight", dpi=300)
     print(f"Saved {output_path}")
 
 
@@ -93,8 +93,8 @@ def main():
     p = argparse.ArgumentParser()
     p.add_argument("--output-dir", default=".")
     p.add_argument("--image-type", default="svg", choices=["svg", "png"], help="Image type to save")
-    p.add_argument("--width", default=12, type=int, help="Width of image")
-    p.add_argument("--height", default=8, type=int, help="Height of image")
+    p.add_argument("--width", default=12, type=float, help="Width of image")
+    p.add_argument("--height", default=8, type=float, help="Height of image")
     p.add_argument("--truth-set-alleles-table", default="../STR_truth_set.v1.alleles.tsv.gz")
     args = p.parse_args()
 

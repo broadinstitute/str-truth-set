@@ -38,7 +38,7 @@ def plot_distribution(df, args):
     print(f"Plotted {len(df):,d} allele records")
 
     output_path = os.path.join(args.output_dir, f"syndip_indel_size_distribution.{args.image_type}")
-    plt.savefig(output_path, bbox_inches="tight")
+    plt.savefig(output_path, bbox_inches="tight", dpi=300)
     print(f"Saved {output_path}")
     plt.close()
 

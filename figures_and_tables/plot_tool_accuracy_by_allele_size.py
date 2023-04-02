@@ -102,11 +102,8 @@ def define_hue_column(df, tool):
         df[f"DiffRepeats: Allele: {tool} - Truth (bin)"])
 
 
-FIGURE_SIZE = (20, 9)
-
-
-def plot_empty_image(figure_title, message):
-    fig, ax = plt.subplots(1, 1, figsize=FIGURE_SIZE)
+def plot_empty_image(figure_title, message, width, height):
+    fig, ax = plt.subplots(1, 1, figsize=(width, height))
     fig.suptitle(figure_title, fontsize=17)
     ax.axis('off')
     text = ax.text(0.5, 0.5, message, ha='center', va='center', fontsize=17)
@@ -122,6 +119,7 @@ def plot_empty_image(figure_title, message):
 
 def plot_accuracy_by_allele_size(
     df,
+    args,
     x_column,
     hue_column,
     hue_order=None,
@@ -130,7 +128,7 @@ def plot_accuracy_by_allele_size(
     figure_title=None,
 ):
 
-    fig, axes = plt.subplots(1, 2, figsize=FIGURE_SIZE)
+    fig, axes = plt.subplots(1, 2, figsize=(args.width, args.height))
 
     if figure_title:
         fig.suptitle(figure_title, fontsize=17)
@@ -138,13 +136,13 @@ def plot_accuracy_by_allele_size(
     for i, ax in enumerate(axes):
         ax.xaxis.labelpad = ax.yaxis.labelpad = 15
 
-        ax.set_xlabel("True Allele Size Minus Number of Repeats in Reference Genome", fontsize=16)
+        ax.set_xlabel("True Allele Size Minus Number of Repeats in Reference Genome", fontsize=14)
         if i == 0:
             ax.spines.right.set_visible(False)
             ax.spines.top.set_visible(False)
-            ax.set_ylabel("Number of Alleles", fontsize=16)
+            ax.set_ylabel("Number of Alleles", fontsize=14)
         else:
-            ax.set_ylabel("Fraction of Alleles", fontsize=16)
+            ax.set_ylabel("Fraction of Alleles", fontsize=14)
 
         ax.tick_params(axis="x")
 
@@ -208,10 +206,8 @@ def generate_all_plots(df, args):
     if max_plots is None:
         max_plots = 10**9
 
-    output_dir = args.output_dir
-
-    for tool in "ExpansionHunter", "GangSTR", "HipSTR":
-        for q_threshold in 0, 0.1, 0.5, 0.9:
+    for tool in ["ExpansionHunter", "GangSTR", "HipSTR"] if not args.tool else [args.tool]:
+        for q_threshold in [0, 0.1, 0.5, 0.9] if args.q_threshold is None else [args.q_threshold]:
             if q_threshold > 0 and not args.only_print_total_number_of_plots:
                 df2 = df.copy()
                 q_column = f"Q: Allele: {tool}" if tool == "ExpansionHunter" else f"Q: {tool}"
@@ -219,7 +215,7 @@ def generate_all_plots(df, args):
             else:
                 df2 = df
 
-            for coverage in "40x", "30x", "20x", "10x", "exome":
+            for coverage in ["40x", "30x", "20x", "10x", "exome"] if not args.coverage else [args.coverage]:
                 if not args.only_print_total_number_of_plots:
                     df3 = df2[(df2["Coverage"] == coverage)]
                 else:
@@ -228,7 +224,7 @@ def generate_all_plots(df, args):
                 if coverage == "exome" and not args.only_print_total_number_of_plots:
                     df3 = df3[~df3["GeneRegionFromGencode_V42"].isin({"intergenic", "intron", "promoter"})]
 
-                for motif_size in "all_motifs", "2bp", "3-6bp", "7-24bp", "25+bp":
+                for motif_size in ["all_motifs", "2bp", "3-6bp", "7-24bp", "25+bp"] if args.min_motif_size is None and args.max_motif_size is None else [f"{args.min_motif_size}-{args.max_motif_size}bp"]:
                     if not args.only_print_total_number_of_plots:
                         if motif_size == "all_motifs":
                             df4 = df3[(2 <= df3["MotifSize"]) & (df3["MotifSize"] <= 50)]
@@ -241,13 +237,20 @@ def generate_all_plots(df, args):
                         elif motif_size == "25+bp":
                             df4 = df3[(25 <= df3["MotifSize"]) & (df3["MotifSize"] <= 50)]
                         else:
-                            raise ValueError(f"Unexpected motif_size value: {motif_size}")
+                            if args.min_motif_size is None and args.max_motif_size is None:
+                                raise ValueError(f"Unexpected motif_size value: {motif_size}")
+                            df4 = df3
+                            if args.min_motif_size:
+                                df4 = df4[(args.min_motif_size <= df4["MotifSize"])]
+                            if args.max_motif_size:
+                                df4 = df4[(df4["MotifSize"] <= args.max_motif_size)]
+
                     else:
                         df4 = df3
 
-                    for genotype_subset in "all_genotypes", "HET", "HOM", "MULTI":
+                    for genotype_subset in ["all", "HET", "HOM", "MULTI"] if not args.genotype else [args.genotype]:
                         if not args.only_print_total_number_of_plots:
-                            if genotype_subset == "all_genotypes":
+                            if genotype_subset == "all":
                                 df5 = df4
                             elif genotype_subset == "HET":
                                 df5 = df4[df4["SummaryString"].str.contains(":HET")]
@@ -260,7 +263,7 @@ def generate_all_plots(df, args):
                         else:
                             df5 = df4
 
-                        for pure_repeats in "both", True, False:
+                        for pure_repeats in ["both", True, False] if args.only_pure_repeats is None else [True]:
                             if pure_repeats == "both" or args.only_print_total_number_of_plots:
                                 df6 = df5
                             elif pure_repeats:
@@ -268,7 +271,7 @@ def generate_all_plots(df, args):
                             else:
                                 df6 = df5[~df5["IsPureRepeat"]]
 
-                            for only_loci_with_calls_by_this_tool in False, True:
+                            for only_loci_with_calls_by_this_tool in [False, True] if (args.hide_no_call_loci is None and args.show_no_call_loci is None) else ([True] if args.hide_no_call_loci else [False]):
                                 if only_loci_with_calls_by_this_tool and not args.only_print_total_number_of_plots:
                                     df7 = df6[df6[f"DiffRepeats: Allele: {tool} - Truth (bin)"] != NO_CALL_LABEL]
                                 else:
@@ -307,9 +310,12 @@ def generate_all_plots(df, args):
                                         filter_description.append(f"25bp to 50bp motifs")
                                         output_image_filename += ".25to50bp_motifs"
                                     else:
-                                        raise ValueError(f"Unexpected motif_size value: {motif_size}")
+                                        if args.min_motif_size is None and args.max_motif_size is None:
+                                            raise ValueError(f"Unexpected motif_size value: {motif_size}")
+                                        filter_description.append(f"{args.min_motif_size}bp to {args.max_motif_size}bp motifs")
+                                        output_image_filename += "." + motif_size.replace("-", "to") + "_motifs"
 
-                                    if genotype_subset == "all_genotypes":
+                                    if genotype_subset == "all":
                                         output_image_filename += ".all_genotypes"
                                     elif genotype_subset == "HET":
                                         filter_description.append("HET")
@@ -351,7 +357,10 @@ def generate_all_plots(df, args):
                                     coverage_label = f"exome data" if coverage == "exome" else f"{coverage} genome data"
 
                                     # skip_condition1: HipSTR doesn't support motifs larger than 9bp
-                                    skip_condition1 = tool == "HipSTR" and motif_size not in ("2bp", "3-6bp")
+                                    skip_condition1 = tool == "HipSTR" and (motif_size not in ("2bp", "3-6bp")
+                                            and (args.min_motif_size is None or args.min_motif_size > 9)
+                                            and (args.max_motif_size is None or args.max_motif_size > 9)
+                                    )
                                     # skip_condition2: not enough alleles to draw a histogram
                                     skip_condition2 = len(df_plot) < 10
 
@@ -367,9 +376,11 @@ def generate_all_plots(df, args):
                                         print(figure_title_line1)
                                         print(figure_title_line2)
                                         print(f"Skipping..  {message}")
-                                        plot_empty_image(figure_title_line1 + "\n\n" + figure_title_line2, message)
-                                        plt.savefig(f"{output_dir}/{output_image_filename}.svg")
-                                        print(f"Saved {output_dir}/{output_image_filename}.svg")
+                                        plot_empty_image(figure_title_line1 + "\n\n" + figure_title_line2, message, args.width, args.height)
+
+                                        output_path = os.path.join(args.output_dir, f"{output_image_filename}.{args.image_type}")
+                                        plt.savefig(output_path, dpi=300)
+                                        print(f"Saved {output_path}")
                                         plt.close()
                                         continue
 
@@ -409,16 +420,17 @@ def generate_all_plots(df, args):
                                     try:
                                         plot_accuracy_by_allele_size(
                                             df_plot,
+                                            args,
                                             x_column="DiffFromRefRepeats: Allele: Truth (bin)",
                                             hue_column=f"DiffRepeats: Allele: {tool} - Truth (bin)",
                                             hue_order=sorted(hue_values, key=hue_sorter),
                                             tool_name=tool,
                                             palette=palette,
-                                            figure_title=figure_title_line1 + "\n\n" + figure_title_line2
+                                            figure_title=figure_title_line1 + "\n\n" + figure_title_line2 if args.show_title else None
                                         )
 
-                                        output_path = os.path.join(output_dir, f"{output_image_filename}.svg")
-                                        plt.savefig(output_path)
+                                        output_path = os.path.join(args.output_dir, f"{output_image_filename}.{args.image_type}")
+                                        plt.savefig(output_path, dpi=300)
                                         print(f"Saved plot #{plot_counter}: {output_path}")
                                         plt.close()
 
@@ -439,12 +451,35 @@ def main():
     p = argparse.ArgumentParser()
     p.add_argument("--start-with-plot-i", type=int, help="If specified, start with this plot number")
     p.add_argument("-n", type=int, help="If specified, only generate this many plots")
+    p.add_argument("--width", default=20, type=float)
+    p.add_argument("--height", default=9, type=float)
+    p.add_argument("--image-type", default="svg", choices=["svg", "png"], help="Image type to generate")
+    p.add_argument("--show-title", action="store_true", help="Show plot title")
+
     p.add_argument("--output-dir", default=".")
     p.add_argument("--verbose", action="store_true", help="Print additional info")
     p.add_argument("--only-print-total-number-of-plots", action="store_true", help="Don't generate any plots. Only "
                    "print the total number of plots that would be generated.")
+
+    g = p.add_argument_group("Filters")
+    g.add_argument("--tool", choices=["ExpansionHunter", "GangSTR", "HipSTR"], help="Plot only this tool")
+    g.add_argument("--q-threshold", type=float, help="Plot only this Q threshold")
+    g.add_argument("--coverage", choices=["40x", "30x", "20x", "10x", "exome"], help="Plot only this coverage")
+    g.add_argument("--min-motif-size", type=int, help="Min motif size")
+    g.add_argument("--max-motif-size", type=int, help="Max motif size")
+    g.add_argument("--genotype", choices=["all", "HET", "HOM", "MULTI"], help="Plot only this genotype")
+    g.add_argument("--only-pure-repeats", action="store_true", help="Plot only loci with pure repeats")
+    g2 = g.add_mutually_exclusive_group()
+    g2.add_argument("--show-no-call-loci", action="store_true", help="Show loci with no call")
+    g2.add_argument("--hide-no-call-loci", action="store_true", help="Hide loci with no call")
+
     p.add_argument("combined_tool_results_tsv", nargs="?", default="../tool_comparison/combined.results.alleles.tsv.gz")
     args = p.parse_args()
+
+    # print command line args from argparse
+    print("Command line args:")
+    for arg in vars(args):
+        print(f"{arg}: {getattr(args, arg)}")
 
     if args.only_print_total_number_of_plots:
         df = pd.DataFrame()

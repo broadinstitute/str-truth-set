@@ -90,7 +90,7 @@ def plot_distribution_by_motif_size(df, figure_title, output_image_path, show_ti
     else:
         extra_artists = []
 
-    plt.savefig(output_image_path, bbox_extra_artists=extra_artists, bbox_inches="tight")
+    plt.savefig(output_image_path, bbox_extra_artists=extra_artists, bbox_inches="tight", dpi=300)
     plt.close()
     print(f"Saved {output_image_path}")
 
