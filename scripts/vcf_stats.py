@@ -64,12 +64,14 @@ for i, line in enumerate(fopen(args.vcf_path, "rt")):
                 counters[f"MNV alleles"] += 1
             else:
                 counters[f"SNV alleles"] += 1
-        elif len(ref) > len(alt) and len(alt) == 1:
+        elif len(ref) > len(alt) and ref.startswith(alt):
             deletion_counter += 1
             counters[f"DEL alleles"] += 1
-        elif len(ref) < len(alt) and len(ref) == 1:
+        elif len(ref) < len(alt) and alt.startswith(ref) == 1:
             insertion_counter += 1
             counters[f"INS alleles"] += 1
+        else:
+            counters[f"complex MNV indel alleles"] += 1
 
     # count variant types
     variant_filter_prefixes = ["", f"filter:{fltr}  ", "filtered:  "] if args.count_by_filter else [""]

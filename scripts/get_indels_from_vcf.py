@@ -33,17 +33,18 @@ with fopen(args.vcf_path, "rt") as input_vcf, open(output_vcf_path, "wt") as out
                 continue
 
             counters["total allele"] += 1
-            if len(ref_allele) != len(alt_allele) and (len(ref_allele) == 1 or len(alt_allele) == 1):
-                has_indel_allele = True
-                if len(ref_allele) < len(alt_allele):
+            if len(ref_allele) == len(alt_allele):
+                counters["SNV/MNV"] += 1
+            else:
+                if len(ref_allele) < len(alt_allele) and alt_allele.startswith(ref_allele):
+                    has_indel_allele = True
                     counters["INS allele"] += 1
-                else:
+                elif len(ref_allele) > len(alt_allele) and ref_allele.startswith(alt_allele):
+                    has_indel_allele = True
                     counters["DEL allele"] += 1
 
         counters["total variant"] += 1
-        if not has_indel_allele:
-            counters["SNV/MNV"] += 1
-        else:
+        if has_indel_allele:
             counters["INDEL"] += 1
             output_vcf.write(line)
 
