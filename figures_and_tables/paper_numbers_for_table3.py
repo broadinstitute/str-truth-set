@@ -4,29 +4,18 @@ import pandas as pd
 
 print_variant_counts = False
 
-df = pd.read_table("step2.STRs.alleles.tsv.gz")
+df_TR_alleles = pd.read_table("step2.STRs.alleles.tsv.gz")
 
-total_STR_alleles_in_STR_vcf = 0
-f1 = gzip.open("step2.STRs.vcf.gz", "rt")
-f1 = gzip.open("temp/step2.pure_STRs.vcf.gz", "rt")
-for line in f1:
-    if line.startswith("#"):
-        continue
-    fields = line.split("\t")
-    alt_alleles = fields[4].split(",")
-    total_STR_alleles_in_STR_vcf += len(alt_alleles)
-
-f = gzip.open("temp/step2.pure_STRs.filtered_out_indels.vcf.gz", "rt")
+f = gzip.open("step2.STRs.filtered_out_indels.vcf.gz", "rt")
 variant_counters = collections.defaultdict(int)
 allele_counters = collections.defaultdict(int)
 
 # numbers from paper_numbers1_results_part1_defining_the_truth_set.py
-total_variants = 518_285
-total_alleles = 286_446 + 271_635
-total_alleles = 285_701 + 271_124
+total_indel_variants = 518_285
+total_indel_alleles = 535_354
 
-allele_counters["total alleles"] = total_alleles
-allele_counters["total TRs in truth set"] = total_STR_alleles_in_STR_vcf #len(df)
+allele_counters["total indel alleles"] = total_indel_alleles
+allele_counters["total TR alleles in truth set"] = len(df_TR_alleles)
 
 for line in f:
     if line.startswith("#"):
@@ -39,20 +28,26 @@ for line in f:
             continue
         allele_counters[filter_value] += 1
 
+allele_counters["sum"] = sum(allele_counters[k] for k in allele_counters.keys() if k != "total indel alleles")
+
+print("Allele counts:")
 for key, count in sorted(allele_counters.items(), key=lambda x: -x[1]):
-    print(f"<tr><td>{count:10,d} ({100 * count / total_variants:5.1f}%) {key:10s}")
+    print(f"{count:10,d} ({100 * count / total_indel_alleles:5.1f}%) {key:10s}")
 
-allele_counters["sum"] = sum(allele_counters[k] for k in allele_counters.keys() if k != "total alleles")
+print("HTML table:")
+print("<table>")
+print(f"<tr><th>Description</th><th># of indels</th><th>% of indels</th></tr>")
+for i, (key, count) in enumerate(sorted(allele_counters.items(), key=lambda x: -x[1])):
+    print(f"<tr><td>{key}</td><td>{count:10,d}</td><td>{100 * count / total_indel_alleles:5.1f}%</td></tr>")
+    if i == 0:
+        print(f"<tr><td></td><td></td><td></td></tr>")
+print("</table>")
 
-for key, count in sorted(allele_counters.items(), key=lambda x: -x[1]):
-    print(f"{count:10,d} ({100 * count / total_alleles:5.1f}%) {key:10s}")
-
-print("total_alleles_in_STR_vcf; ", total_STR_alleles_in_STR_vcf)
 print("------")
 
 if print_variant_counts:
     for key, count in sorted(variant_counters.items(), key=lambda x: -x[1]):
-        print(f"{count:10,d} ({100 * count / total_variants:5.1f}%) {key:10s}")
+        print(f"{count:10,d} ({100 * count / total_indel_variants:5.1f}%) {key:10s}")
 
     print("---")
     other_counter_keys = set(variant_counters.keys())
@@ -73,7 +68,7 @@ if print_variant_counts:
             value = sum(variant_counters[key] for key in counter_keys)
             other_counter_keys = other_counter_keys - set(counter_keys)
 
-        print(f"{value:10,d} ({100 * value / total_variants:5.1f}%) {label:10s}")
+        print(f"{value:10,d} ({100 * value / total_indel_variants:5.1f}%) {label:10s}")
 
 
 

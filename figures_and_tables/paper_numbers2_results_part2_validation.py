@@ -256,4 +256,5 @@ n_passed = (DEL_variants_in_final_truth_set + mixed_multiallelic_INS_DEL_variant
             - DEL_variants_failed_hg38_to_t2t_liftover_due_to_IndelStraddlesMultipleIntevals)
 print(f"Liftover did work for {format_n(liftover_did_work_for)} contraction and mixed multiallelics.")
 print(f"Of these {format_np(n_passed, liftover_did_work_for)} passed all validation steps.")
+
 #%%
