@@ -53,6 +53,9 @@ for i, line in enumerate(fopen(args.vcf_path, "rt")):
     deletion_counter = 0
     snv_counter = 0
     for alt in alt_alleles:
+        if alt == "*":
+            continue
+
         counters["TOTAL alleles"] += 1
 
         if len(ref) == len(alt):
@@ -61,10 +64,10 @@ for i, line in enumerate(fopen(args.vcf_path, "rt")):
                 counters[f"MNV alleles"] += 1
             else:
                 counters[f"SNV alleles"] += 1
-        elif len(ref) > len(alt):
+        elif len(ref) > len(alt) and len(alt) == 1:
             deletion_counter += 1
             counters[f"DEL alleles"] += 1
-        elif len(ref) < len(alt):
+        elif len(ref) < len(alt) and len(ref) == 1:
             insertion_counter += 1
             counters[f"INS alleles"] += 1
         else:

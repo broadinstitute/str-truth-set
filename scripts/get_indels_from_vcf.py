@@ -22,23 +22,30 @@ with fopen(args.vcf_path, "rt") as input_vcf, open(output_vcf_path, "wt") as out
         if line.startswith("#"):
             output_vcf.write(line)
             continue
+
         fields = line.split("\t")
         ref_allele = fields[3]
-        alt_allele = fields[4]
+        alt_alleles = fields[4].split(",")
 
-        if len(ref_allele) != len(alt_allele):
-            output_vcf.write(line)
+        has_indel_allele = False
+        for alt_allele in alt_alleles:
+            if alt_allele == "*":
+                continue
 
-        # update counters
+            counters["total allele"] += 1
+            if len(ref_allele) != len(alt_allele) and (len(ref_allele) == 1 or len(alt_allele) == 1):
+                has_indel_allele = True
+                if len(ref_allele) < len(alt_allele):
+                    counters["INS allele"] += 1
+                else:
+                    counters["DEL allele"] += 1
+
         counters["total variant"] += 1
-        if len(ref_allele) != len(alt_allele):
-            counters["INDEL"] += 1
-            if len(ref_allele) > len(alt_allele):
-                counters["DEL"] += 1
-            else:
-                counters["INS"] += 1
-        else:
+        if not has_indel_allele:
             counters["SNV/MNV"] += 1
+        else:
+            counters["INDEL"] += 1
+            output_vcf.write(line)
 
 
 def run(command):
@@ -50,5 +57,15 @@ run(f"tabix -f {output_vcf_path}.gz")
 
 print(f"Wrote {counters['INDEL']:,d} INDELs to {output_vcf_path}.gz")
 
-for name in "total variant", "SNV/MNV", "INDEL", "INS", "DEL":
-    print(f"    {counters[name]:10,d}  {name}s")
+# print stats
+for name in "total variant", "SNV/MNV", "INDEL":
+    print(f"  {counters[name]:10,d} out of {counters['total variant']:10,d} "
+          f"({100*counters[name]/counters['total variant']:6.1f}%) {name} variants")
+
+for name in "total allele", "INDEL allele", "INS allele", "DEL allele":
+    if name == "INDEL allele":
+        value = counters["INS allele"] + counters["DEL allele"]
+    else:
+        value = counters[name]
+
+    print(f"  {value:10,d} out of {counters['total allele']:10,d} ({100*value/counters['total allele']:6.1f}%) {name}s")

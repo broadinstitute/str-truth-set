@@ -17,15 +17,16 @@ for _including_homopolymer in ""  "s_including_homopolymer"; do
       --table2 STR_loci_extended_with_interruption${_including_homopolymer}_truth_set.v1.${table_type}.tsv.gz \
       --table2-suffix ExtendedWithInterruptions \
       --output-table STR_truth_set.v1.${table_type}.joined.tsv.gz \
-      -k Chrom -k VcfPos -k VcfRef -k VcfAlt   -c Locus -c SummaryString -c NumRepeatsInReference -c Motif
+      -k Chrom -k VcfPos -k VcfRef -k VcfAlt   -c Locus -c SummaryString -c NumRepeatsInReference -c Motif \
+      | python3 -u scripts/add_prefix_to_stdout.py "i${_including_homopolymer}s:${table_type}:       "
   done
 done
 
 
 # Run the rest of the pipeline
-./run_step_B__generate_variant_catalogs_and_upload_to_bucket.sh >& step_B.log
-./run_step_C__run_tool_pipelines.sh >& step_C.log
-./run_step_D__combine_tool_results.sh >& step_D.log
-./run_step_E__generate_plots_and_figures.sh >& step_E.log
+#./run_step_B__generate_variant_catalogs_and_upload_to_bucket.sh >& step_B.log
+#./run_step_C__run_tool_pipelines.sh >& step_C.log
+#./run_step_D__combine_tool_results.sh >& step_D.log
+#./run_step_E__generate_plots_and_figures.sh >& step_E.log
 
 echo Finished running all steps
