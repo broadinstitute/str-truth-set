@@ -1,48 +1,43 @@
+<html>
+<head>
 <link rel="stylesheet" href="./github-css.css"/>
-<title>Table 2: validation</title>
-
+<title>Validation</title>
+</head>
+<body>
 <div style="margin: 30px">
     <table>
-        <!-- add html table header row -->
-        <thead>
-        <tr>
-            <th>Step</th>
-            <th>Description</th>
-            <th nowrap># failed</th>
-            <th nowrap style="text-align: right">% failed</th>
-        </tr>
-        <tr style="margin-bottom: 30px;">
-            <td></td>
-            <td>Start with all 157,601 TR variants</td>
-            <td nowrap style="text-align: right"></td>
-            <td nowrap style="text-align: right"></td>
-        </tr>
-        <tr>
-            <td><i>1</i></td>
-            <td>Lift over STR variant to the CHM13 telomere-to-telomere (T2T) reference</td>
-            <td nowrap style="text-align: right">1,999</td>
-            <td nowrap style="text-align: right">1.0 %</td>
-        </tr>
-
-        <tr>
-            <td><i>2</i></td>
-            <td>Check that at least one allele exactly matches the T2T reference sequence</td>
-            <td nowrap style="text-align: right">347</td>
-            <td nowrap style="text-align: right">0.2 %</td>
-        </tr>
-
-        <tr>
-            <td><i>3</i></td>
-            <td>Lift back over to hg38</td>
-            <td nowrap style="text-align: right">46</td>
-            <td nowrap style="text-align: right">0.0 %</td>
-        </tr>
-
-        <tr>
-            <td><i>4</i></td>
-            <td>Check if the variant's position changed after hg38 ⇒ T2T ⇒ hg38 liftover</td>
-            <td nowrap style="text-align: right">1</td>
-            <td nowrap style="text-align: right">0.0 %</td>
-        </tr>
-    </table>
+<tr><th nowrap>Step</th><th nowrap>Description</th><th nowrap># failed</th><th nowrap>% failed</th></tr>
+<tr>
+<td><i></i></td>
+<td>Start with all 157,601 TR variants in SynDip high-confidence regions</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><i>1</i></td>
+<td>Liftover TR variants from hg38 ⇒ T2T</td>
+<td nowrap style="text-align: right">1,999</td>
+<td nowrap style="text-align: right">1.3%</td>
+</tr>
+<tr>
+<td><i>2</i></td>
+<td>Check that at least one allele matches the T2T reference sequence</td>
+<td nowrap style="text-align: right">347</td>
+<td nowrap style="text-align: right">0.2%</td>
+</tr>
+<tr>
+<td><i>3</i></td>
+<td>Lift variants back over from T2T ⇒ hg38</td>
+<td nowrap style="text-align: right">46</td>
+<td nowrap style="text-align: right">0.0%</td>
+</tr>
+<tr>
+<td><i>4</i></td>
+<td>Check if the variant's position changed after hg38 ⇒ T2T ⇒ hg38 liftover</td>
+<td nowrap style="text-align: right">1</td>
+<td nowrap style="text-align: right">0.0%</td>
+</tr>
+</table>
 </div>
+</body>
+</html>

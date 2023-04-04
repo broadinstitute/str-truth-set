@@ -4,14 +4,14 @@
 step0:STRs_including_homopolymer:  Parsing ./ref/full.38.vcf.gz
 step0:STRs_including_homopolymer:  bgzip -f ./ref/full.38.INDELs.vcf
 step0:STRs_including_homopolymer:  tabix -f ./ref/full.38.INDELs.vcf.gz
-step0:STRs_including_homopolymer:  Wrote 1,138,131 INDELs to ./ref/full.38.INDELs.vcf.gz
+step0:STRs_including_homopolymer:  Wrote 1,138,023 INDELs to ./ref/full.38.INDELs.vcf.gz
 step0:STRs_including_homopolymer:     5,182,765 out of  5,182,765 ( 100.0%) total variant variants
-step0:STRs_including_homopolymer:     4,044,634 out of  5,182,765 (  78.0%) SNV/MNV variants
-step0:STRs_including_homopolymer:     1,138,131 out of  5,182,765 (  22.0%) INDEL variants
+step0:STRs_including_homopolymer:     4,058,663 out of  5,182,765 (  78.3%) SNV/MNV variants
+step0:STRs_including_homopolymer:     1,138,023 out of  5,182,765 (  22.0%) INDEL variants
 step0:STRs_including_homopolymer:     5,327,703 out of  5,327,703 ( 100.0%) total alleles
-step0:STRs_including_homopolymer:     1,194,842 out of  5,327,703 (  22.4%) INDEL alleles
-step0:STRs_including_homopolymer:       604,189 out of  5,327,703 (  11.3%) INS alleles
-step0:STRs_including_homopolymer:       590,653 out of  5,327,703 (  11.1%) DEL alleles
+step0:STRs_including_homopolymer:     1,266,927 out of  5,327,703 (  23.8%) INDEL alleles
+step0:STRs_including_homopolymer:       644,138 out of  5,327,703 (  12.1%) INS alleles
+step0:STRs_including_homopolymer:       622,789 out of  5,327,703 (  11.7%) DEL alleles
 ===============
 STEP #1: Filter SynDip truth set to SynDip high confidence regions
          INPUT: ./ref/full.38.vcf.gz        5182765 variants
@@ -41,20 +41,24 @@ step1:input:              52 out of  5,182,765 (  0.0%) genotype: .|3
 step1:input:              21 out of  5,182,765 (  0.0%) genotype: 3|.
 --------------
 step1:input:       5,182,765 out of  5,182,765 (100.0%) TOTAL variants
-step1:input:       4,039,477 out of  5,182,765 ( 77.9%) SNV variants
-step1:input:         588,354 out of  5,182,765 ( 11.4%) DEL variants
-step1:input:         484,283 out of  5,182,765 (  9.3%) INS variants
-step1:input:          56,623 out of  5,182,765 (  1.1%) multiallelic INS variants
-step1:input:           6,572 out of  5,182,765 (  0.1%) mixed multiallelic INS/SNV variants
+step1:input:       4,039,494 out of  5,182,765 ( 77.9%) SNV variants
+step1:input:         516,286 out of  5,182,765 ( 10.0%) DEL variants
+step1:input:         484,214 out of  5,182,765 (  9.3%) INS variants
+step1:input:          56,617 out of  5,182,765 (  1.1%) multiallelic INS variants
+step1:input:          39,983 out of  5,182,765 (  0.8%) mixed multiallelic INS/DEL variants
+step1:input:          32,069 out of  5,182,765 (  0.6%) multiallelic DEL variants
+step1:input:           6,562 out of  5,182,765 (  0.1%) mixed multiallelic INS/SNV variants
 step1:input:           5,156 out of  5,182,765 (  0.1%) multiallelic SNV variants
-step1:input:           2,299 out of  5,182,765 (  0.0%) mixed multiallelic DEL/SNV variants
-step1:input:               1 out of  5,182,765 (  0.0%) mixed multiallelic  variants
+step1:input:           2,286 out of  5,182,765 (  0.0%) mixed multiallelic DEL/SNV variants
+step1:input:              92 out of  5,182,765 (  0.0%) mixed multiallelic  variants
+step1:input:               6 out of  5,182,765 (  0.0%) mixed multiallelic INS/DEL/SNV variants
 --------------
 step1:input:       5,327,703 out of  5,327,703 (100.0%) TOTAL alleles
 step1:input:       4,056,362 out of  5,327,703 ( 76.1%) SNV alleles
-step1:input:         604,189 out of  5,327,703 ( 11.3%) INS alleles
-step1:input:         590,653 out of  5,327,703 ( 11.1%) DEL alleles
+step1:input:         644,138 out of  5,327,703 ( 12.1%) INS alleles
+step1:input:         622,789 out of  5,327,703 ( 11.7%) DEL alleles
 step1:input:           2,301 out of  5,327,703 (  0.0%) MNV alleles
+step1:input:           2,113 out of  5,327,703 (  0.0%) complex MNV indel alleles
 --------------
 step1:output:      VCF stats for the output vcf -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --  step1.high_confidence_regions.vcf.gz
 step1:output:       4,081,549 TOTAL variants
@@ -67,31 +71,35 @@ step1:output:          33,466 out of  4,081,549 (  0.8%) genotype: 2|1
 step1:output:          33,402 out of  4,081,549 (  0.8%) genotype: 1|2
 --------------
 step1:output:       4,081,549 out of  4,081,549 (100.0%) TOTAL variants
-step1:output:       3,559,555 out of  4,081,549 ( 87.2%) SNV variants
-step1:output:         258,511 out of  4,081,549 (  6.3%) DEL variants
-step1:output:         238,453 out of  4,081,549 (  5.8%) INS variants
-step1:output:          17,069 out of  4,081,549 (  0.4%) multiallelic INS variants
+step1:output:       3,559,559 out of  4,081,549 ( 87.2%) SNV variants
+step1:output:         238,413 out of  4,081,549 (  5.8%) INS variants
+step1:output:         236,974 out of  4,081,549 (  5.8%) DEL variants
+step1:output:          17,066 out of  4,081,549 (  0.4%) multiallelic INS variants
+step1:output:          11,544 out of  4,081,549 (  0.3%) multiallelic DEL variants
+step1:output:           9,985 out of  4,081,549 (  0.2%) mixed multiallelic INS/DEL variants
 step1:output:           3,709 out of  4,081,549 (  0.1%) multiallelic SNV variants
-step1:output:           3,173 out of  4,081,549 (  0.1%) mixed multiallelic INS/SNV variants
-step1:output:           1,079 out of  4,081,549 (  0.0%) mixed multiallelic DEL/SNV variants
+step1:output:           3,171 out of  4,081,549 (  0.1%) mixed multiallelic INS/SNV variants
+step1:output:           1,077 out of  4,081,549 (  0.0%) mixed multiallelic DEL/SNV variants
+step1:output:              51 out of  4,081,549 (  0.0%) mixed multiallelic  variants
 --------------
 step1:output:       4,129,306 out of  4,129,306 (100.0%) TOTAL alleles
 step1:output:       3,570,146 out of  4,129,306 ( 86.5%) SNV alleles
-step1:output:         275,764 out of  4,129,306 (  6.7%) INS alleles
-step1:output:         259,590 out of  4,129,306 (  6.3%) DEL alleles
+step1:output:         285,701 out of  4,129,306 (  6.9%) INS alleles
+step1:output:         271,124 out of  4,129,306 (  6.6%) DEL alleles
+step1:output:           1,256 out of  4,129,306 (  0.0%) complex MNV indel alleles
 step1:output:           1,079 out of  4,129,306 (  0.0%) MNV alleles
 --------------
 step1:STRs_including_homopolymer:  Parsing step1.high_confidence_regions.vcf.gz
 step1:STRs_including_homopolymer:  bgzip -f step1.high_confidence_regions.INDELs.vcf
 step1:STRs_including_homopolymer:  tabix -f step1.high_confidence_regions.INDELs.vcf.gz
-step1:STRs_including_homopolymer:  Wrote 518,285 INDELs to step1.high_confidence_regions.INDELs.vcf.gz
+step1:STRs_including_homopolymer:  Wrote 518,230 INDELs to step1.high_confidence_regions.INDELs.vcf.gz
 step1:STRs_including_homopolymer:     4,081,549 out of  4,081,549 ( 100.0%) total variant variants
-step1:STRs_including_homopolymer:     3,563,264 out of  4,081,549 (  87.3%) SNV/MNV variants
-step1:STRs_including_homopolymer:       518,285 out of  4,081,549 (  12.7%) INDEL variants
+step1:STRs_including_homopolymer:     3,571,225 out of  4,081,549 (  87.5%) SNV/MNV variants
+step1:STRs_including_homopolymer:       518,230 out of  4,081,549 (  12.7%) INDEL variants
 step1:STRs_including_homopolymer:     4,129,306 out of  4,129,306 ( 100.0%) total alleles
-step1:STRs_including_homopolymer:       535,354 out of  4,129,306 (  13.0%) INDEL alleles
-step1:STRs_including_homopolymer:       275,764 out of  4,129,306 (   6.7%) INS alleles
-step1:STRs_including_homopolymer:       259,590 out of  4,129,306 (   6.3%) DEL alleles
+step1:STRs_including_homopolymer:       556,825 out of  4,129,306 (  13.5%) INDEL alleles
+step1:STRs_including_homopolymer:       285,701 out of  4,129,306 (   6.9%) INS alleles
+step1:STRs_including_homopolymer:       271,124 out of  4,129,306 (   6.6%) DEL alleles
 ===============
 Starting to process STRs_including_homopolymers: --allow-interruptions only-if-pure-repeats-not-found --min-repeat-unit-length 1 --max-repeat-unit-length 50
 STEP #2: Filter variants to the subset that are actually STR expansion or contractions
@@ -902,18 +910,22 @@ step2:STRs_including_homopolymer:input:          33,466 out of  4,081,549 (  0.8
 step2:STRs_including_homopolymer:input:          33,402 out of  4,081,549 (  0.8%) genotype: 1|2
 --------------
 step2:STRs_including_homopolymer:input:       4,081,549 out of  4,081,549 (100.0%) TOTAL variants
-step2:STRs_including_homopolymer:input:       3,559,555 out of  4,081,549 ( 87.2%) SNV variants
-step2:STRs_including_homopolymer:input:         258,511 out of  4,081,549 (  6.3%) DEL variants
-step2:STRs_including_homopolymer:input:         238,453 out of  4,081,549 (  5.8%) INS variants
-step2:STRs_including_homopolymer:input:          17,069 out of  4,081,549 (  0.4%) multiallelic INS variants
+step2:STRs_including_homopolymer:input:       3,559,559 out of  4,081,549 ( 87.2%) SNV variants
+step2:STRs_including_homopolymer:input:         238,413 out of  4,081,549 (  5.8%) INS variants
+step2:STRs_including_homopolymer:input:         236,974 out of  4,081,549 (  5.8%) DEL variants
+step2:STRs_including_homopolymer:input:          17,066 out of  4,081,549 (  0.4%) multiallelic INS variants
+step2:STRs_including_homopolymer:input:          11,544 out of  4,081,549 (  0.3%) multiallelic DEL variants
+step2:STRs_including_homopolymer:input:           9,985 out of  4,081,549 (  0.2%) mixed multiallelic INS/DEL variants
 step2:STRs_including_homopolymer:input:           3,709 out of  4,081,549 (  0.1%) multiallelic SNV variants
-step2:STRs_including_homopolymer:input:           3,173 out of  4,081,549 (  0.1%) mixed multiallelic INS/SNV variants
-step2:STRs_including_homopolymer:input:           1,079 out of  4,081,549 (  0.0%) mixed multiallelic DEL/SNV variants
+step2:STRs_including_homopolymer:input:           3,171 out of  4,081,549 (  0.1%) mixed multiallelic INS/SNV variants
+step2:STRs_including_homopolymer:input:           1,077 out of  4,081,549 (  0.0%) mixed multiallelic DEL/SNV variants
+step2:STRs_including_homopolymer:input:              51 out of  4,081,549 (  0.0%) mixed multiallelic  variants
 --------------
 step2:STRs_including_homopolymer:input:       4,129,306 out of  4,129,306 (100.0%) TOTAL alleles
 step2:STRs_including_homopolymer:input:       3,570,146 out of  4,129,306 ( 86.5%) SNV alleles
-step2:STRs_including_homopolymer:input:         275,764 out of  4,129,306 (  6.7%) INS alleles
-step2:STRs_including_homopolymer:input:         259,590 out of  4,129,306 (  6.3%) DEL alleles
+step2:STRs_including_homopolymer:input:         285,701 out of  4,129,306 (  6.9%) INS alleles
+step2:STRs_including_homopolymer:input:         271,124 out of  4,129,306 (  6.6%) DEL alleles
+step2:STRs_including_homopolymer:input:           1,256 out of  4,129,306 (  0.0%) complex MNV indel alleles
 step2:STRs_including_homopolymer:input:           1,079 out of  4,129,306 (  0.0%) MNV alleles
 --------------
 step2:STRs_including_homopolymer:output:      VCF stats for the output vcf -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --  step2.STRs_including_homopolymers.vcf.gz
@@ -927,80 +939,82 @@ step2:STRs_including_homopolymer:output:          16,872 out of    194,795 (  8.
 step2:STRs_including_homopolymer:output:          16,163 out of    194,795 (  8.3%) genotype: 2|1
 --------------
 step2:STRs_including_homopolymer:output:         194,795 out of    194,795 (100.0%) TOTAL variants
-step2:STRs_including_homopolymer:output:          96,591 out of    194,795 ( 49.6%) DEL variants
 step2:STRs_including_homopolymer:output:          86,395 out of    194,795 ( 44.4%) INS variants
+step2:STRs_including_homopolymer:output:          75,365 out of    194,795 ( 38.7%) DEL variants
 step2:STRs_including_homopolymer:output:          11,809 out of    194,795 (  6.1%) multiallelic INS variants
+step2:STRs_including_homopolymer:output:          11,415 out of    194,795 (  5.9%) multiallelic DEL variants
+step2:STRs_including_homopolymer:output:           9,811 out of    194,795 (  5.0%) mixed multiallelic INS/DEL variants
 --------------
 step2:STRs_including_homopolymer:output:         227,830 out of    227,830 (100.0%) TOTAL alleles
-step2:STRs_including_homopolymer:output:         110,013 out of    227,830 ( 48.3%) INS alleles
-step2:STRs_including_homopolymer:output:          96,591 out of    227,830 ( 42.4%) DEL alleles
+step2:STRs_including_homopolymer:output:         119,824 out of    227,830 ( 52.6%) INS alleles
+step2:STRs_including_homopolymer:output:         108,006 out of    227,830 ( 47.4%) DEL alleles
 --------------
 ===============
 STEP #3: Liftover variants from hg38 to the T2T reference (chm13v2.0)
          INPUT: step2.STRs_including_homopolymers.vcf.gz        194795 variants
 + gatk --java-options -Xmx7g LiftoverVcf -R ./ref/chm13v2.0.fa -C ./ref/hg38-chm13v2.chain -I step2.STRs_including_homopolymers.vcf.gz -O step3.STRs_including_homopolymers.lifted_to_chm13v2.vcf.gz --REJECT step3.STRs_including_homopolymers.lifted_to_chm13v2_rejected.vcf.gz --VALIDATION_STRINGENCY LENIENT --RECOVER_SWAPPED_REF_ALT --WARN_ON_MISSING_CONTIG --LIFTOVER_MIN_MATCH 0.00001 --WRITE_ORIGINAL_POSITION --WRITE_ORIGINAL_ALLELES --ALLOW_MISSING_FIELDS_IN_HEADER
 + python3 -u scripts/add_prefix_to_stdout.py 'step3:STRs_including_homopolymer:  '
-12:48:31.443 INFO  NativeLibraryLoader - Loading libgkl_compression.dylib from jar:file:/Users/weisburd/bin/gatk-package-4.2.0.0-local.jar!/com/intel/gkl/native/libgkl_compression.dylib
-[Tue Apr 04 12:48:31 EDT 2023] LiftoverVcf --INPUT step2.STRs_including_homopolymers.vcf.gz --OUTPUT step3.STRs_including_homopolymers.lifted_to_chm13v2.vcf.gz --CHAIN ./ref/hg38-chm13v2.chain --REJECT step3.STRs_including_homopolymers.lifted_to_chm13v2_rejected.vcf.gz --WARN_ON_MISSING_CONTIG true --WRITE_ORIGINAL_POSITION true --WRITE_ORIGINAL_ALLELES true --LIFTOVER_MIN_MATCH 1.0E-5 --ALLOW_MISSING_FIELDS_IN_HEADER true --RECOVER_SWAPPED_REF_ALT true --VALIDATION_STRINGENCY LENIENT --REFERENCE_SEQUENCE ./ref/chm13v2.0.fa --LOG_FAILED_INTERVALS true --TAGS_TO_REVERSE AF --TAGS_TO_DROP MAX_AF --DISABLE_SORT false --VERBOSITY INFO --QUIET false --COMPRESSION_LEVEL 2 --MAX_RECORDS_IN_RAM 500000 --CREATE_INDEX false --CREATE_MD5_FILE false --GA4GH_CLIENT_SECRETS client_secrets.json --help false --version false --showHidden false --USE_JDK_DEFLATER false --USE_JDK_INFLATER false
-[Tue Apr 04 12:48:32 EDT 2023] Executing as weisburd@wm103-772 on Mac OS X 10.16 x86_64; OpenJDK 64-Bit Server VM 1.8.0_322-b06; Deflater: Intel; Inflater: Intel; Provider GCS is available; Picard version: Version:4.2.0.0
-INFO	2023-04-04 12:48:32	LiftoverVcf	Loading up the target reference genome.
-INFO	2023-04-04 12:48:51	LiftoverVcf	Lifting variants over and sorting (not yet writing the output file.)
-INFO	2023-04-04 12:49:06	LiftoverVcf	Processed 194795 variants.
-INFO	2023-04-04 12:49:06	LiftoverVcf	74133 variants failed to liftover.
-INFO	2023-04-04 12:49:06	LiftoverVcf	1003 variants lifted over but had mismatching reference alleles after lift over.
-INFO	2023-04-04 12:49:06	LiftoverVcf	38.5718% of variants were not successfully lifted over and written to the output.
-INFO	2023-04-04 12:49:06	LiftoverVcf	liftover success by source contig:
-INFO	2023-04-04 12:49:06	LiftoverVcf	chr1: 9200 / 15203 (60.5144%)
-INFO	2023-04-04 12:49:06	LiftoverVcf	chr10: 5617 / 9279 (60.5345%)
-INFO	2023-04-04 12:49:06	LiftoverVcf	chr11: 5503 / 9050 (60.8066%)
-INFO	2023-04-04 12:49:06	LiftoverVcf	chr12: 5653 / 9336 (60.5506%)
-INFO	2023-04-04 12:49:06	LiftoverVcf	chr13: 4357 / 7185 (60.6402%)
-INFO	2023-04-04 12:49:06	LiftoverVcf	chr14: 3791 / 6176 (61.3828%)
-INFO	2023-04-04 12:49:06	LiftoverVcf	chr15: 3298 / 5351 (61.6333%)
-INFO	2023-04-04 12:49:06	LiftoverVcf	chr16: 3327 / 5502 (60.4689%)
-INFO	2023-04-04 12:49:06	LiftoverVcf	chr17: 3354 / 5535 (60.5962%)
-INFO	2023-04-04 12:49:06	LiftoverVcf	chr18: 3309 / 5414 (61.1193%)
-INFO	2023-04-04 12:49:06	LiftoverVcf	chr19: 2705 / 4382 (61.7298%)
-INFO	2023-04-04 12:49:06	LiftoverVcf	chr2: 9703 / 15880 (61.1020%)
-INFO	2023-04-04 12:49:06	LiftoverVcf	chr20: 2702 / 4282 (63.1014%)
-INFO	2023-04-04 12:49:06	LiftoverVcf	chr21: 1675 / 2642 (63.3989%)
-INFO	2023-04-04 12:49:06	LiftoverVcf	chr22: 1561 / 2481 (62.9182%)
-INFO	2023-04-04 12:49:06	LiftoverVcf	chr3: 8191 / 13206 (62.0248%)
-INFO	2023-04-04 12:49:06	LiftoverVcf	chr4: 8113 / 13319 (60.9130%)
-INFO	2023-04-04 12:49:06	LiftoverVcf	chr5: 7461 / 11852 (62.9514%)
-INFO	2023-04-04 12:49:06	LiftoverVcf	chr6: 7247 / 11639 (62.2648%)
-INFO	2023-04-04 12:49:06	LiftoverVcf	chr7: 6451 / 10567 (61.0485%)
-INFO	2023-04-04 12:49:06	LiftoverVcf	chr8: 6060 / 9731 (62.2752%)
-INFO	2023-04-04 12:49:06	LiftoverVcf	chr9: 4743 / 7586 (62.5231%)
-INFO	2023-04-04 12:49:06	LiftoverVcf	chrX: 5638 / 9197 (61.3026%)
-INFO	2023-04-04 12:49:06	LiftoverVcf	lifted variants by target contig:
-INFO	2023-04-04 12:49:06	LiftoverVcf	chr1: 9200
-INFO	2023-04-04 12:49:06	LiftoverVcf	chr10: 5617
-INFO	2023-04-04 12:49:06	LiftoverVcf	chr11: 5503
-INFO	2023-04-04 12:49:06	LiftoverVcf	chr12: 5653
-INFO	2023-04-04 12:49:06	LiftoverVcf	chr13: 4357
-INFO	2023-04-04 12:49:06	LiftoverVcf	chr14: 3791
-INFO	2023-04-04 12:49:06	LiftoverVcf	chr15: 3298
-INFO	2023-04-04 12:49:06	LiftoverVcf	chr16: 3327
-INFO	2023-04-04 12:49:06	LiftoverVcf	chr17: 3354
-INFO	2023-04-04 12:49:06	LiftoverVcf	chr18: 3309
-INFO	2023-04-04 12:49:06	LiftoverVcf	chr19: 2705
-INFO	2023-04-04 12:49:06	LiftoverVcf	chr2: 9703
-INFO	2023-04-04 12:49:06	LiftoverVcf	chr20: 2702
-INFO	2023-04-04 12:49:06	LiftoverVcf	chr21: 1675
-INFO	2023-04-04 12:49:06	LiftoverVcf	chr22: 1561
-INFO	2023-04-04 12:49:06	LiftoverVcf	chr3: 8191
-INFO	2023-04-04 12:49:06	LiftoverVcf	chr4: 8113
-INFO	2023-04-04 12:49:06	LiftoverVcf	chr5: 7461
-INFO	2023-04-04 12:49:06	LiftoverVcf	chr6: 7247
-INFO	2023-04-04 12:49:06	LiftoverVcf	chr7: 6451
-INFO	2023-04-04 12:49:06	LiftoverVcf	chr8: 6060
-INFO	2023-04-04 12:49:06	LiftoverVcf	chr9: 4743
-INFO	2023-04-04 12:49:06	LiftoverVcf	chrX: 5638
-INFO	2023-04-04 12:49:06	LiftoverVcf	0 variants were lifted by swapping REF/ALT alleles.
-INFO	2023-04-04 12:49:06	LiftoverVcf	Writing out sorted records to final VCF.
-[Tue Apr 04 12:49:07 EDT 2023] picard.vcf.LiftoverVcf done. Elapsed time: 0.61 minutes.
-Runtime.totalMemory()=4647813120
+17:22:46.748 INFO  NativeLibraryLoader - Loading libgkl_compression.dylib from jar:file:/Users/weisburd/bin/gatk-package-4.2.0.0-local.jar!/com/intel/gkl/native/libgkl_compression.dylib
+[Tue Apr 04 17:22:47 EDT 2023] LiftoverVcf --INPUT step2.STRs_including_homopolymers.vcf.gz --OUTPUT step3.STRs_including_homopolymers.lifted_to_chm13v2.vcf.gz --CHAIN ./ref/hg38-chm13v2.chain --REJECT step3.STRs_including_homopolymers.lifted_to_chm13v2_rejected.vcf.gz --WARN_ON_MISSING_CONTIG true --WRITE_ORIGINAL_POSITION true --WRITE_ORIGINAL_ALLELES true --LIFTOVER_MIN_MATCH 1.0E-5 --ALLOW_MISSING_FIELDS_IN_HEADER true --RECOVER_SWAPPED_REF_ALT true --VALIDATION_STRINGENCY LENIENT --REFERENCE_SEQUENCE ./ref/chm13v2.0.fa --LOG_FAILED_INTERVALS true --TAGS_TO_REVERSE AF --TAGS_TO_DROP MAX_AF --DISABLE_SORT false --VERBOSITY INFO --QUIET false --COMPRESSION_LEVEL 2 --MAX_RECORDS_IN_RAM 500000 --CREATE_INDEX false --CREATE_MD5_FILE false --GA4GH_CLIENT_SECRETS client_secrets.json --help false --version false --showHidden false --USE_JDK_DEFLATER false --USE_JDK_INFLATER false
+[Tue Apr 04 17:22:47 EDT 2023] Executing as weisburd@wm103-772 on Mac OS X 10.16 x86_64; OpenJDK 64-Bit Server VM 1.8.0_322-b06; Deflater: Intel; Inflater: Intel; Provider GCS is available; Picard version: Version:4.2.0.0
+INFO	2023-04-04 17:22:47	LiftoverVcf	Loading up the target reference genome.
+INFO	2023-04-04 17:22:57	LiftoverVcf	Lifting variants over and sorting (not yet writing the output file.)
+INFO	2023-04-04 17:23:03	LiftoverVcf	Processed 194795 variants.
+INFO	2023-04-04 17:23:03	LiftoverVcf	74133 variants failed to liftover.
+INFO	2023-04-04 17:23:03	LiftoverVcf	1003 variants lifted over but had mismatching reference alleles after lift over.
+INFO	2023-04-04 17:23:03	LiftoverVcf	38.5718% of variants were not successfully lifted over and written to the output.
+INFO	2023-04-04 17:23:03	LiftoverVcf	liftover success by source contig:
+INFO	2023-04-04 17:23:03	LiftoverVcf	chr1: 9200 / 15203 (60.5144%)
+INFO	2023-04-04 17:23:03	LiftoverVcf	chr10: 5617 / 9279 (60.5345%)
+INFO	2023-04-04 17:23:03	LiftoverVcf	chr11: 5503 / 9050 (60.8066%)
+INFO	2023-04-04 17:23:03	LiftoverVcf	chr12: 5653 / 9336 (60.5506%)
+INFO	2023-04-04 17:23:03	LiftoverVcf	chr13: 4357 / 7185 (60.6402%)
+INFO	2023-04-04 17:23:03	LiftoverVcf	chr14: 3791 / 6176 (61.3828%)
+INFO	2023-04-04 17:23:03	LiftoverVcf	chr15: 3298 / 5351 (61.6333%)
+INFO	2023-04-04 17:23:03	LiftoverVcf	chr16: 3327 / 5502 (60.4689%)
+INFO	2023-04-04 17:23:03	LiftoverVcf	chr17: 3354 / 5535 (60.5962%)
+INFO	2023-04-04 17:23:03	LiftoverVcf	chr18: 3309 / 5414 (61.1193%)
+INFO	2023-04-04 17:23:03	LiftoverVcf	chr19: 2705 / 4382 (61.7298%)
+INFO	2023-04-04 17:23:03	LiftoverVcf	chr2: 9703 / 15880 (61.1020%)
+INFO	2023-04-04 17:23:03	LiftoverVcf	chr20: 2702 / 4282 (63.1014%)
+INFO	2023-04-04 17:23:03	LiftoverVcf	chr21: 1675 / 2642 (63.3989%)
+INFO	2023-04-04 17:23:03	LiftoverVcf	chr22: 1561 / 2481 (62.9182%)
+INFO	2023-04-04 17:23:03	LiftoverVcf	chr3: 8191 / 13206 (62.0248%)
+INFO	2023-04-04 17:23:03	LiftoverVcf	chr4: 8113 / 13319 (60.9130%)
+INFO	2023-04-04 17:23:03	LiftoverVcf	chr5: 7461 / 11852 (62.9514%)
+INFO	2023-04-04 17:23:03	LiftoverVcf	chr6: 7247 / 11639 (62.2648%)
+INFO	2023-04-04 17:23:03	LiftoverVcf	chr7: 6451 / 10567 (61.0485%)
+INFO	2023-04-04 17:23:03	LiftoverVcf	chr8: 6060 / 9731 (62.2752%)
+INFO	2023-04-04 17:23:03	LiftoverVcf	chr9: 4743 / 7586 (62.5231%)
+INFO	2023-04-04 17:23:03	LiftoverVcf	chrX: 5638 / 9197 (61.3026%)
+INFO	2023-04-04 17:23:03	LiftoverVcf	lifted variants by target contig:
+INFO	2023-04-04 17:23:03	LiftoverVcf	chr1: 9200
+INFO	2023-04-04 17:23:03	LiftoverVcf	chr10: 5617
+INFO	2023-04-04 17:23:03	LiftoverVcf	chr11: 5503
+INFO	2023-04-04 17:23:03	LiftoverVcf	chr12: 5653
+INFO	2023-04-04 17:23:03	LiftoverVcf	chr13: 4357
+INFO	2023-04-04 17:23:03	LiftoverVcf	chr14: 3791
+INFO	2023-04-04 17:23:03	LiftoverVcf	chr15: 3298
+INFO	2023-04-04 17:23:03	LiftoverVcf	chr16: 3327
+INFO	2023-04-04 17:23:03	LiftoverVcf	chr17: 3354
+INFO	2023-04-04 17:23:03	LiftoverVcf	chr18: 3309
+INFO	2023-04-04 17:23:03	LiftoverVcf	chr19: 2705
+INFO	2023-04-04 17:23:03	LiftoverVcf	chr2: 9703
+INFO	2023-04-04 17:23:03	LiftoverVcf	chr20: 2702
+INFO	2023-04-04 17:23:03	LiftoverVcf	chr21: 1675
+INFO	2023-04-04 17:23:03	LiftoverVcf	chr22: 1561
+INFO	2023-04-04 17:23:03	LiftoverVcf	chr3: 8191
+INFO	2023-04-04 17:23:03	LiftoverVcf	chr4: 8113
+INFO	2023-04-04 17:23:03	LiftoverVcf	chr5: 7461
+INFO	2023-04-04 17:23:03	LiftoverVcf	chr6: 7247
+INFO	2023-04-04 17:23:03	LiftoverVcf	chr7: 6451
+INFO	2023-04-04 17:23:03	LiftoverVcf	chr8: 6060
+INFO	2023-04-04 17:23:03	LiftoverVcf	chr9: 4743
+INFO	2023-04-04 17:23:03	LiftoverVcf	chrX: 5638
+INFO	2023-04-04 17:23:03	LiftoverVcf	0 variants were lifted by swapping REF/ALT alleles.
+INFO	2023-04-04 17:23:03	LiftoverVcf	Writing out sorted records to final VCF.
+[Tue Apr 04 17:23:04 EDT 2023] picard.vcf.LiftoverVcf done. Elapsed time: 0.30 minutes.
+Runtime.totalMemory()=1502609408
 step3:STRs_including_homopolymer:  Tool returned:
 step3:STRs_including_homopolymer:  0
 Using GATK jar /Users/weisburd/bin/gatk-package-4.2.0.0-local.jar
@@ -1019,13 +1033,15 @@ step3:STRs_including_homopolymer:input:          16,872 out of    194,795 (  8.7
 step3:STRs_including_homopolymer:input:          16,163 out of    194,795 (  8.3%) genotype: 2|1
 --------------
 step3:STRs_including_homopolymer:input:         194,795 out of    194,795 (100.0%) TOTAL variants
-step3:STRs_including_homopolymer:input:          96,591 out of    194,795 ( 49.6%) DEL variants
 step3:STRs_including_homopolymer:input:          86,395 out of    194,795 ( 44.4%) INS variants
+step3:STRs_including_homopolymer:input:          75,365 out of    194,795 ( 38.7%) DEL variants
 step3:STRs_including_homopolymer:input:          11,809 out of    194,795 (  6.1%) multiallelic INS variants
+step3:STRs_including_homopolymer:input:          11,415 out of    194,795 (  5.9%) multiallelic DEL variants
+step3:STRs_including_homopolymer:input:           9,811 out of    194,795 (  5.0%) mixed multiallelic INS/DEL variants
 --------------
 step3:STRs_including_homopolymer:input:         227,830 out of    227,830 (100.0%) TOTAL alleles
-step3:STRs_including_homopolymer:input:         110,013 out of    227,830 ( 48.3%) INS alleles
-step3:STRs_including_homopolymer:input:          96,591 out of    227,830 ( 42.4%) DEL alleles
+step3:STRs_including_homopolymer:input:         119,824 out of    227,830 ( 52.6%) INS alleles
+step3:STRs_including_homopolymer:input:         108,006 out of    227,830 ( 47.4%) DEL alleles
 --------------
 step3:STRs_including_homopolymer:output:      VCF stats for the output vcf -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --  step3.STRs_including_homopolymers.lifted_to_chm13v2.vcf.gz
 step3:STRs_including_homopolymer:output:         119,659 TOTAL variants
@@ -1039,12 +1055,14 @@ step3:STRs_including_homopolymer:output:           5,843 out of    119,659 (  4.
 --------------
 step3:STRs_including_homopolymer:output:         119,659 out of    119,659 (100.0%) TOTAL variants
 step3:STRs_including_homopolymer:output:          85,752 out of    119,659 ( 71.7%) INS variants
-step3:STRs_including_homopolymer:output:          22,119 out of    119,659 ( 18.5%) DEL variants
+step3:STRs_including_homopolymer:output:          21,832 out of    119,659 ( 18.2%) DEL variants
 step3:STRs_including_homopolymer:output:          11,788 out of    119,659 (  9.9%) multiallelic INS variants
+step3:STRs_including_homopolymer:output:             169 out of    119,659 (  0.1%) mixed multiallelic INS/DEL variants
+step3:STRs_including_homopolymer:output:             118 out of    119,659 (  0.1%) multiallelic DEL variants
 --------------
 step3:STRs_including_homopolymer:output:         131,734 out of    131,734 (100.0%) TOTAL alleles
-step3:STRs_including_homopolymer:output:         109,328 out of    131,734 ( 83.0%) INS alleles
-step3:STRs_including_homopolymer:output:          22,119 out of    131,734 ( 16.8%) DEL alleles
+step3:STRs_including_homopolymer:output:         109,497 out of    131,734 ( 83.1%) INS alleles
+step3:STRs_including_homopolymer:output:          22,237 out of    131,734 ( 16.9%) DEL alleles
 --------------
 step3:STRs_including_homopolymer:failed-liftover:      VCF stats for  -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --  step3.STRs_including_homopolymers.lifted_to_chm13v2_rejected.vcf.gz
 step3:STRs_including_homopolymer:failed-liftover:          75,136 TOTAL variants
@@ -1056,25 +1074,35 @@ step3:STRs_including_homopolymer:failed-liftover:          30,053 out of     75,
 step3:STRs_including_homopolymer:failed-liftover:          10,640 out of     75,136 ( 14.2%) genotype: 1|2
 step3:STRs_including_homopolymer:failed-liftover:          10,320 out of     75,136 ( 13.7%) genotype: 2|1
 --------------
-step3:STRs_including_homopolymer:failed-liftover:          74,472 out of     75,136 ( 99.1%) DEL variants
+step3:STRs_including_homopolymer:failed-liftover:          53,533 out of     75,136 ( 71.2%) DEL variants
 step3:STRs_including_homopolymer:failed-liftover:             643 out of     75,136 (  0.9%) INS variants
 step3:STRs_including_homopolymer:failed-liftover:          75,136 out of     75,136 (100.0%) TOTAL variants
 step3:STRs_including_homopolymer:failed-liftover:               2 out of     75,136 (  0.0%) filter:CannotLiftOver  DEL variants
 step3:STRs_including_homopolymer:failed-liftover:               1 out of     75,136 (  0.0%) filter:CannotLiftOver  INS variants
-step3:STRs_including_homopolymer:failed-liftover:          73,020 out of     75,136 ( 97.2%) filter:IndelStraddlesMultipleIntevals  DEL variants
-step3:STRs_including_homopolymer:failed-liftover:             865 out of     75,136 (  1.2%) filter:MismatchedRefAllele  DEL variants
+step3:STRs_including_homopolymer:failed-liftover:          52,105 out of     75,136 ( 69.3%) filter:IndelStraddlesMultipleIntevals  DEL variants
+step3:STRs_including_homopolymer:failed-liftover:           9,634 out of     75,136 ( 12.8%) filter:IndelStraddlesMultipleIntevals  mixed multiallelic INS/DEL variants
+step3:STRs_including_homopolymer:failed-liftover:          11,281 out of     75,136 ( 15.0%) filter:IndelStraddlesMultipleIntevals  multiallelic DEL variants
+step3:STRs_including_homopolymer:failed-liftover:             848 out of     75,136 (  1.1%) filter:MismatchedRefAllele  DEL variants
 step3:STRs_including_homopolymer:failed-liftover:             123 out of     75,136 (  0.2%) filter:MismatchedRefAllele  INS variants
+step3:STRs_including_homopolymer:failed-liftover:               5 out of     75,136 (  0.0%) filter:MismatchedRefAllele  mixed multiallelic INS/DEL variants
+step3:STRs_including_homopolymer:failed-liftover:              12 out of     75,136 (  0.0%) filter:MismatchedRefAllele  multiallelic DEL variants
 step3:STRs_including_homopolymer:failed-liftover:              15 out of     75,136 (  0.0%) filter:MismatchedRefAllele  multiallelic INS variants
-step3:STRs_including_homopolymer:failed-liftover:             585 out of     75,136 (  0.8%) filter:NoTarget  DEL variants
+step3:STRs_including_homopolymer:failed-liftover:             578 out of     75,136 (  0.8%) filter:NoTarget  DEL variants
 step3:STRs_including_homopolymer:failed-liftover:             519 out of     75,136 (  0.7%) filter:NoTarget  INS variants
+step3:STRs_including_homopolymer:failed-liftover:               3 out of     75,136 (  0.0%) filter:NoTarget  mixed multiallelic INS/DEL variants
+step3:STRs_including_homopolymer:failed-liftover:               4 out of     75,136 (  0.0%) filter:NoTarget  multiallelic DEL variants
 step3:STRs_including_homopolymer:failed-liftover:               6 out of     75,136 (  0.0%) filter:NoTarget  multiallelic INS variants
-step3:STRs_including_homopolymer:failed-liftover:          74,472 out of     75,136 ( 99.1%) filtered:  DEL variants
+step3:STRs_including_homopolymer:failed-liftover:          53,533 out of     75,136 ( 71.2%) filtered:  DEL variants
 step3:STRs_including_homopolymer:failed-liftover:             643 out of     75,136 (  0.9%) filtered:  INS variants
+step3:STRs_including_homopolymer:failed-liftover:           9,642 out of     75,136 ( 12.8%) filtered:  mixed multiallelic INS/DEL variants
+step3:STRs_including_homopolymer:failed-liftover:          11,297 out of     75,136 ( 15.0%) filtered:  multiallelic DEL variants
 step3:STRs_including_homopolymer:failed-liftover:              21 out of     75,136 (  0.0%) filtered:  multiallelic INS variants
+step3:STRs_including_homopolymer:failed-liftover:           9,642 out of     75,136 ( 12.8%) mixed multiallelic INS/DEL variants
+step3:STRs_including_homopolymer:failed-liftover:          11,297 out of     75,136 ( 15.0%) multiallelic DEL variants
 step3:STRs_including_homopolymer:failed-liftover:              21 out of     75,136 (  0.0%) multiallelic INS variants
 --------------
-step3:STRs_including_homopolymer:failed-liftover:          74,472 out of     96,096 ( 77.5%) DEL alleles
-step3:STRs_including_homopolymer:failed-liftover:             685 out of     96,096 (  0.7%) INS alleles
+step3:STRs_including_homopolymer:failed-liftover:          85,769 out of     96,096 ( 89.3%) DEL alleles
+step3:STRs_including_homopolymer:failed-liftover:          10,327 out of     96,096 ( 10.7%) INS alleles
 step3:STRs_including_homopolymer:failed-liftover:          96,096 out of     96,096 (100.0%) TOTAL alleles
 --------------
 step3:STRs_including_homopolymer:failed-liftover:          Reasons for Liftover failure:
@@ -1112,12 +1140,14 @@ step4:STRs_including_homopolymer:input:           5,843 out of    119,659 (  4.9
 --------------
 step4:STRs_including_homopolymer:input:         119,659 out of    119,659 (100.0%) TOTAL variants
 step4:STRs_including_homopolymer:input:          85,752 out of    119,659 ( 71.7%) INS variants
-step4:STRs_including_homopolymer:input:          22,119 out of    119,659 ( 18.5%) DEL variants
+step4:STRs_including_homopolymer:input:          21,832 out of    119,659 ( 18.2%) DEL variants
 step4:STRs_including_homopolymer:input:          11,788 out of    119,659 (  9.9%) multiallelic INS variants
+step4:STRs_including_homopolymer:input:             169 out of    119,659 (  0.1%) mixed multiallelic INS/DEL variants
+step4:STRs_including_homopolymer:input:             118 out of    119,659 (  0.1%) multiallelic DEL variants
 --------------
 step4:STRs_including_homopolymer:input:         131,734 out of    131,734 (100.0%) TOTAL alleles
-step4:STRs_including_homopolymer:input:         109,328 out of    131,734 ( 83.0%) INS alleles
-step4:STRs_including_homopolymer:input:          22,119 out of    131,734 ( 16.8%) DEL alleles
+step4:STRs_including_homopolymer:input:         109,497 out of    131,734 ( 83.1%) INS alleles
+step4:STRs_including_homopolymer:input:          22,237 out of    131,734 ( 16.9%) DEL alleles
 --------------
 step4:STRs_including_homopolymer:output:      VCF stats for the output vcf -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --  step4.STRs_including_homopolymers.found_in_chm13v2.vcf.gz
 step4:STRs_including_homopolymer:output:         119,135 TOTAL variants
@@ -1131,11 +1161,12 @@ step4:STRs_including_homopolymer:output:           5,792 out of    119,135 (  4.
 --------------
 step4:STRs_including_homopolymer:output:         119,135 out of    119,135 (100.0%) TOTAL variants
 step4:STRs_including_homopolymer:output:          85,609 out of    119,135 ( 71.9%) INS variants
-step4:STRs_including_homopolymer:output:          21,810 out of    119,135 ( 18.3%) DEL variants
+step4:STRs_including_homopolymer:output:          21,644 out of    119,135 ( 18.2%) DEL variants
 step4:STRs_including_homopolymer:output:          11,716 out of    119,135 (  9.8%) multiallelic INS variants
+step4:STRs_including_homopolymer:output:             166 out of    119,135 (  0.1%) mixed multiallelic INS/DEL variants
 --------------
 step4:STRs_including_homopolymer:output:         131,017 out of    131,017 (100.0%) TOTAL alleles
-step4:STRs_including_homopolymer:output:         109,041 out of    131,017 ( 83.2%) INS alleles
+step4:STRs_including_homopolymer:output:         109,207 out of    131,017 ( 83.4%) INS alleles
 step4:STRs_including_homopolymer:output:          21,810 out of    131,017 ( 16.6%) DEL alleles
 --------------
 ===============
@@ -1143,67 +1174,67 @@ STEP #5: Liftover the truth variants that passed all checks back to hg38
          INPUT: step4.STRs_including_homopolymers.found_in_chm13v2.vcf.gz        119135 variants
 + gatk --java-options -Xmx7g LiftoverVcf -R ./ref/hg38.fa -C ./ref/chm13v2-hg38.chain -I step4.STRs_including_homopolymers.found_in_chm13v2.vcf.gz -O step5.STRs_including_homopolymers.lifted_back_to_38.vcf.gz --REJECT step5.STRs_including_homopolymers.lifted_back_to_38_rejected.vcf.gz --VALIDATION_STRINGENCY LENIENT --RECOVER_SWAPPED_REF_ALT --WARN_ON_MISSING_CONTIG --LIFTOVER_MIN_MATCH 0.00001 --WRITE_ORIGINAL_POSITION --WRITE_ORIGINAL_ALLELES --ALLOW_MISSING_FIELDS_IN_HEADER
 + python3 -u scripts/add_prefix_to_stdout.py 'step5:STRs_including_homopolymer: '
-12:49:41.726 INFO  NativeLibraryLoader - Loading libgkl_compression.dylib from jar:file:/Users/weisburd/bin/gatk-package-4.2.0.0-local.jar!/com/intel/gkl/native/libgkl_compression.dylib
-[Tue Apr 04 12:49:41 EDT 2023] LiftoverVcf --INPUT step4.STRs_including_homopolymers.found_in_chm13v2.vcf.gz --OUTPUT step5.STRs_including_homopolymers.lifted_back_to_38.vcf.gz --CHAIN ./ref/chm13v2-hg38.chain --REJECT step5.STRs_including_homopolymers.lifted_back_to_38_rejected.vcf.gz --WARN_ON_MISSING_CONTIG true --WRITE_ORIGINAL_POSITION true --WRITE_ORIGINAL_ALLELES true --LIFTOVER_MIN_MATCH 1.0E-5 --ALLOW_MISSING_FIELDS_IN_HEADER true --RECOVER_SWAPPED_REF_ALT true --VALIDATION_STRINGENCY LENIENT --REFERENCE_SEQUENCE ./ref/hg38.fa --LOG_FAILED_INTERVALS true --TAGS_TO_REVERSE AF --TAGS_TO_DROP MAX_AF --DISABLE_SORT false --VERBOSITY INFO --QUIET false --COMPRESSION_LEVEL 2 --MAX_RECORDS_IN_RAM 500000 --CREATE_INDEX false --CREATE_MD5_FILE false --GA4GH_CLIENT_SECRETS client_secrets.json --help false --version false --showHidden false --USE_JDK_DEFLATER false --USE_JDK_INFLATER false
-[Tue Apr 04 12:49:42 EDT 2023] Executing as weisburd@wm103-772 on Mac OS X 10.16 x86_64; OpenJDK 64-Bit Server VM 1.8.0_322-b06; Deflater: Intel; Inflater: Intel; Provider GCS is available; Picard version: Version:4.2.0.0
-INFO	2023-04-04 12:49:42	LiftoverVcf	Loading up the target reference genome.
-INFO	2023-04-04 12:50:05	LiftoverVcf	Lifting variants over and sorting (not yet writing the output file.)
-INFO	2023-04-04 12:50:14	LiftoverVcf	Processed 119135 variants.
-INFO	2023-04-04 12:50:14	LiftoverVcf	69 variants failed to liftover.
-INFO	2023-04-04 12:50:14	LiftoverVcf	0 variants lifted over but had mismatching reference alleles after lift over.
-INFO	2023-04-04 12:50:14	LiftoverVcf	0.0579% of variants were not successfully lifted over and written to the output.
-INFO	2023-04-04 12:50:14	LiftoverVcf	liftover success by source contig:
-INFO	2023-04-04 12:50:14	LiftoverVcf	chr1: 9107 / 9132 (99.7262%)
-INFO	2023-04-04 12:50:14	LiftoverVcf	chr10: 5594 / 5594 (100.0000%)
-INFO	2023-04-04 12:50:14	LiftoverVcf	chr11: 5478 / 5482 (99.9270%)
-INFO	2023-04-04 12:50:14	LiftoverVcf	chr12: 5638 / 5638 (100.0000%)
-INFO	2023-04-04 12:50:14	LiftoverVcf	chr13: 4346 / 4346 (100.0000%)
-INFO	2023-04-04 12:50:14	LiftoverVcf	chr14: 3778 / 3778 (100.0000%)
-INFO	2023-04-04 12:50:14	LiftoverVcf	chr15: 3285 / 3285 (100.0000%)
-INFO	2023-04-04 12:50:14	LiftoverVcf	chr16: 3298 / 3305 (99.7882%)
-INFO	2023-04-04 12:50:14	LiftoverVcf	chr17: 3346 / 3346 (100.0000%)
-INFO	2023-04-04 12:50:14	LiftoverVcf	chr18: 3302 / 3302 (100.0000%)
-INFO	2023-04-04 12:50:14	LiftoverVcf	chr19: 2694 / 2694 (100.0000%)
-INFO	2023-04-04 12:50:14	LiftoverVcf	chr2: 9682 / 9682 (100.0000%)
-INFO	2023-04-04 12:50:14	LiftoverVcf	chr20: 2691 / 2691 (100.0000%)
-INFO	2023-04-04 12:50:14	LiftoverVcf	chr21: 1671 / 1671 (100.0000%)
-INFO	2023-04-04 12:50:14	LiftoverVcf	chr22: 1549 / 1549 (100.0000%)
-INFO	2023-04-04 12:50:14	LiftoverVcf	chr3: 8155 / 8158 (99.9632%)
-INFO	2023-04-04 12:50:14	LiftoverVcf	chr4: 8090 / 8090 (100.0000%)
-INFO	2023-04-04 12:50:14	LiftoverVcf	chr5: 7436 / 7436 (100.0000%)
-INFO	2023-04-04 12:50:14	LiftoverVcf	chr6: 7225 / 7225 (100.0000%)
-INFO	2023-04-04 12:50:14	LiftoverVcf	chr7: 6426 / 6426 (100.0000%)
-INFO	2023-04-04 12:50:14	LiftoverVcf	chr8: 5940 / 5966 (99.5642%)
-INFO	2023-04-04 12:50:14	LiftoverVcf	chr9: 4725 / 4726 (99.9788%)
-INFO	2023-04-04 12:50:14	LiftoverVcf	chrX: 5610 / 5613 (99.9466%)
-INFO	2023-04-04 12:50:14	LiftoverVcf	lifted variants by target contig:
-INFO	2023-04-04 12:50:14	LiftoverVcf	chr1: 9107
-INFO	2023-04-04 12:50:14	LiftoverVcf	chr10: 5594
-INFO	2023-04-04 12:50:14	LiftoverVcf	chr11: 5478
-INFO	2023-04-04 12:50:14	LiftoverVcf	chr12: 5638
-INFO	2023-04-04 12:50:14	LiftoverVcf	chr13: 4346
-INFO	2023-04-04 12:50:14	LiftoverVcf	chr14: 3778
-INFO	2023-04-04 12:50:14	LiftoverVcf	chr15: 3285
-INFO	2023-04-04 12:50:14	LiftoverVcf	chr16: 3298
-INFO	2023-04-04 12:50:14	LiftoverVcf	chr17: 3346
-INFO	2023-04-04 12:50:14	LiftoverVcf	chr18: 3302
-INFO	2023-04-04 12:50:14	LiftoverVcf	chr19: 2694
-INFO	2023-04-04 12:50:14	LiftoverVcf	chr2: 9682
-INFO	2023-04-04 12:50:14	LiftoverVcf	chr20: 2691
-INFO	2023-04-04 12:50:14	LiftoverVcf	chr21: 1671
-INFO	2023-04-04 12:50:14	LiftoverVcf	chr22: 1549
-INFO	2023-04-04 12:50:14	LiftoverVcf	chr3: 8155
-INFO	2023-04-04 12:50:14	LiftoverVcf	chr4: 8090
-INFO	2023-04-04 12:50:14	LiftoverVcf	chr5: 7436
-INFO	2023-04-04 12:50:14	LiftoverVcf	chr6: 7225
-INFO	2023-04-04 12:50:14	LiftoverVcf	chr7: 6426
-INFO	2023-04-04 12:50:14	LiftoverVcf	chr8: 5940
-INFO	2023-04-04 12:50:14	LiftoverVcf	chr9: 4725
-INFO	2023-04-04 12:50:14	LiftoverVcf	chrX: 5610
-INFO	2023-04-04 12:50:14	LiftoverVcf	0 variants were lifted by swapping REF/ALT alleles.
-INFO	2023-04-04 12:50:14	LiftoverVcf	Writing out sorted records to final VCF.
-[Tue Apr 04 12:50:15 EDT 2023] picard.vcf.LiftoverVcf done. Elapsed time: 0.57 minutes.
-Runtime.totalMemory()=5462032384
+17:23:15.342 INFO  NativeLibraryLoader - Loading libgkl_compression.dylib from jar:file:/Users/weisburd/bin/gatk-package-4.2.0.0-local.jar!/com/intel/gkl/native/libgkl_compression.dylib
+[Tue Apr 04 17:23:15 EDT 2023] LiftoverVcf --INPUT step4.STRs_including_homopolymers.found_in_chm13v2.vcf.gz --OUTPUT step5.STRs_including_homopolymers.lifted_back_to_38.vcf.gz --CHAIN ./ref/chm13v2-hg38.chain --REJECT step5.STRs_including_homopolymers.lifted_back_to_38_rejected.vcf.gz --WARN_ON_MISSING_CONTIG true --WRITE_ORIGINAL_POSITION true --WRITE_ORIGINAL_ALLELES true --LIFTOVER_MIN_MATCH 1.0E-5 --ALLOW_MISSING_FIELDS_IN_HEADER true --RECOVER_SWAPPED_REF_ALT true --VALIDATION_STRINGENCY LENIENT --REFERENCE_SEQUENCE ./ref/hg38.fa --LOG_FAILED_INTERVALS true --TAGS_TO_REVERSE AF --TAGS_TO_DROP MAX_AF --DISABLE_SORT false --VERBOSITY INFO --QUIET false --COMPRESSION_LEVEL 2 --MAX_RECORDS_IN_RAM 500000 --CREATE_INDEX false --CREATE_MD5_FILE false --GA4GH_CLIENT_SECRETS client_secrets.json --help false --version false --showHidden false --USE_JDK_DEFLATER false --USE_JDK_INFLATER false
+[Tue Apr 04 17:23:15 EDT 2023] Executing as weisburd@wm103-772 on Mac OS X 10.16 x86_64; OpenJDK 64-Bit Server VM 1.8.0_322-b06; Deflater: Intel; Inflater: Intel; Provider GCS is available; Picard version: Version:4.2.0.0
+INFO	2023-04-04 17:23:16	LiftoverVcf	Loading up the target reference genome.
+INFO	2023-04-04 17:23:30	LiftoverVcf	Lifting variants over and sorting (not yet writing the output file.)
+INFO	2023-04-04 17:23:33	LiftoverVcf	Processed 119135 variants.
+INFO	2023-04-04 17:23:34	LiftoverVcf	69 variants failed to liftover.
+INFO	2023-04-04 17:23:34	LiftoverVcf	0 variants lifted over but had mismatching reference alleles after lift over.
+INFO	2023-04-04 17:23:34	LiftoverVcf	0.0579% of variants were not successfully lifted over and written to the output.
+INFO	2023-04-04 17:23:34	LiftoverVcf	liftover success by source contig:
+INFO	2023-04-04 17:23:34	LiftoverVcf	chr1: 9107 / 9132 (99.7262%)
+INFO	2023-04-04 17:23:34	LiftoverVcf	chr10: 5594 / 5594 (100.0000%)
+INFO	2023-04-04 17:23:34	LiftoverVcf	chr11: 5478 / 5482 (99.9270%)
+INFO	2023-04-04 17:23:34	LiftoverVcf	chr12: 5638 / 5638 (100.0000%)
+INFO	2023-04-04 17:23:34	LiftoverVcf	chr13: 4346 / 4346 (100.0000%)
+INFO	2023-04-04 17:23:34	LiftoverVcf	chr14: 3778 / 3778 (100.0000%)
+INFO	2023-04-04 17:23:34	LiftoverVcf	chr15: 3285 / 3285 (100.0000%)
+INFO	2023-04-04 17:23:34	LiftoverVcf	chr16: 3298 / 3305 (99.7882%)
+INFO	2023-04-04 17:23:34	LiftoverVcf	chr17: 3346 / 3346 (100.0000%)
+INFO	2023-04-04 17:23:34	LiftoverVcf	chr18: 3302 / 3302 (100.0000%)
+INFO	2023-04-04 17:23:34	LiftoverVcf	chr19: 2694 / 2694 (100.0000%)
+INFO	2023-04-04 17:23:34	LiftoverVcf	chr2: 9682 / 9682 (100.0000%)
+INFO	2023-04-04 17:23:34	LiftoverVcf	chr20: 2691 / 2691 (100.0000%)
+INFO	2023-04-04 17:23:34	LiftoverVcf	chr21: 1671 / 1671 (100.0000%)
+INFO	2023-04-04 17:23:34	LiftoverVcf	chr22: 1549 / 1549 (100.0000%)
+INFO	2023-04-04 17:23:34	LiftoverVcf	chr3: 8155 / 8158 (99.9632%)
+INFO	2023-04-04 17:23:34	LiftoverVcf	chr4: 8090 / 8090 (100.0000%)
+INFO	2023-04-04 17:23:34	LiftoverVcf	chr5: 7436 / 7436 (100.0000%)
+INFO	2023-04-04 17:23:34	LiftoverVcf	chr6: 7225 / 7225 (100.0000%)
+INFO	2023-04-04 17:23:34	LiftoverVcf	chr7: 6426 / 6426 (100.0000%)
+INFO	2023-04-04 17:23:34	LiftoverVcf	chr8: 5940 / 5966 (99.5642%)
+INFO	2023-04-04 17:23:34	LiftoverVcf	chr9: 4725 / 4726 (99.9788%)
+INFO	2023-04-04 17:23:34	LiftoverVcf	chrX: 5610 / 5613 (99.9466%)
+INFO	2023-04-04 17:23:34	LiftoverVcf	lifted variants by target contig:
+INFO	2023-04-04 17:23:34	LiftoverVcf	chr1: 9107
+INFO	2023-04-04 17:23:34	LiftoverVcf	chr10: 5594
+INFO	2023-04-04 17:23:34	LiftoverVcf	chr11: 5478
+INFO	2023-04-04 17:23:34	LiftoverVcf	chr12: 5638
+INFO	2023-04-04 17:23:34	LiftoverVcf	chr13: 4346
+INFO	2023-04-04 17:23:34	LiftoverVcf	chr14: 3778
+INFO	2023-04-04 17:23:34	LiftoverVcf	chr15: 3285
+INFO	2023-04-04 17:23:34	LiftoverVcf	chr16: 3298
+INFO	2023-04-04 17:23:34	LiftoverVcf	chr17: 3346
+INFO	2023-04-04 17:23:34	LiftoverVcf	chr18: 3302
+INFO	2023-04-04 17:23:34	LiftoverVcf	chr19: 2694
+INFO	2023-04-04 17:23:34	LiftoverVcf	chr2: 9682
+INFO	2023-04-04 17:23:34	LiftoverVcf	chr20: 2691
+INFO	2023-04-04 17:23:34	LiftoverVcf	chr21: 1671
+INFO	2023-04-04 17:23:34	LiftoverVcf	chr22: 1549
+INFO	2023-04-04 17:23:34	LiftoverVcf	chr3: 8155
+INFO	2023-04-04 17:23:34	LiftoverVcf	chr4: 8090
+INFO	2023-04-04 17:23:34	LiftoverVcf	chr5: 7436
+INFO	2023-04-04 17:23:34	LiftoverVcf	chr6: 7225
+INFO	2023-04-04 17:23:34	LiftoverVcf	chr7: 6426
+INFO	2023-04-04 17:23:34	LiftoverVcf	chr8: 5940
+INFO	2023-04-04 17:23:34	LiftoverVcf	chr9: 4725
+INFO	2023-04-04 17:23:34	LiftoverVcf	chrX: 5610
+INFO	2023-04-04 17:23:34	LiftoverVcf	0 variants were lifted by swapping REF/ALT alleles.
+INFO	2023-04-04 17:23:34	LiftoverVcf	Writing out sorted records to final VCF.
+[Tue Apr 04 17:23:34 EDT 2023] picard.vcf.LiftoverVcf done. Elapsed time: 0.33 minutes.
+Runtime.totalMemory()=5500305408
 step5:STRs_including_homopolymer: Tool returned:
 step5:STRs_including_homopolymer: 0
 Using GATK jar /Users/weisburd/bin/gatk-package-4.2.0.0-local.jar
@@ -1223,11 +1254,12 @@ step5:STRs_including_homopolymer:input:           5,792 out of    119,135 (  4.9
 --------------
 step5:STRs_including_homopolymer:input:         119,135 out of    119,135 (100.0%) TOTAL variants
 step5:STRs_including_homopolymer:input:          85,609 out of    119,135 ( 71.9%) INS variants
-step5:STRs_including_homopolymer:input:          21,810 out of    119,135 ( 18.3%) DEL variants
+step5:STRs_including_homopolymer:input:          21,644 out of    119,135 ( 18.2%) DEL variants
 step5:STRs_including_homopolymer:input:          11,716 out of    119,135 (  9.8%) multiallelic INS variants
+step5:STRs_including_homopolymer:input:             166 out of    119,135 (  0.1%) mixed multiallelic INS/DEL variants
 --------------
 step5:STRs_including_homopolymer:input:         131,017 out of    131,017 (100.0%) TOTAL alleles
-step5:STRs_including_homopolymer:input:         109,041 out of    131,017 ( 83.2%) INS alleles
+step5:STRs_including_homopolymer:input:         109,207 out of    131,017 ( 83.4%) INS alleles
 step5:STRs_including_homopolymer:input:          21,810 out of    131,017 ( 16.6%) DEL alleles
 --------------
 step5:STRs_including_homopolymer:output:      VCF stats for the output vcf -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --  step5.STRs_including_homopolymers.lifted_back_to_38.vcf.gz
@@ -1242,11 +1274,12 @@ step5:STRs_including_homopolymer:output:           5,792 out of    119,066 (  4.
 --------------
 step5:STRs_including_homopolymer:output:         119,066 out of    119,066 (100.0%) TOTAL variants
 step5:STRs_including_homopolymer:output:          85,540 out of    119,066 ( 71.8%) INS variants
-step5:STRs_including_homopolymer:output:          21,810 out of    119,066 ( 18.3%) DEL variants
+step5:STRs_including_homopolymer:output:          21,644 out of    119,066 ( 18.2%) DEL variants
 step5:STRs_including_homopolymer:output:          11,716 out of    119,066 (  9.8%) multiallelic INS variants
+step5:STRs_including_homopolymer:output:             166 out of    119,066 (  0.1%) mixed multiallelic INS/DEL variants
 --------------
 step5:STRs_including_homopolymer:output:         130,948 out of    130,948 (100.0%) TOTAL alleles
-step5:STRs_including_homopolymer:output:         108,972 out of    130,948 ( 83.2%) INS alleles
+step5:STRs_including_homopolymer:output:         109,138 out of    130,948 ( 83.3%) INS alleles
 step5:STRs_including_homopolymer:output:          21,810 out of    130,948 ( 16.7%) DEL alleles
 --------------
 step5:STRs_including_homopolymer:failed-liftover:      VCF stats for  -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --  step5.STRs_including_homopolymers.lifted_back_to_38_rejected.vcf.gz
@@ -1277,45 +1310,45 @@ STEP #6: Restore deletions that were dropped in the 1st liftover (hg38 => chm13v
 + grep IndelStraddlesMultipleIntevals
 + awk '{ if ( length($4) > length($5) || index($5, ",") > 0) { print $0 } }'
 + gatk FixVcfHeader -I temp.vcf -O temp.fixed.vcf
-12:50:22.916 INFO  NativeLibraryLoader - Loading libgkl_compression.dylib from jar:file:/Users/weisburd/bin/gatk-package-4.2.0.0-local.jar!/com/intel/gkl/native/libgkl_compression.dylib
-[Tue Apr 04 12:50:23 EDT 2023] FixVcfHeader --INPUT temp.vcf --OUTPUT temp.fixed.vcf --CHECK_FIRST_N_RECORDS -1 --ENFORCE_SAME_SAMPLES true --VERBOSITY INFO --QUIET false --VALIDATION_STRINGENCY STRICT --COMPRESSION_LEVEL 2 --MAX_RECORDS_IN_RAM 500000 --CREATE_INDEX false --CREATE_MD5_FILE false --GA4GH_CLIENT_SECRETS client_secrets.json --help false --version false --showHidden false --USE_JDK_DEFLATER false --USE_JDK_INFLATER false
-[Tue Apr 04 12:50:23 EDT 2023] Executing as weisburd@wm103-772 on Mac OS X 10.16 x86_64; OpenJDK 64-Bit Server VM 1.8.0_322-b06; Deflater: Intel; Inflater: Intel; Provider GCS is available; Picard version: Version:4.2.0.0
-INFO	2023-04-04 12:50:23	FixVcfHeader	Reading in records to re-build the header.
-INFO	2023-04-04 12:50:23	FixVcfHeader	Will add an INFO line with id: LocusId
-INFO	2023-04-04 12:50:23	FixVcfHeader	Will add an INFO line with id: NumRepeats2
-INFO	2023-04-04 12:50:23	FixVcfHeader	Will add an INFO line with id: NumRepeats1
-INFO	2023-04-04 12:50:23	FixVcfHeader	Will add an INFO line with id: Motif
-INFO	2023-04-04 12:50:24	FixVcfHeader	Will add an FILTER line with id: IndelStraddlesMultipleIntevals
-INFO	2023-04-04 12:50:25	FixVcfHeader	VCF header re-built.
-INFO	2023-04-04 12:50:25	FixVcfHeader	Writing the output VCF.
-[Tue Apr 04 12:50:27 EDT 2023] picard.vcf.FixVcfHeader done. Elapsed time: 0.07 minutes.
-Runtime.totalMemory()=825229312
+17:23:39.724 INFO  NativeLibraryLoader - Loading libgkl_compression.dylib from jar:file:/Users/weisburd/bin/gatk-package-4.2.0.0-local.jar!/com/intel/gkl/native/libgkl_compression.dylib
+[Tue Apr 04 17:23:39 EDT 2023] FixVcfHeader --INPUT temp.vcf --OUTPUT temp.fixed.vcf --CHECK_FIRST_N_RECORDS -1 --ENFORCE_SAME_SAMPLES true --VERBOSITY INFO --QUIET false --VALIDATION_STRINGENCY STRICT --COMPRESSION_LEVEL 2 --MAX_RECORDS_IN_RAM 500000 --CREATE_INDEX false --CREATE_MD5_FILE false --GA4GH_CLIENT_SECRETS client_secrets.json --help false --version false --showHidden false --USE_JDK_DEFLATER false --USE_JDK_INFLATER false
+[Tue Apr 04 17:23:40 EDT 2023] Executing as weisburd@wm103-772 on Mac OS X 10.16 x86_64; OpenJDK 64-Bit Server VM 1.8.0_322-b06; Deflater: Intel; Inflater: Intel; Provider GCS is available; Picard version: Version:4.2.0.0
+INFO	2023-04-04 17:23:40	FixVcfHeader	Reading in records to re-build the header.
+INFO	2023-04-04 17:23:40	FixVcfHeader	Will add an INFO line with id: LocusId
+INFO	2023-04-04 17:23:40	FixVcfHeader	Will add an INFO line with id: NumRepeats2
+INFO	2023-04-04 17:23:40	FixVcfHeader	Will add an INFO line with id: NumRepeats1
+INFO	2023-04-04 17:23:40	FixVcfHeader	Will add an INFO line with id: Motif
+INFO	2023-04-04 17:23:40	FixVcfHeader	Will add an FILTER line with id: IndelStraddlesMultipleIntevals
+INFO	2023-04-04 17:23:41	FixVcfHeader	VCF header re-built.
+INFO	2023-04-04 17:23:41	FixVcfHeader	Writing the output VCF.
+[Tue Apr 04 17:23:42 EDT 2023] picard.vcf.FixVcfHeader done. Elapsed time: 0.05 minutes.
+Runtime.totalMemory()=670040064
 Tool returned:
 0
 Using GATK jar /Users/weisburd/bin/gatk-package-4.2.0.0-local.jar
 Running:
     java -Dsamjdk.use_async_io_read_samtools=false -Dsamjdk.use_async_io_write_samtools=true -Dsamjdk.use_async_io_write_tribble=false -Dsamjdk.compression_level=2 -jar /Users/weisburd/bin/gatk-package-4.2.0.0-local.jar FixVcfHeader -I temp.vcf -O temp.fixed.vcf
 + gatk SortVcf -I temp.fixed.vcf -O step6.STRs_including_homopolymers.restored_dels_that_failed_liftover.vcf.gz
-12:50:29.826 INFO  NativeLibraryLoader - Loading libgkl_compression.dylib from jar:file:/Users/weisburd/bin/gatk-package-4.2.0.0-local.jar!/com/intel/gkl/native/libgkl_compression.dylib
-[Tue Apr 04 12:50:29 EDT 2023] SortVcf --INPUT temp.fixed.vcf --OUTPUT step6.STRs_including_homopolymers.restored_dels_that_failed_liftover.vcf.gz --VERBOSITY INFO --QUIET false --VALIDATION_STRINGENCY STRICT --COMPRESSION_LEVEL 2 --MAX_RECORDS_IN_RAM 500000 --CREATE_INDEX true --CREATE_MD5_FILE false --GA4GH_CLIENT_SECRETS client_secrets.json --help false --version false --showHidden false --USE_JDK_DEFLATER false --USE_JDK_INFLATER false
-[Tue Apr 04 12:50:29 EDT 2023] Executing as weisburd@wm103-772 on Mac OS X 10.16 x86_64; OpenJDK 64-Bit Server VM 1.8.0_322-b06; Deflater: Intel; Inflater: Intel; Provider GCS is available; Picard version: Version:4.2.0.0
-INFO	2023-04-04 12:50:30	SortVcf	Reading entries from input file 1
-INFO	2023-04-04 12:50:30	SortVcf	read        25,000 records.  Elapsed time: 00:00:00s.  Time for last 25,000:    0s.  Last read position: chr12:117,150,871
-INFO	2023-04-04 12:50:30	SortVcf	read        50,000 records.  Elapsed time: 00:00:00s.  Time for last 25,000:    0s.  Last read position: chr2:3,676,780
-INFO	2023-04-04 12:50:30	SortVcf	read        75,000 records.  Elapsed time: 00:00:00s.  Time for last 25,000:    0s.  Last read position: chr4:32,665,049
-INFO	2023-04-04 12:50:30	SortVcf	read       100,000 records.  Elapsed time: 00:00:00s.  Time for last 25,000:    0s.  Last read position: chr7:89,987,020
-INFO	2023-04-04 12:50:30	SortVcf	read       125,000 records.  Elapsed time: 00:00:00s.  Time for last 25,000:    0s.  Last read position: chr2:4,490,235
-INFO	2023-04-04 12:50:31	SortVcf	read       150,000 records.  Elapsed time: 00:00:00s.  Time for last 25,000:    0s.  Last read position: chr7:24,304,480
-INFO	2023-04-04 12:50:31	SortVcf	read       175,000 records.  Elapsed time: 00:00:01s.  Time for last 25,000:    0s.  Last read position: chr14:93,718,633
-INFO	2023-04-04 12:50:31	SortVcf	wrote        25,000 records.  Elapsed time: 00:00:00s.  Time for last 25,000:    0s.  Last read position: chr11:13,418,184
-INFO	2023-04-04 12:50:31	SortVcf	wrote        50,000 records.  Elapsed time: 00:00:00s.  Time for last 25,000:    0s.  Last read position: chr14:29,523,785
-INFO	2023-04-04 12:50:31	SortVcf	wrote        75,000 records.  Elapsed time: 00:00:00s.  Time for last 25,000:    0s.  Last read position: chr18:56,486,491
-INFO	2023-04-04 12:50:31	SortVcf	wrote       100,000 records.  Elapsed time: 00:00:00s.  Time for last 25,000:    0s.  Last read position: chr20:48,361,360
-INFO	2023-04-04 12:50:32	SortVcf	wrote       125,000 records.  Elapsed time: 00:00:00s.  Time for last 25,000:    0s.  Last read position: chr4:85,128,959
-INFO	2023-04-04 12:50:32	SortVcf	wrote       150,000 records.  Elapsed time: 00:00:00s.  Time for last 25,000:    0s.  Last read position: chr6:85,729,559
-INFO	2023-04-04 12:50:32	SortVcf	wrote       175,000 records.  Elapsed time: 00:00:00s.  Time for last 25,000:    0s.  Last read position: chr8:136,824,857
-[Tue Apr 04 12:50:32 EDT 2023] picard.vcf.SortVcf done. Elapsed time: 0.04 minutes.
-Runtime.totalMemory()=976748544
+17:23:44.436 INFO  NativeLibraryLoader - Loading libgkl_compression.dylib from jar:file:/Users/weisburd/bin/gatk-package-4.2.0.0-local.jar!/com/intel/gkl/native/libgkl_compression.dylib
+[Tue Apr 04 17:23:44 EDT 2023] SortVcf --INPUT temp.fixed.vcf --OUTPUT step6.STRs_including_homopolymers.restored_dels_that_failed_liftover.vcf.gz --VERBOSITY INFO --QUIET false --VALIDATION_STRINGENCY STRICT --COMPRESSION_LEVEL 2 --MAX_RECORDS_IN_RAM 500000 --CREATE_INDEX true --CREATE_MD5_FILE false --GA4GH_CLIENT_SECRETS client_secrets.json --help false --version false --showHidden false --USE_JDK_DEFLATER false --USE_JDK_INFLATER false
+[Tue Apr 04 17:23:44 EDT 2023] Executing as weisburd@wm103-772 on Mac OS X 10.16 x86_64; OpenJDK 64-Bit Server VM 1.8.0_322-b06; Deflater: Intel; Inflater: Intel; Provider GCS is available; Picard version: Version:4.2.0.0
+INFO	2023-04-04 17:23:44	SortVcf	Reading entries from input file 1
+INFO	2023-04-04 17:23:44	SortVcf	read        25,000 records.  Elapsed time: 00:00:00s.  Time for last 25,000:    0s.  Last read position: chr12:117,150,871
+INFO	2023-04-04 17:23:44	SortVcf	read        50,000 records.  Elapsed time: 00:00:00s.  Time for last 25,000:    0s.  Last read position: chr2:3,676,780
+INFO	2023-04-04 17:23:45	SortVcf	read        75,000 records.  Elapsed time: 00:00:00s.  Time for last 25,000:    0s.  Last read position: chr4:32,665,049
+INFO	2023-04-04 17:23:45	SortVcf	read       100,000 records.  Elapsed time: 00:00:00s.  Time for last 25,000:    0s.  Last read position: chr7:89,987,020
+INFO	2023-04-04 17:23:45	SortVcf	read       125,000 records.  Elapsed time: 00:00:00s.  Time for last 25,000:    0s.  Last read position: chr2:4,490,235
+INFO	2023-04-04 17:23:45	SortVcf	read       150,000 records.  Elapsed time: 00:00:00s.  Time for last 25,000:    0s.  Last read position: chr7:24,304,480
+INFO	2023-04-04 17:23:45	SortVcf	read       175,000 records.  Elapsed time: 00:00:01s.  Time for last 25,000:    0s.  Last read position: chr14:93,718,633
+INFO	2023-04-04 17:23:46	SortVcf	wrote        25,000 records.  Elapsed time: 00:00:00s.  Time for last 25,000:    0s.  Last read position: chr11:13,418,184
+INFO	2023-04-04 17:23:46	SortVcf	wrote        50,000 records.  Elapsed time: 00:00:00s.  Time for last 25,000:    0s.  Last read position: chr14:29,523,785
+INFO	2023-04-04 17:23:46	SortVcf	wrote        75,000 records.  Elapsed time: 00:00:00s.  Time for last 25,000:    0s.  Last read position: chr18:56,486,491
+INFO	2023-04-04 17:23:46	SortVcf	wrote       100,000 records.  Elapsed time: 00:00:00s.  Time for last 25,000:    0s.  Last read position: chr20:48,361,360
+INFO	2023-04-04 17:23:46	SortVcf	wrote       125,000 records.  Elapsed time: 00:00:00s.  Time for last 25,000:    0s.  Last read position: chr4:85,128,959
+INFO	2023-04-04 17:23:46	SortVcf	wrote       150,000 records.  Elapsed time: 00:00:00s.  Time for last 25,000:    0s.  Last read position: chr6:85,729,559
+INFO	2023-04-04 17:23:46	SortVcf	wrote       175,000 records.  Elapsed time: 00:00:00s.  Time for last 25,000:    0s.  Last read position: chr8:136,824,857
+[Tue Apr 04 17:23:46 EDT 2023] picard.vcf.SortVcf done. Elapsed time: 0.04 minutes.
+Runtime.totalMemory()=991952896
 Tool returned:
 0
 Using GATK jar /Users/weisburd/bin/gatk-package-4.2.0.0-local.jar
@@ -1336,11 +1369,12 @@ step6:STRs_including_homopolymer:input:           5,792 out of    119,066 (  4.9
 --------------
 step6:STRs_including_homopolymer:input:         119,066 out of    119,066 (100.0%) TOTAL variants
 step6:STRs_including_homopolymer:input:          85,540 out of    119,066 ( 71.8%) INS variants
-step6:STRs_including_homopolymer:input:          21,810 out of    119,066 ( 18.3%) DEL variants
+step6:STRs_including_homopolymer:input:          21,644 out of    119,066 ( 18.2%) DEL variants
 step6:STRs_including_homopolymer:input:          11,716 out of    119,066 (  9.8%) multiallelic INS variants
+step6:STRs_including_homopolymer:input:             166 out of    119,066 (  0.1%) mixed multiallelic INS/DEL variants
 --------------
 step6:STRs_including_homopolymer:input:         130,948 out of    130,948 (100.0%) TOTAL alleles
-step6:STRs_including_homopolymer:input:         108,972 out of    130,948 ( 83.2%) INS alleles
+step6:STRs_including_homopolymer:input:         109,138 out of    130,948 ( 83.3%) INS alleles
 step6:STRs_including_homopolymer:input:          21,810 out of    130,948 ( 16.7%) DEL alleles
 --------------
 step6:STRs_including_homopolymer:output:      VCF stats for the output vcf -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --  step6.STRs_including_homopolymers.restored_dels_that_failed_liftover.vcf.gz
@@ -1354,13 +1388,15 @@ step6:STRs_including_homopolymer:output:          16,708 out of    192,086 (  8.
 step6:STRs_including_homopolymer:output:          16,089 out of    192,086 (  8.4%) genotype: 2|1
 --------------
 step6:STRs_including_homopolymer:output:         192,086 out of    192,086 (100.0%) TOTAL variants
-step6:STRs_including_homopolymer:output:          94,830 out of    192,086 ( 49.4%) DEL variants
 step6:STRs_including_homopolymer:output:          85,540 out of    192,086 ( 44.5%) INS variants
+step6:STRs_including_homopolymer:output:          73,749 out of    192,086 ( 38.4%) DEL variants
 step6:STRs_including_homopolymer:output:          11,716 out of    192,086 (  6.1%) multiallelic INS variants
+step6:STRs_including_homopolymer:output:          11,281 out of    192,086 (  5.9%) multiallelic DEL variants
+step6:STRs_including_homopolymer:output:           9,800 out of    192,086 (  5.1%) mixed multiallelic INS/DEL variants
 --------------
 step6:STRs_including_homopolymer:output:         224,883 out of    224,883 (100.0%) TOTAL alleles
-step6:STRs_including_homopolymer:output:         108,972 out of    224,883 ( 48.5%) INS alleles
-step6:STRs_including_homopolymer:output:          94,830 out of    224,883 ( 42.2%) DEL alleles
+step6:STRs_including_homopolymer:output:         118,772 out of    224,883 ( 52.8%) INS alleles
+step6:STRs_including_homopolymer:output:         106,111 out of    224,883 ( 47.2%) DEL alleles
 --------------
 ===============
 STEP #7: Check VCF positions before vs. after liftover to confirm concordance.
@@ -1383,13 +1419,15 @@ step7:STRs_including_homopolymer:input:          16,708 out of    192,086 (  8.7
 step7:STRs_including_homopolymer:input:          16,089 out of    192,086 (  8.4%) genotype: 2|1
 --------------
 step7:STRs_including_homopolymer:input:         192,086 out of    192,086 (100.0%) TOTAL variants
-step7:STRs_including_homopolymer:input:          94,830 out of    192,086 ( 49.4%) DEL variants
 step7:STRs_including_homopolymer:input:          85,540 out of    192,086 ( 44.5%) INS variants
+step7:STRs_including_homopolymer:input:          73,749 out of    192,086 ( 38.4%) DEL variants
 step7:STRs_including_homopolymer:input:          11,716 out of    192,086 (  6.1%) multiallelic INS variants
+step7:STRs_including_homopolymer:input:          11,281 out of    192,086 (  5.9%) multiallelic DEL variants
+step7:STRs_including_homopolymer:input:           9,800 out of    192,086 (  5.1%) mixed multiallelic INS/DEL variants
 --------------
 step7:STRs_including_homopolymer:input:         224,883 out of    224,883 (100.0%) TOTAL alleles
-step7:STRs_including_homopolymer:input:         108,972 out of    224,883 ( 48.5%) INS alleles
-step7:STRs_including_homopolymer:input:          94,830 out of    224,883 ( 42.2%) DEL alleles
+step7:STRs_including_homopolymer:input:         118,772 out of    224,883 ( 52.8%) INS alleles
+step7:STRs_including_homopolymer:input:         106,111 out of    224,883 ( 47.2%) DEL alleles
 --------------
 step7:STRs_including_homopolymer:output:      VCF stats for the output vcf -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --  step7.STRs_including_homopolymers.passed_liftover_checks.vcf.gz
 step7:STRs_including_homopolymer:output:         192,085 TOTAL variants
@@ -1402,13 +1440,15 @@ step7:STRs_including_homopolymer:output:          16,708 out of    192,085 (  8.
 step7:STRs_including_homopolymer:output:          16,089 out of    192,085 (  8.4%) genotype: 2|1
 --------------
 step7:STRs_including_homopolymer:output:         192,085 out of    192,085 (100.0%) TOTAL variants
-step7:STRs_including_homopolymer:output:          94,830 out of    192,085 ( 49.4%) DEL variants
 step7:STRs_including_homopolymer:output:          85,539 out of    192,085 ( 44.5%) INS variants
+step7:STRs_including_homopolymer:output:          73,749 out of    192,085 ( 38.4%) DEL variants
 step7:STRs_including_homopolymer:output:          11,716 out of    192,085 (  6.1%) multiallelic INS variants
+step7:STRs_including_homopolymer:output:          11,281 out of    192,085 (  5.9%) multiallelic DEL variants
+step7:STRs_including_homopolymer:output:           9,800 out of    192,085 (  5.1%) mixed multiallelic INS/DEL variants
 --------------
 step7:STRs_including_homopolymer:output:         224,882 out of    224,882 (100.0%) TOTAL alleles
-step7:STRs_including_homopolymer:output:         108,971 out of    224,882 ( 48.5%) INS alleles
-step7:STRs_including_homopolymer:output:          94,830 out of    224,882 ( 42.2%) DEL alleles
+step7:STRs_including_homopolymer:output:         118,771 out of    224,882 ( 52.8%) INS alleles
+step7:STRs_including_homopolymer:output:         106,111 out of    224,882 ( 47.2%) DEL alleles
 --------------
 ===============
 step8: Print stats and compute overlap with other catalogs.
@@ -1615,8 +1655,8 @@ step8:STRs_including_homopolymer:  TRFPureRepeats9bp             :      1,435 ou
 step8:STRs_including_homopolymer:  TRFPureRepeats9bp             :         32 out of    191,295 (  0.0%) truth set loci, and out of  2,805,842 (  0.0%) TRFPureRepeats9bp loci:     STR loci overlap                                              and has same motif
 step8:STRs_including_homopolymer:  TRFPureRepeats9bp             :     43,294 out of    191,295 ( 22.6%) truth set loci:     no overlap                                                  
 step8:STRs_including_homopolymer:  Done
-+ python3 -u scripts/add_prefix_to_stdout.py 'step8:STRs_including_homopolymer: '
 + python3 -u scripts/compute_overlap_with_other_catalogs.py --all-repeats --all-motifs step7.filtered_STRs_including_homopolymers.alleles.tsv.gz step7.filtered_STRs_including_homopolymers.alleles.with_overlap_columns.tsv.gz
++ python3 -u scripts/add_prefix_to_stdout.py 'step8:STRs_including_homopolymer: '
 step8:STRs_including_homopolymer: Parsed    174,300 intervals from IlluminaSTRCatalog                       ./ref/other/illumina_variant_catalog.sorted.bed.gz
 step8:STRs_including_homopolymer: Parsed  1,340,266 intervals from GangSTRCatalog17                         ./ref/other/hg38_ver17.adjusted.bed.gz
 step8:STRs_including_homopolymer: Parsed    832,380 intervals from GangSTRCatalog13                         ./ref/other/hg38_ver13.adjusted.bed.gz
@@ -1743,8 +1783,8 @@ step8:STRs_including_homopolymer: Done
 + mv step7.filtered_STRs_including_homopolymers.variants.with_overlap_columns.tsv.gz step7.filtered_STRs_including_homopolymers.variants.tsv.gz
 + mv step7.filtered_STRs_including_homopolymers.alleles.with_overlap_columns.tsv.gz step7.filtered_STRs_including_homopolymers.alleles.tsv.gz
 + suffix=with_gencode_v42_columns
-+ python3 -u scripts/add_prefix_to_stdout.py 'step8:STRs_including_homopolymer:  '
 + python3 -u scripts/compute_overlap_with_gene_models.py ./ref/other/gencode.v42.annotation.sorted.gtf.gz step7.filtered_STRs_including_homopolymers.variants.tsv.gz step7.filtered_STRs_including_homopolymers.variants.with_gencode_v42_columns.tsv.gz
++ python3 -u scripts/add_prefix_to_stdout.py 'step8:STRs_including_homopolymer:  '
 step8:STRs_including_homopolymer:   3,413,945 total
 step8:STRs_including_homopolymer:   1,643,237 exon
 step8:STRs_including_homopolymer:     883,132 CDS
