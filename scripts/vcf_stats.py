@@ -70,8 +70,6 @@ for i, line in enumerate(fopen(args.vcf_path, "rt")):
         elif len(ref) < len(alt) and len(ref) == 1:
             insertion_counter += 1
             counters[f"INS alleles"] += 1
-        else:
-            raise ValueError("Invalid state")
 
     # count variant types
     variant_filter_prefixes = ["", f"filter:{fltr}  ", "filtered:  "] if args.count_by_filter else [""]
