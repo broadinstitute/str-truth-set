@@ -19,7 +19,7 @@ def main():
 
     if args.detailed:
         args.output_html = args.output_html.replace(".html", ".detailed.html")
-        
+
     # check arg files exist
     for arg_name, arg_value in sorted(vars(args).items()):
         if arg_name.endswith("_table") or arg_name.endswith("_vcf"):
@@ -64,7 +64,7 @@ def main():
                     continue
 
                 #if filter_value == "ends in partial repeat":
-                #    print(line)
+                #    print("\t".join(fields[0:5]))
 
                 if filter_value == "INDEL without repeats":
                     if args.detailed:
@@ -110,7 +110,7 @@ def main():
                     "STR allele":               "TR allele passed filter criteria but is part of a multi-allelic <br />"
                                                 "variant where the other allele failed filter criteria",
                     "ends in partial repeat":   "TR allele that failed filter: variant sequence ends in partial repeat <br />"
-                                                "(Example:  chr9:117016616 CTATCTATCTA > C)",
+                                                "(Example:  chr6:71189213 CAGCAGCA > C)",
                     "locus overlaps more than one STR variant":             "TR allele that failed filter: other reasons",
                     "STR alleles with different motifs":                    "TR allele that failed filter: other reasons",
                     "STR alleles with different interruption patterns":     "TR allele that failed filter: other reasons",
