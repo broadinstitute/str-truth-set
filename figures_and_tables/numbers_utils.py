@@ -31,8 +31,13 @@ def search(regexp, content, expected_number_of_matches=1, use_match_i=0, type=st
                          f"(={expected_number_of_matches})")
 
     match = results[use_match_i]
-    if len(match.groups()) != 1:
-        raise ValueError(f"Regexp has {len(match.groups())} groups instead of 1: {regexp}")
+    if len(match.groups()) == 0:
+        raise ValueError(f"Regexp has 0 groups. Expecting at least 1: {regexp}")
+    if len(match.groups()) > 1:
+        result = match.groups()
+        if type == int:
+            result = [int(v.replace(",", "")) for v in result]
+        return result
 
     result = match.group(1)
     if type == int:
