@@ -11,6 +11,7 @@ from str_analysis.filter_vcf_to_STR_variants import compute_indel_variant_bases
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--detailed", help="Include detailed stats", action="store_true")
+    parser.add_argument("--high-confidence-vcf", help="Path of VCF", default="step1.high_confidence_regions.vcf.gz")
     parser.add_argument("--alleles-table", help="Path of alleles table", default="step2.STRs.alleles.tsv.gz")
     parser.add_argument("--filtered-out-indels-vcf", help="Path of VCF", default="step2.STRs.filtered_out_indels.vcf.gz")
     parser.add_argument("--step-A-log",     help="Path of step A log file", default="step_A.log")
@@ -36,16 +37,44 @@ def main():
     high_confidence_alleles_in_syndip = search(f"step1:output:[ ]+([0-9,]+)[ ]+TOTAL[ ]alleles", stepA_log_contents, type=int)
     high_confidence_INS_alleles = int(search(f"step1:output:[ ]*([0-9,]+) out of[ ]* {high_confidence_alleles_in_syndip:,d}.*[)] INS alleles", stepA_log_contents).replace(",", ""))
     high_confidence_DEL_alleles = int(search(f"step1:output:[ ]*([0-9,]+) out of[ ]* {high_confidence_alleles_in_syndip:,d}.*[)] DEL alleles", stepA_log_contents).replace(",", ""))
-    high_confidence_indel_alleles_in_syndip = high_confidence_INS_alleles + high_confidence_DEL_alleles
+    high_confidence_indel_alleles_from_step_A_log = high_confidence_INS_alleles + high_confidence_DEL_alleles
 
-    #high_confidence_indel_alleles_in_syndip = 285701 + 271124
+    high_confidence_indel_alleles_from_vcf = 0
+    high_confidence_indel_alleles_from_vcf_multiallelic = 0
+    with gzip.open(args.high_confidence_vcf, "rt") as f:
+        for line in f:
+            if line.startswith("#"):
+                continue
+            fields = line.split("\t")
+            ref_allele = fields[3]
+            alt_alleles = [alt for alt in fields[4].split(",") if alt != "*"]
+            for alt_allele in alt_alleles:
+                if len(alt_allele) == len(ref_allele):
+                    continue
+
+                variant_bases = compute_indel_variant_bases(ref_allele, alt_allele)
+                if variant_bases is None:
+                    continue
+                high_confidence_indel_alleles_from_vcf += 1
+                if len(alt_alleles) > 1:
+                    high_confidence_indel_alleles_from_vcf_multiallelic += 1
+
+
+    if high_confidence_indel_alleles_from_vcf != high_confidence_indel_alleles_from_step_A_log:
+        raise ValueError(f"high_confidence_indel_alleles_from_vcf != high_confidence_indel_alleles_from_step_A_log: "
+                         f"{high_confidence_indel_alleles_from_vcf:,d} != {high_confidence_indel_alleles_from_step_A_log:,d}")
 
     df_TR_alleles = pd.read_table(args.alleles_table)
 
     total_indel_alleles_key = "total indel alleles within SynDip high confidence regions"
     allele_counters = collections.defaultdict(int)
-    allele_counters[total_indel_alleles_key] = high_confidence_indel_alleles_in_syndip
-    allele_counters["TR truth set: TRs that passed all criteria "] = len(df_TR_alleles)
+    multiallelic_counters = collections.defaultdict(int)
+
+    allele_counters[total_indel_alleles_key] = high_confidence_indel_alleles_from_vcf
+    multiallelic_counters[total_indel_alleles_key] = high_confidence_indel_alleles_from_vcf_multiallelic
+
+    allele_counters["TR truth set: TRs that passed all criteria"] = len(df_TR_alleles)
+    multiallelic_counters["TR truth set: TRs that passed all criteria"] = sum(df_TR_alleles.IsMultiallelic)
 
     with gzip.open(args.filtered_out_indels_vcf, "rt") as filtered_out_indels_vcf:
         for line in filtered_out_indels_vcf:
@@ -90,9 +119,9 @@ def main():
                     most_common_repeat_unit, most_common_repeat_unit_count = get_most_common_repeat_unit(variant_bases, 1)
                     if args.detailed:
                         if most_common_repeat_unit in ("A", "T"):
-                            filter_value = f"homopolymer: poly-A or T"
+                            filter_value = f"homopolymer alleles: poly-A or T"
                         elif most_common_repeat_unit in ("C", "G"):
-                            filter_value = f"homopolymer: poly-C or G"
+                            filter_value = f"homopolymer alleles: poly-C or G"
                         elif most_common_repeat_unit == "N":
                             filter_value = "TR allele that failed filter: other reasons"
                         else:
@@ -101,7 +130,7 @@ def main():
                         if most_common_repeat_unit == "N":
                             filter_value = "TR allele that failed filter: other reasons"
                         else:
-                            filter_value = "homopolymer"
+                            filter_value = "homopolymer alleles"
 
                 rename_dict = {
                     "spans < 9 bp":             "TR allele that failed filter criteria: spans < 9bp",
@@ -120,26 +149,30 @@ def main():
                     filter_value = rename_dict[filter_value]
 
                 allele_counters[filter_value] += 1
+                if len(alt_alleles) > 1:
+                    multiallelic_counters[filter_value] += 1
 
     sum_of_counts = sum(allele_counters[k] for k in allele_counters.keys() if k != total_indel_alleles_key)
-    if sum_of_counts != high_confidence_indel_alleles_in_syndip:
-        raise ValueError(f"sum_of_counts != high_confidence_indel_alleles_in_syndip: {sum_of_counts:,d} != {high_confidence_indel_alleles_in_syndip:,d}")
+    if sum_of_counts != high_confidence_indel_alleles_from_step_A_log:
+        raise ValueError(f"sum_of_counts != high_confidence_indel_alleles_from_step_A_log: "
+                         f"{sum_of_counts:,d} != {high_confidence_indel_alleles_from_step_A_log:,d}")
 
     print("Allele counts:")
     for key, count in sorted(allele_counters.items(), key=lambda x: -x[1]):
-        print(f"{count:10,d} ({100 * count / high_confidence_indel_alleles_in_syndip:5.1f}%) {key:10s}")
+        print(f"{count:10,d} ({100 * count / high_confidence_indel_alleles_from_step_A_log:5.1f}%) {key:10s}")
 
-    header = ["Description", "# of indels", "% of indels"]
+    header = ["Description", "# of indel<br />alleles", "% of indel<br />alleles", "Fraction<br/>multi-allelic"]
 
     table_html = []
     table_html.append(f"<table>")
-    table_html.append(f"<tr>{''.join(f'<th nowrap>{h}</th>' for h in header)}</tr>")
+    table_html.append(f"""<tr>{''.join(f'<th nowrap  style="text-align: center;">{h}</th>' for h in header)}</tr>""")
 
     for i, (key, count) in enumerate(sorted(allele_counters.items(), key=lambda x: -x[1])):
         table_html.append(f"<tr>"
             f"""<td style="line-height: 1.5">{key}</td>"""
             f"""<td style="text-align: right; line-height: 1.5; vertical-align: top">{count:10,d}</td>"""
-            f"""<td style="text-align: right; line-height: 1.5; vertical-align: top ">{100 * count / high_confidence_indel_alleles_in_syndip:5.1f}%</td>"""
+            f"""<td style="text-align: right; line-height: 1.5; vertical-align: top ">{100 * count / high_confidence_indel_alleles_from_step_A_log:5.1f}%</td>"""
+            f"""<td style="text-align: right; line-height: 1.5; vertical-align: top ">{100 * multiallelic_counters[key] / count:5.1f}%</td>"""
         f"</tr>")
         if i == 0:
             table_html.append(f"<tr><td></td><td></td><td></td></tr>")
