@@ -8,6 +8,7 @@ import pandas as pd
 from str_analysis.utils.find_repeat_unit import get_most_common_repeat_unit
 from str_analysis.filter_vcf_to_STR_variants import compute_indel_variant_bases
 
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--detailed", help="Include detailed stats", action="store_true")
@@ -15,7 +16,7 @@ def main():
     parser.add_argument("--alleles-table", help="Path of alleles table", default="step2.STRs.alleles.tsv.gz")
     parser.add_argument("--filtered-out-indels-vcf", help="Path of VCF", default="step2.STRs.filtered_out_indels.vcf.gz")
     parser.add_argument("--step-A-log",     help="Path of step A log file", default="step_A.log")
-    parser.add_argument("--output-html",   help="Path of output table",  default="figures_and_tables/table3_indel_stats.html")
+    parser.add_argument("--output-html",   help="Path of output table",  default="figures_and_tables/table4_indel_stats.html")
     args = parser.parse_args()
 
     if args.detailed:

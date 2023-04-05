@@ -8,7 +8,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--variants-table", help="Path of variants table",  default="STR_truth_set.v1.variants.tsv.gz")
     parser.add_argument("--step-A-log",     help="Path of step A log file", default="step_A.log")
-    parser.add_argument("--output-html",   help="Path of output table",    default="figures_and_tables/table4_repeat_catalogs.html")
+    parser.add_argument("--output-html",   help="Path of output table",    default="figures_and_tables/table3_repeat_catalogs.html")
     args = parser.parse_args()
 
     # check arg files exist
