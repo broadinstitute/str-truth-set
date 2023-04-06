@@ -98,12 +98,16 @@ def plot_allele_size_distribution(df_truth_set, args, plot_type=1, color_by=None
                 "TR Locus Overlaps ",
                 "Segmental Duplication",
             ]))
+
         ax.get_legend().get_title().set_horizontalalignment('center')
         if plot_type == 1:
             sns.move_legend(ax, loc="upper left")
         elif plot_type == 3:
             sns.move_legend(ax, loc="upper right")
         ax.get_legend().set_frame_on(False)
+        ax.get_legend().get_title().set_fontsize(12)
+        for text in ax.get_legend().get_texts():
+            text.set_fontsize(12)
 
     output_path = os.path.join(args.output_dir, output_image_name + f".{args.image_type}")
     plt.savefig(output_path, bbox_inches="tight", dpi=300)
@@ -148,26 +152,23 @@ def plot_allele_size_and_motif_distribution(df_truth_set, args, color_by=None, h
             ax.set_xticklabels([f"{x}" if x <= 6 or x % 3 == 0 else "" for x in range(2, xlimit + 1, 1)], fontsize=12)
             ax.set_xlim(2 - 0.52, xlimit + 0.52)
 
-        with mpl.rc_context({
-            "legend.fontsize": 12, "ytick.labelsize": 12
-        }):
-            sns.histplot(
-                df_truth_set,
-                x="NumRepeatsAwayFromReference" if i == 0 else "MotifSize",
-                hue=color_by,
-                hue_order=hue_order,
-                binwidth=1,
-                multiple="stack" if not color_by else "fill",
-                stat="proportion",
-                discrete=True,
-                legend=i == 1,
-                palette=palette,
-                ax=ax)
+        sns.histplot(
+            df_truth_set,
+            x="NumRepeatsAwayFromReference" if i == 0 else "MotifSize",
+            hue=color_by,
+            hue_order=hue_order,
+            binwidth=1,
+            multiple="stack" if not color_by else "fill",
+            stat="proportion",
+            discrete=True,
+            legend=True,
+            palette=palette,
+            ax=ax)
 
-        if i == 0:
-            ax.set_ylabel("Fraction of Alleles", fontsize=14)
-        else:
-            ax.set_ylabel("")
+        ax.set_ylabel("Fraction of Alleles", fontsize=14)
+        y_ticks = np.arange(0, 1.01, 0.2)
+        ax.set_yticks(y_ticks)
+        ax.set_yticklabels([f"{y:0.1f}" for y in y_ticks], fontsize=12)
 
         if ax.get_legend():
             if color_by:
@@ -179,7 +180,11 @@ def plot_allele_size_and_motif_distribution(df_truth_set, args, color_by=None, h
                     "TR Locus Overlaps ",
                     "Segmental Duplication",
                 ]))
+
             ax.get_legend().get_title().set_horizontalalignment('center')
+            ax.get_legend().get_title().set_fontsize(12)
+            for text in ax.get_legend().get_texts():
+                text.set_fontsize(12)
 
     if color_by:
         output_image_name += f".color_by_{color_by.lower().replace(' ', '_')}"
@@ -421,9 +426,7 @@ def plot_motif_distribution(df, args):
     ax.set_xlabel("# of Repeats in hg38", fontsize=14)
     ax.set_ylabel("Fraction of Alleles", fontsize=14)
 
-    with mpl.rc_context({
-        "text.usetex": True, "legend.fontsize": 12,
-    }):
+    with mpl.rc_context({ "text.usetex": True }):
         ax.get_legend().set_title("\n".join([
             "\# of Repeats in",
             "Truth Set Allele",
@@ -435,6 +438,9 @@ def plot_motif_distribution(df, args):
         sns.move_legend(ax, loc=(1.05, 0.15))
         ax.get_legend()._legend_box.align = "left"
         ax.get_legend().set_frame_on(False)
+        ax.get_legend().get_title().set_fontsize(12)
+        for text in ax.get_legend().get_texts():
+            text.set_fontsize(12)
 
     output_image_name = "reference_locus_size_distribution"
     if args.only_pure_repeats:
