@@ -241,7 +241,7 @@ print(f"{format_np(len(df_variants) - liftover_failed_IndelStraddlesMultipleInte
 
 
 #df_variants_before_validation = pd.read_table("step2.STRs.variants.tsv.gz")
-#df_insertions = df_variants_before_validation[df_variants_before_validation.INS_or_DEL.isin({"INS", "INS:INS"})]
+#df_insertions = df_variants_before_validation[df_variants_before_validation.INS_or_DEL_or_REF.isin({"INS", "INS:INS"})]
 print(f"{INS_STRs_before_validation_step + multiallelic_INS_STRs_before_validation_step:,d} monoallellic and multiallelic expansions before validation")
 
 print(f"{format_np(INS_variants_in_final_truth_set + multiallelic_INS_variants_in_final_truth_set, INS_STRs_before_validation_step + multiallelic_INS_STRs_before_validation_step)} "

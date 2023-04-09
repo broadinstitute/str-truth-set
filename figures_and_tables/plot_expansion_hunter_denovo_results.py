@@ -105,7 +105,8 @@ def plot_truth_set_overlap_with_ehdn_calls(args):
         ax.text(xtick, 1.018, f"{n_lookup[text.get_text()]:,d}",
                 ha="left", va="bottom", color="#777777", rotation=45, fontsize=12)
 
-    ax.text(1, 1.1, "Truth Set Expansion Alleles Per Bin", ha="right", va="bottom", color="#777777", fontsize=12, transform=ax.transAxes)
+    ax.text(1, 1.1, "Truth Set Expansion Alleles Per Bin",
+            ha="right", va="bottom", color="#777777", fontsize=12, transform=ax.transAxes)
 
     ax.set_xticklabels([v if i%2 == 0 else "" for i, v in enumerate(ax.get_xticklabels())], fontsize=12)
     plt.yticks(fontsize=12)
@@ -117,7 +118,7 @@ def plot_truth_set_overlap_with_ehdn_calls(args):
     output_path = os.path.join(args.output_dir, f"truth_set_overlap_with_expansion_hunter_denovo_calls{filename_suffix}.{args.image_type}")
     plt.savefig(output_path, bbox_inches="tight", dpi=300)
     plt.close()
-
+    print(f"Plotted {len(truth_set_df):,d} truth set alleles")
     print(f"Saved {output_path}")
 
 

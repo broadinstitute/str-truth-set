@@ -134,22 +134,22 @@ def load_truth_set_alleles_tsv(truth_set_alleles_tsv):
     """
 
     print(f"Loading {truth_set_alleles_tsv}")
-    truth_set_df = pd.read_table(truth_set_alleles_tsv)
-    truth_set_df = truth_set_df[[
+    truth_set_alleles_df = pd.read_table(truth_set_alleles_tsv)
+    truth_set_alleles_df = truth_set_alleles_df[[
         "LocusId", "Locus", "Chrom", "Start1Based", "End1Based",
-        "Motif", "CanonicalMotif", "MotifSize", "INS_or_DEL",
+        "Motif", "CanonicalMotif", "MotifSize", "INS_or_DEL_or_REF",
         "NumRepeatsInReference", "NumRepeats", "RepeatSize (bp)",
         "IsPureRepeat", "IsFoundInReference", "SummaryString",
     ]]
 
     # filter to expansions and motif sizes that are smaller than the MAX_REPEAT_UNIT_LENGTH set in the EHdn pipeline
-    truth_set_df = truth_set_df[truth_set_df["INS_or_DEL"] == "INS"]
-    truth_set_df = truth_set_df[truth_set_df["MotifSize"] <= 50]
+    truth_set_alleles_df = truth_set_alleles_df[truth_set_alleles_df["INS_or_DEL_or_REF"] == "INS"]
+    truth_set_alleles_df = truth_set_alleles_df[truth_set_alleles_df["MotifSize"] <= 50]
 
-    truth_set_df.loc[:, "ReferenceLocusSize (bp)"] = truth_set_df["End1Based"] - truth_set_df["Start1Based"] + 1
+    truth_set_alleles_df.loc[:, "ReferenceLocusSize (bp)"] = truth_set_alleles_df["End1Based"] - truth_set_alleles_df["Start1Based"] + 1
 
-    print(f"Read {len(truth_set_df):,d} STR expansion records from {truth_set_alleles_tsv}")
-    return truth_set_df
+    print(f"Read {len(truth_set_alleles_df):,d} STR expansion records from {truth_set_alleles_tsv}")
+    return truth_set_alleles_df
 
 
 def create_truth_set_output_record(truth_set_row, matching_ehdn_calls):

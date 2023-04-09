@@ -166,7 +166,8 @@ def plot_accuracy_by_allele_size(
             # add n=.. above each bar
             n_lookup = dict(df.groupby(x_column).count().LocusId)
             for j, (xtick, text) in enumerate(zip(axes[i].get_xticks(), axes[i].get_xticklabels())):
-                ax.text(xtick, 1.018, f"{n_lookup[text.get_text()]:,d} alleles", ha="left", va="bottom", color="#777777", rotation=45)
+                ax.text(xtick, 1.018, f"{n_lookup[text.get_text()]:,d}", ha="left", va="bottom", color="#777777", fontsize=12, rotation=45)
+            ax.text(1, 1.08, "Alleles Per Bin", ha="right", va="bottom", color="#777777", fontsize=12, transform=ax.transAxes)
 
     if tool_name:
         l = axes[0].get_legend()

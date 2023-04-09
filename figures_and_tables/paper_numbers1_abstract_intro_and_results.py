@@ -174,7 +174,19 @@ print(f"{format_np(sum(df_alleles['AlleleSizeMinusReference.abs() (bp)'] <= 30),
 
 print("--")
 
-#['Chrom', 'Start1Based', 'End1Based', 'Locus', 'LocusId', 'INS_or_DEL', 'HET_or_HOM', 'Motif', 'CanonicalMotif', 'MotifSize', 'NumRepeatsInReference', 'VcfPos', 'VcfRef', 'VcfAlt', 'VcfGenotype', 'SummaryString', 'IsFoundInReference', 'IsPureRepeat', 'IsMultiallelic', 'NumRepeats', 'RepeatSize (bp)', 'NumPureRepeats', 'PureRepeatSize (bp)', 'FractionPureRepeats', 'RepeatUnitInterruptionIndex', 'OverlapsIlluminaSTRCatalog: Locus', 'OverlapsIlluminaSTRCatalog: Motif', 'OverlapsGangSTRCatalog17: Locus', 'OverlapsGangSTRCatalog17: Motif', 'OverlapsGangSTRCatalog13: Locus', 'OverlapsGangSTRCatalog13: Motif', 'OverlapsHipSTRCatalog: Locus', 'OverlapsHipSTRCatalog: Motif', 'OverlapsKnownDiseaseAssociatedSTRs: Locus', 'OverlapsKnownDiseaseAssociatedSTRs: Motif', 'OverlapsTRFPureRepeats15bp: Locus', 'OverlapsTRFPureRepeats15bp: Motif', 'OverlapsTRFPureRepeats12bp: Locus', 'OverlapsTRFPureRepeats12bp: Motif', 'OverlapsTRFPureRepeats9bp: Locus', 'OverlapsTRFPureRepeats9bp: Motif', 'OverlapsTRFPureRepeats6bp: Locus', 'OverlapsTRFPureRepeats6bp: Motif', 'OverlapsSegDupIntervals', 'GeneRegionFromGencode_V42', 'GeneNameFromGencode_V42', 'GeneIdFromGencode_V42', 'TranscriptIdFromGencode_V42', 'GeneRegionFromMane_V1', 'GeneNameFromMane_V1', 'GeneIdFromMane_V1', 'TranscriptIdFromMane_V1']
+# columns: ['Chrom', 'Start1Based', 'End1Based', 'Locus', 'LocusId', 'INS_or_DEL_or_REF', 'HET_or_HOM', 'Motif', 'CanonicalMotif',
+# 'MotifSize', 'NumRepeatsInReference', 'VcfPos', 'VcfRef', 'VcfAlt', 'VcfGenotype', 'SummaryString',
+# 'IsFoundInReference', 'IsPureRepeat', 'IsMultiallelic', 'NumRepeats', 'RepeatSize (bp)', 'NumPureRepeats',
+# 'PureRepeatSize (bp)', 'FractionPureRepeats', 'RepeatUnitInterruptionIndex', 'OverlapsIlluminaSTRCatalog: Locus',
+# 'OverlapsIlluminaSTRCatalog: Motif', 'OverlapsGangSTRCatalog17: Locus', 'OverlapsGangSTRCatalog17: Motif',
+# 'OverlapsGangSTRCatalog13: Locus', 'OverlapsGangSTRCatalog13: Motif', 'OverlapsHipSTRCatalog: Locus',
+# 'OverlapsHipSTRCatalog: Motif', 'OverlapsKnownDiseaseAssociatedSTRs: Locus',
+# 'OverlapsKnownDiseaseAssociatedSTRs: Motif', 'OverlapsTRFPureRepeats15bp: Locus',
+# 'OverlapsTRFPureRepeats15bp: Motif', 'OverlapsTRFPureRepeats12bp: Locus', 'OverlapsTRFPureRepeats12bp: Motif',
+# 'OverlapsTRFPureRepeats9bp: Locus', 'OverlapsTRFPureRepeats9bp: Motif', 'OverlapsTRFPureRepeats6bp: Locus',
+# 'OverlapsTRFPureRepeats6bp: Motif', 'OverlapsSegDupIntervals', 'GeneRegionFromGencode_V42', 'GeneNameFromGencode_V42',
+# 'GeneIdFromGencode_V42', 'TranscriptIdFromGencode_V42', 'GeneRegionFromMane_V1', 'GeneNameFromMane_V1',
+# 'GeneIdFromMane_V1', 'TranscriptIdFromMane_V1']
 
 # compute median allele size in hg38 and in the truth set
 median_repeats_in_ref_alleles = int(df_alleles.NumRepeatsInReference.median())
