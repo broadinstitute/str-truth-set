@@ -79,8 +79,8 @@ def plot_truth_set_overlap_with_ehdn_calls(args):
 
     ax.spines.right.set_visible(False)
     ax.spines.top.set_visible(False)
-    ax.set_xlabel("Truth Set Allele Size (bp)", labelpad=15, fontsize=13)
-    ax.set_ylabel("Fraction of Truth Set Loci\nWith Matching ExpansionHunterDenovo Calls", labelpad=15, fontsize=13)
+    ax.set_xlabel("Truth Set Total Allele Size (bp)", labelpad=15, fontsize=13)
+    ax.set_ylabel("Fraction of Truth Set Alleles\nWith Matching ExpansionHunterDenovo Calls", labelpad=15, fontsize=13)
 
     sns.histplot(
         truth_set_df,
@@ -102,15 +102,17 @@ def plot_truth_set_overlap_with_ehdn_calls(args):
     # add # of loci label above each bar
     n_lookup = dict(truth_set_df.groupby(x_column).count().LocusId)
     for j, (xtick, text) in enumerate(zip(ax.get_xticks(), ax.get_xticklabels())):
-        ax.text(xtick, 1.018, f"{n_lookup[text.get_text()]:,d} loci",
+        ax.text(xtick, 1.018, f"{n_lookup[text.get_text()]:,d}",
                 ha="left", va="bottom", color="#777777", rotation=45, fontsize=12)
+
+    ax.text(1, 1.1, "Truth Set Alleles Per Bin", ha="right", va="bottom", color="#777777", fontsize=12, transform=ax.transAxes)
 
     ax.set_xticklabels([v if i%2 == 0 else "" for i, v in enumerate(ax.get_xticklabels())], fontsize=12)
     plt.yticks(fontsize=12)
 
     fig.tight_layout()
 
-    ax.get_legend().set_bbox_to_anchor((0.51, 0.25))
+    sns.move_legend(ax, loc="lower right")
 
     output_path = os.path.join(args.output_dir, f"truth_set_overlap_with_expansion_hunter_denovo_calls{filename_suffix}.{args.image_type}")
     plt.savefig(output_path, bbox_inches="tight", dpi=300)

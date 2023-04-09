@@ -3,9 +3,9 @@ as well as the catalog of all pure STRs in the reference genome.
 
 It then outputs two TSVs:
 
-{prefix}.truth_set_EHdn_comparison_table.tsv - one row for every truth set variant, for evaluation of EHdn accuracy.
+{prefix}.truth_set_EHdn_comparison_table.tsv - one row for every truth set allele, for evaluation of EHdn accuracy.
 {prefix}.EHdn_results_table.tsv - one row for every EHdn call, along with a new "InTruthSet" column to indicate 
-    which calls match a truth set variant. This is useful for evaluating false-positive calls.
+    which calls match a truth set allele. This is useful for evaluating false-positive calls.
 """
 
 from str_analysis.utils.canonical_repeat_unit import compute_canonical_motif
@@ -25,8 +25,8 @@ def parse_args():
     p.add_argument("--syndip-confidence-regions-bed", default="./ref/full.38.bed.gz",
                    help="Path of bed file containing the SynDip confidence regions, used to filter out EHdn results in "
                         "regions that are excluded from the STR truth set")
-    p.add_argument("--truth-set-variants-tsv", default="./STR_truth_set.v1.variants.tsv.gz",
-                   help="Path of truth set variants tsv")
+    p.add_argument("--truth-set-alleles-tsv", default="./STR_truth_set.v1.alleles.tsv.gz",
+                   help="Path of truth set alleles tsv")
     p.add_argument("--reference-repeats-bed", help="Path of bed file containing all STRs in the reference genome",
                    default="./ref/other/repeat_specs_GRCh38_without_mismatches.sorted.trimmed.at_least_6bp.bed.gz")
                     # "./ref/other/repeat_specs_GRCh38_allowing_mismatches.sorted.trimmed.at_least_6bp.bed.gz"
@@ -39,7 +39,7 @@ def parse_args():
 
     # validate file path args
     for path in args.expansion_hunter_denovo_results_tsv + [
-        args.syndip_confidence_regions_bed, args.truth_set_variants_tsv, args.reference_repeats_bed
+        args.syndip_confidence_regions_bed, args.truth_set_alleles_tsv, args.reference_repeats_bed
     ]:
         if not os.path.isfile(path):
             p.error(f"{path} not found")
@@ -128,17 +128,17 @@ def load_ehdn_results_table(ehdn_results_table_path):
     return ehdn_df
 
 
-def load_truth_set_variants_tsv(truth_set_variants_tsv):
+def load_truth_set_alleles_tsv(truth_set_alleles_tsv):
     """Loads and returns the truth set tsv after discarding irrelevant columns and adding a "ReferenceLocusSize (bp)"
     column.
     """
 
-    print(f"Loading {truth_set_variants_tsv}")
-    truth_set_df = pd.read_table(truth_set_variants_tsv)
+    print(f"Loading {truth_set_alleles_tsv}")
+    truth_set_df = pd.read_table(truth_set_alleles_tsv)
     truth_set_df = truth_set_df[[
         "LocusId", "Locus", "Chrom", "Start1Based", "End1Based",
         "Motif", "CanonicalMotif", "MotifSize", "INS_or_DEL",
-        "NumRepeatsInReference", "NumRepeatsLongAllele", "RepeatSizeLongAllele (bp)",
+        "NumRepeatsInReference", "NumRepeats", "RepeatSize (bp)",
         "IsPureRepeat", "IsFoundInReference", "SummaryString",
     ]]
 
@@ -148,7 +148,7 @@ def load_truth_set_variants_tsv(truth_set_variants_tsv):
 
     truth_set_df.loc[:, "ReferenceLocusSize (bp)"] = truth_set_df["End1Based"] - truth_set_df["Start1Based"] + 1
 
-    print(f"Read {len(truth_set_df):,d} STR expansion records from {truth_set_variants_tsv}")
+    print(f"Read {len(truth_set_df):,d} STR expansion records from {truth_set_alleles_tsv}")
     return truth_set_df
 
 
@@ -307,9 +307,9 @@ def generate_output_table(
         ehdn_interval_trees[ehdn_results_row.Chrom].add(ehdn_interval)
 
     # iterate over all truth set rows and match them to EHdn calls while generating truth_set_ehdn_comparison_table_rows
-    print("Match truth set variants with EHdn calls")
+    print("Match truth set alleles with EHdn calls")
     truth_set_ehdn_comparison_table_rows = []  # one row per truth set record
-    for _, truth_set_row in tqdm(truth_set_df.iterrows(), total=len(truth_set_df), unit=" truth set variants"):
+    for _, truth_set_row in tqdm(truth_set_df.iterrows(), total=len(truth_set_df), unit=" truth set alleles"):
 
         # intersect truth set row with EHdn
         matching_ehdn_calls = []
@@ -335,7 +335,7 @@ def generate_output_table(
 
         if len(ehdn_call.data["MatchingTruthSetRows"]) > 0:
 
-            # get the reference locus from the overlapping truth set variant with the largest expansion
+            # get the reference locus from the overlapping truth set allele with the largest expansion
             matching_truth_set_row_with_largest_expansion = None
             for matching_truth_set_row in ehdn_call.data["MatchingTruthSetRows"]:
                 if matching_truth_set_row_with_largest_expansion is None or (
@@ -390,7 +390,7 @@ def main():
 
     syndip_confidence_interval_trees = load_bed_to_interval_trees(args.syndip_confidence_regions_bed)
 
-    truth_set_df = load_truth_set_variants_tsv(args.truth_set_variants_tsv)
+    truth_set_df = load_truth_set_alleles_tsv(args.truth_set_alleles_tsv)
 
     for ehdn_result_table_path in sorted(args.expansion_hunter_denovo_results_tsv):
         generate_output_table(
