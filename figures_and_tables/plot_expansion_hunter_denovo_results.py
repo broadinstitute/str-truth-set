@@ -14,13 +14,13 @@ sns.set_context("paper", font_scale=1.1, rc={
 GREEN_COLOR = "#50AA44"
 
 
-def bin_repeat_size_bp(long_allele_size_bp):
+def bin_repeat_size_bp(allele_size_bp):
     limit = 500
-    if long_allele_size_bp < 50:
-        long_allele_size_bp = 50
+    if allele_size_bp < 50:
+        allele_size_bp = 50
 
-    if long_allele_size_bp < limit:
-        return str(25 * int(long_allele_size_bp/25))
+    if allele_size_bp < limit:
+        return str(25 * int(allele_size_bp/25))
     else:
         return f"{limit}+"
 
@@ -60,7 +60,7 @@ def compute_concordance_summary(row):
 
 
 def plot_truth_set_overlap_with_ehdn_calls(args):
-    x_column = "RepeatSizeLongAllele (bin)"
+    x_column = "RepeatSize (bin)"
     hue_column = "EHdn Concordance"
 
     filename_suffix = ""
@@ -71,16 +71,16 @@ def plot_truth_set_overlap_with_ehdn_calls(args):
         truth_set_df = truth_set_df[truth_set_df["IsPureRepeat"]]
 
     truth_set_df.loc[:, "MotifSize bin"] = truth_set_df.MotifSize.apply(compute_motif_size_bin)
-    truth_set_df.loc[:, x_column] = truth_set_df["RepeatSizeLongAllele (bp)"].apply(bin_repeat_size_bp)
+    truth_set_df.loc[:, x_column] = truth_set_df["RepeatSize (bp)"].apply(bin_repeat_size_bp)
     truth_set_df.loc[:, hue_column] = truth_set_df.apply(compute_hue_column, axis=1)
-    truth_set_df = truth_set_df.sort_values("RepeatSizeLongAllele (bp)", key=lambda values: [int(v) for v in values])
+    truth_set_df = truth_set_df.sort_values("RepeatSize (bp)", key=lambda values: [int(v) for v in values])
 
     fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(args.width, args.height), dpi=80, tight_layout=True)
 
     ax.spines.right.set_visible(False)
     ax.spines.top.set_visible(False)
     ax.set_xlabel("Truth Set Total Allele Size (bp)", labelpad=15, fontsize=13)
-    ax.set_ylabel("Fraction of Truth Set Alleles\nWith Matching ExpansionHunterDenovo Calls", labelpad=15, fontsize=13)
+    ax.set_ylabel("Fraction of Truth Set Expansion Alleles\nWith Matching ExpansionHunterDenovo Calls", labelpad=15, fontsize=13)
 
     sns.histplot(
         truth_set_df,
@@ -105,7 +105,7 @@ def plot_truth_set_overlap_with_ehdn_calls(args):
         ax.text(xtick, 1.018, f"{n_lookup[text.get_text()]:,d}",
                 ha="left", va="bottom", color="#777777", rotation=45, fontsize=12)
 
-    ax.text(1, 1.1, "Truth Set Alleles Per Bin", ha="right", va="bottom", color="#777777", fontsize=12, transform=ax.transAxes)
+    ax.text(1, 1.1, "Truth Set Expansion Alleles Per Bin", ha="right", va="bottom", color="#777777", fontsize=12, transform=ax.transAxes)
 
     ax.set_xticklabels([v if i%2 == 0 else "" for i, v in enumerate(ax.get_xticklabels())], fontsize=12)
     plt.yticks(fontsize=12)

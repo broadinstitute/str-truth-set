@@ -220,8 +220,8 @@ def create_ehdn_output_record(ehdn_call):
     matching_truth_set_row = ehdn_call.data["MatchingTruthSetRow"]
     if matching_truth_set_row is not None:
         ehdn_output_record["EHdn Concordance With Truth Set"] = "Matching Expansion In Truth Set"
-        ehdn_output_record["TruthSet NumRepeats"] = matching_truth_set_row["NumRepeatsLongAllele"]
-        ehdn_output_record["TruthSet RepeatSize (bp)"] = matching_truth_set_row["RepeatSizeLongAllele (bp)"]
+        ehdn_output_record["TruthSet NumRepeats"] = matching_truth_set_row["NumRepeats"]
+        ehdn_output_record["TruthSet RepeatSize (bp)"] = matching_truth_set_row["RepeatSize (bp)"]
         ehdn_output_record["TruthSet IsPureRepeat"] = matching_truth_set_row["IsPureRepeat"]
     else:
         ehdn_output_record["EHdn Concordance With Truth Set"] = "False Positive"
@@ -339,8 +339,8 @@ def generate_output_table(
             matching_truth_set_row_with_largest_expansion = None
             for matching_truth_set_row in ehdn_call.data["MatchingTruthSetRows"]:
                 if matching_truth_set_row_with_largest_expansion is None or (
-                        matching_truth_set_row["NumRepeatsLongAllele"] >
-                        matching_truth_set_row_with_largest_expansion["NumRepeatsLongAllele"]):
+                        matching_truth_set_row["NumRepeats"] >
+                        matching_truth_set_row_with_largest_expansion["NumRepeats"]):
                     matching_truth_set_row_with_largest_expansion = matching_truth_set_row
 
             ehdn_call.data["MatchingTruthSetRow"] = matching_truth_set_row_with_largest_expansion
