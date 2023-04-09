@@ -9,6 +9,7 @@ python3 plot_summary_stats.py --image-type png --only-plot 3 --width 30 --height
 python3 plot_summary_stats.py --image-type png --only-plot 4 --width 16 --height 5.5
 
 # figure 3 panels
+python3 plot_motif_distribution.py --width 9 --height 8  --image-type png
 python3 plot_motif_distribution.py --width 9 --height 8  --image-type png --only-pure-repeats
 python3 plot_summary_stats.py --image-type png --only-plot 6 --width 11 --height 12
 

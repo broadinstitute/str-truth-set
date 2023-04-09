@@ -1,9 +1,11 @@
 import argparse
+import gzip
 import matplotlib.pyplot as plt
 import numpy as np
 import os
 import pandas as pd
 import seaborn as sns
+import tqdm
 
 from str_analysis.utils.canonical_repeat_unit import compute_canonical_motif
 
@@ -11,7 +13,7 @@ from str_analysis.utils.canonical_repeat_unit import compute_canonical_motif
 sns.set_context("paper", font_scale=1.1, rc={
     "font.family": "sans-serif",
     "svg.fonttype": "none",  # add text as text rather than curves
-    "legend.fontsize": 12,
+    "legend.fontsize": 15,
 })
 
 
@@ -31,41 +33,42 @@ def compute_motif_labels(row, existing_motif_labels=(), min_fraction_of_motifs_w
 def plot_hist(df, output_image_filename, title=None, y_label=None, show_title=True, width=10, height=8):
     fig, ax = plt.subplots(figsize=(width, height))
     ax.set_xlim(0, 15.5)
-    ax.set_xlabel("Motif size (bp)", labelpad=15, fontsize=15)
+    ax.set_xlabel("Motif Size (bp)", labelpad=15, fontsize=17)
     if y_label:
-        ax.set_ylabel(y_label, labelpad=15, fontsize=15)
+        ax.set_ylabel(y_label, labelpad=15, fontsize=17)
     ax.spines.right.set_visible(False)
     ax.spines.top.set_visible(False)
 
     if show_title:
-        ax.set_title(title, pad=15, fontsize=15)
+        ax.set_title(title, pad=15, fontsize=17)
 
     palette = sns.color_palette("hsv", n_colors=len(set(df["MotifLabels"])), desat=0.8)
-
-    df = df.rename(columns={
-        "MotifLabels": "Normalized Motifs",
-    })
 
     sns.histplot(
         df,
         x="MotifSize",
-        hue="Normalized Motifs",
+        hue="MotifLabels",
         palette=palette,
         binwidth=1,
         multiple="stack",
         stat="proportion",
         discrete=True,
+        legend=True,
         ax=ax)
 
-    ax.get_legend().set_title("Normalized Motif", prop={'size': 13})
-    ax.get_legend().set_frame_on(False)
+    # set legend to have 2 columns
+    legend = ax.get_legend()
+    handles = legend.legendHandles
+    labels = [text.get_text() for text in legend.get_texts()]
+    legend.remove()
+    ax.legend(handles, labels, title=None, prop={'size': 16}, frameon=False, ncol=2)
 
     xticks = range(2, 16, 1)
     yticks = np.arange(0, 0.75, 0.1)
     ax.set_xticks(xticks)
     ax.set_yticks(yticks)
-    ax.set_xticklabels([f"{x}" for x in xticks], fontsize=14)
-    ax.set_yticklabels([f"{y:0.1f}" for y in yticks], fontsize=14)
+    ax.set_xticklabels([f"{x}" for x in xticks], fontsize=16)
+    ax.set_yticklabels([f"{y:0.1f}" for y in yticks], fontsize=16)
 
     plt.savefig(f"{output_image_filename}", bbox_inches="tight", dpi=300)
     plt.close()
@@ -95,28 +98,45 @@ def main():
     p.add_argument("--height", default=8, type=float)
     p.add_argument("--image-type", default="svg", choices=["svg", "png"])
 
-    p.add_argument("--truth-set-variants-table", default="../STR_truth_set.v1.variants.tsv.gz")
+    p.add_argument("--truth-set-alleles-table", default="../STR_truth_set.v1.alleles.tsv.gz")
     args = p.parse_args()
 
     min_ref_bp = "12bp"
-    df_ref = pd.read_table(os.path.join(args.ref_dir,
-                           f"other/repeat_specs_GRCh38_without_mismatches.sorted.trimmed.at_least_{min_ref_bp}.bed.gz"),
-        names=["chrom", "start_0based", "end", "Motif", "num_repeats"],
-        index_col=False)
-    df_ref.loc[:, "MotifSize"] = df_ref.Motif.apply(lambda m: len(m))
-    df_ref.loc[:, "CanonicalMotif"] = df_ref.Motif.apply(lambda m: compute_canonical_motif(m, include_reverse_complement=True))
+
+    input_bed_path = os.path.join(
+        args.ref_dir,
+        f"other/repeat_specs_GRCh38_without_mismatches.sorted.trimmed.at_least_{min_ref_bp}.bed.gz",
+    )
+    rows = []
+    print(f"Parsing {input_bed_path}")
+    with gzip.open(input_bed_path, "rt") as f:
+        for line in tqdm.tqdm(f, unit=" lines", unit_scale=True):
+            fields = line.strip().split("\t")
+            rows.append({
+                "chrom": fields[0],
+                "start_0based": int(fields[1]),
+                "end": int(fields[2]),
+                "Motif": fields[3],
+                "num_repeats": float(fields[4]),
+                "MotifSize": len(fields[3]),
+                "CanonicalMotif": compute_canonical_motif(fields[3], include_reverse_complement=True),
+            })
+
+    print(f"Parsed {len(rows):,d} rows")
+    df_ref = pd.DataFrame(rows)
+    print("Adding columns...")
     df_ref = add_columns(df_ref)
 
-    print(f"Plotting motifs from {len(df_ref):,d} reference loci")
+    print(f"Plotting motifs from {len(df_ref):,d} reference loci...")
     plot_hist(df_ref, os.path.join(args.output_dir, f"motif_distribution_in_hg38_with_atleast_{min_ref_bp}.{args.image_type}"),
-              y_label="Fraction of TR Loci in hg38",
+              y_label="Fraction of All Pure TR Loci in hg38",
               title=f"Motif Distribution in hg38" if args.show_title else None,
               width=args.width,
               height=args.height,
     )
 
     image_name = "motif_distribution"
-    df = pd.read_table(args.truth_set_variants_table)
+    df = pd.read_table(args.truth_set_alleles_table)
     if args.only_pure_repeats:
         df = df[df["IsPureRepeat"]]
         print(f"Plotting motifs from {len(df):,d} pure truth set loci")
@@ -129,7 +149,7 @@ def main():
     df = add_columns(df, existing_motif_labels=set(df_ref.MotifLabels))
     print(f"Plotting motifs from {len(df):,d} pure truth set loci")
     plot_hist(df, os.path.join(args.output_dir, f"{image_name}.{args.image_type}"),
-              y_label="Fraction of Truth Set Loci",
+              y_label="Fraction of Truth Set Alleles",
               title="Motif Distribution in Truth Set" if args.show_title else None,
               width=args.width,
               height=args.height,

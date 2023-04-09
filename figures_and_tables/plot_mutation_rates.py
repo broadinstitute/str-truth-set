@@ -24,7 +24,7 @@ def plot_mutation_rate_by_allele_size(df, args):
     df (pd.DataFrame):
     """
     x_column = "RepeatSize (bp)"
-    x_column_binned = "Allele Size (bp)"
+    x_column_binned = "Total Allele Size (bp)"
     bin_size = 10
 
     df = df[df.FractionPureRepeats >= 0.75]
@@ -38,7 +38,7 @@ def plot_mutation_rate_by_allele_size(df, args):
 
     df2["hue"] = df2["MotifSize"].astype(str) + "bp, " + np.where(df2["IsPureRepeat"], "pure", "interrupted")
 
-    df2 = df2[(df2["DataPoints"] >= 20) & (df2["Allele Size (bp)"].astype(int) < 65)]
+    df2 = df2[(df2["DataPoints"] >= 20) & (df2[x_column_binned].astype(int) < 65)]
     df2.sort_values(by=["IsPureRepeat", "MotifSize"], ascending=[False, True], inplace=True)
 
     palette = list(sns.color_palette("Oranges", len(set(df2[df2["IsPureRepeat"]]["MotifSize"]))))

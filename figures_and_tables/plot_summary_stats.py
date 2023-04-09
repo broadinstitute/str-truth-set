@@ -358,7 +358,40 @@ def plot_allele_size_distribution_x3(df, args, color_by=None, hue_order=None, pa
         print(f"Plotted {len(df):,d} allele records")
 
 
-def plot_motif_distribution(df, args):
+def without_alpha(hex_color_string, alpha=0.5):
+    """Returns a color that's equivalent to displaying the input color with the given alpha on a white background"""
+
+    hex_color_string = hex_color_string.lower().strip("#")
+    if hex_color_string.startswith("0x"):
+        hex_color_string = hex_color_string[2:]
+    if len(hex_color_string) != 6:
+        raise ValueError(f"Unexpected color string format: {hex_color_string}")
+    result = "#"
+    for i in 0, 2, 4:
+        rgb_value = int("0x"+hex_color_string[i:i+2], 16)
+        new_rgb_value = int(255 - alpha*(255-rgb_value))
+        new_rgb_hex = hex(new_rgb_value).upper()
+        result += new_rgb_hex[2:]
+    return result
+
+
+def mix_two_colors_with_alpha(hex_color1, hex_color2, alpha=0.5):
+    """Returns a color that's equivalent to displaying input color2 on top of input color1 where both have the given alpha"""
+
+    hex_color1 = hex_color1.lower().strip("#")
+    hex_color2 = hex_color2.lower().strip("#")
+    result = "#"
+    for i in 0, 2, 4:
+        rgb_value1 = int("0x"+hex_color1[i:i+2], 16)
+        rgb_value2 = int("0x"+hex_color2[i:i+2], 16)
+        # r2 over r1 = (1 - a0)·r1 + a0·r2
+        new_rgb_value = int((1-alpha) * rgb_value1 + alpha * rgb_value2)
+        new_rgb_hex = hex(new_rgb_value).upper()
+        result += new_rgb_hex[2:]
+    return result
+
+
+def plot_distribution_of_reference_locus_sizes(df, args):
 
     print("Plotting allele distribution by motif size")
 
@@ -385,23 +418,65 @@ def plot_motif_distribution(df, args):
 
     title = "# of Repeats in hg38 at Truth Set Loci"
 
+    alpha = 0.4
+    non_ref_alleles_color = "#FF80BF"
+    ref_alleles_color = "#004AC0"
     ax = axes[0]
-    p = sns.histplot(
+    sns.histplot(
+        df,
+        x="NumRepeats",
+        alpha=alpha,
+        binwidth=1,
+        discrete=True,
+        color=non_ref_alleles_color,
+        zorder=3,
+        ax=ax)
+
+    sns.histplot(
         df,
         x="NumRepeatsInReference",
         binwidth=1,
         discrete=True,
-        color="#1F77B4",
+        color=ref_alleles_color,
+        alpha=alpha,
         zorder=3,
         ax=ax)
+
+    # add a legend to the plot
+    from matplotlib.patches import Patch
+    patch1 = Patch(facecolor=without_alpha(non_ref_alleles_color, alpha=alpha),
+                   label="non-reference alleles\nin the truth set")
+    patch2 = Patch(facecolor=without_alpha(ref_alleles_color, alpha=alpha),
+                   label="hg38 reference alleles\nat truth set loci")
+    patch3 = Patch(facecolor=mix_two_colors_with_alpha(non_ref_alleles_color, ref_alleles_color, alpha=alpha),
+                   label="overlap between the\ntwo distributions")
+    ax.legend(handles=[patch1, patch2, patch3], loc="upper right", fontsize=14, frameon=True)
+
+
+    # add a solid vertical line to indicate the median number of repeats
+    median_num_repeats_in_reference = int(df["NumRepeatsInReference"].median())
+    ax.axvline(median_num_repeats_in_reference, color="#000000", linestyle="-", linewidth=1.2)
+
+    # add a black text label rotated 90 degrees just to the left of the vertical line
+    ax.text(
+        median_num_repeats_in_reference - 0.5,
+        100,
+        f"median = {median_num_repeats_in_reference} repeats",
+        rotation=90,
+        color="#F3F3FF",
+        #fontweight="bold",
+        fontsize=14,
+        verticalalignment="center",
+        horizontalalignment="right")
 
     ax.yaxis.grid(True, zorder=0, color="#D5D5F5")
 
     if args.show_title:
-        p.set_title(title, fontsize=14)
-    ax.set_xlabel("", fontsize=14)
+        ax.set_title(title, fontsize=14)
+    ax.set_xlabel("Allele Size (# of repeats)", fontsize=14)
+
     ax.set_yscale("log")
-    ax.set_ylabel("# of Loci", fontsize=14)
+    ax.set_ylabel("# of Alleles", fontsize=14)
 
     ax = axes[1]
     sns.histplot(
@@ -415,6 +490,23 @@ def plot_motif_distribution(df, args):
         multiple="fill",
         ax=ax)
 
+    # add a 2px thick dashed horizontal purple line at 0.5 to indicate the 50% mark
+    ax.axhline(
+        0.5,
+        #color="#9467BD",
+        color="#000000",
+        linestyle="--",
+        linewidth=0.8)
+
+    # generate a color between
+    # "#9467BD"
+
+    # "#9467BD"
+    # "#7A77BA"
+    # "#6375B7"
+    # "#4C73B4"
+    # "#3571B1"
+
     xlimit = 50
     for ax in axes:
         ax.xaxis.labelpad = ax.yaxis.labelpad = 15
@@ -423,24 +515,26 @@ def plot_motif_distribution(df, args):
         ax.set_xticks(np.arange(0, xlimit + 0.5, 5))
         ax.set_xlim(-0.5, xlimit + 0.5)
 
+
     ax.set_xlabel("# of Repeats in hg38", fontsize=14)
-    ax.set_ylabel("Fraction of Alleles", fontsize=14)
+    ax.set_ylabel("Fraction of Truth Set Alleles", fontsize=14)
 
     with mpl.rc_context({ "text.usetex": True }):
         ax.get_legend().set_title("\n".join([
             "\# of Repeats in",
             "Truth Set Allele",
             "Relative to hg38",
-            "$_{contractions\ are\ <\ 0}$",
-            "$_{expansions\ are\ >\ 0}$",
+            #"$_{contractions\ are\ <\ 0}$",
+            #"$_{expansions\ are\ >\ 0}$",
             "",
-        ]), prop={'size': 14})
-        sns.move_legend(ax, loc=(1.05, 0.15))
+        ]), prop={'size': 15})
+        #sns.move_legend(ax, loc=(1.05, 0.15))
+        sns.move_legend(ax, loc=(1.05, 0.21))
         ax.get_legend()._legend_box.align = "left"
         ax.get_legend().set_frame_on(False)
-        ax.get_legend().get_title().set_fontsize(12)
+        ax.get_legend().get_title().set_fontsize(14)
         for text in ax.get_legend().get_texts():
-            text.set_fontsize(12)
+            text.set_fontsize(14)
 
     output_image_name = "reference_locus_size_distribution"
     if args.only_pure_repeats:
@@ -467,12 +561,10 @@ def main():
     p.add_argument("--truth-set-alleles-table", default="../STR_truth_set.v1.alleles.tsv.gz")
     args = p.parse_args()
 
-    input_table_path = args.truth_set_alleles_table
+    print(f"Reading {args.truth_set_alleles_table}")
+    df = pd.read_table(args.truth_set_alleles_table)
 
-    print(f"Reading {input_table_path}")
-    df = pd.read_table(input_table_path)
-
-    print(f"Parsed {len(df):,d} rows from {input_table_path}")
+    print(f"Parsed {len(df):,d} rows from {args.truth_set_alleles_table}")
 
     if args.only_pure_repeats:
         df = df[df.IsPureRepeat]
@@ -513,7 +605,7 @@ def main():
         plot_gene_info(df, args, excluding_introns_and_intergenic=True, use_MANE_genes=True)
 
     if not args.only_plot or args.only_plot == "6":
-        plot_motif_distribution(df, args)
+        plot_distribution_of_reference_locus_sizes(df, args)
 
 
 if __name__ == "__main__":

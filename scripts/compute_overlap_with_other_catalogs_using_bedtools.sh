@@ -1,7 +1,7 @@
 # This script does a fast comparison using bedtools. This is a sanity check on the more nuanced
 # comparison done by compute_overlap_with_other_catalogs.py
 
-truthset_bed=${1:-./pure_STR_truth_set.v1.variants.bed.gz}
+truthset_bed=${1:-./STR_truth_set.v1.variants.bed.gz}
 prefix=$2
 
 # total # of records in the truth set
@@ -25,8 +25,7 @@ function subtract {
 subtract "${prefix}              Illumina:" ./ref/other/illumina_variant_catalog.sorted.bed.gz
 subtract "${prefix}              GangSTR:" ./ref/other/hg38_ver17.adjusted.bed.gz
 subtract "${prefix}               HipSTR:" ./ref/other/hg38.hipstr_reference.adjusted.bed.gz
-subtract "${prefix}   PureRepeats >= 6bp:"  ./ref/other/repeat_specs_GRCh38_without_mismatches.sorted.trimmed.at_least_6bp.bed.gz
-subtract "${prefix}   PureRepeats >= 9bp:"  ./ref/other/repeat_specs_GRCh38_without_mismatches.sorted.trimmed.at_least_9bp.bed.gz
-subtract "${prefix}   PureRepeats >= 12bp:"  ./ref/other/repeat_specs_GRCh38_without_mismatches.sorted.trimmed.at_least_12bp.bed.gz
-subtract "${prefix}   PureRepeats >= 15bp:"  ./ref/other/repeat_specs_GRCh38_without_mismatches.sorted.trimmed.at_least_15bp.bed.gz
+for i in $(seq 6 3 30); do 
+    subtract "${prefix}   PureRepeats >= ${i}bp:"  ./ref/other/repeat_specs_GRCh38_without_mismatches.sorted.trimmed.at_least_${i}bp.bed.gz
+done
 
