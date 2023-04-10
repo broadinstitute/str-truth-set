@@ -12,8 +12,6 @@ set -ex
 ./run_step_A__create_STR_truth_set.sh --only-high-confidence-regions --include-homopolymers --always-extend-locus-coordinates-to-include-interruptions >& step_A_extended_with_interruptions_step_A_with_homopolymers.log
 
 
-
-
 for _including_homopolymer in ""  "s_including_homopolymer"; do
   for table_type in "variants" "alleles"; do
     python3 scripts/join_truth_set_tables_generated_using_different_options.py \
@@ -28,9 +26,9 @@ done
 
 
 # Run the rest of the pipeline
-#./run_step_B__generate_variant_catalogs_and_upload_to_bucket.sh >& step_B.log
-#./run_step_C__run_tool_pipelines.sh >& step_C.log
-#./run_step_D__combine_tool_results.sh >& step_D.log
-#./run_step_E__generate_plots_and_figures.sh >& step_E.log
+./run_step_B__generate_variant_catalogs_and_upload_to_bucket.sh >& step_B.log
+./run_step_C__run_tool_pipelines.sh >& step_C.log
+./run_step_D__combine_tool_results.sh >& step_D.log
+./run_step_E__generate_plots_and_figures.sh >& step_E.log
 
 echo Finished running all steps

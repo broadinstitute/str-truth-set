@@ -2,7 +2,7 @@ import os
 
 from step_pipeline import pipeline, Backend, Localize, Delocalize
 
-DOCKER_IMAGE = "docker.io/weisburd/truth-set-figures@sha256:612b31d82f497eda2b9ea53f4c6c8fe35e78ec8986c3196f686eacf5f4b90e15"
+DOCKER_IMAGE = "docker.io/weisburd/truth-set-figures@sha256:91d931a4994ee78e4abe2d21a847e24fd9c5fbd278f1a3dd5e92ff641be0df78"
 
 
 def main():
@@ -28,7 +28,8 @@ def main():
                          output_dir=os.path.join(args.output_dir, "accuracy_by_allele_size"))
         local_truth_set_tsv = s1.input(args.input_table, localize_by=Localize.COPY)
         s1.command("set -ex")
-        s1.command(f"python3 plot_tool_accuracy_by_allele_size.py --output-dir . --show-title --start-with-plot-i {i} -n {args.batch_size} {local_truth_set_tsv}")
+        s1.command(f"python3 plot_tool_accuracy_by_allele_size.py --image-type svg --output-dir . --show-title "
+                   f"--start-with-plot-i {i} -n {args.batch_size} {local_truth_set_tsv}")
         s1.output(f"*.svg", delocalize_by=Delocalize.GSUTIL_COPY)
 
     # generate tool accuracy vs Q plots

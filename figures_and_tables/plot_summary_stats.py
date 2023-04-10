@@ -473,7 +473,7 @@ def plot_distribution_of_reference_locus_sizes(df, args):
 
     if args.show_title:
         ax.set_title(title, fontsize=14)
-    ax.set_xlabel("Allele Size (# of repeats)", fontsize=14)
+    ax.set_xlabel("Total Allele Size (# of repeats)", fontsize=14)
 
     ax.set_yscale("log")
     ax.set_ylabel("# of Alleles", fontsize=14)

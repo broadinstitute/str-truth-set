@@ -4,6 +4,7 @@ import numpy as np
 import os
 import pandas as pd
 import seaborn as sns
+import sys
 
 from matplotlib import patches
 
@@ -167,7 +168,7 @@ def plot_accuracy_by_allele_size(
             n_lookup = dict(df.groupby(x_column).count().LocusId)
             for j, (xtick, text) in enumerate(zip(axes[i].get_xticks(), axes[i].get_xticklabels())):
                 ax.text(xtick, 1.018, f"{n_lookup[text.get_text()]:,d}", ha="left", va="bottom", color="#777777", fontsize=12, rotation=45)
-            ax.text(1, 1.08, "Alleles Per Bin", ha="right", va="bottom", color="#777777", fontsize=12, transform=ax.transAxes)
+            ax.text(0, 1.15, "Alleles Per Bin", ha="left", va="bottom", color="#777777", fontsize=12, transform=ax.transAxes)
 
     if tool_name:
         l = axes[0].get_legend()
@@ -197,6 +198,7 @@ def hue_sorter(value):
 
 
 def generate_all_plots(df, args):
+    arg_string = " ".join(sys.argv)
     plot_counter = 0
 
     start_with_plot_i = args.start_with_plot_i
@@ -264,7 +266,7 @@ def generate_all_plots(df, args):
                         else:
                             df5 = df4
 
-                        for pure_repeats in ["both", True, False] if args.only_pure_repeats is None else [True]:
+                        for pure_repeats in ["both", True, False] if "--only-pure-repeats" not in arg_string else [True]:
                             if pure_repeats == "both" or args.only_print_total_number_of_plots:
                                 df6 = df5
                             elif pure_repeats:
@@ -272,7 +274,9 @@ def generate_all_plots(df, args):
                             else:
                                 df6 = df5[~df5["IsPureRepeat"]]
 
-                            for only_loci_with_calls_by_this_tool in [False, True] if (args.hide_no_call_loci is None and args.show_no_call_loci is None) else ([True] if args.hide_no_call_loci else [False]):
+                            hide_no_call_loci_option = "--hide-no-call-loci" in arg_string
+                            show_no_call_loci_option = "--show-no-call-loci" in arg_string
+                            for only_loci_with_calls_by_this_tool in [False, True] if not hide_no_call_loci_option and not show_no_call_loci_option else ([True] if args.hide_no_call_loci else [False]):
                                 if only_loci_with_calls_by_this_tool and not args.only_print_total_number_of_plots:
                                     df7 = df6[df6[f"DiffRepeats: Allele: {tool} - Truth (bin)"] != NO_CALL_LABEL]
                                 else:

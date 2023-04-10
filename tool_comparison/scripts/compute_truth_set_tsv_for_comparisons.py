@@ -17,7 +17,7 @@ TSV_HEADER = [
     "DiffFromRefRepeats: Allele 2", "DiffFromRefSize (bp): Allele 2",
 ] + [
     "TruthSetOrNegativeLocus",
-    "HET_or_HOM",
+    "HET_or_HOM_or_MULTI",
     "IsHomRef",
     "IsRef: Allele 1",
     "IsRef: Allele 2",
@@ -98,9 +98,9 @@ def add_extra_columns(df):
     ) & (
         df["LocusSize (bp)"] == df["RepeatSize (bp): Allele 1"]
     )
-    error_count = sum(df["IsHomRef"] & (df["HET_or_HOM"] != "HOM"))
+    error_count = sum(df["IsHomRef"] & (df["HET_or_HOM_or_MULTI"] != "HOM"))
     if error_count:
-        raise ValueError(f"{error_count} rows have IsHomRef == True, but HET_or_HOM != HOM")
+        raise ValueError(f"{error_count} rows have IsHomRef == True, but HET_or_HOM_or_MULTI != HOM")
 
 
 def main():
@@ -134,7 +134,7 @@ def main():
     ).astype(int)
     negative_loci_df.loc[:, "NumRepeatsShortAllele"] = negative_loci_df.loc[:, "NumRepeatsInReference"]
     negative_loci_df.loc[:, "NumRepeatsLongAllele"] = negative_loci_df.loc[:, "NumRepeatsInReference"]
-    negative_loci_df.loc[:, "HET_or_HOM"] = "HOM"
+    negative_loci_df.loc[:, "HET_or_HOM_or_MULTI"] = "HOM"
     negative_loci_df.loc[:, "IsPureRepeat"] = True
     negative_loci_df.loc[:, "IsFoundInReference"] = True
     negative_loci_df.loc[:, "IsMultiallelic"] = False

@@ -26,7 +26,7 @@ def plot_distribution(df, args):
         df,
         x="indel_kb",
         binwidth=0.1,
-        color="#0033FF",
+        color="#888888",
         ax=ax)
 
     fig.tight_layout()
