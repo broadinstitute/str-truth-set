@@ -89,8 +89,8 @@ def plot_truth_set_overlap_with_ehdn_calls(args):
 
     ax.spines.right.set_visible(False)
     ax.spines.top.set_visible(False)
-    ax.set_xlabel("Truth Set Total Allele Size (bp)", labelpad=15, fontsize=13)
-    ax.set_ylabel("Fraction of Truth Set Expansions\nWith Matching ExpansionHunterDenovo Calls", labelpad=15, fontsize=13)
+    ax.set_xlabel("True Total Allele Size (bp)", labelpad=15, fontsize=13)
+    ax.set_ylabel("Fraction of Pure Expansions in Truth Set\nDetected by ExpansionHunterDenovo", labelpad=15, fontsize=13)
 
     sns.histplot(
         truth_set_df,
