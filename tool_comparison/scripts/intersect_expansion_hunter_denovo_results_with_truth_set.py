@@ -39,7 +39,7 @@ def parse_args():
 
     # validate file path args
     for path in args.expansion_hunter_denovo_results_tsv + [
-        args.syndip_confidence_regions_bed, args.truth_set_alleles_tsv, args.reference_repeats_bed
+        args.syndip_confidence_regions_bed, args.truth_set_variants_tsv, args.reference_repeats_bed
     ]:
         if not os.path.isfile(path):
             p.error(f"{path} not found")
@@ -128,14 +128,14 @@ def load_ehdn_results_table(ehdn_results_table_path):
     return ehdn_df
 
 
-def load_truth_set_alleles_tsv(truth_set_alleles_tsv):
+def load_truth_set_variants_tsv(truth_set_variants_tsv):
     """Loads and returns the truth set tsv after discarding irrelevant columns and adding a "ReferenceLocusSize (bp)"
     column.
     """
 
-    print(f"Loading {truth_set_alleles_tsv}")
-    truth_set_alleles_df = pd.read_table(truth_set_alleles_tsv)
-    truth_set_alleles_df = truth_set_alleles_df[[
+    print(f"Loading {truth_set_variants_tsv}")
+    truth_set_variants_df = pd.read_table(truth_set_variants_tsv)
+    truth_set_variants_df = truth_set_variants_df[[
         "LocusId", "Locus", "Chrom", "Start1Based", "End1Based",
         "Motif", "CanonicalMotif", "MotifSize", "INS_or_DEL",
         "NumRepeatsInReference", "NumRepeats", "RepeatSize (bp)",
@@ -143,13 +143,13 @@ def load_truth_set_alleles_tsv(truth_set_alleles_tsv):
     ]]
 
     # filter to expansions and motif sizes that are smaller than the MAX_REPEAT_UNIT_LENGTH set in the EHdn pipeline
-    truth_set_alleles_df = truth_set_alleles_df[truth_set_alleles_df["INS_or_DEL"] == "INS"]
-    truth_set_alleles_df = truth_set_alleles_df[truth_set_alleles_df["MotifSize"] <= 50]
+    truth_set_variants_df = truth_set_variants_df[truth_set_variants_df["INS_or_DEL"].str.contains("INS")]
+    truth_set_variants_df = truth_set_variants_df[truth_set_variants_df["MotifSize"] <= 50]
 
-    truth_set_alleles_df.loc[:, "ReferenceLocusSize (bp)"] = truth_set_alleles_df["End1Based"] - truth_set_alleles_df["Start1Based"] + 1
+    truth_set_variants_df.loc[:, "ReferenceLocusSize (bp)"] = truth_set_variants_df["End1Based"] - truth_set_variants_df["Start1Based"] + 1
 
-    print(f"Read {len(truth_set_alleles_df):,d} STR expansion records from {truth_set_alleles_tsv}")
-    return truth_set_alleles_df
+    print(f"Read {len(truth_set_variants_df):,d} STR expansion records from {truth_set_variants_tsv}")
+    return truth_set_variants_df
 
 
 def create_truth_set_output_record(truth_set_row, matching_ehdn_calls):
@@ -220,8 +220,8 @@ def create_ehdn_output_record(ehdn_call):
     matching_truth_set_row = ehdn_call.data["MatchingTruthSetRow"]
     if matching_truth_set_row is not None:
         ehdn_output_record["EHdn Concordance With Truth Set"] = "Matching Expansion In Truth Set"
-        ehdn_output_record["TruthSet NumRepeats"] = matching_truth_set_row["NumRepeats"]
-        ehdn_output_record["TruthSet RepeatSize (bp)"] = matching_truth_set_row["RepeatSize (bp)"]
+        ehdn_output_record["TruthSet NumRepeats"] = matching_truth_set_row["NumRepeatsLongAllele"]
+        ehdn_output_record["TruthSet RepeatSize (bp)"] = matching_truth_set_row["RepeatSizeLongAllele (bp)"]
         ehdn_output_record["TruthSet IsPureRepeat"] = matching_truth_set_row["IsPureRepeat"]
     else:
         ehdn_output_record["EHdn Concordance With Truth Set"] = "False Positive"
@@ -339,8 +339,8 @@ def generate_output_table(
             matching_truth_set_row_with_largest_expansion = None
             for matching_truth_set_row in ehdn_call.data["MatchingTruthSetRows"]:
                 if matching_truth_set_row_with_largest_expansion is None or (
-                        matching_truth_set_row["NumRepeats"] >
-                        matching_truth_set_row_with_largest_expansion["NumRepeats"]):
+                        matching_truth_set_row["NumRepeatsLongAllele"] >
+                        matching_truth_set_row_with_largest_expansion["NumRepeatsLongAllele"]):
                     matching_truth_set_row_with_largest_expansion = matching_truth_set_row
 
             ehdn_call.data["MatchingTruthSetRow"] = matching_truth_set_row_with_largest_expansion
@@ -390,7 +390,7 @@ def main():
 
     syndip_confidence_interval_trees = load_bed_to_interval_trees(args.syndip_confidence_regions_bed)
 
-    truth_set_df = load_truth_set_alleles_tsv(args.truth_set_alleles_tsv)
+    truth_set_df = load_truth_set_variants_tsv(args.truth_set_variants_tsv)
 
     for ehdn_result_table_path in sorted(args.expansion_hunter_denovo_results_tsv):
         generate_output_table(
