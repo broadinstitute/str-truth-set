@@ -174,7 +174,7 @@ print(f"{format_np(sum(df_alleles['AlleleSizeMinusReference.abs() (bp)'] <= 30),
 
 print("--")
 
-# columns: ['Chrom', 'Start1Based', 'End1Based', 'Locus', 'LocusId', 'INS_or_DEL_or_REF', 'HET_or_HOM', 'Motif', 'CanonicalMotif',
+# columns: ['Chrom', 'Start1Based', 'End1Based', 'Locus', 'LocusId', 'INS_or_DEL', 'HET_or_HOM', 'Motif', 'CanonicalMotif',
 # 'MotifSize', 'NumRepeatsInReference', 'VcfPos', 'VcfRef', 'VcfAlt', 'VcfGenotype', 'SummaryString',
 # 'IsFoundInReference', 'IsPureRepeat', 'IsMultiallelic', 'NumRepeats', 'RepeatSize (bp)', 'NumPureRepeats',
 # 'PureRepeatSize (bp)', 'FractionPureRepeats', 'RepeatUnitInterruptionIndex', 'OverlapsIlluminaSTRCatalog: Locus',
