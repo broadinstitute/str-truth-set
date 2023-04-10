@@ -25,16 +25,15 @@ def parse_args():
     p.add_argument("--syndip-confidence-regions-bed", default="./ref/full.38.bed.gz",
                    help="Path of bed file containing the SynDip confidence regions, used to filter out EHdn results in "
                         "regions that are excluded from the STR truth set")
-    p.add_argument("--truth-set-alleles-tsv", default="./STR_truth_set.v1.alleles.tsv.gz",
-                   help="Path of truth set alleles tsv")
+    p.add_argument("--truth-set-variants-tsv", default="./STR_truth_set.v1.variants.tsv.gz",
+                   help="Path of truth set variants tsv")
     p.add_argument("--reference-repeats-bed", help="Path of bed file containing all STRs in the reference genome",
                    default="./ref/other/repeat_specs_GRCh38_without_mismatches.sorted.trimmed.at_least_6bp.bed.gz")
-                    # "./ref/other/repeat_specs_GRCh38_allowing_mismatches.sorted.trimmed.at_least_6bp.bed.gz"
     p.add_argument("-w", "--window-size", type=int, default=600, help="The window size in base pairs. EHdn calls can "
                    "be at most this far away from the true STR locus and still be counted as correct.")
     p.add_argument("expansion_hunter_denovo_results_tsv", nargs="+",
                    help="The output of EHdn ./tool_comparison/results/expansion_hunter_denovo/CHM1_CHM13_WGS2.locus.tsv")
-                        #ehdn_tsv = "./tool_comparison/results/expansion_hunter_denovo/CHM1_CHM13_WGS2.locus.tsv"
+
     args = p.parse_args()
 
     # validate file path args
@@ -138,7 +137,7 @@ def load_truth_set_variants_tsv(truth_set_variants_tsv):
     truth_set_variants_df = truth_set_variants_df[[
         "LocusId", "Locus", "Chrom", "Start1Based", "End1Based",
         "Motif", "CanonicalMotif", "MotifSize", "INS_or_DEL",
-        "NumRepeatsInReference", "NumRepeats", "RepeatSize (bp)",
+        "NumRepeatsInReference", "NumRepeatsLongAllele", "RepeatSizeLongAllele (bp)",
         "IsPureRepeat", "IsFoundInReference", "SummaryString",
     ]]
 
@@ -273,7 +272,7 @@ def find_longest_matching_reference_repeat(ehdn_call, reference_repeats_interval
 
 def generate_output_table(
         ehdn_result_table_path,
-        truth_set_df,
+        truth_set_variants_df,
         syndip_confidence_interval_trees,
         reference_repeats_interval_trees,
         window_size):
@@ -309,7 +308,7 @@ def generate_output_table(
     # iterate over all truth set rows and match them to EHdn calls while generating truth_set_ehdn_comparison_table_rows
     print("Match truth set alleles with EHdn calls")
     truth_set_ehdn_comparison_table_rows = []  # one row per truth set record
-    for _, truth_set_row in tqdm(truth_set_df.iterrows(), total=len(truth_set_df), unit=" truth set alleles"):
+    for _, truth_set_row in tqdm(truth_set_variants_df.iterrows(), total=len(truth_set_variants_df), unit=" truth set variants"):
 
         # intersect truth set row with EHdn
         matching_ehdn_calls = []

@@ -954,67 +954,67 @@ STEP #3: Liftover variants from hg38 to the T2T reference (chm13v2.0)
          INPUT: step2.STRs_including_homopolymers.vcf.gz        194795 variants
 + gatk --java-options -Xmx7g LiftoverVcf -R ./ref/chm13v2.0.fa -C ./ref/hg38-chm13v2.chain -I step2.STRs_including_homopolymers.vcf.gz -O step3.STRs_including_homopolymers.lifted_to_chm13v2.vcf.gz --REJECT step3.STRs_including_homopolymers.lifted_to_chm13v2_rejected.vcf.gz --VALIDATION_STRINGENCY LENIENT --RECOVER_SWAPPED_REF_ALT --WARN_ON_MISSING_CONTIG --LIFTOVER_MIN_MATCH 0.00001 --WRITE_ORIGINAL_POSITION --WRITE_ORIGINAL_ALLELES --ALLOW_MISSING_FIELDS_IN_HEADER
 + python3 -u scripts/add_prefix_to_stdout.py 'step3:STRs_including_homopolymer:  '
-17:22:46.748 INFO  NativeLibraryLoader - Loading libgkl_compression.dylib from jar:file:/Users/weisburd/bin/gatk-package-4.2.0.0-local.jar!/com/intel/gkl/native/libgkl_compression.dylib
-[Tue Apr 04 17:22:47 EDT 2023] LiftoverVcf --INPUT step2.STRs_including_homopolymers.vcf.gz --OUTPUT step3.STRs_including_homopolymers.lifted_to_chm13v2.vcf.gz --CHAIN ./ref/hg38-chm13v2.chain --REJECT step3.STRs_including_homopolymers.lifted_to_chm13v2_rejected.vcf.gz --WARN_ON_MISSING_CONTIG true --WRITE_ORIGINAL_POSITION true --WRITE_ORIGINAL_ALLELES true --LIFTOVER_MIN_MATCH 1.0E-5 --ALLOW_MISSING_FIELDS_IN_HEADER true --RECOVER_SWAPPED_REF_ALT true --VALIDATION_STRINGENCY LENIENT --REFERENCE_SEQUENCE ./ref/chm13v2.0.fa --LOG_FAILED_INTERVALS true --TAGS_TO_REVERSE AF --TAGS_TO_DROP MAX_AF --DISABLE_SORT false --VERBOSITY INFO --QUIET false --COMPRESSION_LEVEL 2 --MAX_RECORDS_IN_RAM 500000 --CREATE_INDEX false --CREATE_MD5_FILE false --GA4GH_CLIENT_SECRETS client_secrets.json --help false --version false --showHidden false --USE_JDK_DEFLATER false --USE_JDK_INFLATER false
-[Tue Apr 04 17:22:47 EDT 2023] Executing as weisburd@wm103-772 on Mac OS X 10.16 x86_64; OpenJDK 64-Bit Server VM 1.8.0_322-b06; Deflater: Intel; Inflater: Intel; Provider GCS is available; Picard version: Version:4.2.0.0
-INFO	2023-04-04 17:22:47	LiftoverVcf	Loading up the target reference genome.
-INFO	2023-04-04 17:22:57	LiftoverVcf	Lifting variants over and sorting (not yet writing the output file.)
-INFO	2023-04-04 17:23:03	LiftoverVcf	Processed 194795 variants.
-INFO	2023-04-04 17:23:03	LiftoverVcf	74133 variants failed to liftover.
-INFO	2023-04-04 17:23:03	LiftoverVcf	1003 variants lifted over but had mismatching reference alleles after lift over.
-INFO	2023-04-04 17:23:03	LiftoverVcf	38.5718% of variants were not successfully lifted over and written to the output.
-INFO	2023-04-04 17:23:03	LiftoverVcf	liftover success by source contig:
-INFO	2023-04-04 17:23:03	LiftoverVcf	chr1: 9200 / 15203 (60.5144%)
-INFO	2023-04-04 17:23:03	LiftoverVcf	chr10: 5617 / 9279 (60.5345%)
-INFO	2023-04-04 17:23:03	LiftoverVcf	chr11: 5503 / 9050 (60.8066%)
-INFO	2023-04-04 17:23:03	LiftoverVcf	chr12: 5653 / 9336 (60.5506%)
-INFO	2023-04-04 17:23:03	LiftoverVcf	chr13: 4357 / 7185 (60.6402%)
-INFO	2023-04-04 17:23:03	LiftoverVcf	chr14: 3791 / 6176 (61.3828%)
-INFO	2023-04-04 17:23:03	LiftoverVcf	chr15: 3298 / 5351 (61.6333%)
-INFO	2023-04-04 17:23:03	LiftoverVcf	chr16: 3327 / 5502 (60.4689%)
-INFO	2023-04-04 17:23:03	LiftoverVcf	chr17: 3354 / 5535 (60.5962%)
-INFO	2023-04-04 17:23:03	LiftoverVcf	chr18: 3309 / 5414 (61.1193%)
-INFO	2023-04-04 17:23:03	LiftoverVcf	chr19: 2705 / 4382 (61.7298%)
-INFO	2023-04-04 17:23:03	LiftoverVcf	chr2: 9703 / 15880 (61.1020%)
-INFO	2023-04-04 17:23:03	LiftoverVcf	chr20: 2702 / 4282 (63.1014%)
-INFO	2023-04-04 17:23:03	LiftoverVcf	chr21: 1675 / 2642 (63.3989%)
-INFO	2023-04-04 17:23:03	LiftoverVcf	chr22: 1561 / 2481 (62.9182%)
-INFO	2023-04-04 17:23:03	LiftoverVcf	chr3: 8191 / 13206 (62.0248%)
-INFO	2023-04-04 17:23:03	LiftoverVcf	chr4: 8113 / 13319 (60.9130%)
-INFO	2023-04-04 17:23:03	LiftoverVcf	chr5: 7461 / 11852 (62.9514%)
-INFO	2023-04-04 17:23:03	LiftoverVcf	chr6: 7247 / 11639 (62.2648%)
-INFO	2023-04-04 17:23:03	LiftoverVcf	chr7: 6451 / 10567 (61.0485%)
-INFO	2023-04-04 17:23:03	LiftoverVcf	chr8: 6060 / 9731 (62.2752%)
-INFO	2023-04-04 17:23:03	LiftoverVcf	chr9: 4743 / 7586 (62.5231%)
-INFO	2023-04-04 17:23:03	LiftoverVcf	chrX: 5638 / 9197 (61.3026%)
-INFO	2023-04-04 17:23:03	LiftoverVcf	lifted variants by target contig:
-INFO	2023-04-04 17:23:03	LiftoverVcf	chr1: 9200
-INFO	2023-04-04 17:23:03	LiftoverVcf	chr10: 5617
-INFO	2023-04-04 17:23:03	LiftoverVcf	chr11: 5503
-INFO	2023-04-04 17:23:03	LiftoverVcf	chr12: 5653
-INFO	2023-04-04 17:23:03	LiftoverVcf	chr13: 4357
-INFO	2023-04-04 17:23:03	LiftoverVcf	chr14: 3791
-INFO	2023-04-04 17:23:03	LiftoverVcf	chr15: 3298
-INFO	2023-04-04 17:23:03	LiftoverVcf	chr16: 3327
-INFO	2023-04-04 17:23:03	LiftoverVcf	chr17: 3354
-INFO	2023-04-04 17:23:03	LiftoverVcf	chr18: 3309
-INFO	2023-04-04 17:23:03	LiftoverVcf	chr19: 2705
-INFO	2023-04-04 17:23:03	LiftoverVcf	chr2: 9703
-INFO	2023-04-04 17:23:03	LiftoverVcf	chr20: 2702
-INFO	2023-04-04 17:23:03	LiftoverVcf	chr21: 1675
-INFO	2023-04-04 17:23:03	LiftoverVcf	chr22: 1561
-INFO	2023-04-04 17:23:03	LiftoverVcf	chr3: 8191
-INFO	2023-04-04 17:23:03	LiftoverVcf	chr4: 8113
-INFO	2023-04-04 17:23:03	LiftoverVcf	chr5: 7461
-INFO	2023-04-04 17:23:03	LiftoverVcf	chr6: 7247
-INFO	2023-04-04 17:23:03	LiftoverVcf	chr7: 6451
-INFO	2023-04-04 17:23:03	LiftoverVcf	chr8: 6060
-INFO	2023-04-04 17:23:03	LiftoverVcf	chr9: 4743
-INFO	2023-04-04 17:23:03	LiftoverVcf	chrX: 5638
-INFO	2023-04-04 17:23:03	LiftoverVcf	0 variants were lifted by swapping REF/ALT alleles.
-INFO	2023-04-04 17:23:03	LiftoverVcf	Writing out sorted records to final VCF.
-[Tue Apr 04 17:23:04 EDT 2023] picard.vcf.LiftoverVcf done. Elapsed time: 0.30 minutes.
-Runtime.totalMemory()=1502609408
+19:28:21.328 INFO  NativeLibraryLoader - Loading libgkl_compression.dylib from jar:file:/Users/weisburd/bin/gatk-package-4.2.0.0-local.jar!/com/intel/gkl/native/libgkl_compression.dylib
+[Sun Apr 09 19:28:21 PDT 2023] LiftoverVcf --INPUT step2.STRs_including_homopolymers.vcf.gz --OUTPUT step3.STRs_including_homopolymers.lifted_to_chm13v2.vcf.gz --CHAIN ./ref/hg38-chm13v2.chain --REJECT step3.STRs_including_homopolymers.lifted_to_chm13v2_rejected.vcf.gz --WARN_ON_MISSING_CONTIG true --WRITE_ORIGINAL_POSITION true --WRITE_ORIGINAL_ALLELES true --LIFTOVER_MIN_MATCH 1.0E-5 --ALLOW_MISSING_FIELDS_IN_HEADER true --RECOVER_SWAPPED_REF_ALT true --VALIDATION_STRINGENCY LENIENT --REFERENCE_SEQUENCE ./ref/chm13v2.0.fa --LOG_FAILED_INTERVALS true --TAGS_TO_REVERSE AF --TAGS_TO_DROP MAX_AF --DISABLE_SORT false --VERBOSITY INFO --QUIET false --COMPRESSION_LEVEL 2 --MAX_RECORDS_IN_RAM 500000 --CREATE_INDEX false --CREATE_MD5_FILE false --GA4GH_CLIENT_SECRETS client_secrets.json --help false --version false --showHidden false --USE_JDK_DEFLATER false --USE_JDK_INFLATER false
+[Sun Apr 09 19:28:21 PDT 2023] Executing as weisburd@wm103-772 on Mac OS X 10.16 x86_64; OpenJDK 64-Bit Server VM 1.8.0_322-b06; Deflater: Intel; Inflater: Intel; Provider GCS is available; Picard version: Version:4.2.0.0
+INFO	2023-04-09 19:28:22	LiftoverVcf	Loading up the target reference genome.
+INFO	2023-04-09 19:28:33	LiftoverVcf	Lifting variants over and sorting (not yet writing the output file.)
+INFO	2023-04-09 19:28:42	LiftoverVcf	Processed 194795 variants.
+INFO	2023-04-09 19:28:42	LiftoverVcf	74133 variants failed to liftover.
+INFO	2023-04-09 19:28:42	LiftoverVcf	1003 variants lifted over but had mismatching reference alleles after lift over.
+INFO	2023-04-09 19:28:42	LiftoverVcf	38.5718% of variants were not successfully lifted over and written to the output.
+INFO	2023-04-09 19:28:42	LiftoverVcf	liftover success by source contig:
+INFO	2023-04-09 19:28:42	LiftoverVcf	chr1: 9200 / 15203 (60.5144%)
+INFO	2023-04-09 19:28:42	LiftoverVcf	chr10: 5617 / 9279 (60.5345%)
+INFO	2023-04-09 19:28:42	LiftoverVcf	chr11: 5503 / 9050 (60.8066%)
+INFO	2023-04-09 19:28:42	LiftoverVcf	chr12: 5653 / 9336 (60.5506%)
+INFO	2023-04-09 19:28:42	LiftoverVcf	chr13: 4357 / 7185 (60.6402%)
+INFO	2023-04-09 19:28:42	LiftoverVcf	chr14: 3791 / 6176 (61.3828%)
+INFO	2023-04-09 19:28:42	LiftoverVcf	chr15: 3298 / 5351 (61.6333%)
+INFO	2023-04-09 19:28:42	LiftoverVcf	chr16: 3327 / 5502 (60.4689%)
+INFO	2023-04-09 19:28:42	LiftoverVcf	chr17: 3354 / 5535 (60.5962%)
+INFO	2023-04-09 19:28:42	LiftoverVcf	chr18: 3309 / 5414 (61.1193%)
+INFO	2023-04-09 19:28:42	LiftoverVcf	chr19: 2705 / 4382 (61.7298%)
+INFO	2023-04-09 19:28:42	LiftoverVcf	chr2: 9703 / 15880 (61.1020%)
+INFO	2023-04-09 19:28:42	LiftoverVcf	chr20: 2702 / 4282 (63.1014%)
+INFO	2023-04-09 19:28:42	LiftoverVcf	chr21: 1675 / 2642 (63.3989%)
+INFO	2023-04-09 19:28:42	LiftoverVcf	chr22: 1561 / 2481 (62.9182%)
+INFO	2023-04-09 19:28:42	LiftoverVcf	chr3: 8191 / 13206 (62.0248%)
+INFO	2023-04-09 19:28:42	LiftoverVcf	chr4: 8113 / 13319 (60.9130%)
+INFO	2023-04-09 19:28:42	LiftoverVcf	chr5: 7461 / 11852 (62.9514%)
+INFO	2023-04-09 19:28:42	LiftoverVcf	chr6: 7247 / 11639 (62.2648%)
+INFO	2023-04-09 19:28:42	LiftoverVcf	chr7: 6451 / 10567 (61.0485%)
+INFO	2023-04-09 19:28:42	LiftoverVcf	chr8: 6060 / 9731 (62.2752%)
+INFO	2023-04-09 19:28:42	LiftoverVcf	chr9: 4743 / 7586 (62.5231%)
+INFO	2023-04-09 19:28:42	LiftoverVcf	chrX: 5638 / 9197 (61.3026%)
+INFO	2023-04-09 19:28:42	LiftoverVcf	lifted variants by target contig:
+INFO	2023-04-09 19:28:42	LiftoverVcf	chr1: 9200
+INFO	2023-04-09 19:28:42	LiftoverVcf	chr10: 5617
+INFO	2023-04-09 19:28:42	LiftoverVcf	chr11: 5503
+INFO	2023-04-09 19:28:42	LiftoverVcf	chr12: 5653
+INFO	2023-04-09 19:28:42	LiftoverVcf	chr13: 4357
+INFO	2023-04-09 19:28:42	LiftoverVcf	chr14: 3791
+INFO	2023-04-09 19:28:42	LiftoverVcf	chr15: 3298
+INFO	2023-04-09 19:28:42	LiftoverVcf	chr16: 3327
+INFO	2023-04-09 19:28:42	LiftoverVcf	chr17: 3354
+INFO	2023-04-09 19:28:42	LiftoverVcf	chr18: 3309
+INFO	2023-04-09 19:28:42	LiftoverVcf	chr19: 2705
+INFO	2023-04-09 19:28:42	LiftoverVcf	chr2: 9703
+INFO	2023-04-09 19:28:42	LiftoverVcf	chr20: 2702
+INFO	2023-04-09 19:28:42	LiftoverVcf	chr21: 1675
+INFO	2023-04-09 19:28:42	LiftoverVcf	chr22: 1561
+INFO	2023-04-09 19:28:42	LiftoverVcf	chr3: 8191
+INFO	2023-04-09 19:28:42	LiftoverVcf	chr4: 8113
+INFO	2023-04-09 19:28:42	LiftoverVcf	chr5: 7461
+INFO	2023-04-09 19:28:42	LiftoverVcf	chr6: 7247
+INFO	2023-04-09 19:28:42	LiftoverVcf	chr7: 6451
+INFO	2023-04-09 19:28:42	LiftoverVcf	chr8: 6060
+INFO	2023-04-09 19:28:42	LiftoverVcf	chr9: 4743
+INFO	2023-04-09 19:28:42	LiftoverVcf	chrX: 5638
+INFO	2023-04-09 19:28:42	LiftoverVcf	0 variants were lifted by swapping REF/ALT alleles.
+INFO	2023-04-09 19:28:42	LiftoverVcf	Writing out sorted records to final VCF.
+[Sun Apr 09 19:28:42 PDT 2023] picard.vcf.LiftoverVcf done. Elapsed time: 0.36 minutes.
+Runtime.totalMemory()=5397020672
 step3:STRs_including_homopolymer:  Tool returned:
 step3:STRs_including_homopolymer:  0
 Using GATK jar /Users/weisburd/bin/gatk-package-4.2.0.0-local.jar
@@ -1174,67 +1174,67 @@ STEP #5: Liftover the truth variants that passed all checks back to hg38
          INPUT: step4.STRs_including_homopolymers.found_in_chm13v2.vcf.gz        119135 variants
 + gatk --java-options -Xmx7g LiftoverVcf -R ./ref/hg38.fa -C ./ref/chm13v2-hg38.chain -I step4.STRs_including_homopolymers.found_in_chm13v2.vcf.gz -O step5.STRs_including_homopolymers.lifted_back_to_38.vcf.gz --REJECT step5.STRs_including_homopolymers.lifted_back_to_38_rejected.vcf.gz --VALIDATION_STRINGENCY LENIENT --RECOVER_SWAPPED_REF_ALT --WARN_ON_MISSING_CONTIG --LIFTOVER_MIN_MATCH 0.00001 --WRITE_ORIGINAL_POSITION --WRITE_ORIGINAL_ALLELES --ALLOW_MISSING_FIELDS_IN_HEADER
 + python3 -u scripts/add_prefix_to_stdout.py 'step5:STRs_including_homopolymer: '
-17:23:15.342 INFO  NativeLibraryLoader - Loading libgkl_compression.dylib from jar:file:/Users/weisburd/bin/gatk-package-4.2.0.0-local.jar!/com/intel/gkl/native/libgkl_compression.dylib
-[Tue Apr 04 17:23:15 EDT 2023] LiftoverVcf --INPUT step4.STRs_including_homopolymers.found_in_chm13v2.vcf.gz --OUTPUT step5.STRs_including_homopolymers.lifted_back_to_38.vcf.gz --CHAIN ./ref/chm13v2-hg38.chain --REJECT step5.STRs_including_homopolymers.lifted_back_to_38_rejected.vcf.gz --WARN_ON_MISSING_CONTIG true --WRITE_ORIGINAL_POSITION true --WRITE_ORIGINAL_ALLELES true --LIFTOVER_MIN_MATCH 1.0E-5 --ALLOW_MISSING_FIELDS_IN_HEADER true --RECOVER_SWAPPED_REF_ALT true --VALIDATION_STRINGENCY LENIENT --REFERENCE_SEQUENCE ./ref/hg38.fa --LOG_FAILED_INTERVALS true --TAGS_TO_REVERSE AF --TAGS_TO_DROP MAX_AF --DISABLE_SORT false --VERBOSITY INFO --QUIET false --COMPRESSION_LEVEL 2 --MAX_RECORDS_IN_RAM 500000 --CREATE_INDEX false --CREATE_MD5_FILE false --GA4GH_CLIENT_SECRETS client_secrets.json --help false --version false --showHidden false --USE_JDK_DEFLATER false --USE_JDK_INFLATER false
-[Tue Apr 04 17:23:15 EDT 2023] Executing as weisburd@wm103-772 on Mac OS X 10.16 x86_64; OpenJDK 64-Bit Server VM 1.8.0_322-b06; Deflater: Intel; Inflater: Intel; Provider GCS is available; Picard version: Version:4.2.0.0
-INFO	2023-04-04 17:23:16	LiftoverVcf	Loading up the target reference genome.
-INFO	2023-04-04 17:23:30	LiftoverVcf	Lifting variants over and sorting (not yet writing the output file.)
-INFO	2023-04-04 17:23:33	LiftoverVcf	Processed 119135 variants.
-INFO	2023-04-04 17:23:34	LiftoverVcf	69 variants failed to liftover.
-INFO	2023-04-04 17:23:34	LiftoverVcf	0 variants lifted over but had mismatching reference alleles after lift over.
-INFO	2023-04-04 17:23:34	LiftoverVcf	0.0579% of variants were not successfully lifted over and written to the output.
-INFO	2023-04-04 17:23:34	LiftoverVcf	liftover success by source contig:
-INFO	2023-04-04 17:23:34	LiftoverVcf	chr1: 9107 / 9132 (99.7262%)
-INFO	2023-04-04 17:23:34	LiftoverVcf	chr10: 5594 / 5594 (100.0000%)
-INFO	2023-04-04 17:23:34	LiftoverVcf	chr11: 5478 / 5482 (99.9270%)
-INFO	2023-04-04 17:23:34	LiftoverVcf	chr12: 5638 / 5638 (100.0000%)
-INFO	2023-04-04 17:23:34	LiftoverVcf	chr13: 4346 / 4346 (100.0000%)
-INFO	2023-04-04 17:23:34	LiftoverVcf	chr14: 3778 / 3778 (100.0000%)
-INFO	2023-04-04 17:23:34	LiftoverVcf	chr15: 3285 / 3285 (100.0000%)
-INFO	2023-04-04 17:23:34	LiftoverVcf	chr16: 3298 / 3305 (99.7882%)
-INFO	2023-04-04 17:23:34	LiftoverVcf	chr17: 3346 / 3346 (100.0000%)
-INFO	2023-04-04 17:23:34	LiftoverVcf	chr18: 3302 / 3302 (100.0000%)
-INFO	2023-04-04 17:23:34	LiftoverVcf	chr19: 2694 / 2694 (100.0000%)
-INFO	2023-04-04 17:23:34	LiftoverVcf	chr2: 9682 / 9682 (100.0000%)
-INFO	2023-04-04 17:23:34	LiftoverVcf	chr20: 2691 / 2691 (100.0000%)
-INFO	2023-04-04 17:23:34	LiftoverVcf	chr21: 1671 / 1671 (100.0000%)
-INFO	2023-04-04 17:23:34	LiftoverVcf	chr22: 1549 / 1549 (100.0000%)
-INFO	2023-04-04 17:23:34	LiftoverVcf	chr3: 8155 / 8158 (99.9632%)
-INFO	2023-04-04 17:23:34	LiftoverVcf	chr4: 8090 / 8090 (100.0000%)
-INFO	2023-04-04 17:23:34	LiftoverVcf	chr5: 7436 / 7436 (100.0000%)
-INFO	2023-04-04 17:23:34	LiftoverVcf	chr6: 7225 / 7225 (100.0000%)
-INFO	2023-04-04 17:23:34	LiftoverVcf	chr7: 6426 / 6426 (100.0000%)
-INFO	2023-04-04 17:23:34	LiftoverVcf	chr8: 5940 / 5966 (99.5642%)
-INFO	2023-04-04 17:23:34	LiftoverVcf	chr9: 4725 / 4726 (99.9788%)
-INFO	2023-04-04 17:23:34	LiftoverVcf	chrX: 5610 / 5613 (99.9466%)
-INFO	2023-04-04 17:23:34	LiftoverVcf	lifted variants by target contig:
-INFO	2023-04-04 17:23:34	LiftoverVcf	chr1: 9107
-INFO	2023-04-04 17:23:34	LiftoverVcf	chr10: 5594
-INFO	2023-04-04 17:23:34	LiftoverVcf	chr11: 5478
-INFO	2023-04-04 17:23:34	LiftoverVcf	chr12: 5638
-INFO	2023-04-04 17:23:34	LiftoverVcf	chr13: 4346
-INFO	2023-04-04 17:23:34	LiftoverVcf	chr14: 3778
-INFO	2023-04-04 17:23:34	LiftoverVcf	chr15: 3285
-INFO	2023-04-04 17:23:34	LiftoverVcf	chr16: 3298
-INFO	2023-04-04 17:23:34	LiftoverVcf	chr17: 3346
-INFO	2023-04-04 17:23:34	LiftoverVcf	chr18: 3302
-INFO	2023-04-04 17:23:34	LiftoverVcf	chr19: 2694
-INFO	2023-04-04 17:23:34	LiftoverVcf	chr2: 9682
-INFO	2023-04-04 17:23:34	LiftoverVcf	chr20: 2691
-INFO	2023-04-04 17:23:34	LiftoverVcf	chr21: 1671
-INFO	2023-04-04 17:23:34	LiftoverVcf	chr22: 1549
-INFO	2023-04-04 17:23:34	LiftoverVcf	chr3: 8155
-INFO	2023-04-04 17:23:34	LiftoverVcf	chr4: 8090
-INFO	2023-04-04 17:23:34	LiftoverVcf	chr5: 7436
-INFO	2023-04-04 17:23:34	LiftoverVcf	chr6: 7225
-INFO	2023-04-04 17:23:34	LiftoverVcf	chr7: 6426
-INFO	2023-04-04 17:23:34	LiftoverVcf	chr8: 5940
-INFO	2023-04-04 17:23:34	LiftoverVcf	chr9: 4725
-INFO	2023-04-04 17:23:34	LiftoverVcf	chrX: 5610
-INFO	2023-04-04 17:23:34	LiftoverVcf	0 variants were lifted by swapping REF/ALT alleles.
-INFO	2023-04-04 17:23:34	LiftoverVcf	Writing out sorted records to final VCF.
-[Tue Apr 04 17:23:34 EDT 2023] picard.vcf.LiftoverVcf done. Elapsed time: 0.33 minutes.
-Runtime.totalMemory()=5500305408
+19:28:55.129 INFO  NativeLibraryLoader - Loading libgkl_compression.dylib from jar:file:/Users/weisburd/bin/gatk-package-4.2.0.0-local.jar!/com/intel/gkl/native/libgkl_compression.dylib
+[Sun Apr 09 19:28:55 PDT 2023] LiftoverVcf --INPUT step4.STRs_including_homopolymers.found_in_chm13v2.vcf.gz --OUTPUT step5.STRs_including_homopolymers.lifted_back_to_38.vcf.gz --CHAIN ./ref/chm13v2-hg38.chain --REJECT step5.STRs_including_homopolymers.lifted_back_to_38_rejected.vcf.gz --WARN_ON_MISSING_CONTIG true --WRITE_ORIGINAL_POSITION true --WRITE_ORIGINAL_ALLELES true --LIFTOVER_MIN_MATCH 1.0E-5 --ALLOW_MISSING_FIELDS_IN_HEADER true --RECOVER_SWAPPED_REF_ALT true --VALIDATION_STRINGENCY LENIENT --REFERENCE_SEQUENCE ./ref/hg38.fa --LOG_FAILED_INTERVALS true --TAGS_TO_REVERSE AF --TAGS_TO_DROP MAX_AF --DISABLE_SORT false --VERBOSITY INFO --QUIET false --COMPRESSION_LEVEL 2 --MAX_RECORDS_IN_RAM 500000 --CREATE_INDEX false --CREATE_MD5_FILE false --GA4GH_CLIENT_SECRETS client_secrets.json --help false --version false --showHidden false --USE_JDK_DEFLATER false --USE_JDK_INFLATER false
+[Sun Apr 09 19:28:55 PDT 2023] Executing as weisburd@wm103-772 on Mac OS X 10.16 x86_64; OpenJDK 64-Bit Server VM 1.8.0_322-b06; Deflater: Intel; Inflater: Intel; Provider GCS is available; Picard version: Version:4.2.0.0
+INFO	2023-04-09 19:28:55	LiftoverVcf	Loading up the target reference genome.
+INFO	2023-04-09 19:29:04	LiftoverVcf	Lifting variants over and sorting (not yet writing the output file.)
+INFO	2023-04-09 19:29:11	LiftoverVcf	Processed 119135 variants.
+INFO	2023-04-09 19:29:11	LiftoverVcf	69 variants failed to liftover.
+INFO	2023-04-09 19:29:11	LiftoverVcf	0 variants lifted over but had mismatching reference alleles after lift over.
+INFO	2023-04-09 19:29:11	LiftoverVcf	0.0579% of variants were not successfully lifted over and written to the output.
+INFO	2023-04-09 19:29:11	LiftoverVcf	liftover success by source contig:
+INFO	2023-04-09 19:29:11	LiftoverVcf	chr1: 9107 / 9132 (99.7262%)
+INFO	2023-04-09 19:29:11	LiftoverVcf	chr10: 5594 / 5594 (100.0000%)
+INFO	2023-04-09 19:29:11	LiftoverVcf	chr11: 5478 / 5482 (99.9270%)
+INFO	2023-04-09 19:29:11	LiftoverVcf	chr12: 5638 / 5638 (100.0000%)
+INFO	2023-04-09 19:29:11	LiftoverVcf	chr13: 4346 / 4346 (100.0000%)
+INFO	2023-04-09 19:29:11	LiftoverVcf	chr14: 3778 / 3778 (100.0000%)
+INFO	2023-04-09 19:29:11	LiftoverVcf	chr15: 3285 / 3285 (100.0000%)
+INFO	2023-04-09 19:29:11	LiftoverVcf	chr16: 3298 / 3305 (99.7882%)
+INFO	2023-04-09 19:29:11	LiftoverVcf	chr17: 3346 / 3346 (100.0000%)
+INFO	2023-04-09 19:29:11	LiftoverVcf	chr18: 3302 / 3302 (100.0000%)
+INFO	2023-04-09 19:29:11	LiftoverVcf	chr19: 2694 / 2694 (100.0000%)
+INFO	2023-04-09 19:29:11	LiftoverVcf	chr2: 9682 / 9682 (100.0000%)
+INFO	2023-04-09 19:29:11	LiftoverVcf	chr20: 2691 / 2691 (100.0000%)
+INFO	2023-04-09 19:29:11	LiftoverVcf	chr21: 1671 / 1671 (100.0000%)
+INFO	2023-04-09 19:29:11	LiftoverVcf	chr22: 1549 / 1549 (100.0000%)
+INFO	2023-04-09 19:29:11	LiftoverVcf	chr3: 8155 / 8158 (99.9632%)
+INFO	2023-04-09 19:29:11	LiftoverVcf	chr4: 8090 / 8090 (100.0000%)
+INFO	2023-04-09 19:29:11	LiftoverVcf	chr5: 7436 / 7436 (100.0000%)
+INFO	2023-04-09 19:29:11	LiftoverVcf	chr6: 7225 / 7225 (100.0000%)
+INFO	2023-04-09 19:29:11	LiftoverVcf	chr7: 6426 / 6426 (100.0000%)
+INFO	2023-04-09 19:29:11	LiftoverVcf	chr8: 5940 / 5966 (99.5642%)
+INFO	2023-04-09 19:29:11	LiftoverVcf	chr9: 4725 / 4726 (99.9788%)
+INFO	2023-04-09 19:29:11	LiftoverVcf	chrX: 5610 / 5613 (99.9466%)
+INFO	2023-04-09 19:29:11	LiftoverVcf	lifted variants by target contig:
+INFO	2023-04-09 19:29:11	LiftoverVcf	chr1: 9107
+INFO	2023-04-09 19:29:11	LiftoverVcf	chr10: 5594
+INFO	2023-04-09 19:29:11	LiftoverVcf	chr11: 5478
+INFO	2023-04-09 19:29:11	LiftoverVcf	chr12: 5638
+INFO	2023-04-09 19:29:11	LiftoverVcf	chr13: 4346
+INFO	2023-04-09 19:29:11	LiftoverVcf	chr14: 3778
+INFO	2023-04-09 19:29:11	LiftoverVcf	chr15: 3285
+INFO	2023-04-09 19:29:11	LiftoverVcf	chr16: 3298
+INFO	2023-04-09 19:29:11	LiftoverVcf	chr17: 3346
+INFO	2023-04-09 19:29:11	LiftoverVcf	chr18: 3302
+INFO	2023-04-09 19:29:11	LiftoverVcf	chr19: 2694
+INFO	2023-04-09 19:29:11	LiftoverVcf	chr2: 9682
+INFO	2023-04-09 19:29:11	LiftoverVcf	chr20: 2691
+INFO	2023-04-09 19:29:11	LiftoverVcf	chr21: 1671
+INFO	2023-04-09 19:29:11	LiftoverVcf	chr22: 1549
+INFO	2023-04-09 19:29:11	LiftoverVcf	chr3: 8155
+INFO	2023-04-09 19:29:11	LiftoverVcf	chr4: 8090
+INFO	2023-04-09 19:29:11	LiftoverVcf	chr5: 7436
+INFO	2023-04-09 19:29:11	LiftoverVcf	chr6: 7225
+INFO	2023-04-09 19:29:11	LiftoverVcf	chr7: 6426
+INFO	2023-04-09 19:29:11	LiftoverVcf	chr8: 5940
+INFO	2023-04-09 19:29:11	LiftoverVcf	chr9: 4725
+INFO	2023-04-09 19:29:11	LiftoverVcf	chrX: 5610
+INFO	2023-04-09 19:29:11	LiftoverVcf	0 variants were lifted by swapping REF/ALT alleles.
+INFO	2023-04-09 19:29:11	LiftoverVcf	Writing out sorted records to final VCF.
+[Sun Apr 09 19:29:12 PDT 2023] picard.vcf.LiftoverVcf done. Elapsed time: 0.28 minutes.
+Runtime.totalMemory()=5991563264
 step5:STRs_including_homopolymer: Tool returned:
 step5:STRs_including_homopolymer: 0
 Using GATK jar /Users/weisburd/bin/gatk-package-4.2.0.0-local.jar
@@ -1310,45 +1310,45 @@ STEP #6: Restore deletions that were dropped in the 1st liftover (hg38 => chm13v
 + grep IndelStraddlesMultipleIntevals
 + awk '{ if ( length($4) > length($5) || index($5, ",") > 0) { print $0 } }'
 + gatk FixVcfHeader -I temp.vcf -O temp.fixed.vcf
-17:23:39.724 INFO  NativeLibraryLoader - Loading libgkl_compression.dylib from jar:file:/Users/weisburd/bin/gatk-package-4.2.0.0-local.jar!/com/intel/gkl/native/libgkl_compression.dylib
-[Tue Apr 04 17:23:39 EDT 2023] FixVcfHeader --INPUT temp.vcf --OUTPUT temp.fixed.vcf --CHECK_FIRST_N_RECORDS -1 --ENFORCE_SAME_SAMPLES true --VERBOSITY INFO --QUIET false --VALIDATION_STRINGENCY STRICT --COMPRESSION_LEVEL 2 --MAX_RECORDS_IN_RAM 500000 --CREATE_INDEX false --CREATE_MD5_FILE false --GA4GH_CLIENT_SECRETS client_secrets.json --help false --version false --showHidden false --USE_JDK_DEFLATER false --USE_JDK_INFLATER false
-[Tue Apr 04 17:23:40 EDT 2023] Executing as weisburd@wm103-772 on Mac OS X 10.16 x86_64; OpenJDK 64-Bit Server VM 1.8.0_322-b06; Deflater: Intel; Inflater: Intel; Provider GCS is available; Picard version: Version:4.2.0.0
-INFO	2023-04-04 17:23:40	FixVcfHeader	Reading in records to re-build the header.
-INFO	2023-04-04 17:23:40	FixVcfHeader	Will add an INFO line with id: LocusId
-INFO	2023-04-04 17:23:40	FixVcfHeader	Will add an INFO line with id: NumRepeats2
-INFO	2023-04-04 17:23:40	FixVcfHeader	Will add an INFO line with id: NumRepeats1
-INFO	2023-04-04 17:23:40	FixVcfHeader	Will add an INFO line with id: Motif
-INFO	2023-04-04 17:23:40	FixVcfHeader	Will add an FILTER line with id: IndelStraddlesMultipleIntevals
-INFO	2023-04-04 17:23:41	FixVcfHeader	VCF header re-built.
-INFO	2023-04-04 17:23:41	FixVcfHeader	Writing the output VCF.
-[Tue Apr 04 17:23:42 EDT 2023] picard.vcf.FixVcfHeader done. Elapsed time: 0.05 minutes.
-Runtime.totalMemory()=670040064
+19:29:17.763 INFO  NativeLibraryLoader - Loading libgkl_compression.dylib from jar:file:/Users/weisburd/bin/gatk-package-4.2.0.0-local.jar!/com/intel/gkl/native/libgkl_compression.dylib
+[Sun Apr 09 19:29:17 PDT 2023] FixVcfHeader --INPUT temp.vcf --OUTPUT temp.fixed.vcf --CHECK_FIRST_N_RECORDS -1 --ENFORCE_SAME_SAMPLES true --VERBOSITY INFO --QUIET false --VALIDATION_STRINGENCY STRICT --COMPRESSION_LEVEL 2 --MAX_RECORDS_IN_RAM 500000 --CREATE_INDEX false --CREATE_MD5_FILE false --GA4GH_CLIENT_SECRETS client_secrets.json --help false --version false --showHidden false --USE_JDK_DEFLATER false --USE_JDK_INFLATER false
+[Sun Apr 09 19:29:18 PDT 2023] Executing as weisburd@wm103-772 on Mac OS X 10.16 x86_64; OpenJDK 64-Bit Server VM 1.8.0_322-b06; Deflater: Intel; Inflater: Intel; Provider GCS is available; Picard version: Version:4.2.0.0
+INFO	2023-04-09 19:29:18	FixVcfHeader	Reading in records to re-build the header.
+INFO	2023-04-09 19:29:18	FixVcfHeader	Will add an INFO line with id: LocusId
+INFO	2023-04-09 19:29:18	FixVcfHeader	Will add an INFO line with id: NumRepeats2
+INFO	2023-04-09 19:29:18	FixVcfHeader	Will add an INFO line with id: NumRepeats1
+INFO	2023-04-09 19:29:18	FixVcfHeader	Will add an INFO line with id: Motif
+INFO	2023-04-09 19:29:18	FixVcfHeader	Will add an FILTER line with id: IndelStraddlesMultipleIntevals
+INFO	2023-04-09 19:29:19	FixVcfHeader	VCF header re-built.
+INFO	2023-04-09 19:29:19	FixVcfHeader	Writing the output VCF.
+[Sun Apr 09 19:29:21 PDT 2023] picard.vcf.FixVcfHeader done. Elapsed time: 0.06 minutes.
+Runtime.totalMemory()=667418624
 Tool returned:
 0
 Using GATK jar /Users/weisburd/bin/gatk-package-4.2.0.0-local.jar
 Running:
     java -Dsamjdk.use_async_io_read_samtools=false -Dsamjdk.use_async_io_write_samtools=true -Dsamjdk.use_async_io_write_tribble=false -Dsamjdk.compression_level=2 -jar /Users/weisburd/bin/gatk-package-4.2.0.0-local.jar FixVcfHeader -I temp.vcf -O temp.fixed.vcf
 + gatk SortVcf -I temp.fixed.vcf -O step6.STRs_including_homopolymers.restored_dels_that_failed_liftover.vcf.gz
-17:23:44.436 INFO  NativeLibraryLoader - Loading libgkl_compression.dylib from jar:file:/Users/weisburd/bin/gatk-package-4.2.0.0-local.jar!/com/intel/gkl/native/libgkl_compression.dylib
-[Tue Apr 04 17:23:44 EDT 2023] SortVcf --INPUT temp.fixed.vcf --OUTPUT step6.STRs_including_homopolymers.restored_dels_that_failed_liftover.vcf.gz --VERBOSITY INFO --QUIET false --VALIDATION_STRINGENCY STRICT --COMPRESSION_LEVEL 2 --MAX_RECORDS_IN_RAM 500000 --CREATE_INDEX true --CREATE_MD5_FILE false --GA4GH_CLIENT_SECRETS client_secrets.json --help false --version false --showHidden false --USE_JDK_DEFLATER false --USE_JDK_INFLATER false
-[Tue Apr 04 17:23:44 EDT 2023] Executing as weisburd@wm103-772 on Mac OS X 10.16 x86_64; OpenJDK 64-Bit Server VM 1.8.0_322-b06; Deflater: Intel; Inflater: Intel; Provider GCS is available; Picard version: Version:4.2.0.0
-INFO	2023-04-04 17:23:44	SortVcf	Reading entries from input file 1
-INFO	2023-04-04 17:23:44	SortVcf	read        25,000 records.  Elapsed time: 00:00:00s.  Time for last 25,000:    0s.  Last read position: chr12:117,150,871
-INFO	2023-04-04 17:23:44	SortVcf	read        50,000 records.  Elapsed time: 00:00:00s.  Time for last 25,000:    0s.  Last read position: chr2:3,676,780
-INFO	2023-04-04 17:23:45	SortVcf	read        75,000 records.  Elapsed time: 00:00:00s.  Time for last 25,000:    0s.  Last read position: chr4:32,665,049
-INFO	2023-04-04 17:23:45	SortVcf	read       100,000 records.  Elapsed time: 00:00:00s.  Time for last 25,000:    0s.  Last read position: chr7:89,987,020
-INFO	2023-04-04 17:23:45	SortVcf	read       125,000 records.  Elapsed time: 00:00:00s.  Time for last 25,000:    0s.  Last read position: chr2:4,490,235
-INFO	2023-04-04 17:23:45	SortVcf	read       150,000 records.  Elapsed time: 00:00:00s.  Time for last 25,000:    0s.  Last read position: chr7:24,304,480
-INFO	2023-04-04 17:23:45	SortVcf	read       175,000 records.  Elapsed time: 00:00:01s.  Time for last 25,000:    0s.  Last read position: chr14:93,718,633
-INFO	2023-04-04 17:23:46	SortVcf	wrote        25,000 records.  Elapsed time: 00:00:00s.  Time for last 25,000:    0s.  Last read position: chr11:13,418,184
-INFO	2023-04-04 17:23:46	SortVcf	wrote        50,000 records.  Elapsed time: 00:00:00s.  Time for last 25,000:    0s.  Last read position: chr14:29,523,785
-INFO	2023-04-04 17:23:46	SortVcf	wrote        75,000 records.  Elapsed time: 00:00:00s.  Time for last 25,000:    0s.  Last read position: chr18:56,486,491
-INFO	2023-04-04 17:23:46	SortVcf	wrote       100,000 records.  Elapsed time: 00:00:00s.  Time for last 25,000:    0s.  Last read position: chr20:48,361,360
-INFO	2023-04-04 17:23:46	SortVcf	wrote       125,000 records.  Elapsed time: 00:00:00s.  Time for last 25,000:    0s.  Last read position: chr4:85,128,959
-INFO	2023-04-04 17:23:46	SortVcf	wrote       150,000 records.  Elapsed time: 00:00:00s.  Time for last 25,000:    0s.  Last read position: chr6:85,729,559
-INFO	2023-04-04 17:23:46	SortVcf	wrote       175,000 records.  Elapsed time: 00:00:00s.  Time for last 25,000:    0s.  Last read position: chr8:136,824,857
-[Tue Apr 04 17:23:46 EDT 2023] picard.vcf.SortVcf done. Elapsed time: 0.04 minutes.
-Runtime.totalMemory()=991952896
+19:29:23.224 INFO  NativeLibraryLoader - Loading libgkl_compression.dylib from jar:file:/Users/weisburd/bin/gatk-package-4.2.0.0-local.jar!/com/intel/gkl/native/libgkl_compression.dylib
+[Sun Apr 09 19:29:23 PDT 2023] SortVcf --INPUT temp.fixed.vcf --OUTPUT step6.STRs_including_homopolymers.restored_dels_that_failed_liftover.vcf.gz --VERBOSITY INFO --QUIET false --VALIDATION_STRINGENCY STRICT --COMPRESSION_LEVEL 2 --MAX_RECORDS_IN_RAM 500000 --CREATE_INDEX true --CREATE_MD5_FILE false --GA4GH_CLIENT_SECRETS client_secrets.json --help false --version false --showHidden false --USE_JDK_DEFLATER false --USE_JDK_INFLATER false
+[Sun Apr 09 19:29:23 PDT 2023] Executing as weisburd@wm103-772 on Mac OS X 10.16 x86_64; OpenJDK 64-Bit Server VM 1.8.0_322-b06; Deflater: Intel; Inflater: Intel; Provider GCS is available; Picard version: Version:4.2.0.0
+INFO	2023-04-09 19:29:23	SortVcf	Reading entries from input file 1
+INFO	2023-04-09 19:29:23	SortVcf	read        25,000 records.  Elapsed time: 00:00:00s.  Time for last 25,000:    0s.  Last read position: chr12:117,150,871
+INFO	2023-04-09 19:29:24	SortVcf	read        50,000 records.  Elapsed time: 00:00:00s.  Time for last 25,000:    0s.  Last read position: chr2:3,676,780
+INFO	2023-04-09 19:29:24	SortVcf	read        75,000 records.  Elapsed time: 00:00:00s.  Time for last 25,000:    0s.  Last read position: chr4:32,665,049
+INFO	2023-04-09 19:29:24	SortVcf	read       100,000 records.  Elapsed time: 00:00:00s.  Time for last 25,000:    0s.  Last read position: chr7:89,987,020
+INFO	2023-04-09 19:29:24	SortVcf	read       125,000 records.  Elapsed time: 00:00:01s.  Time for last 25,000:    0s.  Last read position: chr2:4,490,235
+INFO	2023-04-09 19:29:24	SortVcf	read       150,000 records.  Elapsed time: 00:00:01s.  Time for last 25,000:    0s.  Last read position: chr7:24,304,480
+INFO	2023-04-09 19:29:24	SortVcf	read       175,000 records.  Elapsed time: 00:00:01s.  Time for last 25,000:    0s.  Last read position: chr14:93,718,633
+INFO	2023-04-09 19:29:25	SortVcf	wrote        25,000 records.  Elapsed time: 00:00:00s.  Time for last 25,000:    0s.  Last read position: chr11:13,418,184
+INFO	2023-04-09 19:29:25	SortVcf	wrote        50,000 records.  Elapsed time: 00:00:00s.  Time for last 25,000:    0s.  Last read position: chr14:29,523,785
+INFO	2023-04-09 19:29:25	SortVcf	wrote        75,000 records.  Elapsed time: 00:00:00s.  Time for last 25,000:    0s.  Last read position: chr18:56,486,491
+INFO	2023-04-09 19:29:25	SortVcf	wrote       100,000 records.  Elapsed time: 00:00:00s.  Time for last 25,000:    0s.  Last read position: chr20:48,361,360
+INFO	2023-04-09 19:29:25	SortVcf	wrote       125,000 records.  Elapsed time: 00:00:00s.  Time for last 25,000:    0s.  Last read position: chr4:85,128,959
+INFO	2023-04-09 19:29:25	SortVcf	wrote       150,000 records.  Elapsed time: 00:00:00s.  Time for last 25,000:    0s.  Last read position: chr6:85,729,559
+INFO	2023-04-09 19:29:25	SortVcf	wrote       175,000 records.  Elapsed time: 00:00:00s.  Time for last 25,000:    0s.  Last read position: chr8:136,824,857
+[Sun Apr 09 19:29:26 PDT 2023] picard.vcf.SortVcf done. Elapsed time: 0.05 minutes.
+Runtime.totalMemory()=994050048
 Tool returned:
 0
 Using GATK jar /Users/weisburd/bin/gatk-package-4.2.0.0-local.jar
@@ -1529,6 +1529,11 @@ step8:overlap:STRs_including_homopolymer   PureRepeats >= 6bp: This catalog miss
 step8:overlap:STRs_including_homopolymer   PureRepeats >= 9bp: This catalog misses 43,294 out of 191,295 (22.6) truth set records. The catalog contains 2,805,842 records.
 step8:overlap:STRs_including_homopolymer   PureRepeats >= 12bp: This catalog misses 48,581 out of 191,295 (25.3) truth set records. The catalog contains 1,343,313 records.
 step8:overlap:STRs_including_homopolymer   PureRepeats >= 15bp: This catalog misses 61,097 out of 191,295 (31.9) truth set records. The catalog contains 702,486 records.
+step8:overlap:STRs_including_homopolymer   PureRepeats >= 18bp: This catalog misses 71,502 out of 191,295 (37.3) truth set records. The catalog contains 413,404 records.
+step8:overlap:STRs_including_homopolymer   PureRepeats >= 21bp: This catalog misses 88,596 out of 191,295 (46.3) truth set records. The catalog contains 245,128 records.
+step8:overlap:STRs_including_homopolymer   PureRepeats >= 24bp: This catalog misses 95,034 out of 191,295 (49.6) truth set records. The catalog contains 213,386 records.
+step8:overlap:STRs_including_homopolymer   PureRepeats >= 27bp: This catalog misses 111,443 out of 191,295 (58.2) truth set records. The catalog contains 149,964 records.
+step8:overlap:STRs_including_homopolymer   PureRepeats >= 30bp: This catalog misses 120,434 out of 191,295 (62.9) truth set records. The catalog contains 127,945 records.
 + suffix=with_overlap_columns
 + python3 -u scripts/compute_overlap_with_other_catalogs.py --all-repeats --all-motifs step7.filtered_STRs_including_homopolymers.variants.tsv.gz step7.filtered_STRs_including_homopolymers.variants.with_overlap_columns.tsv.gz
 + python3 -u scripts/add_prefix_to_stdout.py 'step8:STRs_including_homopolymer:  '
@@ -1783,8 +1788,8 @@ step8:STRs_including_homopolymer: Done
 + mv step7.filtered_STRs_including_homopolymers.variants.with_overlap_columns.tsv.gz step7.filtered_STRs_including_homopolymers.variants.tsv.gz
 + mv step7.filtered_STRs_including_homopolymers.alleles.with_overlap_columns.tsv.gz step7.filtered_STRs_including_homopolymers.alleles.tsv.gz
 + suffix=with_gencode_v42_columns
-+ python3 -u scripts/compute_overlap_with_gene_models.py ./ref/other/gencode.v42.annotation.sorted.gtf.gz step7.filtered_STRs_including_homopolymers.variants.tsv.gz step7.filtered_STRs_including_homopolymers.variants.with_gencode_v42_columns.tsv.gz
 + python3 -u scripts/add_prefix_to_stdout.py 'step8:STRs_including_homopolymer:  '
++ python3 -u scripts/compute_overlap_with_gene_models.py ./ref/other/gencode.v42.annotation.sorted.gtf.gz step7.filtered_STRs_including_homopolymers.variants.tsv.gz step7.filtered_STRs_including_homopolymers.variants.with_gencode_v42_columns.tsv.gz
 step8:STRs_including_homopolymer:   3,413,945 total
 step8:STRs_including_homopolymer:   1,643,237 exon
 step8:STRs_including_homopolymer:     883,132 CDS
@@ -1795,15 +1800,15 @@ scripts/compute_overlap_with_gene_models.py:235: DtypeWarning: Columns (32) have
   main()
 step8:STRs_including_homopolymer:  Processing rows from step7.filtered_STRs_including_homopolymers.variants.tsv.gz
 step8:STRs_including_homopolymer:  Wrote 192,085 rows to the output tsv: step7.filtered_STRs_including_homopolymers.variants.with_gencode_v42_columns.tsv.gz
-+ python3 -u scripts/add_prefix_to_stdout.py 'step8:STRs_including_homopolymer:  '
 + python3 -u scripts/compute_overlap_with_gene_models.py ./ref/other/gencode.v42.annotation.sorted.gtf.gz step7.filtered_STRs_including_homopolymers.alleles.tsv.gz step7.filtered_STRs_including_homopolymers.alleles.with_gencode_v42_columns.tsv.gz
++ python3 -u scripts/add_prefix_to_stdout.py 'step8:STRs_including_homopolymer:  '
 step8:STRs_including_homopolymer:   3,413,945 total
 step8:STRs_including_homopolymer:   1,643,237 exon
 step8:STRs_including_homopolymer:     883,132 CDS
 step8:STRs_including_homopolymer:     382,744 UTR
 step8:STRs_including_homopolymer:     252,416 transcript
 step8:STRs_including_homopolymer:     252,416 promoter
-scripts/compute_overlap_with_gene_models.py:235: DtypeWarning: Columns (34) have mixed types.Specify dtype option on import or set low_memory=False.
+scripts/compute_overlap_with_gene_models.py:235: DtypeWarning: Columns (33) have mixed types.Specify dtype option on import or set low_memory=False.
   main()
 step8:STRs_including_homopolymer:  Processing rows from step7.filtered_STRs_including_homopolymers.alleles.tsv.gz
 step8:STRs_including_homopolymer:  Wrote 224,882 rows to the output tsv: step7.filtered_STRs_including_homopolymers.alleles.with_gencode_v42_columns.tsv.gz
@@ -1822,15 +1827,15 @@ scripts/compute_overlap_with_gene_models.py:235: DtypeWarning: Columns (32) have
   main()
 step8:STRs_including_homopolymer:  Processing rows from step7.filtered_STRs_including_homopolymers.variants.tsv.gz
 step8:STRs_including_homopolymer:  Wrote 192,085 rows to the output tsv: step7.filtered_STRs_including_homopolymers.variants.with_MANE_columns.tsv.gz
-+ python3 -u scripts/add_prefix_to_stdout.py 'step8:STRs_including_homopolymer:  '
 + python3 -u scripts/compute_overlap_with_gene_models.py ./ref/other/MANE.v1.0.ensembl_genomic.sorted.gtf.gz step7.filtered_STRs_including_homopolymers.alleles.tsv.gz step7.filtered_STRs_including_homopolymers.alleles.with_MANE_columns.tsv.gz
++ python3 -u scripts/add_prefix_to_stdout.py 'step8:STRs_including_homopolymer:  '
 step8:STRs_including_homopolymer:     481,072 total
 step8:STRs_including_homopolymer:     202,525 exon
 step8:STRs_including_homopolymer:     192,285 CDS
 step8:STRs_including_homopolymer:      48,022 UTR
 step8:STRs_including_homopolymer:      19,120 transcript
 step8:STRs_including_homopolymer:      19,120 promoter
-scripts/compute_overlap_with_gene_models.py:235: DtypeWarning: Columns (34) have mixed types.Specify dtype option on import or set low_memory=False.
+scripts/compute_overlap_with_gene_models.py:235: DtypeWarning: Columns (33) have mixed types.Specify dtype option on import or set low_memory=False.
   main()
 step8:STRs_including_homopolymer:  Processing rows from step7.filtered_STRs_including_homopolymers.alleles.tsv.gz
 step8:STRs_including_homopolymer:  Wrote 224,882 rows to the output tsv: step7.filtered_STRs_including_homopolymers.alleles.with_MANE_columns.tsv.gz

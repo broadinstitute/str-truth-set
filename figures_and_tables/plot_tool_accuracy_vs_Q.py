@@ -4,6 +4,7 @@ import numpy as np
 import os
 import pandas as pd
 import seaborn as sns
+import sys
 
 from matplotlib import patches
 
@@ -124,6 +125,7 @@ def plot_empty_image(figure_title, message, width, height):
 
 
 def generate_all_plots(df, args):
+    arg_string = " ".join(sys.argv)
     plot_counter = 0
 
     start_with_plot_i = args.start_with_plot_i
@@ -174,7 +176,7 @@ def generate_all_plots(df, args):
                 else:
                     raise ValueError(f"Unexpected genotype_subset value: {genotype_subset}")
 
-                for pure_repeats in ["both", True, False] if args.only_pure_repeats is None else [True]:
+                for pure_repeats in ["both", True, False] if "--only-pure-repeats" not in arg_string else [True]:
                     if pure_repeats == "both":
                         df5 = df4
                     elif pure_repeats:
@@ -182,7 +184,9 @@ def generate_all_plots(df, args):
                     else:
                         df5 = df4[~df4["IsPureRepeat"]]
 
-                    for exclude_no_call_loci in [False, True] if (args.hide_no_call_loci is None and args.show_no_call_loci is None) else ([True] if args.hide_no_call_loci else [False]):
+                    hide_no_call_loci_option = "--hide-no-call-loci" in arg_string
+                    show_no_call_loci_option = "--show-no-call-loci" in arg_string
+                    for exclude_no_call_loci in [False, True] if not hide_no_call_loci_option and not show_no_call_loci_option else ([True] if args.hide_no_call_loci else [False]):
                         if exclude_no_call_loci:
                             df_plot = df5[
                                 ~df5["Genotype: ExpansionHunter"].isna() &

@@ -2,7 +2,7 @@ import os
 
 from step_pipeline import pipeline, Backend, Localize, Delocalize
 
-DOCKER_IMAGE = "docker.io/weisburd/truth-set-figures@sha256:91d931a4994ee78e4abe2d21a847e24fd9c5fbd278f1a3dd5e92ff641be0df78"
+DOCKER_IMAGE = "docker.io/weisburd/truth-set-figures@sha256:603f1a93dda5392f1562e54075f3bfaa6da131c1ee4d4dce49610e174ecad996"
 
 
 def main():

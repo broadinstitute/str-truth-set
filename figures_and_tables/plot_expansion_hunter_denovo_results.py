@@ -2,6 +2,7 @@ import argparse
 import os
 import matplotlib.pyplot as plt
 import pandas as pd
+from pprint import pprint
 import seaborn as sns
 
 
@@ -11,43 +12,52 @@ sns.set_context("paper", font_scale=1.1, rc={
     "legend.fontsize": 13,
 })
 
-GREEN_COLOR = "#50AA44"
 
-
-def bin_repeat_size_bp(allele_size_bp):
+def bin_repeat_size_bp(long_allele_size_bp):
     limit = 500
-    if allele_size_bp < 50:
-        allele_size_bp = 50
+    if long_allele_size_bp < 50:
+        long_allele_size_bp = 50
 
-    if allele_size_bp < limit:
-        return str(25 * int(allele_size_bp/25))
+    if long_allele_size_bp < limit:
+        return str(25 * int(long_allele_size_bp/25))
     else:
         return f"{limit}+"
 
 
 def compute_motif_size_bin(motif_size):
-    if motif_size > 24:
+    if motif_size >= 25:
         motif_size_bin = "25-50bp"
-    elif motif_size > 6:
+    elif motif_size >= 7:
         motif_size_bin = "7-24bp"
-    else:
+    elif motif_size >= 2:
         motif_size_bin = "2-6bp"
+    else:
+        motif_size_bin = "1bp"
 
     return motif_size_bin
 
 
 def compute_hue_column(row):
     if row["EHdn Concordance"] == "No Call":
-        return "No matching EHdn call"
-
-    if row["MotifSize"] > 24:
-        motif_size_bin = "25-50bp"
-    elif row["MotifSize"] > 6:
-        motif_size_bin = "7-24bp"
+        prefix = "No matching EHdn call"
     else:
-        motif_size_bin = "2-6bp"
+        prefix = "Matching EHdn call"
 
-    return f"Matching EHdn call ({motif_size_bin} motif)"
+    if row["MotifSize"] >= 25:
+        motif_size_bin = "25-50bp"
+    elif row["MotifSize"] >= 7:
+        motif_size_bin = "7-24bp"
+    elif row["MotifSize"] >= 2:
+        motif_size_bin = "2-6bp"
+    else:
+        motif_size_bin = "1bp"
+
+    #if row["EHdn Concordance"] == "No Call" and row["RepeatSizeLongAllele (bp)"] >= 250 and row["MotifSize"] < 25:
+    #    pprint(row.to_dict())
+    if row["EHdn Concordance"] != "No Call" and row["RepeatSizeLongAllele (bp)"] >= 250 and row["MotifSize"] <= 6:
+        pprint(row.to_dict())
+
+    return f"{prefix} ({motif_size_bin} motif)"
 
 
 def compute_concordance_summary(row):
@@ -60,8 +70,8 @@ def compute_concordance_summary(row):
 
 
 def plot_truth_set_overlap_with_ehdn_calls(args):
-    x_column = "RepeatSize (bin)"
-    hue_column = "EHdn Concordance"
+    x_column = "RepeatSizeLongAllele (bin)"
+    hue_column = "EHdn Concordance (bin)"
 
     filename_suffix = ""
 
@@ -71,23 +81,38 @@ def plot_truth_set_overlap_with_ehdn_calls(args):
         truth_set_df = truth_set_df[truth_set_df["IsPureRepeat"]]
 
     truth_set_df.loc[:, "MotifSize bin"] = truth_set_df.MotifSize.apply(compute_motif_size_bin)
-    truth_set_df.loc[:, x_column] = truth_set_df["RepeatSize (bp)"].apply(bin_repeat_size_bp)
+    truth_set_df.loc[:, x_column] = truth_set_df["RepeatSizeLongAllele (bp)"].apply(bin_repeat_size_bp)
     truth_set_df.loc[:, hue_column] = truth_set_df.apply(compute_hue_column, axis=1)
-    truth_set_df = truth_set_df.sort_values("RepeatSize (bp)", key=lambda values: [int(v) for v in values])
+    truth_set_df = truth_set_df.sort_values("RepeatSizeLongAllele (bp)")
 
     fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(args.width, args.height), dpi=80, tight_layout=True)
 
     ax.spines.right.set_visible(False)
     ax.spines.top.set_visible(False)
     ax.set_xlabel("Truth Set Total Allele Size (bp)", labelpad=15, fontsize=13)
-    ax.set_ylabel("Fraction of Truth Set Expansion Alleles\nWith Matching ExpansionHunterDenovo Calls", labelpad=15, fontsize=13)
+    ax.set_ylabel("Fraction of Truth Set Expansions\nWith Matching ExpansionHunterDenovo Calls", labelpad=15, fontsize=13)
 
     sns.histplot(
         truth_set_df,
         x=x_column,
         hue=hue_column,
+        hue_order=[
+            "No matching EHdn call (2-6bp motif)",
+            "No matching EHdn call (7-24bp motif)",
+            "No matching EHdn call (25-50bp motif)",
+            "Matching EHdn call (2-6bp motif)",
+            "Matching EHdn call (7-24bp motif)",
+            "Matching EHdn call (25-50bp motif)",
+        ],
         binwidth=1,
-        palette=["#c9c9c9", "#32CD32", "#299617", "#00703C"],
+        palette=[
+            "#4C698E",
+            "#72A1D1",
+            "#c9c9c9",
+            "#32CD32",
+            "#299617",
+            "#00703C",
+        ],
         multiple="fill", stat="proportion",
         discrete=True,
         legend=True,
@@ -105,7 +130,7 @@ def plot_truth_set_overlap_with_ehdn_calls(args):
         ax.text(xtick, 1.018, f"{n_lookup[text.get_text()]:,d}",
                 ha="left", va="bottom", color="#777777", rotation=45, fontsize=12)
 
-    ax.text(1, 1.1, "Truth Set Expansion Alleles Per Bin",
+    ax.text(1, 1.1, "Truth Set Expansion Variants Per Bin",
             ha="right", va="bottom", color="#777777", fontsize=12, transform=ax.transAxes)
 
     ax.set_xticklabels([v if i%2 == 0 else "" for i, v in enumerate(ax.get_xticklabels())], fontsize=12)
@@ -174,9 +199,9 @@ def main():
     g.add_argument("--only-pure-repeats", action="store_true", help="Plot only loci with pure repeats")
 
     p.add_argument("--truth-set-ehdn-input-table",
-                   default="../tool_comparison/results/expansion_hunter_denovo/CHM1_CHM13_WGS2.truth_set_EHdn_comparison_table.tsv")
+                   default="../tool_comparison/results_for_downsampled_30x_bam/expansion_hunter_denovo/CHM1_CHM13_WGS2.downsampled_to_30x.truth_set_EHdn_comparison_table.tsv")
     p.add_argument("--ehdn-truth-set-input-table",
-                   default="../tool_comparison/results/expansion_hunter_denovo/CHM1_CHM13_WGS2.EHdn_results_table.with_truth_set_concordance.tsv")
+                   default="../tool_comparison/results_for_downsampled_30x_bam/expansion_hunter_denovo/CHM1_CHM13_WGS2.downsampled_to_30x.EHdn_results_table.with_truth_set_concordance.tsv")
     args = p.parse_args()
 
     plot_truth_set_overlap_with_ehdn_calls(args)

@@ -85,9 +85,9 @@ do
   rm ./tool_comparison/${results_folder}/negative_loci.for_comparison.tsv.gz
 done
 
-# EHdn
+# generate EHdn comparison tables for each depth-of-coverage
 python3 -u ./tool_comparison/scripts/intersect_expansion_hunter_denovo_results_with_truth_set.py \
-  --window-size 600 \
+  --window-size 600 --truth-set-variants-tsv ./STR_truth_set.v1.variants.tsv.gz  \
   ./tool_comparison/results*/expansion_hunter_denovo/CHM1_CHM13_WGS2.*locus.tsv
 
 # combine all

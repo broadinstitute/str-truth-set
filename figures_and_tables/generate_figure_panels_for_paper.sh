@@ -24,7 +24,7 @@ python3 plot_tool_accuracy_percent_exactly_right.py --width 17 --height 7 --imag
         --min-motif-size 2 --max-motif-size 6  --only-pure-repeats --exclude-no-call-loci --by-coverage
 
 python3 plot_tool_accuracy_percent_exactly_right.py --width 14 --height 7 --image-type png \
-        --min-motif-size 2 --max-motif-size 6 --only-pure-repeats  --excluding-no-call-loci --coverage 30x
+        --min-motif-size 2 --max-motif-size 6 --only-pure-repeats  --exclude-no-call-loci --coverage 30x
 
 # figure 5 panels & supp. figure 3
  python3 plot_tool_accuracy_by_allele_size.py --q-threshold 0 --coverage 30x --min-motif-size 2 --max-motif-size 6 \
@@ -37,7 +37,9 @@ python3 plot_tool_accuracy_vs_Q.py --coverage 30x --min-motif-size 2 --max-motif
 python3 plot_tool_runtime_and_memory.py --image-type png
 
 # figure 6 panels
-python3 plot_expansion_hunter_denovo_results.py --width 10 --height 7 --image-type png --only-pure-repeats
+python3 plot_expansion_hunter_denovo_results.py --width 10 --height 7 --image-type png --only-pure-repeats \
+  --truth-set-ehdn-input-table ../tool_comparison/results_for_downsampled_30x_bam/expansion_hunter_denovo/CHM1_CHM13_WGS2.downsampled_to_30x.truth_set_EHdn_comparison_table.tsv \
+  --ehdn-truth-set-input-table ../tool_comparison/results_for_downsampled_30x_bam/expansion_hunter_denovo/CHM1_CHM13_WGS2.downsampled_to_30x.EHdn_results_table.with_truth_set_concordance.tsv
 
 # figure 7 panels
 python3 plot_summary_stats.py --image-type png --only-plot 5 --only-pure-repeats --width 8 --height 7
