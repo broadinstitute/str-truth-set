@@ -30,6 +30,7 @@ python3 plot_tool_accuracy_percent_exactly_right.py --width 14 --height 7 --imag
  python3 plot_tool_accuracy_by_allele_size.py --q-threshold 0 --coverage 30x --min-motif-size 2 --max-motif-size 6 \
        --genotype all --only-pure-repeats --show-no-call-loci --image-type png \
        --width 20 --height 6.5  # this will generate plots for ExpansionHunter, GangSTR, and HipSTR
+
 python3 plot_tool_accuracy_vs_Q.py --coverage 30x --min-motif-size 2 --max-motif-size 6 --genotype all \
        --image-type png --only-pure-repeats \
        --width 9 --height 10   # this will generate plots with and without no-call loci

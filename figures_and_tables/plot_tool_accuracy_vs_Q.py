@@ -43,11 +43,11 @@ def plot(df, width, height, figure_title=None):
                 "Q": min_Q,
                 "accuracy": (true_positive_count + true_negative_count)/total_allele_count,
                 "tool": tool,
+                "true positive alleles filtered out": exactly_right_below_Q_threshold/total_allele_count,
                 "alleles filtered out": total_alleles_below_Q_threshold/total_allele_count,
             })
 
     df_plot = pd.DataFrame(rows)
-
     fig, axes = plt.subplots(2, 1, figsize=(width, height), sharex=True, gridspec_kw={'height_ratios': [1.2, 1.7]})
     fig.suptitle(figure_title, fontsize=TITLE_FONT_SIZE, y=0.97)
 
@@ -55,7 +55,7 @@ def plot(df, width, height, figure_title=None):
     sns.lineplot(
         data=df_plot,
         x="Q",
-        y="alleles filtered out",
+        y="true positive alleles filtered out",
         hue="tool",
         ci=None,
         marker="o",
@@ -81,7 +81,7 @@ def plot(df, width, height, figure_title=None):
         ax.spines.right.set_visible(False)
         ax.spines.top.set_visible(False)
 
-    ymax_ax0 = df_plot[df_plot["Q"] < 0.99]["alleles filtered out"].max()
+    ymax_ax0 = df_plot[df_plot["Q"] < 0.98]["true positive alleles filtered out"].max()
     if ymax_ax0 > 0.5:
         ymax_ax0 = 1
     elif ymax_ax0 > 0.25:
@@ -90,13 +90,13 @@ def plot(df, width, height, figure_title=None):
         ymax_ax0 = 0.25
     ax0.set_ylim(0, ymax_ax0+0.02)
     ax0.yaxis.set_major_formatter(lambda y, pos: f"{int(y*total_allele_count):,d} ({100*y:0.0f}%)")
-    ax0.set_ylabel("Alleles Filtered Out", fontsize=13)
+    ax0.set_ylabel("True Positive Alleles Filtered Out", fontsize=13)
     ax0.get_legend().set_title("")
     ax0.get_legend().set_frame_on(False)
 
     ax1.set_xlabel("Q threshold", fontsize=13)
 
-    ymin_ax1 = df_plot[df_plot["Q"] < 0.99].accuracy.min()
+    ymin_ax1 = df_plot[df_plot["Q"] < 0.98].accuracy.min()
     if ymin_ax1 > 0.75:
         ymin_ax1 = 0.75
     elif ymin_ax1 > 0.5:
