@@ -16,7 +16,7 @@ GREEN_COLOR = "#50AA44"
 def plot_distribution_by_motif_size(df, figure_title, output_image_path, show_title=True):
     n_rows = 4
     n_columns = 2
-    fig, all_axes = plt.subplots(n_rows, n_columns, figsize=(n_columns*8, n_rows*6), dpi=80, sharex="col", sharey="row")
+    fig, all_axes = plt.subplots(n_rows, n_columns, figsize=(n_columns*8, n_rows*6), dpi=300, sharex="col", sharey="row")
     for row_i, axes in enumerate(all_axes):
         if row_i == 0:
             hue_column = None

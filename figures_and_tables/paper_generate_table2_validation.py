@@ -83,12 +83,14 @@ def main():
     args = parser.parse_args()
 
     # check arg files exist
+    print("Args:")
     for arg_name, arg_value in sorted(vars(args).items()):
         if arg_name.endswith("_table") or arg_name.endswith("_log"):
             if not os.path.exists(arg_value):
                 parser.error(f"File does not exist: {arg_value}")
 
     # print arg values
+    print("Args:")
     for arg_name, arg_value in sorted(vars(args).items()):
         print(f"{arg_name:30s} {arg_value}")
 

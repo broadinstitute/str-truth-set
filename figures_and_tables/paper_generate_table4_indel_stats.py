@@ -29,6 +29,7 @@ def main():
                 parser.error(f"File does not exist: {arg_value}")
 
     # print arg values
+    print("Args:")
     for arg_name, arg_value in sorted(vars(args).items()):
         print(f"{arg_name:30s} {arg_value}")
 
@@ -74,8 +75,8 @@ def main():
     allele_counters[total_indel_alleles_key] = high_confidence_indel_alleles_from_vcf
     multiallelic_counters[total_indel_alleles_key] = high_confidence_indel_alleles_from_vcf_multiallelic
 
-    allele_counters["TR truth set: TRs that passed all criteria"] = len(df_TR_alleles)
-    multiallelic_counters["TR truth set: TRs that passed all criteria"] = sum(df_TR_alleles.IsMultiallelic)
+    allele_counters["TRs that passed all filter criteria (pre-T2T validation)"] = len(df_TR_alleles)
+    multiallelic_counters["TRs that passed all filter criteria (pre-T2T validation)"] = sum(df_TR_alleles.IsMultiallelic)
 
     with gzip.open(args.filtered_out_indels_vcf, "rt") as filtered_out_indels_vcf:
         for line in filtered_out_indels_vcf:

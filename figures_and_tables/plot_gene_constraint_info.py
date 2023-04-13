@@ -16,6 +16,16 @@ sns.set_context("paper", font_scale=1.1, rc={
 })
 
 
+DISEASE_ASSOCIATED_STRs_LABEL = "Genes Containing\nDisease Associated TR Loci"
+TRUTH_SET_TRs_LABEL = "Genes Containing\nTruth Set TR Alleles"
+ALL_GENES_LABEL = "All Genes"
+
+Y_AXIS_ORDER = {
+    DISEASE_ASSOCIATED_STRs_LABEL: 3,
+    TRUTH_SET_TRs_LABEL: 2,
+    ALL_GENES_LABEL: 1,
+}
+
 def plot_gene_constraint(df, args):
     fig, axes = plt.subplots(1, 3, sharex=False, sharey=True, figsize=(20, 6))
     if args.show_title:
@@ -24,6 +34,7 @@ def plot_gene_constraint(df, args):
     else:
         extra_artists = []
 
+    y_axis_order = [key for key in sorted(Y_AXIS_ORDER, key=Y_AXIS_ORDER.get)]
     for column_i, (x_column, ax) in enumerate(zip([
         'pLI',
         "O/E LoF upperbound (LOEUF)",
@@ -37,7 +48,10 @@ def plot_gene_constraint(df, args):
             data=df,
             inner=None,
             cut=0,
+            # select colors
+            palette=["#3A9239", "#3274A1", "#E1812B"],
             scale="width",
+            order=y_axis_order,
             ax=ax)
 
         xlim = ax.get_xlim()
@@ -55,6 +69,7 @@ def plot_gene_constraint(df, args):
             y="Source",
             data=stripplot_data,
             hue='InheritanceMode',
+            order=y_axis_order,
             ax=ax,
             palette=["gray", "red", "blue", "orange", "green"],
             alpha=0.5,
@@ -68,7 +83,7 @@ def plot_gene_constraint(df, args):
                 continue
 
             text_x = row[x_column] + 0.02
-            text_y = 1.38
+            text_y = 2.4
             ax.text(x=text_x, y=text_y, s=row.gene_name)
 
         sns.boxplot(
@@ -81,7 +96,7 @@ def plot_gene_constraint(df, args):
 
         if column_i == 1:
             ax.get_legend().set_title(f"")
-            sns.move_legend(ax, loc=(0.55, 0.55))
+            sns.move_legend(ax, loc=(0.55, 0.16))
         else:
             ax.get_legend().remove()
 
@@ -122,6 +137,7 @@ def plot_str_variant_size_vs_gene_constraint(df, args):
 
     print(f"Saved {output_path}")
     plt.close()
+
 
 
 def main():
@@ -181,20 +197,21 @@ def main():
     df3 = constraint_df
     print(f"{len(df3):,d} genes with constraint info total")
 
-    df1.loc[:, "Source"] = "Genes Containing\nDisease Associated TR Loci"
-    df2.loc[:, "Source"] = "Genes Containing\nTruth Set TR Alleles"
-    df3.loc[:, "Source"] = "All Genes"
+    df1.loc[:, "Source"] = DISEASE_ASSOCIATED_STRs_LABEL
+    df2.loc[:, "Source"] = TRUTH_SET_TRs_LABEL
+    df3.loc[:, "Source"] = ALL_GENES_LABEL
 
     df2.loc[:, "InheritanceMode"] = ""
 
     df_final = pd.concat([df1, df2, df3])
+    df_final.loc[:, "SourceOrder"] = df_final["Source"].map(Y_AXIS_ORDER)
+    df_final = df_final.sort_values("SourceOrder", ascending=True)
+
     print("----")
     print("pLI constraint score max:", df_final.pLI.max())
     print("LOEUF constraint score max:", df_final["O/E LoF upperbound (LOEUF)"].max())
     print("missense constraint score max:", df_final["O/E missense upperbound"].max())
     print("----")
-
-    df_final = df_final.sort_values("Source", ascending=False)
 
     plot_gene_constraint(df_final, args)
 

@@ -214,13 +214,12 @@ def plot_gene_info(df, args, excluding_introns_and_intergenic=False, use_MANE_ge
     if excluding_introns_and_intergenic:
         df = df[~df[gene_region_column].isin(["intron", "intergenic", "exon of non-coding gene"])]
 
-    hue_order = ["intron", "exon of non-coding gene", "promoter", "5' UTR", "3' UTR", "coding region", "intergenic"]
+    hue_order = ["intergenic", "intron", "exon of non-coding gene", "promoter", "5' UTR", "3' UTR", "coding region"]
     palette = sns.color_palette("tab20", n_colors=len(hue_order))
-    palette = palette[1:] + palette[:1]
 
     if excluding_introns_and_intergenic:
-        hue_order = hue_order[2:-1]
-        palette = palette[2:-1]
+        hue_order = hue_order[3:]
+        palette = palette[3:]
 
     plt.rcParams.update({
         "legend.fontsize": 12,
@@ -257,6 +256,10 @@ def plot_gene_info(df, args, excluding_introns_and_intergenic=False, use_MANE_ge
         legend=True,
         ax=ax)
 
+    ax.set_yticks([round(y, 2) for y in np.arange(0, 1.01, 0.05)], minor=True)
+    yticks = [round(y, 1) for y in np.arange(0, 1.01, 0.1)]
+    ax.set_yticks(yticks)
+    ax.set_yticklabels(yticks, fontsize=14)
     ax.set_ylabel("Fraction of Alleles", fontsize=14)
 
     if ax.get_legend():
@@ -287,6 +290,7 @@ def plot_allele_size_distribution_x3(df, args, color_by=None, hue_order=None, pa
     """Plot allele size distribution split into 3 plots by motif size ranges"""
     fig, axes = plt.subplots(ncols=3, figsize=(30, 10) if args.width is None or args.height is None else (args.width, args.height), sharey=True)
 
+    print("palette", palette)
     if args.show_title:
         fig.suptitle("Allele Size Distributions", fontsize=24)
 
@@ -334,6 +338,7 @@ def plot_allele_size_distribution_x3(df, args, color_by=None, hue_order=None, pa
             hue=color_by,
             hue_order=hue_order,
             palette=palette,
+            color="#888888",
             multiple="stack",
             bins=[b-1.5 for b in range(-xlimit, xlimit + step_size, step_size)],
             zorder=3,

@@ -19,6 +19,7 @@ def main():
                 parser.error(f"File does not exist: {arg_value}")
 
     # print arg values
+    print("Args:")
     for arg_name, arg_value in sorted(vars(args).items()):
         print(f"{arg_name:30s} {arg_value}")
 

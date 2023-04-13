@@ -1,7 +1,6 @@
 
 import gzip
 import pandas as pd
-import numpy as np
 from figures_and_tables.numbers_utils import format_n, format_np, search
 
 print("---")
@@ -147,7 +146,7 @@ print(f"{format_np(mixed_variants_after_validation, len(df_variants))} TR mixed 
 
 #%%
 
-
+print("--")
 print("Numbers from Results Section 3: Truth set summary")
 total_variants = len(df_variants)
 print(f"{format_n(high_confidence_indel_variants_in_syndip)} indel variants in SynDip within high-confidence regions")
@@ -161,6 +160,8 @@ print(f"{format_np(sum(df_variants.IsMultiallelic), total_variants)} multi-allel
 #%%
 print("--")
 df_alleles = pd.read_table("STR_truth_set.v1.alleles.tsv.gz")
+print(f"{format_np(sum(df_alleles.IsMultiallelic), len(df_alleles))} alleles occurred at multi-allelic loci")
+
 df_alleles["ReferenceAlleleSize (bp)"] = df_alleles.NumRepeatsInReference * df_alleles.MotifSize
 df_alleles["AlleleSizeMinusReference (bp)"] = df_alleles["RepeatSize (bp)"] - df_alleles["ReferenceAlleleSize (bp)"]
 df_alleles["AlleleSizeMinusReference.abs() (bp)"] = df_alleles["AlleleSizeMinusReference (bp)"].abs()
@@ -199,5 +200,10 @@ median_non_reference_allele_size = int(df_alleles["RepeatSize (bp)"].median())
 
 print(f"{format_n(median_reference_allele_size)} median_reference_allele_size")
 print(f"{format_n(median_non_reference_allele_size)} median_non_reference_allele_size")
+
+#%%
+
+
+#syndip_SNV_multiallelic_fraction =
 
 #%%
