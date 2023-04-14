@@ -237,7 +237,7 @@ def plot_truth_set_overlap_with_ehdn_calls_by_motif_range(args, min_motif_size=2
     output_path = os.path.join(args.output_dir, f"truth_set_overlap_with_expansion_hunter_denovo_calls{filename_suffix}.{args.image_type}")
     plt.savefig(output_path, bbox_inches="tight", dpi=300)
     plt.close()
-    print(f"Plotted {len(truth_set_df):,d} truth set alleles")
+    print(f"Plotted {len(truth_set_df):,d} truth set variants, including {sum(truth_set_df['RepeatSizeLongAllele (bp)'] >= 150):,d} variants with a long allele >= 150bp total and motif size {min_motif_size}-{max_motif_size}bp")
     print(f"Saved {output_path}")
 
 

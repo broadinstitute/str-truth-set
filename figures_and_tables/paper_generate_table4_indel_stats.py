@@ -120,6 +120,7 @@ def main():
 
                     most_common_repeat_unit, most_common_repeat_unit_count = get_most_common_repeat_unit(variant_bases, 1)
                     if args.detailed:
+                        #expansion_or_contraction = "expansion" if len(alt_allele) > len(ref_allele) else "contraction"
                         if most_common_repeat_unit in ("A", "T"):
                             filter_value = f"homopolymer alleles: poly-A or T"
                         elif most_common_repeat_unit in ("C", "G"):
