@@ -31,4 +31,7 @@ done
 ./run_step_D__combine_tool_results.sh >& step_D.log
 ./run_step_E__generate_plots_and_figures.sh >& step_E.log
 
+# Generate one final version of the truth set including variants outside SynDip high-confidence regions. This is used for computing stats.
+./run_step_A__create_STR_truth_set.sh --include-homopolymers >& step_A_raw_with_homopolymers.log
+
 echo Finished running all steps

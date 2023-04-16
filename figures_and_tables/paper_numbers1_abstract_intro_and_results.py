@@ -27,7 +27,7 @@ with gzip.open("./ref/full.38.bed.gz", "rt") as f:
         all_high_confidence_regions.append(int(fields[2]) - int(fields[1]))
 
 chrY_size = 57_227_415   # based on https://www.ncbi.nlm.nih.gov/grc/human/data
-hg38_genome_total_size = 3_088_269_832 - chrY_size
+hg38_genome_total_size = 3_088_269_832 - chrY_size  # 3.088 Gb here is based on the total size for "Placed scaffolds"
 
 print(f"{format_np(sum(all_high_confidence_regions), hg38_genome_total_size)} bp total size of high confidence regions")
 #print(f"{format_n(int(np.mean(all_high_confidence_regions)))}bp mean size of high confidence regions")
@@ -45,8 +45,10 @@ high_confidence_alleles_in_syndip = search(f"step1:output:[ ]+([0-9,]+)[ ]+TOTAL
 
 high_confidence_SNV_variants = int(search(f"step1:output:[ ]*([0-9,]+) out of[ ]* {high_confidence_variants_in_syndip:,d}.*[)] SNV variants", stepA_log_contents).replace(",", ""))
 high_confidence_multiallelic_SNV_variants = int(search(f"step1:output:[ ]*([0-9,]+) out of[ ]* {high_confidence_variants_in_syndip:,d}.*[)] multiallelic SNV variants", stepA_log_contents).replace(",", ""))
+
 high_confidence_indel_variants_in_syndip = high_confidence_variants_in_syndip - high_confidence_SNV_variants - high_confidence_multiallelic_SNV_variants
 
+high_confidence_SNV_alleles = int(search(f"step1:output:[ ]*([0-9,]+) out of[ ]* {high_confidence_alleles_in_syndip:,d}.*[)] SNV alleles", stepA_log_contents).replace(",", ""))
 high_confidence_INS_alleles = int(search(f"step1:output:[ ]*([0-9,]+) out of[ ]* {high_confidence_alleles_in_syndip:,d}.*[)] INS alleles", stepA_log_contents).replace(",", ""))
 high_confidence_DEL_alleles = int(search(f"step1:output:[ ]*([0-9,]+) out of[ ]* {high_confidence_alleles_in_syndip:,d}.*[)] DEL alleles", stepA_log_contents).replace(",", ""))
 high_confidence_indel_alleles_in_syndip = high_confidence_INS_alleles + high_confidence_DEL_alleles
@@ -58,8 +60,6 @@ print(f"{format_n(high_confidence_variants_in_syndip)} high-confidence variants 
 
 print(f"{format_np(high_confidence_indel_variants_in_syndip, high_confidence_variants_in_syndip)} high-confidence INDEL variants in SynDip")
 #print(f"{format_np(high_confidence_indel_alleles_in_syndip, high_confidence_alleles_in_syndip)} high-confidence INDEL alleles in SynDip")
-
-
 
 #%%
 
@@ -204,6 +204,34 @@ print(f"{format_n(median_non_reference_allele_size)} median_non_reference_allele
 #%%
 
 
-#syndip_SNV_multiallelic_fraction =
+print(f"{format_np(sum(~df_variants.IsFoundInReference), len(df_variants))} variants not found in the reference")
+
+print(f"{format_np(sum(df_variants.NumRepeatsInReference == 0), len(df_variants))} variants had 0 repeats in the reference")
+print(f"{format_np(sum(df_variants.NumRepeatsInReference == 1), len(df_variants))} variants had 1 repeats in the reference")
+print(f"{format_np(sum(df_variants.NumRepeatsInReference == 2), len(df_variants))} variants had 2 repeats in the reference")
+
+
+#%%
+
+print("--")
+print("Multi-allelic fractions of indels that failed TR filters")
+
+high_confidence_multiallelic_INS_SNV_variants = int(search(f"step1:output:[ ]*([0-9,]+) out of[ ]* {high_confidence_variants_in_syndip:,d}.*[)] mixed multiallelic INS/SNV variants", stepA_log_contents).replace(",", ""))
+high_confidence_multiallelic_DEL_SNV_variants = int(search(f"step1:output:[ ]*([0-9,]+) out of[ ]* {high_confidence_variants_in_syndip:,d}.*[)] mixed multiallelic DEL/SNV variants", stepA_log_contents).replace(",", ""))
+
+# missed TR alleles in the set of indels that failed TR filters
+print(f"{format_np(high_confidence_multiallelic_SNV_variants*2 + high_confidence_multiallelic_INS_SNV_variants + high_confidence_multiallelic_DEL_SNV_variants, high_confidence_SNV_alleles)} of high-confidence SNV variants in SynDip were multi-allelic")
+
+def fraction_TRs_based_on_multiallelic_rate(
+        total_alleles=50_251, overall_multi_allelic_rate=0.069, TR_multi_allelic_rate=0.33, SNV_multi_allelic_rate=0.003):
+    """Returns a 2-tuple representing the number of alleles and the fraction of the total_alleles that represent TRs"""
+    expected_number_of_TR_alleles = total_alleles * (overall_multi_allelic_rate - SNV_multi_allelic_rate) / (TR_multi_allelic_rate - SNV_multi_allelic_rate)
+    return int(expected_number_of_TR_alleles), expected_number_of_TR_alleles/total_alleles
+
+total_indels_that_could_contain_missing_TRs = 50_251
+missed_TRs, _ = fraction_TRs_based_on_multiallelic_rate(50_251, 0.069, 0.33, 0.003)
+
+print(format_np(missed_TRs, total_indels_that_could_contain_missing_TRs), "of indels are TR alleles")
+print(format_np(total_indels_that_could_contain_missing_TRs - missed_TRs, total_indels_that_could_contain_missing_TRs), "of indels are non-TR alleles")
 
 #%%

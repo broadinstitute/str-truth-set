@@ -5,7 +5,6 @@ from numbers_utils import search
 import os
 import pandas as pd
 
-from str_analysis.utils.find_repeat_unit import get_most_common_repeat_unit
 from str_analysis.filter_vcf_to_STR_variants import compute_indel_variant_bases
 
 
@@ -13,8 +12,8 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--detailed", help="Include detailed stats", action="store_true")
     parser.add_argument("--high-confidence-vcf", help="Path of VCF", default="step1.high_confidence_regions.vcf.gz")
-    parser.add_argument("--alleles-table", help="Path of alleles table", default="step2.STRs.alleles.tsv.gz")
-    parser.add_argument("--filtered-out-indels-vcf", help="Path of VCF", default="step2.STRs.filtered_out_indels.vcf.gz")
+    parser.add_argument("--alleles-table", help="Path of alleles table", default="step2.STRs_including_homopolymers.alleles.tsv.gz")
+    parser.add_argument("--filtered-out-indels-vcf", help="Path of VCF", default="step2.STRs_including_homopolymers.filtered_out_indels.vcf.gz")
     parser.add_argument("--step-A-log",     help="Path of step A log file", default="step_A.log")
     parser.add_argument("--output-html",   help="Path of output table",  default="figures_and_tables/table4_indel_stats.html")
     args = parser.parse_args()
@@ -67,16 +66,30 @@ def main():
                          f"{high_confidence_indel_alleles_from_vcf:,d} != {high_confidence_indel_alleles_from_step_A_log:,d}")
 
     df_TR_alleles = pd.read_table(args.alleles_table)
+    df_homopolymers = df_TR_alleles[df_TR_alleles.MotifSize == 1]
+    df_TR_alleles  = df_TR_alleles[df_TR_alleles.MotifSize > 1]
 
     total_indel_alleles_key = "total indel alleles within SynDip high confidence regions"
     allele_counters = collections.defaultdict(int)
     multiallelic_counters = collections.defaultdict(int)
 
-    allele_counters[total_indel_alleles_key] = high_confidence_indel_alleles_from_vcf
-    multiallelic_counters[total_indel_alleles_key] = high_confidence_indel_alleles_from_vcf_multiallelic
+    allele_counters[total_indel_alleles_key] += high_confidence_indel_alleles_from_vcf
+    multiallelic_counters[total_indel_alleles_key] += high_confidence_indel_alleles_from_vcf_multiallelic
 
-    allele_counters["TRs that passed all filter criteria (pre-T2T validation)"] = len(df_TR_alleles)
-    multiallelic_counters["TRs that passed all filter criteria (pre-T2T validation)"] = sum(df_TR_alleles.IsMultiallelic)
+    allele_counters["TR alleles that passed all filter criteria (pre-T2T validation)"] += len(df_TR_alleles)
+    multiallelic_counters["TR alleles that passed all filter criteria (pre-T2T validation)"] += sum(df_TR_alleles.IsMultiallelic)
+
+    #if args.detailed:
+    allele_counters[f"TR homopolymer alleles: poly-A or T"] += sum(df_homopolymers.Motif.isin({"A", "T"}))
+    multiallelic_counters[f"TR homopolymer alleles: poly-A or T"] += sum(df_homopolymers[df_homopolymers.Motif.isin({"A", "T"})].IsMultiallelic)
+    allele_counters[f"TR homopolymer alleles: poly-C or G"] += sum(df_homopolymers.Motif.isin({"C", "G"}))
+    multiallelic_counters[f"TR homopolymer alleles: poly-C or G"] += sum(df_homopolymers[df_homopolymers.Motif.isin({"C", "G"})].IsMultiallelic)
+    #else:
+    #    allele_counters["TR homopolymer alleles"] += len(df_homopolymers[df_homopolymers.Motif.isin({"A", "C", "G", "T"})])
+    #    multiallelic_counters[f"TR homopolymer alleles"] += sum(df_homopolymers[df_homopolymers.Motif.isin({"A", "C", "G", "T"})].IsMultiallelic)
+
+    allele_counters["TR alleles that were excluded for other reasons"] += sum(df_homopolymers.Motif == "N")
+    multiallelic_counters["TR alleles that were excluded for other reasons"] += sum(df_homopolymers[df_homopolymers.Motif == "N"].IsMultiallelic)
 
     with gzip.open(args.filtered_out_indels_vcf, "rt") as filtered_out_indels_vcf:
         for line in filtered_out_indels_vcf:
@@ -91,65 +104,34 @@ def main():
                                  f"{len(alt_alleles)} != {len(filter_values)}: {fields[4]} {fields[6]}")
 
             for alt_allele, filter_value in zip(alt_alleles, filter_values):
-                if filter_value in ("SNV/MNV", "complex multinucleotide insertion + deletion"):
+                if filter_value == "SNV/MNV":
+                    # skip since we're only interested in indels
                     continue
 
-                #if filter_value == "ends in partial repeat":
-                #    print("\t".join(fields[0:5]))
-
-                if filter_value == "INDEL without repeats":
-                    if args.detailed:
-                        indel_size = abs(len(alt_allele) - len(ref_allele))
-                        if indel_size <= 5:
-                            filter_value = "indel without repeats: 1bp ≤ indel size ≤ 5bp"
-                        elif indel_size <= 10:
-                            filter_value = "indel without repeats: 5bp < indel size ≤ 10bp"
-                        elif indel_size <= 20:
-                            filter_value = "indel without repeats: 10bp < indel size ≤ 20bp"
-                        elif indel_size <= 30:
-                            filter_value = "indel without repeats: 20bp < indel size ≤ 30bp"
-                        elif indel_size > 30:
-                            filter_value = "indel without repeats: 30bp < indel size"
-                    else:
-                        filter_value = "indel without repeats"
+                if filter_value == "complex multinucleotide insertion + deletion":
+                    # skip variants where multiple bases are inserted and deleted at the same time and which we don't consider simple indels
+                    continue
 
                 if filter_value == "repeat unit < 2 bp":
+                    raise ValueError(f"Unexpected filter_value: {filter_value} given that input files should include homopolymers")
+
+                if filter_value in {"spans < 9 bp",  "is only 2 repeats",  "INDEL without repeats"}:
                     variant_bases = compute_indel_variant_bases(ref_allele, alt_allele)
-                    if variant_bases is None:
-                        raise ValueError(f"variant_bases is None: {ref_allele} {alt_allele}")
-
-                    most_common_repeat_unit, most_common_repeat_unit_count = get_most_common_repeat_unit(variant_bases, 1)
-                    if args.detailed:
-                        #expansion_or_contraction = "expansion" if len(alt_allele) > len(ref_allele) else "contraction"
-                        if most_common_repeat_unit in ("A", "T"):
-                            filter_value = f"homopolymer alleles: poly-A or T"
-                        elif most_common_repeat_unit in ("C", "G"):
-                            filter_value = f"homopolymer alleles: poly-C or G"
-                        elif most_common_repeat_unit == "N":
-                            filter_value = "TR allele that failed filter: other reasons"
-                        else:
-                            raise ValueError(f"Unexpected most_common_repeat_unit: {most_common_repeat_unit}")
-                    else:
-                        if most_common_repeat_unit == "N":
-                            filter_value = "TR allele that failed filter: other reasons"
-                        else:
-                            filter_value = "homopolymer alleles"
-
-                rename_dict = {
-                    "spans < 9 bp":             "TR allele that failed filter criteria: spans < 9bp",
-                    "repeat unit > 50 bp":      "TR allele that failed filter criteria: repeat unit > 50bp",
-                    "is only 2 repeats":        "TR allele that failed filter criteria: consists of only 2 repeats",
-                    "STR allele":               "TR allele passed filter criteria but is part of a multi-allelic <br />"
-                                                "variant where the other allele failed filter criteria",
-                    "ends in partial repeat":   "TR allele that failed filter: variant sequence ends in partial repeat <br />"
-                                                "(Example:  chr6:71189213 CAGCAGCA > C)",
-                    "locus overlaps more than one STR variant":             "TR allele that failed filter: other reasons",
-                    "STR alleles with different motifs":                    "TR allele that failed filter: other reasons",
-                    "STR alleles with different interruption patterns":     "TR allele that failed filter: other reasons",
-                    "STR alleles with different coords":                    "TR allele that failed filter: other reasons",
-                }
-                if filter_value in rename_dict:
-                    filter_value = rename_dict[filter_value]
+                    filter_value = (f"indels with size 1-5bp" if len(variant_bases) <= 5 else "indels with size ≥ 6bp") + f" that did not pass TR filter criteria"
+                elif "STR allele" in filter_values:
+                    filter_value = f"indel allele in a multi-allelic variant where only one of the alleles passed TR filter criteria"
+                else:
+                    rename_dict = {
+                        "repeat unit > 50 bp":      "TR alleles with pure repeats of motif size > 50bp",
+                        "ends in partial repeat":   "TR allele that failed filter because the variant sequence ended in a partial repeat<br /> "
+                                                    "Example: chr6:71189213 CAGCAGCA > C",
+                        "locus overlaps more than one STR variant":             "TR alleles that were excluded for other reasons",
+                        "STR alleles with different motifs":                    "TR alleles that were excluded for other reasons",
+                        "STR alleles with different interruption patterns":     "TR alleles that were excluded for other reasons",
+                        "STR alleles with different coords":                    "TR alleles that were excluded for other reasons",
+                    }
+                    if filter_value in rename_dict:
+                        filter_value = rename_dict[filter_value]
 
                 allele_counters[filter_value] += 1
                 if len(alt_alleles) > 1:
@@ -162,7 +144,7 @@ def main():
 
     print("Allele counts:")
     for key, count in sorted(allele_counters.items(), key=lambda x: -x[1]):
-        print(f"{count:10,d} ({100 * count / high_confidence_indel_alleles_from_step_A_log:5.1f}%) {key:10s}")
+        print(f"{count:10,d} ({count / high_confidence_indel_alleles_from_step_A_log:6.1%}) {key:100s}  ({multiallelic_counters[key]/count:5.1%} multi-allelic)")
 
     header = ["Description", "# of indel<br />alleles", "% of indel<br />alleles", "Fraction<br/>multi-allelic"]
 
