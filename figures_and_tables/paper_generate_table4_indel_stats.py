@@ -69,7 +69,7 @@ def main():
     df_homopolymers = df_TR_alleles[df_TR_alleles.MotifSize == 1]
     df_TR_alleles  = df_TR_alleles[df_TR_alleles.MotifSize > 1]
 
-    total_indel_alleles_key = "total indel alleles within SynDip high confidence regions"
+    total_indel_alleles_key = "Total indel alleles within SynDip high-confidence regions"
     allele_counters = collections.defaultdict(int)
     multiallelic_counters = collections.defaultdict(int)
 
@@ -117,14 +117,15 @@ def main():
 
                 if filter_value in {"spans < 9 bp",  "is only 2 repeats",  "INDEL without repeats"}:
                     variant_bases = compute_indel_variant_bases(ref_allele, alt_allele)
-                    filter_value = (f"indels with size 1-5bp" if len(variant_bases) <= 5 else "indels with size ≥ 6bp") + f" that did not pass TR filter criteria"
+                    filter_value = (f"Indels of size 1-5bp" if len(variant_bases) <= 5 else "Indels of size ≥ 6bp") + f" that did not pass TR filter criteria"
                 elif "STR allele" in filter_values:
-                    filter_value = f"indel allele in a multi-allelic variant where only one of the alleles passed TR filter criteria"
+                    filter_value = f"Indel allele within a multi-allelic variant where<br />" \
+                                   f"only one of the alleles passed TR filter criteria"
                 else:
                     rename_dict = {
                         "repeat unit > 50 bp":      "TR alleles with pure repeats of motif size > 50bp",
-                        "ends in partial repeat":   "TR allele that failed filter because the variant sequence ended in a partial repeat<br /> "
-                                                    "Example: chr6:71189213 CAGCAGCA > C",
+                        "ends in partial repeat":   "TR allele that failed filter because the variant sequence <br />ended in a partial repeat "
+                                                    "(eg. <i>chr6:71189213 CAGCAGCA > C</i>)",
                         "locus overlaps more than one STR variant":             "TR alleles that were excluded for other reasons",
                         "STR alleles with different motifs":                    "TR alleles that were excluded for other reasons",
                         "STR alleles with different interruption patterns":     "TR alleles that were excluded for other reasons",
