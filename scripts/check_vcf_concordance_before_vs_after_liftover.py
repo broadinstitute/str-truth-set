@@ -66,6 +66,23 @@ with fopen(args.vcf_after_liftover, "rt") as vcf_file_after_liftover, open(outpu
         ref = fields[3].upper()
         alt_alleles = [a.upper() for a in fields[4].split(",")]
 
+        # Parse the INFO field
+        info_field_dict = {}
+        for info_key_value in fields[7].split(";"):
+            info_field_tokens = info_key_value.split("=")
+            if len(info_field_tokens) > 1:
+                info_field_dict[info_field_tokens[0]] = info_field_tokens[1]
+            else:
+                info_field_dict[info_field_tokens[0]] = True
+
+        # If this variant is a deletion converted to a SNV by the convert_monoallelic_deletinos_to_snvs_for_liftover.py
+        # script, prior to hg38 => T2T liftover, then restore the original ref allele.
+        if "RefAlleleBeforeConversion" in info_field_dict:
+            counters["variants converted from SNV back to mono-allelic DEL"] += 1
+            fields[3] = ref = info_field_dict["RefAlleleBeforeConversion"]
+            fields[4] = info_field_dict["AltAlleleBeforeConversion"]
+            alt_alleles = [fields[4]]
+
         failed_liftover_due_to_straddles_multiple_intervals_error = fields[6] == "IndelStraddlesMultipleIntevals"
         fields[7] += f";SkippedValidation={failed_liftover_due_to_straddles_multiple_intervals_error}"
         fields[6] = "PASS"      # reset the filter field
@@ -82,7 +99,7 @@ with fopen(args.vcf_after_liftover, "rt") as vcf_file_after_liftover, open(outpu
                     counters["INS alleles failed"] += 1
 
         if allele_not_found_in_vcf_before_liftover:
-            counters["variants failed"] += 1
+            counters["variants had a different position after hg38 => T2T => hg38"] += 1
             continue
 
         counters["variants passed"] += 1
@@ -91,10 +108,12 @@ with fopen(args.vcf_after_liftover, "rt") as vcf_file_after_liftover, open(outpu
 os.system(f"bgzip -f {output_path}")
 os.system(f"tabix -f {output_path}.gz")
 
-print(f"Parsed {counters['TOTAL variants after liftover']:,d} variants from {args.vcf_after_liftover}")
+total_after_liftover = counters['TOTAL variants after liftover']
+print(f"Parsed {total_after_liftover:,d} variants from {args.vcf_after_liftover}")
 
 print(f"Wrote {counters['variants passed']:,d} out of {counters['TOTAL variants before liftover']:,d} "
       f"({100*counters['variants passed']/counters['TOTAL variants before liftover']:0.1f}%) "
       f"variants to {output_path}.gz")
 
-print(args.log_prefix, "  ", counters["variants failed"], "variants had a different position after hg38 => T2T => hg38")
+for key in "variants had a different position after hg38 => T2T => hg38", "variants converted from SNV back to mono-allelic DEL":
+    print(args.log_prefix, f"  {counters[key]:7,d} out of {total_after_liftover:7,d} ({counters[key]/total_after_liftover:6,.1%}) {key}")

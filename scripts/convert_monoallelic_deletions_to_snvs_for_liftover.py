@@ -8,6 +8,7 @@ import gzip
 import os
 import re
 
+
 def main():
     p = argparse.ArgumentParser()
     p.add_argument("input_vcf", help="Path of the input VCF")
@@ -32,7 +33,9 @@ def main():
             # for mono-allelic deletions, convert REF allele to a single nucleotide after saving the original in the INFO field
             if "," not in vcf_alt_allele and len(vcf_ref_allele) > len(vcf_alt_allele) and len(vcf_alt_allele) == 1:
                 fields[7] += f";RefAlleleBeforeConversion={vcf_ref_allele}"
+                fields[7] += f";AltAlleleBeforeConversion={vcf_alt_allele}"
                 fields[3] = fields[3][0]
+                fields[4] = "A" if fields[3] != "A" else "C"  # convert to snv
                 counters["converted variants"] += 1
 
             fo.write("\t".join(fields))
@@ -44,7 +47,7 @@ def main():
           f"({100*counters['total variants']/(i+1):0.1f}%) lines to {output_vcf_path}.gz")
     print(f"Stats: ")
     for key, count in sorted(counters.items(), key=lambda x: -x[1]):
-        print(f"    {count:6,d} ({100*count/counters['total variants']:5.1f}%) {key}")
+        print(f"    {count:10,d} ({100*count/counters['total variants']:7.1f}%) {key}")
 
 
 if __name__ == "__main__":
