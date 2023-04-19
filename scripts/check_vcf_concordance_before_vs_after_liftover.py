@@ -51,7 +51,6 @@ with fopen(args.vcf_before_liftover, "rt") as vcf_file_before_liftover:
 
 print(f"Parsed {counters['TOTAL variants before liftover']:,d} variants from {args.vcf_before_liftover}")
 
-
 fopen = gzip.open if args.vcf_after_liftover.endswith("gz") else open
 with fopen(args.vcf_after_liftover, "rt") as vcf_file_after_liftover, open(output_path, "wt") as fo:
 
@@ -66,7 +65,10 @@ with fopen(args.vcf_after_liftover, "rt") as vcf_file_after_liftover, open(outpu
         pos = int(fields[1])
         ref = fields[3].upper()
         alt_alleles = [a.upper() for a in fields[4].split(",")]
-        fields[6] = "PASS"      # set the filter field
+
+        failed_liftover_due_to_straddles_multiple_intervals_error = fields[6] == "IndelStraddlesMultipleIntevals"
+        fields[7] += f";SkippedValidation={failed_liftover_due_to_straddles_multiple_intervals_error}"
+        fields[6] = "PASS"      # reset the filter field
 
         allele_not_found_in_vcf_before_liftover = False
         for alt_allele in alt_alleles:

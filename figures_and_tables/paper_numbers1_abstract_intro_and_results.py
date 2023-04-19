@@ -178,7 +178,7 @@ print("--")
 # columns: ['Chrom', 'Start1Based', 'End1Based', 'Locus', 'LocusId', 'INS_or_DEL', 'HET_or_HOM', 'Motif', 'CanonicalMotif',
 # 'MotifSize', 'NumRepeatsInReference', 'VcfPos', 'VcfRef', 'VcfAlt', 'VcfGenotype', 'SummaryString',
 # 'IsFoundInReference', 'IsPureRepeat', 'IsMultiallelic', 'NumRepeats', 'RepeatSize (bp)', 'NumPureRepeats',
-# 'PureRepeatSize (bp)', 'FractionPureRepeats', 'RepeatUnitInterruptionIndex', 'OverlapsIlluminaSTRCatalog: Locus',
+# 'PureRepeatSize (bp)', 'FractionPureRepeats', 'MotifInterruptionIndex', 'OverlapsIlluminaSTRCatalog: Locus',
 # 'OverlapsIlluminaSTRCatalog: Motif', 'OverlapsGangSTRCatalog17: Locus', 'OverlapsGangSTRCatalog17: Motif',
 # 'OverlapsGangSTRCatalog13: Locus', 'OverlapsGangSTRCatalog13: Motif', 'OverlapsHipSTRCatalog: Locus',
 # 'OverlapsHipSTRCatalog: Motif', 'OverlapsKnownDiseaseAssociatedSTRs: Locus',

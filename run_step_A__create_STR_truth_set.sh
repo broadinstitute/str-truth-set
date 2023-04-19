@@ -44,6 +44,7 @@ done
 #    hg38.fa
 #    chm13v2.0.fa  (T2T reference fasta)
 
+set -e
 set -u
 set -o pipefail
 
@@ -70,7 +71,7 @@ then
   echo "Downloading the STR truth set reference data bundle..."
   set -x
   mkdir -p ./ref
-  curl --silent -L https://github.com/broadinstitute/str-truth-set/STR_truth_set_reference_bundle.v1.tar.gz -o STR_truth_set_reference_bundle.v1.tar.gz
+  curl --silent -L https://storage.googleapis.com/str-truth-set/STR_truth_set_reference_bundle.v1.tar.gz -o STR_truth_set_reference_bundle.v1.tar.gz
   tar xzf STR_truth_set_reference_bundle.v1.tar.gz
   rm STR_truth_set_reference_bundle.v1.tar.gz
   set +x
@@ -266,16 +267,22 @@ print_output_stats $input_vcf $output_vcf "step2:${STR_type}"
 
 echo ===============
 input_vcf=$output_vcf
+converted_vcf=step3.${STR_type}s.with_dels_converted_for_liftover.vcf.gz
 output_vcf=step3.${STR_type}s.lifted_to_chm13v2.vcf.gz
 output_failed_liftover1_vcf=step3.${STR_type}s.lifted_to_chm13v2_rejected.vcf.gz
 
 print_input_stats $input_vcf "STEP #3: Liftover variants from hg38 to the T2T reference (chm13v2.0)"
 set -x
 
+python3 scripts/convert_monoallelic_deletions_to_snvs_for_liftover.py \
+  ${input_vcf} \
+  ${converted_vcf} \
+  | python3 -u scripts/add_prefix_to_stdout.py "step3:${STR_type}:  "
+
 gatk --java-options "-Xmx7g" LiftoverVcf \
     -R "${t2t_fasta_path}" \
     -C "${hg38_t2t_chain_path}" \
-    -I       "${input_vcf}" \
+    -I       "${converted_vcf}" \
     -O       "${output_vcf}" \
     --REJECT "${output_failed_liftover1_vcf}" \
     --VALIDATION_STRINGENCY LENIENT \
@@ -292,11 +299,12 @@ print_liftover_output_stats $input_vcf $output_vcf $output_failed_liftover1_vcf 
 
 echo ===============
 input_vcf=$output_vcf
-output_vcf=step4.${STR_type}s.found_in_chm13v2.vcf.gz
-print_input_stats ${input_vcf} "STEP #4: Filter out variants that are true homozygous alt or multi-allelic after liftover since this means neither allele matches the T2T reference (chm13v2.0)"
+output_vcf=step4.${STR_type}s.matched_t2t.vcf.gz
+didnt_match_t2t_vcf=step4.${STR_type}s.didnt_match_t2t.vcf.gz
+print_input_stats ${input_vcf} "STEP #4: Filter out variants where neither allele matches the T2T reference (chm13v2.0)"
 set -x
 
-python3 -u scripts/filter_out_discordant_variants_after_liftover.py --log-prefix "step4:${STR_type}" --reference-fasta ${t2t_fasta_path} ${input_vcf} ${output_vcf}
+python3 -u scripts/filter_out_discordant_variants_after_liftover.py --log-prefix "step4:${STR_type}" --reference-fasta ${t2t_fasta_path} ${input_vcf} ${output_vcf} ${didnt_match_t2t_vcf}
 
 set +x
 print_output_stats ${input_vcf} ${output_vcf} "step4:${STR_type}"
@@ -331,11 +339,11 @@ echo ===============
 input_vcf=$output_vcf
 output_vcf=step6.${STR_type}s.restored_dels_that_failed_liftover.vcf.gz
 
-print_input_stats $input_vcf "STEP #6: Restore deletions that were dropped in the 1st liftover (hg38 => chm13v2.0) due to IndelStraddlesMultipleIntevals flag in picard LiftoverVcf. See https://github.com/broadinstitute/picard/blob/master/src/main/java/picard/vcf/LiftoverVcf.java#L424-L431 for more details on IndelStraddlesMultipleIntevals"
+print_input_stats $input_vcf "STEP #6: Restore variants that were dropped in the 1st liftover (hg38 => chm13v2.0) due to IndelStraddlesMultipleIntevals flag in picard LiftoverVcf. See https://github.com/broadinstitute/picard/blob/master/src/main/java/picard/vcf/LiftoverVcf.java#L424-L431 for more details on IndelStraddlesMultipleIntevals"
 set -x
 
 gunzip -c $input_vcf > temp.vcf
-gunzip -c $output_failed_liftover1_vcf | grep -v '^#' | grep IndelStraddlesMultipleIntevals | awk '{ if ( length($4) > length($5) || index($5, ",") > 0) { print $0 } }' >> temp.vcf
+gunzip -c $output_failed_liftover1_vcf | grep -v '^#' | grep IndelStraddlesMultipleIntevals >> temp.vcf
 
 gatk FixVcfHeader -I temp.vcf -O temp.fixed.vcf
 gatk SortVcf -I temp.fixed.vcf -O $output_vcf
@@ -377,6 +385,8 @@ python3 -u -m str_analysis.filter_vcf_to_STR_variants ${allow_interruptions_arg}
   --min-str-repeats "${min_str_repeats}" \
   --min-repeat-unit-length ${min_repeat_unit_length} \
   --max-repeat-unit-length ${max_repeat_unit_length} \
+  --copy-info-field-keys-to-tsv SkippedValidation \
+  --copy-info-field-keys-to-tsv NumRepeatsInT2T \
   --output-prefix "${output_prefix}" \
   --verbose \
   "${input_vcf}" | python3 -u scripts/add_prefix_to_stdout.py "step8:${STR_type}:  "

@@ -20,119 +20,106 @@ import os
 import pyfaidx
 import re
 
+from str_analysis.filter_vcf_to_STR_variants import check_if_allele_is_str, get_flanking_reference_sequences
+from str_analysis.utils.find_repeat_unit import extend_repeat_into_sequence_allowing_interruptions
+from str_analysis.utils.find_repeat_unit import extend_repeat_into_sequence_without_allowing_interruptions
 
-def get_reference_sequence(ref_fasta_obj, chrom, pos_1based, sequence_length):
-    """Return the reference sequence string at the given chromosome and position.
+
+def get_number_of_repeats_in_reference(fasta_obj, chrom, pos, ref_base, allow_interruptions, repeat_unit, repeat_unit_interruption_index):
+    """This function is used to determine the number of repeats with the given repeat unit within the reference sequence
+    immediately to the left and right of the given position.
 
     Args:
-        ref_fasta_obj (obj): A pyfaidx.Fasta object for reading a reference genome fasta
+        fasta_obj (pyfaidx.Fasta): pyfaidx object for the reference fasta file
         chrom (str): chromosome name
-        pos_1based (int): 1-based coordinate of the 1st base of the requested sequence
-        sequence_length (int): number of base pairs to return
+        pos (int): 1-based position
+        ref_base (str): reference base at the given position
+        allow_interruptions (bool): if True, then the repeat unit can be interrupted by a different base
+        repeat_unit (str): repeat unit
+        repeat_unit_interruption_index (int): index of the repeat unit base that can be interrupted by a different base
+
     Return:
-        str: The requested reference sequence
+        int: total number of repeats found in the reference
     """
+    left_flanking_reference_sequence, variant_bases, right_flanking_reference_sequence = get_flanking_reference_sequences(
+        fasta_obj, chrom, pos, ref_base, ref_base + repeat_unit, num_flanking_bases=2000)
 
-    return str(ref_fasta_obj[chrom][pos_1based-1: pos_1based-1 + sequence_length]).upper()
+    if allow_interruptions:
+        # check for interrupted repeats
+        reversed_repeat_unit_interruption_index = (len(repeat_unit) - 1 - repeat_unit_interruption_index) if repeat_unit_interruption_index is not None else None
+
+        num_pure_repeats_left_flank, num_total_repeats_left_flank, reversed_repeat_unit_interruption_index = extend_repeat_into_sequence_allowing_interruptions(
+            repeat_unit[::-1],
+            left_flanking_reference_sequence[::-1],
+            repeat_unit_interruption_index=reversed_repeat_unit_interruption_index)
+
+        if reversed_repeat_unit_interruption_index is not None:
+            # reverse the repeat_unit_interruption_index
+            repeat_unit_interruption_index = len(repeat_unit) - 1 - reversed_repeat_unit_interruption_index
+
+        num_pure_repeats_right_flank, num_total_repeats_right_flank, repeat_unit_interruption_index = extend_repeat_into_sequence_allowing_interruptions(
+            repeat_unit,
+            right_flanking_reference_sequence,
+            repeat_unit_interruption_index=repeat_unit_interruption_index)
+
+    else:
+        num_total_repeats_left_flank = extend_repeat_into_sequence_without_allowing_interruptions(
+            repeat_unit[::-1],
+            left_flanking_reference_sequence[::-1])
+
+        num_total_repeats_right_flank = extend_repeat_into_sequence_without_allowing_interruptions(
+            repeat_unit,
+            right_flanking_reference_sequence)
+
+    num_total_repeats = num_total_repeats_left_flank + num_total_repeats_right_flank
+
+    return num_total_repeats
 
 
-def does_variant_have_ref_allele(
-        ref_fasta_obj, chrom, pos, vcf_ref_allele, vcf_alt_alleles, vcf_genotype_indices, counter=None):
+def does_one_or_both_alleles_match_t2t_reference_sequence(
+        ref_fasta_obj, chrom, pos, ref_base, motif, num_repeats_allele1, num_repeats_allele2, allow_interruptions,
+        repeat_unit_interruption_index, counters=None):
     """Returns true if at least one allele in this variant matches the sequence in the reference genome.
 
     Args:
         ref_fasta_obj (obj): A pyfaidx.Fasta object for reading a reference genome fasta
         chrom (str): The variant's chromosome name
         pos (int): The variant's 1-based genomic position
-        vcf_ref_allele (str): The variant's reference allele
-        vcf_alt_alleles (list): The list of alt alleles
-        vcf_genotype_indices (list): The parsed list of genotype indices (eg. a genotype of "0/1" should be passed
-            in as ["0", "1"])
-        counter (dict): Optional dictionary of counters for recording stats about kept or discarded variants
-    Return:
+        ref_base (str): The variant's reference base
+        motif (str): The repeat unit
+        num_repeats_allele1 (int): Number of repeats in the first allele
+        num_repeats_allele2 (int): Number of repeats in the second allele
+        allow_interruptions (bool): If True, then the repeat unit can be interrupted by a different base
+        repeat_unit_interruption_index (int): Index of the repeat unit base that can be interrupted by a different base
+        counters (dict): Optional dictionary of counters for recording stats about kept or discarded variants
+
+    Return: 2-tuple
         bool: True if at least one of the alleles for the given variant matches the genome reference sequence defined by
              ref_fasta_obj.
+        int: Number of repeats found in the reference sequence immediately to the left and right of the variant position.
     """
+    num_repeats_in_t2t = get_number_of_repeats_in_reference(
+        ref_fasta_obj, chrom, pos, ref_base,
+        allow_interruptions=allow_interruptions,
+        repeat_unit=motif,
+        repeat_unit_interruption_index=repeat_unit_interruption_index)
 
-    try:
-        pos = int(pos)
-    except ValueError:
-        raise ValueError(f"pos arg is not an integer: {pos}")
+    diff1 = num_repeats_allele1 - num_repeats_in_t2t
+    diff2 = num_repeats_allele2 - num_repeats_in_t2t
 
-    if not isinstance(vcf_alt_alleles, list):
-        raise ValueError(f"vcf_alt_alleles arg is not a list: {vcf_alt_alleles}")
+    counters["total variants"] += 1
+    if abs(diff1) <= 2 or abs(diff2) <= 2:
+        counters["passing variants"] += 1
 
-    if not isinstance(vcf_genotype_indices, list):
-        raise ValueError(f"vcf_genotype_indices arg is not a list: {vcf_genotype_indices}")
+        return True, num_repeats_in_t2t
+    else:
+        diff = diff1 if abs(diff1) < abs(diff2) else diff2
+        if diff < 0:
+            counters["T2T allele bigger than expected"] += 1
+        else:
+            counters["T2T allele smaller than expected"] += 1
 
-    # check assumptions about arg values
-    if len(vcf_genotype_indices) != 2:
-        raise ValueError(f"Unexpected genotype field has {len(vcf_genotype_indices)} genotype indices: {vcf_genotype_indices}")
-
-    for genotype_index in vcf_genotype_indices:
-        if genotype_index != ".":
-            try:
-                genotype_index = int(genotype_index)
-            except ValueError:
-                raise ValueError(f"Unexpected genotype field has non-numeric genotype indices {vcf_genotype_indices}")
-            if genotype_index > len(vcf_alt_alleles):
-                raise ValueError(f"Unexpected genotype field has a genotype index that is larger than the number of "
-                                 f"alt alleles {vcf_alt_alleles}: {vcf_genotype_indices}")
-
-    # check that the ref allele in the VCF matches the sequence in the reference genome
-    fasta_ref_allele = get_reference_sequence(ref_fasta_obj, chrom, pos, len(vcf_ref_allele))
-    if fasta_ref_allele != vcf_ref_allele:
-        counter["filtered out: VCF ref allele doesn't match reference sequence"] += 1
-        return False
-
-    # handle split genotypes like ./1 or 1/.
-    if "." in vcf_genotype_indices:
-        if counter is not None:
-            counter["kept with WARNING: can't validate genotype with '.': " + str(vcf_genotype_indices)] += 1
-        return True
-
-    # convert genotype_indices to integers now that '.' genotypes have been dealt with
-    vcf_genotype_indices = [int(genotype_index) for genotype_index in vcf_genotype_indices]
-
-    # handle heterozygous genotypes (eg. 0/1)
-    if any(genotype_index == 0 for genotype_index in vcf_genotype_indices):
-        if counter is not None:
-            counter["kept variants: heterozygous reference genotype"] += 1
-        return True
-
-    # Homozygous alt. genotypes or multiallelic genotypes are by default considered discordant with the reference (ie.
-    # neither allele matches the reference sequence). However, there's a technical issue with gatk LiftoverVCF for
-    # alleles that are insertions - even if the inserted sequence exactly matches the new reference, gatk LiftoverVCF
-    # doesn't recode the allele as a reference allele. The code below performs this check and, if the inserted
-    # sequence does exactly match the reference sequence adjacent to the insertion position, then the variant is
-    # rescued and not discarded.
-    variant_type = []
-    for i, genotype_index in enumerate(set(vcf_genotype_indices)):
-        # get the alt allele sequence corresponding to this genotype index
-        vcf_alt_allele = vcf_alt_alleles[genotype_index - 1]
-        if len(vcf_alt_allele) > len(vcf_ref_allele):
-            # get the reference sequence immediately to the right of this variant (assume the variant was left-aligned)
-            fasta_alt_allele = get_reference_sequence(ref_fasta_obj, chrom, pos, len(vcf_alt_allele))
-            if fasta_alt_allele == vcf_alt_allele:
-                if counter is not None:
-                    counter["kept variants: insertion matches the adjacent reference sequence"] += 1
-                return True
-
-        # record the variant type for logging
-        if len(vcf_alt_allele) > len(vcf_ref_allele):
-            variant_type.append("INS")
-        elif len(vcf_alt_allele) < len(vcf_ref_allele):
-            variant_type.append("DEL")
-        elif len(vcf_alt_allele) == len(vcf_ref_allele):
-            if len(vcf_alt_allele) == 1:
-                variant_type.append("SNV")
-            else:
-                variant_type.append("MNV")
-
-    if counter is not None:
-        counter["filtered out variants: " + ",".join(sorted(set(variant_type))) + " " + "/".join(map(str, vcf_genotype_indices))] += 1
-
-    return False
+        return False, num_repeats_in_t2t
 
 
 def main():
@@ -141,59 +128,64 @@ def main():
     p.add_argument("-R", "--reference-fasta", help="Reference genome fasta path (this is the target reference to "
                                                    "which all variants have been lifted over)", required=True)
     p.add_argument("post_liftover_vcf", help="Path of a VCF produced by gatk LiftoverVCF")
-    p.add_argument("output_vcf", nargs="?", help="Optional path of the VCF to which to write all passing variants")
+    p.add_argument("output_vcf", help="Path of the VCF where to write all passing variants")
+    p.add_argument("failed_vcf", help="Path of the VCF where to write failing variants")
     args = p.parse_args()
 
     ref_fasta_obj = pyfaidx.Fasta(args.reference_fasta, one_based_attributes=False, as_raw=True)
 
-    if args.output_vcf:
-        output_path = re.sub("[.]b?gz$", "", args.output_vcf)
-    else:
-        output_path = os.path.basename(args.post_liftover_vcf).replace(".gz", "").replace(".vcf", ".passed_liftover_validation.vcf")
+    output_vcf_path = re.sub("[.]b?gz$", "", args.output_vcf)
+    failed_vcf_path = re.sub("[.]b?gz$", "", args.failed_vcf)
 
-    # Example line:
-    # #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	syndip
-    # chr1	248752514	.	M	C	30	.	.	GT:AD	1|1:0,2
-
-    counter = collections.defaultdict(int)
-    with gzip.open(args.post_liftover_vcf, "rt") as f, open(output_path, "wt") as fo:
+    counters = collections.defaultdict(int)
+    with gzip.open(args.post_liftover_vcf, "rt") as f, open(output_vcf_path, "wt") as fo, open(failed_vcf_path, "wt") as ff:
 
         for i, line in enumerate(f):
             if line.startswith("#"):
                 fo.write(line)
                 continue
 
-            counter['total variants'] += 1
-
             fields = line.split("\t")
             chrom = fields[0]
             pos = int(fields[1])
 
             vcf_ref_allele = fields[3].upper()
-            vcf_alt_alleles = fields[4].upper().split(",")
+            info_field_dict = {}
+            for info_key_value in fields[7].split(";"):
+                info_field_tokens = info_key_value.split("=")
+                if len(info_field_tokens) > 1:
+                    info_field_dict[info_field_tokens[0]] = info_field_tokens[1]
+                else:
+                    info_field_dict[info_field_tokens[0]] = True
 
-            vcf_format_field = fields[8]
-            vcf_genotype_field = fields[9]
-            vcf_format_field_tokens = vcf_format_field.split(":")
-            vcf_genotype_field_tokens = vcf_genotype_field.split(":")
-            vcf_genotype_field_dict = dict(zip(vcf_format_field_tokens, vcf_genotype_field_tokens))
+            motif = info_field_dict["Motif"]
+            num_repeats_allele1 = int(float(info_field_dict["NumRepeatsShortAllele"]))
+            num_repeats_allele2 = int(float(info_field_dict["NumRepeatsLongAllele"]))
+            allow_interruptions = "IsPureRepeat" not in info_field_dict
+            repeat_unit_interruption_index = int(info_field_dict["MotifInterruptionIndex"]) if allow_interruptions else None
+            #num_repeats_in_hg38 = int(float(info_field_dict["NumRepeatsInReference"]))
 
-            # Check assumptions about genotype format
-            if "GT" not in vcf_genotype_field_dict:
-                raise ValueError(f"Unexpected genotype field in VCF line #{i+1}. GT not found: {line.strip()}")
-            vcf_genotype_indices = re.split(r"[/|\\]", vcf_genotype_field_dict["GT"])
+            found_match, num_repeats_in_t2t = does_one_or_both_alleles_match_t2t_reference_sequence(
+                ref_fasta_obj, chrom, pos, vcf_ref_allele[0], motif, num_repeats_allele1, num_repeats_allele2,
+                allow_interruptions, repeat_unit_interruption_index, counters)
 
-            if does_variant_have_ref_allele(
-                    ref_fasta_obj, chrom, pos, vcf_ref_allele, vcf_alt_alleles, vcf_genotype_indices, counter):
-                fo.write(line)
+            fields[7] += f";NumRepeatsInT2T={num_repeats_in_t2t}"
+            if found_match:
+                fo.write("\t".join(fields))
+            else:
+                ff.write("\t".join(fields))
 
-    os.system(f"bgzip -f {output_path}")
-    os.system(f"tabix -f {output_path}.gz")
 
-    print(f"Wrote {counter['total variants']} out of {i+1} ({100*counter['total variants']/(i+1):0.1f}%) lines to {output_path}.gz")
+    os.system(f"bgzip -f {output_vcf_path}")
+    os.system(f"tabix -f {output_vcf_path}.gz")
+
+    os.system(f"bgzip -f {failed_vcf_path}")
+    os.system(f"tabix -f {failed_vcf_path}.gz")
+
+    print(f"Wrote {counters['passing variants']} out of {i+1} ({100*counters['total variants']/(i+1):0.1f}%) lines to {output_vcf_path}.gz")
     print(f"{args.log_prefix} Stats: ")
-    for key, count in sorted(counter.items(), key=lambda x: -x[1]):
-        print(f"{args.log_prefix}    {count:6d} ({100*count/counter['total variants']:5.1f}%) {key}")
+    for key, count in sorted(counters.items(), key=lambda x: -x[1]):
+        print(f"{args.log_prefix}    {count:6,d} ({100*count/counters['total variants']:5.1f}%) {key}")
 
 
 if __name__ == "__main__":
