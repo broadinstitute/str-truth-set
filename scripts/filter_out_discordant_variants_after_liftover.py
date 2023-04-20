@@ -195,11 +195,13 @@ def main():
 
     print(f"Wrote {counters['passing variants']} out of {i+1} ({100*counters['total variants']/(i+1):0.1f}%) lines to {output_vcf_path}.gz")
     print(f"{args.log_prefix} Stats: ")
-    for key, count in sorted(counters.items(), key=lambda x: -x[1]):
-        print(f"{args.log_prefix}    {count:6,d} ({100*count/counters['total variants']:5.1f}%) {key}")
-    for key, count in sorted(counters.items(), key=lambda x: -x[1]):
+    for key, count in sorted(counters.items(), key=lambda x: x[0]):
         if ("PASSED" in key or "FAILED" in key) and "alleles" in key:
-            print(f"{args.log_prefix}    {count:6,d} ({100*count/counters['total alleles']:5.1f}%) {key}")
+            continue
+        print(f"{args.log_prefix}    {count:7,d} ({100*count/counters['total variants']:5.1f}%) {key}")
+    for key, count in sorted(counters.items(), key=lambda x: x[0]):
+        if ("PASSED" in key or "FAILED" in key) and "alleles" in key:
+            print(f"{args.log_prefix}    {count:7,d} ({100*count/counters['total alleles']:5.1f}%) {key}")
 
 
 if __name__ == "__main__":
