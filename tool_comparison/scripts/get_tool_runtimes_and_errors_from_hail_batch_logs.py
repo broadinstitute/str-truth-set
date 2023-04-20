@@ -17,13 +17,16 @@ number_of_data_groups = 8
 current_data_group_number = collections.defaultdict(int)
 
 # get batch
-for b in bc.list_batches(limit=2, last_batch_id=7196167):
+for b in bc.list_batches(limit=4, last_batch_id=7292217):
 
     batch_name = b.attributes["name"]
+
+    if not batch_name.startswith("STR Truth Set: ExpansionHunter"):
+        print("Skipping batch:", batch_name, b.attributes)
+        continue
+
     print("Processing batch:", batch_name)
 
-    if not batch_name.startswith("STR Truth Set:"):
-        continue
     batch_name_fields = batch_name.split(": ")
     if len(batch_name_fields) != 4:
         print("WARNING: Unexpected batch name: ", batch_name, "Skipping...")
@@ -46,7 +49,6 @@ for b in bc.list_batches(limit=2, last_batch_id=7196167):
 
     batch_status = b.status()
     print(f"Batch {b.id}:", batch_name, batch_status["time_created"]) #; continue
-
 
     for retry in range(3):
         try:
