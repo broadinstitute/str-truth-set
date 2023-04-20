@@ -36,14 +36,14 @@ def main():
                 fields[7] += f";AltAlleleBeforeConversion={vcf_alt_allele}"
                 fields[3] = fields[3][0]
                 fields[4] = "A" if fields[3] != "A" else "C"  # convert to snv
-                counters["converted variants"] += 1
+                counters["variants converted to SNVs"] += 1
 
             fo.write("\t".join(fields))
 
     os.system(f"bgzip -f {output_vcf_path}")
     os.system(f"tabix -f {output_vcf_path}.gz")
 
-    print(f"Wrote {counters['converted variants']} out of {i+1} "
+    print(f"Wrote {counters['variants converted to SNVs']} out of {i+1} "
           f"({100*counters['total variants']/(i+1):0.1f}%) lines to {output_vcf_path}.gz")
     print(f"Stats: ")
     for key, count in sorted(counters.items(), key=lambda x: -x[1]):

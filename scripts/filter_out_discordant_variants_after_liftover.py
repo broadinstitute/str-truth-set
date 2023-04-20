@@ -115,9 +115,9 @@ def does_one_or_both_alleles_match_t2t_reference_sequence(
     else:
         diff = diff1 if abs(diff1) < abs(diff2) else diff2
         if diff < 0:
-            counters["T2T allele bigger than expected"] += 1
+            counters["T2T alleles bigger than expected"] += 1
         else:
-            counters["T2T allele smaller than expected"] += 1
+            counters["T2T alleles smaller than expected"] += 1
 
         return False, num_repeats_in_t2t
 
@@ -150,6 +150,7 @@ def main():
             pos = int(fields[1])
 
             vcf_ref_allele = fields[3].upper()
+            vcf_alt_alleles = fields[4].upper().split(",")
             info_field_dict = {}
             for info_key_value in fields[7].split(";"):
                 info_field_tokens = info_key_value.split("=")
@@ -175,6 +176,16 @@ def main():
             else:
                 ff.write("\t".join(fields))
 
+            suffix = "PASSED" if found_match else "FAILED"
+            for vcf_alt_allele in vcf_alt_alleles:
+                if len(vcf_alt_allele) == len(vcf_ref_allele):
+                    counters[f"SNV alleles {suffix}"] += 1
+                elif len(vcf_alt_allele) > len(vcf_ref_allele):
+                    counters[f"INS alleles {suffix}"] += 1
+                elif len(vcf_alt_allele) < len(vcf_ref_allele):
+                    counters[f"DEL alleles {suffix}"] += 1
+                counters[f"total alleles {suffix}"] += 1
+                counters[f"total alleles"] += 1
 
     os.system(f"bgzip -f {output_vcf_path}")
     os.system(f"tabix -f {output_vcf_path}.gz")
@@ -186,6 +197,9 @@ def main():
     print(f"{args.log_prefix} Stats: ")
     for key, count in sorted(counters.items(), key=lambda x: -x[1]):
         print(f"{args.log_prefix}    {count:6,d} ({100*count/counters['total variants']:5.1f}%) {key}")
+    for key, count in sorted(counters.items(), key=lambda x: -x[1]):
+        if ("PASSED" in key or "FAILED" in key) and "alleles" in key:
+            print(f"{args.log_prefix}    {count:6,d} ({100*count/counters['total alleles']:5.1f}%) {key}")
 
 
 if __name__ == "__main__":

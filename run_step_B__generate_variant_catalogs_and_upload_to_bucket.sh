@@ -39,8 +39,7 @@ gsutil -q -m cp \
   STR*_truth_set.v1.*.bed.gz* \
   STR*_truth_set.v1.*.tsv* \
   STR*_truth_set.v1.vcf*  \
-  step1.high_confidence_regions*.vcf* \
-  step2.STR*.filtered_out_indels.vcf* \
+  step*.* \
   gs://str-truth-set/hg38/
 
 for i in ref/full.38.* \
@@ -65,14 +64,8 @@ for i in ref/full.38.* \
        ref/other/known_disease_associated_STR_loci.GRCh38.bed.gz.tbi \
        ref/other/repeat_specs_GRCh38_allowing_mismatches.sorted.trimmed.at_least_6bp.bed.gz \
        ref/other/repeat_specs_GRCh38_allowing_mismatches.sorted.trimmed.at_least_6bp.bed.gz.tbi \
-       ref/other/repeat_specs_GRCh38_without_mismatches.sorted.trimmed.at_least_6bp.bed.gz \
-       ref/other/repeat_specs_GRCh38_without_mismatches.sorted.trimmed.at_least_6bp.bed.gz.tbi \
-       ref/other/repeat_specs_GRCh38_without_mismatches.sorted.trimmed.at_least_9bp.bed.gz \
-       ref/other/repeat_specs_GRCh38_without_mismatches.sorted.trimmed.at_least_9bp.bed.gz.tbi \
-       ref/other/repeat_specs_GRCh38_without_mismatches.sorted.trimmed.at_least_12bp.bed.gz \
-       ref/other/repeat_specs_GRCh38_without_mismatches.sorted.trimmed.at_least_12bp.bed.gz.tbi \
-       ref/other/repeat_specs_GRCh38_without_mismatches.sorted.trimmed.at_least_15bp.bed.gz \
-       ref/other/repeat_specs_GRCh38_without_mismatches.sorted.trimmed.at_least_15bp.bed.gz.tbi;
+       ref/other/repeat_specs_GRCh38_without_mismatches.sorted.trimmed.at_least_*bp.bed.gz \
+       ref/other/repeat_specs_GRCh38_without_mismatches.sorted.trimmed.at_least_*bp.bed.gz.tbi;
 do
     echo ${i}
     gsutil -q -m cp -n ${i} gs://str-truth-set/hg38/${i}
