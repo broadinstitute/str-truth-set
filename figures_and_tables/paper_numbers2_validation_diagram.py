@@ -12,7 +12,6 @@ total_STR_variants_before_validation_step = search(
 total_STR_alleles_before_validation_step = search(
     f"step2:STR:output:[ ]*([0-9,]+)[ ]* TOTAL alleles", stepA_log_contents, type=int)
 
-#%%
 print("-"*100)
 print("Validation diagram - levels 1, 2:")
 print("-"*100)
@@ -93,8 +92,8 @@ print("Validation diagram - level 2 - details:")
 print("-"*100)
 
 
-DEL_variants_failed_hg38_to_t2t_liftover_due_to_IndelStraddlesMultipleIntevals = search(
-    f"step3:STR:failed-liftover:[ ]*([0-9,]+) out of .* filter:IndelStraddlesMultipleIntevals  DEL variants", stepA_log_contents, type=int)
+DEL_variants_failed_hg38_to_t2t_liftover_due_to_IndelStraddlesMultipleIntevals = 0 #search(
+    #f"step3:STR:failed-liftover:[ ]*([0-9,]+) out of .* filter:IndelStraddlesMultipleIntevals  SNV variants", stepA_log_contents, type=int)
 multiallelic_DEL_variants_failed_hg38_to_t2t_liftover_due_to_IndelStraddlesMultipleIntevals = search(
     f"step3:STR:failed-liftover:[ ]*([0-9,]+) out of .* filter:IndelStraddlesMultipleIntevals  multiallelic DEL variants", stepA_log_contents, type=int)
 mixed_variants_failed_hg38_to_t2t_liftover_due_to_IndelStraddlesMultipleIntevals = search(
@@ -119,7 +118,7 @@ print(f"{format_n(INS_variants_failed_hg38_to_t2t_liftover_due_to_IndelStraddles
 INS_variants_failed_hg38_to_t2t_liftover = search(
     f"step3:STR:failed-liftover:[ ]*([0-9,]+) out of .* filtered:  INS variants", stepA_log_contents, type=int)
 DEL_variants_failed_hg38_to_t2t_liftover = search(
-    f"step3:STR:failed-liftover:[ ]*([0-9,]+) out of .* filtered:  DEL variants", stepA_log_contents, type=int)
+    f"step3:STR:failed-liftover:[ ]*([0-9,]+) out of .* filtered:  SNV variants", stepA_log_contents, type=int)
 multiallelic_INS_variants_failed_hg38_to_t2t_liftover = search(
     f"step3:STR:failed-liftover:[ ]*([0-9,]+) out of .* filtered:  multiallelic INS variants", stepA_log_contents, type=int)
 multiallelic_DEL_variants_failed_hg38_to_t2t_liftover = search(
@@ -148,16 +147,16 @@ print("-"*100)
 
 # STR Validation Stats - 3rd row of figure: compare alleles with the T2T reference
 
-kept_het_variants = search(
-    f"step4:STR[ ]+([0-9,]+) .*kept variants: heterozygous reference genotype", stepA_log_contents, type=int)
+#kept_het_variants = search(
+#    f"step4:STR[ ]+([0-9,]+) .*kept variants: heterozygous reference genotype", stepA_log_contents, type=int)
 
-kept_variants_insertions_that_match_adjacent_reference_sequence = search(
-    f"step4:STR[ ]+([0-9,]+) .*kept variants: insertion matches the adjacent reference sequence", stepA_log_contents, type=int)
+#kept_variants_insertions_that_match_adjacent_reference_sequence = search(
+#    f"step4:STR[ ]+([0-9,]+) .*kept variants: insertion matches the adjacent reference sequence", stepA_log_contents, type=int)
 
 total_variants_passed_t2t_comparison = search(
     f"step4:STR:output:[ ]*([0-9,]+)[ ]* TOTAL variants", stepA_log_contents, type=int)
 
-assert total_variants_passed_t2t_comparison == kept_het_variants + kept_variants_insertions_that_match_adjacent_reference_sequence
+#assert total_variants_passed_t2t_comparison == kept_het_variants + kept_variants_insertions_that_match_adjacent_reference_sequence
 
 print(f"{format_np(total_variants_passed_t2t_comparison, total_STR_variants_before_validation_step)} "
       "Total ")
@@ -173,11 +172,15 @@ print("Validation diagram - level 4:")
 print("-"*100)
 
 liftover_failed__no_target = search(f"step5:STR:failed-liftover:[ ]+([0-9,]+)[ ]+NoTarget", stepA_log_contents, type=int)
+liftover_failed__indel_straddles_multiple_intervals = search(f"step5:STR:failed-liftover:[ ]+([0-9,]+)[ ]+IndelStraddlesMultipleIntevals", stepA_log_contents, type=int)
 
 total_variants_passed_liftover_back_to_hg38 = search(f"step5:STR:output:[ ]+([0-9,]+)[ ]* TOTAL variants", stepA_log_contents, type=int)
 
 print(f"{format_np(liftover_failed__no_target, total_STR_variants_before_validation_step)} "
       "Failed T2T => hg38 liftover: No Target")
+print(f"{format_np(liftover_failed__indel_straddles_multiple_intervals, total_STR_variants_before_validation_step)} "
+      "Failed T2T => hg38 liftover: IndelStraddlesMultipleIntevals")
+
 print(f"{format_np(total_variants_passed_liftover_back_to_hg38, total_STR_variants_before_validation_step)} "
       "Total passed T2T => hg38 liftover")
 

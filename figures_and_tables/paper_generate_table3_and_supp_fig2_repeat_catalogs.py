@@ -79,7 +79,7 @@ def compute_catalog_comparison_table(args):
 
 
 def generate_catalog_comparison_plot(df, args):
-    df = df[df['locus_spans_min_base_pairs'].isna() | (df['locus_spans_min_base_pairs'] <= 24)]
+    df = df[df['locus_spans_min_base_pairs'].isna() | (df['locus_spans_min_base_pairs'] <= 21)]
 
     df["catalog"] = df["catalog"].replace("New catalog", "New catalogs")
 
@@ -300,14 +300,14 @@ def check_numbers(df, args):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--step-A-log", default="../step_A.log")
-    parser.add_argument("--variants-table", help="Path of variants table",  default="../STR_truth_set.v1.variants.tsv.gz")
-    parser.add_argument("--truth-set-variants-bed", default="../STR_truth_set.v1.variants.bed.gz")
-    parser.add_argument("--illumina-catalog-bed", default="../ref/other/illumina_variant_catalog.sorted.bed.gz")
-    parser.add_argument("--gangstr-v17-catalog-bed", default="../ref/other/hg38_ver17.adjusted.bed.gz")
-    parser.add_argument("--hipstr-catalog-bed", default="../ref/other/hg38.hipstr_reference.adjusted.bed.gz")
-    parser.add_argument("--new-catalogs-dir", default="../ref/other/")
-    parser.add_argument("--table-template-html", default="table_template.html")
+    parser.add_argument("--step-A-log", default="step_A.log")
+    parser.add_argument("--variants-table", help="Path of variants table",  default="STR_truth_set.v1.variants.tsv.gz")
+    parser.add_argument("--truth-set-variants-bed", default="STR_truth_set.v1.variants.bed.gz")
+    parser.add_argument("--illumina-catalog-bed", default="ref/other/illumina_variant_catalog.sorted.bed.gz")
+    parser.add_argument("--gangstr-v17-catalog-bed", default="ref/other/hg38_ver17.adjusted.bed.gz")
+    parser.add_argument("--hipstr-catalog-bed", default="ref/other/hg38.hipstr_reference.adjusted.bed.gz")
+    parser.add_argument("--new-catalogs-dir", default="ref/other/")
+    parser.add_argument("--table-template-html", default="figures_and_tables/table_template.html")
     parser.add_argument("--temp-dir", default="/tmp")
     parser.add_argument("--image-type", default="png", choices=["svg", "png"])
     parser.add_argument("--output-dir", default=".")

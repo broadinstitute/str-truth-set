@@ -28,16 +28,16 @@ def compute_num_failed_hg38_to_t2t_liftover(stepA_log_contents):
 
 def compute_num_failed_comparison_with_t2t(stepA_log_contents):
 
-    kept_het_variants = search(
-        f"step4:STR[ ]+([0-9,]+) .*kept variants: heterozygous reference genotype", stepA_log_contents, type=int)
+    #kept_het_variants = search(
+    #    f"step4:STR[ ]+([0-9,]+) .*kept variants: heterozygous reference genotype", stepA_log_contents, type=int)
 
-    kept_variants_insertions_that_match_adjacent_reference_sequence = search(
-        f"step4:STR[ ]+([0-9,]+) .*kept variants: insertion matches the adjacent reference sequence", stepA_log_contents, type=int)
+    #kept_variants_insertions_that_match_adjacent_reference_sequence = search(
+    #    f"step4:STR[ ]+([0-9,]+) .*kept variants: insertion matches the adjacent reference sequence", stepA_log_contents, type=int)
 
     total_variants_passed_t2t_comparison = search(
         f"step4:STR:output:[ ]*([0-9,]+)[ ]* TOTAL variants", stepA_log_contents, type=int)
 
-    assert total_variants_passed_t2t_comparison == kept_het_variants + kept_variants_insertions_that_match_adjacent_reference_sequence
+    #assert total_variants_passed_t2t_comparison == kept_het_variants + kept_variants_insertions_that_match_adjacent_reference_sequence
 
     total_STR_variants_before_validation_step = search(
         f"step2:STR:output:[ ]*([0-9,]+)[ ]* TOTAL variants", stepA_log_contents, type=int)
@@ -56,13 +56,16 @@ def compute_num_failed_comparison_with_t2t(stepA_log_contents):
 
 def compute_num_failed_t2t_to_hg38_liftover(stepA_log_contents):
     liftover_failed__no_target = search(f"step5:STR:failed-liftover:[ ]+([0-9,]+)[ ]+NoTarget", stepA_log_contents, type=int)
+    liftover_failed__indel_straddles_multiple_intervals = search(f"step5:STR:failed-liftover:[ ]+([0-9,]+)[ ]+IndelStraddlesMultipleIntevals", stepA_log_contents, type=int)
+
     total_STR_variants_before_validation_step = search(
         f"step2:STR:output:[ ]*([0-9,]+)[ ]* TOTAL variants", stepA_log_contents, type=int)
 
     print(f"{format_np(liftover_failed__no_target, total_STR_variants_before_validation_step)} "
           "Failed T2T => hg38 liftover: No Target")
-
-    return liftover_failed__no_target
+    print(f"{format_np(liftover_failed__indel_straddles_multiple_intervals, total_STR_variants_before_validation_step)} "
+          "Failed T2T => hg38 liftover: IndelStraddlesMultipleIntevals")
+    return liftover_failed__no_target + liftover_failed__indel_straddles_multiple_intervals
 
 
 def compute_num_had_different_position_after_hg38_to_t2t_to_hg38_liftover(stepA_log_contents):

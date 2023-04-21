@@ -217,9 +217,14 @@ def plot_gene_info(df, args, excluding_introns_and_intergenic=False, use_MANE_ge
     hue_order = ["intergenic", "intron", "exon of non-coding gene", "promoter", "5' UTR", "3' UTR", "coding region"]
     palette = sns.color_palette("tab20", n_colors=len(hue_order))
 
+    if sum(df[gene_region_column] == "exon of non-coding gene") == 0:
+        i = hue_order.index("exon of non-coding gene")
+        del hue_order[i]
+        del palette[i]
+
     if excluding_introns_and_intergenic:
-        hue_order = hue_order[3:]
-        palette = palette[3:]
+        hue_order = hue_order[2:]
+        palette = palette[2:]
 
     plt.rcParams.update({
         "legend.fontsize": 12,
@@ -338,7 +343,7 @@ def plot_allele_size_distribution_x3(df, args, color_by=None, hue_order=None, pa
             hue=color_by,
             hue_order=hue_order,
             palette=palette,
-            color="#888888",
+            #color="#888888",
             multiple="stack",
             bins=[b-1.5 for b in range(-xlimit, xlimit + step_size, step_size)],
             zorder=3,
@@ -402,7 +407,10 @@ def plot_distribution_of_reference_locus_sizes(df, args, min_motif_size=None, ma
 
     if min_motif_size is not None and max_motif_size is not None:
         df = df[(df.MotifSize >= min_motif_size) & (df.MotifSize <= max_motif_size)]
-        label = f"{min_motif_size}bp to {max_motif_size}bp motifs"
+        if min_motif_size == max_motif_size:
+            label = f"{min_motif_size}bp motifs"
+        else:
+            label = f"{min_motif_size}bp to {max_motif_size}bp motifs"
     else:
         label = ""
 
@@ -440,6 +448,8 @@ def plot_distribution_of_reference_locus_sizes(df, args, min_motif_size=None, ma
         binwidth=1,
         discrete=True,
         color=non_ref_alleles_color,
+        # set the outline color of bar plot bars
+        edgecolor=non_ref_alleles_color,
         zorder=3,
         ax=ax)
 
@@ -449,12 +459,13 @@ def plot_distribution_of_reference_locus_sizes(df, args, min_motif_size=None, ma
         binwidth=1,
         discrete=True,
         color=ref_alleles_color,
+        edgecolor=ref_alleles_color,
         alpha=alpha,
         zorder=3,
         ax=ax)
 
     if label:
-        ax.set_title(f"{len(df):,d} alleles at {len(set(df.LocusId)):,d} loci ({label})", fontsize=18)
+        ax.set_title(f"{len(df):,d} alleles at {len(set(df.LocusId)):,d} loci ({label})", fontsize=15)
 
     # add a legend to the plot
     from matplotlib.patches import Patch
@@ -466,9 +477,15 @@ def plot_distribution_of_reference_locus_sizes(df, args, min_motif_size=None, ma
                    label="overlap between the\ntwo distributions")
     ax.legend(handles=[patch1, patch2, patch3], loc="upper right", fontsize=14, frameon=True)
 
-
     # add a solid vertical line to indicate the median number of repeats
     median_num_repeats_in_reference = int(df["NumRepeatsInReference"].median())
+    median_num_repeats_in_chm1_chm13_alleles = int(df["NumRepeats"].median())
+    if median_num_repeats_in_reference != median_num_repeats_in_chm1_chm13_alleles:
+        raise ValueError(f"median number of repeats in reference ({median_num_repeats_in_reference}) != "
+                         f"median number of repeats in chm1/chm13 alleles ({median_num_repeats_in_chm1_chm13_alleles})")
+    else:
+        print(f"Median number of repeats in reference == median number of repeats in chm1/chm13 alleles: {median_num_repeats_in_reference}")
+
     ax.axvline(median_num_repeats_in_reference, color="#000000", linestyle="-", linewidth=1.2)
 
     # add a black text label rotated 90 degrees just to the left of the vertical line
@@ -521,7 +538,7 @@ def plot_distribution_of_reference_locus_sizes(df, args, min_motif_size=None, ma
     # "#4C73B4"
     # "#3571B1"
 
-    xlimit = 50
+    xlimit = 50 if min_motif_size is None or min_motif_size <= 6 else 30
     for ax in axes:
         ax.xaxis.labelpad = ax.yaxis.labelpad = 15
         ax.spines.right.set_visible(False)
@@ -627,6 +644,8 @@ def main():
         plot_distribution_of_reference_locus_sizes(df, args, min_motif_size=2, max_motif_size=6)
         plot_distribution_of_reference_locus_sizes(df, args, min_motif_size=7, max_motif_size=24)
         plot_distribution_of_reference_locus_sizes(df, args, min_motif_size=25, max_motif_size=50)
+        for motif_size in range(2, 7):
+            plot_distribution_of_reference_locus_sizes(df, args, min_motif_size=motif_size, max_motif_size=motif_size)
 
 
 if __name__ == "__main__":
