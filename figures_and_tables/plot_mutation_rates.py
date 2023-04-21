@@ -73,14 +73,15 @@ def plot_mutation_rate_by_fraction_interrupted_repeats(df, args):
     ).reset_index()
     df2 = df2[(df2["DataPoints"] >= 20)]
 
+    # hue="MotifSize",
     fig, ax = plt.subplots(figsize=(args.width, args.height))
-    sns.lineplot(data=df2, x=x_column_binned, y="IsMultiallelic", hue="MotifSize", marker="o", legend="full", ax=ax)
+    sns.lineplot(data=df2, x=x_column_binned, y="IsMultiallelic", marker="o", ax=ax)   # legend="full",
 
-    ax.set_xlim(0, 0.88)
-    ax.set_xlabel("Fraction Interrupted Repeats", labelpad=15)
+    ax.set_xlim(0, 0.5)
+    ax.set_xlabel("Fraction Interrupted Repeats (3-6bp motifs)", labelpad=15)
     ax.set_ylabel("Fraction Multi-allelic Variants", labelpad=15)
-    ax.get_legend().set_title("Motif Size (bp)")
-    ax.get_legend().set_frame_on(False)
+    #ax.get_legend().set_title("Motif Size (bp)")
+    #ax.get_legend().set_frame_on(False)
     ax.spines["top"].set_visible(False)
     ax.spines["right"].set_visible(False)
 

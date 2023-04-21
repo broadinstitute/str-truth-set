@@ -212,7 +212,7 @@ def plot_gene_info(df, args, excluding_introns_and_intergenic=False, use_MANE_ge
     df.loc[:, gene_region_column] = df[gene_region_column].str.replace("exon", "exon of non-coding gene")
 
     if excluding_introns_and_intergenic:
-        df = df[~df[gene_region_column].isin(["intron", "intergenic", "exon of non-coding gene"])]
+        df = df[~df[gene_region_column].isin(["intron", "intergenic"])]  # "exon of non-coding gene"
 
     hue_order = ["intergenic", "intron", "exon of non-coding gene", "promoter", "5' UTR", "3' UTR", "coding region"]
     palette = sns.color_palette("tab20", n_colors=len(hue_order))
@@ -396,9 +396,15 @@ def mix_two_colors_with_alpha(hex_color1, hex_color2, alpha=0.5):
     return result
 
 
-def plot_distribution_of_reference_locus_sizes(df, args):
+def plot_distribution_of_reference_locus_sizes(df, args, min_motif_size=None, max_motif_size=None):
 
     print("Plotting allele distribution by motif size")
+
+    if min_motif_size is not None and max_motif_size is not None:
+        df = df[(df.MotifSize >= min_motif_size) & (df.MotifSize <= max_motif_size)]
+        label = f"{min_motif_size}bp to {max_motif_size}bp motifs"
+    else:
+        label = ""
 
     hue_limit = 5
     df.loc[:, "NumRepeatsAwayFromReferenceTruncated"] = df["NumRepeatsAwayFromReference"]
@@ -447,6 +453,9 @@ def plot_distribution_of_reference_locus_sizes(df, args):
         zorder=3,
         ax=ax)
 
+    if label:
+        ax.set_title(f"{len(df):,d} alleles at {len(set(df.LocusId)):,d} loci ({label})", fontsize=18)
+
     # add a legend to the plot
     from matplotlib.patches import Patch
     patch1 = Patch(facecolor=without_alpha(non_ref_alleles_color, alpha=alpha),
@@ -465,7 +474,7 @@ def plot_distribution_of_reference_locus_sizes(df, args):
     # add a black text label rotated 90 degrees just to the left of the vertical line
     ax.text(
         median_num_repeats_in_reference - 0.5,
-        100,
+        100 if min_motif_size is None or min_motif_size <= 6 else 10,
         f"median = {median_num_repeats_in_reference} repeats",
         rotation=90,
         color="#F3F3FF",
@@ -545,7 +554,11 @@ def plot_distribution_of_reference_locus_sizes(df, args):
     if args.only_pure_repeats:
         output_image_name += ".only_pure_repeats"
 
-    output_path = os.path.join(args.output_dir, output_image_name + f".{args.image_type}")
+    output_path = os.path.join(args.output_dir, output_image_name)
+    if label:
+        output_path += f"." + label.replace(" ", "_")
+    output_path += f".{args.image_type}"
+
     plt.savefig(output_path, bbox_inches="tight", dpi=300)
     plt.close()
     print(f"Saved {output_path}")
@@ -611,6 +624,9 @@ def main():
 
     if not args.only_plot or args.only_plot == "6":
         plot_distribution_of_reference_locus_sizes(df, args)
+        plot_distribution_of_reference_locus_sizes(df, args, min_motif_size=2, max_motif_size=6)
+        plot_distribution_of_reference_locus_sizes(df, args, min_motif_size=7, max_motif_size=24)
+        plot_distribution_of_reference_locus_sizes(df, args, min_motif_size=25, max_motif_size=50)
 
 
 if __name__ == "__main__":
