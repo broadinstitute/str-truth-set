@@ -215,11 +215,12 @@ def main():
     print("----")
 
     print(f"{format_np(sum(df3.pLI > 0.9), len(df3))} all genes have pLI > 0.9")
-    print(f"{format_np(sum(df2.pLI > 0.9), len(df2))} truth set variant genes have pLI > 0.9")
-    print(f"{format_np(sum(df1.pLI > 0.9), len(df1))} known disease-associated genes have pLI > 0.9")
+    print(f"{format_np(sum(df2.pLI > 0.9), len(df2))} ({sum(df2.pLI > 0.9)/len(df2)/(sum(df3.pLI > 0.9)/len(df3)):0.1f} above background) truth set variant genes have pLI > 0.9")
+    print(f"{format_np(sum(df1.pLI > 0.9), len(df1))} ({sum(df1.pLI > 0.9)/len(df1)/(sum(df3.pLI > 0.9)/len(df3)):0.1f} above background) known disease-associated genes have pLI > 0.9")
+
     print(f"{format_np(sum(df3['O/E LoF upperbound (LOEUF)'] < 0.35), len(df3))} all genes have LEOUF < 0.35")
-    print(f"{format_np(sum(df2['O/E LoF upperbound (LOEUF)'] < 0.35), len(df2))} truth set variant genes have LEOUF < 0.35")
-    print(f"{format_np(sum(df1['O/E LoF upperbound (LOEUF)'] < 0.35), len(df1))} known disease-associated genes have LEOUF < 0.35")
+    print(f"{format_np(sum(df2['O/E LoF upperbound (LOEUF)'] < 0.35), len(df2))} ({sum(df2['O/E LoF upperbound (LOEUF)'] < 0.35)/len(df2)/(sum(df3['O/E LoF upperbound (LOEUF)'] < 0.35)/len(df3)):0.1f} above background) truth set variant genes have LEOUF < 0.35")
+    print(f"{format_np(sum(df1['O/E LoF upperbound (LOEUF)'] < 0.35), len(df1))} ({sum(df1['O/E LoF upperbound (LOEUF)'] < 0.35)/len(df1)/(sum(df3['O/E LoF upperbound (LOEUF)'] < 0.35)/len(df3)):0.1f} above background) known disease-associated genes have LEOUF < 0.35")
     plot_gene_constraint(df_final, args)
 
     truth_set_df = truth_set_df[truth_set_df.GeneRegionFromMane_V1 == "CDS"]

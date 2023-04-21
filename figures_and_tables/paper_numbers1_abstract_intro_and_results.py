@@ -103,25 +103,37 @@ print(f"{format_np(len(df_variants_before_validation) - len(df_variants), len(df
 
 
 #%%
-DEL_variants_failed_hg38_to_t2t_liftover_due_to_IndelStraddlesMultipleIntevals = search(
-    f"step3:STR:failed-liftover:[ ]*([0-9,]+) out of .* filter:IndelStraddlesMultipleIntevals  DEL variants", stepA_log_contents, type=int)
+
 multiallelic_DEL_variants_failed_hg38_to_t2t_liftover_due_to_IndelStraddlesMultipleIntevals = search(
     f"step3:STR:failed-liftover:[ ]*([0-9,]+) out of .* filter:IndelStraddlesMultipleIntevals  multiallelic DEL variants", stepA_log_contents, type=int)
 mixed_variants_failed_hg38_to_t2t_liftover_due_to_IndelStraddlesMultipleIntevals = search(
     f"step3:STR:failed-liftover:[ ]*([0-9,]+) out of .* filter:IndelStraddlesMultipleIntevals  mixed multiallelic INS/DEL variants", stepA_log_contents, type=int)
 
 
-print(f"{format_np(DEL_variants_failed_hg38_to_t2t_liftover_due_to_IndelStraddlesMultipleIntevals + multiallelic_DEL_variants_failed_hg38_to_t2t_liftover_due_to_IndelStraddlesMultipleIntevals, contraction_variants_before_validation)} "
+print(f"{format_np(multiallelic_DEL_variants_failed_hg38_to_t2t_liftover_due_to_IndelStraddlesMultipleIntevals, contraction_variants_before_validation)} "
       f"contraction variants where liftover failed due to IndelStraddlesMultipleIntevals")
 
 print(f"{format_np(mixed_variants_failed_hg38_to_t2t_liftover_due_to_IndelStraddlesMultipleIntevals, mixed_variants_before_validation)} "
       f"mixed multi-allelic variants where liftover failed due to IndelStraddlesMultipleIntevals")
 
+total_contractions_and_mixed_variants_before_validation = contraction_variants_before_validation + mixed_variants_before_validation
+
+total_contractions_and_mixed_variants_that_failed_due_to_IndelStraddlesMultipleIntevals = mixed_variants_failed_hg38_to_t2t_liftover_due_to_IndelStraddlesMultipleIntevals + multiallelic_DEL_variants_failed_hg38_to_t2t_liftover_due_to_IndelStraddlesMultipleIntevals
+
+contractions_and_mixed_variants_that_avoided_IndelStraddlesMultipleIntevals = total_contractions_and_mixed_variants_before_validation - total_contractions_and_mixed_variants_that_failed_due_to_IndelStraddlesMultipleIntevals
+
+print(f"{format_np(contractions_and_mixed_variants_that_avoided_IndelStraddlesMultipleIntevals, total_contractions_and_mixed_variants_before_validation)} "
+      f"contraction variants and mixed multi-allelic variants avoided the IndelStraddlesMultipleIntevals error")
+
+total_contractions_and_mixed_variants_that_passed_validation = contraction_variants_after_validation + mixed_variants_after_validation - multiallelic_DEL_variants_failed_hg38_to_t2t_liftover_due_to_IndelStraddlesMultipleIntevals - mixed_variants_failed_hg38_to_t2t_liftover_due_to_IndelStraddlesMultipleIntevals
+print(f"{format_np(total_contractions_and_mixed_variants_that_passed_validation, total_contractions_and_mixed_variants_before_validation - total_contractions_and_mixed_variants_that_failed_due_to_IndelStraddlesMultipleIntevals)} "
+      f"contraction variants and mixed multi-allelic variants that passed validation")
+
+
 #%%
 print("--")
 
 contraction_and_mixed_variants_with_IndelStraddlesMultipleIntervals = (
-        DEL_variants_failed_hg38_to_t2t_liftover_due_to_IndelStraddlesMultipleIntevals +
         multiallelic_DEL_variants_failed_hg38_to_t2t_liftover_due_to_IndelStraddlesMultipleIntevals +
         mixed_variants_failed_hg38_to_t2t_liftover_due_to_IndelStraddlesMultipleIntevals
 )
@@ -205,6 +217,10 @@ print(f"{format_n(median_non_reference_allele_size)} median_non_reference_allele
 
 
 print(f"{format_np(sum(~df_variants.IsFoundInReference), len(df_variants))} variants not found in the reference")
+
+print(f"{format_np(sum(df_variants_before_validation.NumRepeatsInReference == 0), len(df_variants_before_validation))} variants before validation had 0 repeats in the reference")
+print(f"{format_np(sum(df_variants_before_validation.NumRepeatsInReference == 1), len(df_variants_before_validation))} variants before validation had 1 repeats in the reference")
+print(f"{format_np(sum(df_variants_before_validation.NumRepeatsInReference == 2), len(df_variants_before_validation))} variants before validation had 2 repeats in the reference")
 
 print(f"{format_np(sum(df_variants.NumRepeatsInReference == 0), len(df_variants))} variants had 0 repeats in the reference")
 print(f"{format_np(sum(df_variants.NumRepeatsInReference == 1), len(df_variants))} variants had 1 repeats in the reference")

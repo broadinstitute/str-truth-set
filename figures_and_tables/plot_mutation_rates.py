@@ -113,6 +113,7 @@ def plot_mutation_rate_by_allele_size(df, args, show_dinucleotides=False):
 
 
 def plot_mutation_rate_by_fraction_interrupted_repeats(df, args):
+    #df = df[(df["MotifSize"] >= 2) & (df["MotifSize"] <= 6)]
     df = df[(df["MotifSize"] >= 3) & (df["MotifSize"] <= 6)]
 
     x_column = "FractionInterruptedRepeats"
@@ -120,20 +121,23 @@ def plot_mutation_rate_by_fraction_interrupted_repeats(df, args):
     bin_size = 0.1
 
     df[x_column_binned] = pd.cut(df[x_column], list(np.arange(0, 1, bin_size))).apply(lambda x: x.mid)
+    #df["hue"] = np.where(df["MotifSize"] == 2, "2bp", "3-6bp")
+
     df["DataPoints"] = 1
+    #df2 = df.groupby([x_column_binned]).agg(
     df2 = df.groupby([x_column_binned, "MotifSize"]).agg(
         {"IsMultiallelic": "mean", "DataPoints": "sum"}
     ).reset_index()
     df2 = df2[(df2["DataPoints"] >= 20)]
 
-    # hue="MotifSize",
     fig, ax = plt.subplots(figsize=(args.width/2 + 2, args.height))
-    sns.lineplot(data=df2, x=x_column_binned, y="IsMultiallelic", marker="o", ax=ax)   # legend="full",
+    sns.lineplot(data=df2, x=x_column_binned, y="IsMultiallelic", marker="o", ax=ax)  # hue="hue", legend="full",
 
+    #ax.set_xlim(0, 0.75)
     ax.set_xlim(0, 0.5)
-    ax.set_xlabel("Fraction Interrupted Repeats (3-6bp motifs)", labelpad=15)
+    ax.set_xlabel("Fraction Interrupted Repeats", labelpad=15)
     ax.set_ylabel("Fraction Multi-allelic Variants", labelpad=15)
-    #ax.get_legend().set_title("Motif Size (bp)")
+    #ax.get_legend().set_title("Motif Size")
     #ax.get_legend().set_frame_on(False)
     ax.spines["top"].set_visible(False)
     ax.spines["right"].set_visible(False)

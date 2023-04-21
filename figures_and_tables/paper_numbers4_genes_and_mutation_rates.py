@@ -18,3 +18,6 @@ print(f"{format_np(sum(coding_variants_with_pure_repeats.MotifSize % 3 == 0), le
       f"variants in the truth set overlap MANE v1 coding regions")
 
 #%%
+#num_MANE_genes = len(set(coding_variants_with_pure_repeats.GeneNameFromMane_V1))
+#print(f"{format_np(len(df_alleles), num_MANE_genes)} "
+#coding_variants_with_pure_repeats
