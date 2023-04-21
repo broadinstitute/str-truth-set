@@ -47,7 +47,7 @@ python3 plot_summary_stats.py --image-type png --only-plot 5 --only-pure-repeats
 
 python3 plot_gene_constraint_info.py  --image-type png
 
-python3 plot_mutation_rates.py --image-type png --width 8 --height 6
+python3 plot_mutation_rates.py --image-type png --width 8.5 --height 8.5
 
 
 python3 paper_generate_table3_and_supp_fig2_repeat_catalogs.py

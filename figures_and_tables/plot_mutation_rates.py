@@ -17,38 +17,82 @@ sns.set_context(font_scale=1.1, rc={
 })
 
 
-def plot_mutation_rate_by_allele_size(df, args):
+def plot_mutation_rate_by_allele_size(df, args, show_dinucleotides=False):
     """This function plots the fraction of alleles that are multi-allelic (a proxy for mutation rates) with allele size
     on the x-axis, and color based on the motif size.
 
     df (pd.DataFrame):
     """
+    if show_dinucleotides:
+        df = df[(df["MotifSize"] >= 2) & (df["MotifSize"] <= 3) & (df["CanonicalMotif"] != "CG")]
+    else:
+        df = df[(df["MotifSize"] >= 3) & (df["MotifSize"] <= 6)]
+
     x_column = "RepeatSize (bp)"
     x_column_binned = "Total Allele Size (bp)"
     bin_size = 10
 
     df = df[df.FractionPureRepeats >= 0.75]
 
+    if show_dinucleotides:
+        df["hue"] = df["MotifSize"].astype(str) + "bp" + np.where(
+            df["MotifSize"] == 2, " (" + df["CanonicalMotif"] + "), ", ", ") + np.where(
+            df["IsPureRepeat"], "pure", "interrupted")
+    else:
+        df["hue"] = df["MotifSize"].astype(str) + "bp, " + np.where(df["IsPureRepeat"], "pure", "interrupted")
+
     df[x_column_binned] = pd.cut(df[x_column], list(range(0, 100, bin_size))).apply(lambda x: x.mid)
     df["DataPoints"] = 1
 
-    df2 = df.groupby([x_column_binned, "MotifSize", "IsPureRepeat"]).agg(
+    df2 = df.groupby([x_column_binned, "hue", "MotifSize", "IsPureRepeat"]).agg(
         {"IsMultiallelic": "mean", "DataPoints": "sum"}
     ).reset_index()
-
-    df2["hue"] = df2["MotifSize"].astype(str) + "bp, " + np.where(df2["IsPureRepeat"], "pure", "interrupted")
 
     df2 = df2[(df2["DataPoints"] >= 20) & (df2[x_column_binned].astype(int) < 65)]
     df2.sort_values(by=["IsPureRepeat", "MotifSize"], ascending=[False, True], inplace=True)
 
-    palette = list(sns.color_palette("Oranges", len(set(df2[df2["IsPureRepeat"]]["MotifSize"]))))
-    palette += list(sns.color_palette("Blues", len(set(df2[~df2["IsPureRepeat"]]["MotifSize"]))))
+    if show_dinucleotides:
+        hue_order = [
+            "2bp (AT), pure",
+            "2bp (AC), pure",
+            "2bp (AG), pure",
+            "3bp, pure",
+            "2bp (AT), interrupted",
+            "2bp (AC), interrupted",
+            "2bp (AG), interrupted",
+            "3bp, interrupted",
+        ]
+        "52EC68"  # 3bp
+        "53BDEC"  # 4bp
+        "9D53EC"  # 5bp
+        "EC53A8"  # 6bp
+
+
+        palette = list(sns.color_palette("Oranges", 3))[::-1] + ["#52EC68"]
+        palette += list(sns.color_palette("Blues", 3))[::-1] + ["#c8f9cf"]
+    else:
+        hue_order = None
+        #palette = list(sns.color_palette("Oranges", len(set(df2[df2["IsPureRepeat"]]["MotifSize"]))))
+        #palette += list(sns.color_palette("Blues", len(set(df2[~df2["IsPureRepeat"]]["MotifSize"]))))
+        palette = [
+            "#52EC68",  # 3bp
+            "#53BDEC",  # 4bp
+            "#9D53EC",  # 5bp
+            "#EC53A8",  # 6bp
+            "#c8f9cf",  # lightened by 68%
+            "#c8eaf9",
+            "#e0c8f9",
+            "#f9c8e3",
+        ]
 
     fig, ax = plt.subplots(figsize=(args.width, args.height))
-    sns.lineplot(data=df2, x=x_column_binned, y="IsMultiallelic", hue="hue", palette=palette, marker="o", legend="full", ax=ax)
+    sns.lineplot(data=df2, x=x_column_binned, y="IsMultiallelic", hue="hue", hue_order=hue_order,
+                 palette=palette, marker="o", legend="full", ax=ax)
     ax.set_xlabel(x_column_binned, labelpad=15)
     ax.set_ylabel("Fraction Multi-allelic Variants", labelpad=15)
-    ax.get_legend().set_title("Motif Size (bp), Interrupted?")
+    ax.set_ylim(-0.05, 0.82)
+
+    ax.get_legend().set_title(None)
     ax.get_legend().set_frame_on(False)
     ax.spines["top"].set_visible(False)
     ax.spines["right"].set_visible(False)
@@ -56,12 +100,21 @@ def plot_mutation_rate_by_allele_size(df, args):
     ax.tick_params(axis="both", which="major", pad=10)
 
     # save figure
-    output_path = os.path.join(args.output_dir, f"mutation_rates_by_allele_size.{args.image_type}")
+    filename = "mutation_rates_by_allele_size"
+    if show_dinucleotides:
+        filename += ".2bp_motifs"
+    else:
+        filename += ".3-6bp_motifs"
+    filename += f".{args.image_type}"
+
+    output_path = os.path.join(args.output_dir, filename)
     fig.savefig(output_path, bbox_inches="tight", dpi=300)
     print(f"Saved {output_path}")
 
 
 def plot_mutation_rate_by_fraction_interrupted_repeats(df, args):
+    df = df[(df["MotifSize"] >= 3) & (df["MotifSize"] <= 6)]
+
     x_column = "FractionInterruptedRepeats"
     x_column_binned = "Fraction Interrupted Repeats"
     bin_size = 0.1
@@ -74,7 +127,7 @@ def plot_mutation_rate_by_fraction_interrupted_repeats(df, args):
     df2 = df2[(df2["DataPoints"] >= 20)]
 
     # hue="MotifSize",
-    fig, ax = plt.subplots(figsize=(args.width, args.height))
+    fig, ax = plt.subplots(figsize=(args.width/2 + 2, args.height))
     sns.lineplot(data=df2, x=x_column_binned, y="IsMultiallelic", marker="o", ax=ax)   # legend="full",
 
     ax.set_xlim(0, 0.5)
@@ -103,10 +156,11 @@ def main():
     df = pd.read_table(args.truth_set_alleles_table)
     df["NumInterruptedRepeats"] = df.NumRepeats - df.NumPureRepeats
     df["FractionInterruptedRepeats"] = df.NumInterruptedRepeats/df.NumRepeats
-    df = df[(df["MotifSize"] >= 3) & (df["MotifSize"] <= 6)]
 
     print(f"Plotting mutation rates based on {len(df):,d} truth set alleles")
-    plot_mutation_rate_by_allele_size(df, args)
+    plot_mutation_rate_by_allele_size(df, args, show_dinucleotides=False)
+    plot_mutation_rate_by_allele_size(df, args, show_dinucleotides=True)
+
     plot_mutation_rate_by_fraction_interrupted_repeats(df, args)
 
     mu_pure = df[df.IsPureRepeat].IsMultiallelic.mean()
