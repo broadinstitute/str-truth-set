@@ -53,5 +53,6 @@ python3 plot_mutation_rates.py --image-type png --width 8.5 --height 8.5
 python3 ../figures_and_tables/plot_summary_stats.py --only-plot 7 --image-type png
 
 # supp. figure 2
+cd ..
 python3 paper_generate_table3_and_supp_fig2_repeat_catalogs.py
 
