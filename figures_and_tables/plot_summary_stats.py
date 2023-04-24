@@ -593,6 +593,7 @@ def main():
     p.add_argument("--image-type", choices=["svg", "png"], default="svg")
 
     p.add_argument("--output-dir", default=".")
+    p.add_argument("--truth-set-alleles-table-before-validation", default="../step2.STRs.alleles.tsv.gz")
     p.add_argument("--truth-set-alleles-table", default="../STR_truth_set.v1.alleles.tsv.gz")
     args = p.parse_args()
 
@@ -646,6 +647,29 @@ def main():
         plot_distribution_of_reference_locus_sizes(df, args, min_motif_size=25, max_motif_size=50)
         for motif_size in range(2, 7):
             plot_distribution_of_reference_locus_sizes(df, args, min_motif_size=motif_size, max_motif_size=motif_size)
+
+    if not args.only_plot or args.only_plot == "7":
+        df_before_validation = pd.read_table(args.truth_set_alleles_table_before_validation)
+        df_after_validation = pd.read_table(args.truth_set_alleles_table)
+
+        df_before_validation.loc[:, "Failed Validation"] = True
+        df_before_validation.loc[df_before_validation.LocusId.isin(df_after_validation.LocusId), "Failed Validation"] = False
+
+        print(f"Out of those that did not skip validation, "
+              f"{sum(df_before_validation['Failed Validation'] ):,d} out of {len(df_before_validation):,d} "
+              f"({sum(df_before_validation['Failed Validation'] ) / len(df_before_validation):.1%}) "
+              f"alleles failed validation")
+
+        # print the number out of the total, as well as the fraction of contractions that failed validation
+        df_contractions = df_before_validation[df_before_validation["INS_or_DEL"] == "DEL"]
+        print(f"{sum(df_contractions['Failed Validation']):,d} out of {len(df_contractions):,d} ({sum(df_contractions['Failed Validation']) / len(df_contractions):.1%}) contraction alleles failed validation")
+        df_expansions = df_before_validation[df_before_validation["INS_or_DEL"] == "INS"]
+        print(f"{sum(df_expansions['Failed Validation']):,d} out of {len(df_expansions):,d} ({sum(df_expansions['Failed Validation']) / len(df_expansions):.1%}) expansion alleles failed validation")
+
+        df_before_validation["NumRepeatsAwayFromReference"] = df_before_validation["NumRepeats"] - df_before_validation["NumRepeatsInReference"]
+        df_before_validation["Failed Validation"] = df_before_validation["Failed Validation"].replace({True: "Yes", False: "No"})
+
+        plot_allele_size_and_motif_distribution(df_before_validation, args, color_by="Failed Validation", hue_order=["No", "Yes"], palette=["#1F77B4", "#AA002A"])
 
 
 if __name__ == "__main__":
