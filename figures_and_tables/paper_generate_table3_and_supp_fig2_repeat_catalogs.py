@@ -55,6 +55,14 @@ def compute_catalog_comparison_table(args):
     table_rows = []
     for label, catalog_path, locus_spans_min_base_pairs in catalog_paths:
         catalog_size = pybedtools.BedTool(catalog_path).count()
+        hompolymer_count = 0
+        if "new" not in label.lower():
+            with gzip.open(catalog_path, "rt") as f:
+                for line in f:
+                    fields = line.strip().split("\t")
+                    name = fields[3].strip("()*")
+                    if len(name) == 1:
+                        hompolymer_count += 1
 
         # use pybedtools to see how many truth set loci don't overlap any loci in the catalog.
         #   The default minimum overlap is 1bp.
@@ -62,12 +70,13 @@ def compute_catalog_comparison_table(args):
         num_loci_missed_by_catalog = pybedtools.BedTool(truth_set_tmp_path).subtract(catalog_path, A=True).count()
 
         print(f"{num_loci_missed_by_catalog:,d} out of {total_loci_in_truth_set:,d} ({num_loci_missed_by_catalog / total_loci_in_truth_set:.1%}) "
-              f"loci missed by {label} which contains {catalog_size:,d} loci")
+              f"loci missed by {label} which contains {catalog_size:,d} loci. {hompolymer_count/catalog_size:.1%} of loci in {label} are homopolymers.")
 
         table_rows.append({
             "catalog_long_name": label + (" (loci spanning at least %dbp)" % locus_spans_min_base_pairs if locus_spans_min_base_pairs else ""),
             "catalog": label,
             "catalog_size": catalog_size,
+            "homopolymer_loci_in_catalogs": hompolymer_count,
             "num_loci_missed_by_catalog": num_loci_missed_by_catalog,
             "fraction_missed_by_catalog": num_loci_missed_by_catalog / total_loci_in_truth_set,
             "truth_set_size": total_loci_in_truth_set,
@@ -158,8 +167,9 @@ def generate_html_table(df, args):
 
     header = [
         "Catalog name",
+        "Catalog size:<br/># of loci",
+        "Catalog size:<br />% homopolymers",
         "How it was created",
-        "Catalog size<br/>(# of loci)",
         "# of truth set<br/>loci missed",
         "% of truth set<br />loci missed",
     ]
@@ -167,25 +177,25 @@ def generate_html_table(df, args):
     data = [
         [
             "GangSTR catalog v17",
-            "Running TandemRepeatFinder (TRF) on hg38 <br />"
-            "with mismatch penalty = 5, indel penalty = 17<br />",
-            df.loc["Illumina catalog", "catalog_size"],
-            df.loc["Illumina catalog", "num_loci_missed_by_catalog"],
-            df.loc["Illumina catalog", "fraction_missed_by_catalog"],
-        ],
-        [
-            "Illumina catalog",
-            "polymorphic STR loci based on <br />"
-            "2,504 genomes from 1kGP",
             df.loc["GangSTR v17 catalog", "catalog_size"],
+            df.loc["GangSTR v17 catalog", "homopolymer_loci_in_catalogs"]/df.loc["GangSTR v17 catalog", "catalog_size"],
+            f"Running TandemRepeatFinder (TRF) on hg38 <br />with mismatch penalty = 5, indel penalty = 17<br />",
             df.loc["GangSTR v17 catalog", "num_loci_missed_by_catalog"],
             df.loc["GangSTR v17 catalog", "fraction_missed_by_catalog"],
         ],
         [
+            "Illumina catalog",
+            df.loc["Illumina catalog", "catalog_size"],
+            df.loc["Illumina catalog", "homopolymer_loci_in_catalogs"]/df.loc["Illumina catalog", "catalog_size"],
+            f"Polymorphic STR loci based on <br />2,504 genomes from 1kGP",
+            df.loc["Illumina catalog", "num_loci_missed_by_catalog"],
+            df.loc["Illumina catalog", "fraction_missed_by_catalog"],
+        ],
+        [
             "HipSTR catalog",
-            "Running TRF on hg38 using default params:<br />"
-            "mismatch penalty = 7, indel penalty = 7",
             df.loc["HipSTR catalog", "catalog_size"],
+            df.loc["HipSTR catalog", "homopolymer_loci_in_catalogs"]/df.loc["HipSTR catalog", "catalog_size"],
+            f"Running TRF on hg38 using default params:<br />mismatch penalty = 7, indel penalty = 7",
             df.loc["HipSTR catalog", "num_loci_missed_by_catalog"],
             df.loc["HipSTR catalog", "fraction_missed_by_catalog"],
         ],
@@ -193,14 +203,12 @@ def generate_html_table(df, args):
     for min_bp in [6, 9, 12, 15]:
         data.append([
             f"New catalog<br />(loci ≥ {min_bp}bp)",
-            "Running TRF on hg38 using very large<br />"
-            "indel & mismatch penalties to find<br />"
-            f"all pure repeats that <b>span at least {min_bp}bp</b>",
             df.loc[f"New catalog (loci spanning at least {min_bp}bp)", "catalog_size"],
+            df.loc[f"New catalog (loci spanning at least {min_bp}bp)", "homopolymer_loci_in_catalogs"]/df.loc[f"New catalog (loci spanning at least {min_bp}bp)", "catalog_size"],
+            f"Running TRF on hg38 using very large<br />indel & mismatch penalties to find<br />all pure repeats that <b>span at least {min_bp}bp</b>",
             df.loc[f"New catalog (loci spanning at least {min_bp}bp)", "num_loci_missed_by_catalog"],
             df.loc[f"New catalog (loci spanning at least {min_bp}bp)", "fraction_missed_by_catalog"],
         ])
-
 
     table_html = []
     table_html.append(f"<table>")
@@ -208,13 +216,14 @@ def generate_html_table(df, args):
 
     for i, data_row in enumerate(data):
         table_html.append(f"<tr>"
-                          #f"""<td style="line-height: 1.5; vertical-align: top">{i+1}</td>"""
-                          f"""<td style="line-height: 1.5; vertical-align: top">{data_row[0]}</td>"""
-                          f"""<td style="line-height: 1.5; vertical-align: top">{data_row[1]}</td>"""
-                          f"""<td style="text-align: right; line-height: 1.5; vertical-align: top">{data_row[2]:,d}</td>"""
-                          f"""<td style="text-align: right; line-height: 1.5; vertical-align: top">{data_row[3]:,d}</td>"""
-                          f"""<td style="text-align: right; line-height: 1.5; vertical-align: top">{data_row[4]:0.1%}</td>"""
-                          f"</tr>")
+            #f"""<td style="line-height: 1.5; vertical-align: top">{i+1}</td>"""
+            f"""<td style="line-height: 1.5; vertical-align: top">{data_row[0]}</td>"""
+            f"""<td style="text-align: right; line-height: 1.5; vertical-align: top">{data_row[1]:,d}</td>"""
+            f"""<td style="text-align: right; line-height: 1.5; vertical-align: top">{data_row[2]:0.0%}</td>"""
+            f"""<td style="line-height: 1.5; vertical-align: top">{data_row[3]}</td>"""
+            f"""<td style="text-align: right; line-height: 1.5; vertical-align: top">{data_row[4]:,d}</td>"""
+            f"""<td style="text-align: right; line-height: 1.5; vertical-align: top">{data_row[5]:0.1%}</td>"""
+            f"</tr>")
 
     table_html.append("</table>")
 

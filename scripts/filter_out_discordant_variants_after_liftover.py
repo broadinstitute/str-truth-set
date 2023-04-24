@@ -78,7 +78,7 @@ def get_number_of_repeats_in_reference(fasta_obj, chrom, pos, ref_base, allow_in
 
 def does_one_or_both_alleles_match_t2t_reference_sequence(
         ref_fasta_obj, chrom, pos, ref_base, motif, num_repeats_allele1, num_repeats_allele2, allow_interruptions,
-        repeat_unit_interruption_index, counters=None):
+        repeat_unit_interruption_index, counters):
     """Returns true if at least one allele in this variant matches the sequence in the reference genome.
 
     Args:
@@ -91,7 +91,7 @@ def does_one_or_both_alleles_match_t2t_reference_sequence(
         num_repeats_allele2 (int): Number of repeats in the second allele
         allow_interruptions (bool): If True, then the repeat unit can be interrupted by a different base
         repeat_unit_interruption_index (int): Index of the repeat unit base that can be interrupted by a different base
-        counters (dict): Optional dictionary of counters for recording stats about kept or discarded variants
+        counters (dict): dictionary of counters for recording stats about kept or discarded variants
 
     Return: 2-tuple
         bool: True if at least one of the alleles for the given variant matches the genome reference sequence defined by

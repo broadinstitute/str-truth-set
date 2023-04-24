@@ -221,6 +221,7 @@ def main():
     print(f"{format_np(sum(df3['O/E LoF upperbound (LOEUF)'] < 0.35), len(df3))} all genes have LEOUF < 0.35")
     print(f"{format_np(sum(df2['O/E LoF upperbound (LOEUF)'] < 0.35), len(df2))} ({sum(df2['O/E LoF upperbound (LOEUF)'] < 0.35)/len(df2)/(sum(df3['O/E LoF upperbound (LOEUF)'] < 0.35)/len(df3)):0.1f} above background) truth set variant genes have LEOUF < 0.35")
     print(f"{format_np(sum(df1['O/E LoF upperbound (LOEUF)'] < 0.35), len(df1))} ({sum(df1['O/E LoF upperbound (LOEUF)'] < 0.35)/len(df1)/(sum(df3['O/E LoF upperbound (LOEUF)'] < 0.35)/len(df3)):0.1f} above background) known disease-associated genes have LEOUF < 0.35")
+
     plot_gene_constraint(df_final, args)
 
     truth_set_df = truth_set_df[truth_set_df.GeneRegionFromMane_V1 == "CDS"]
@@ -230,6 +231,10 @@ def main():
 
     plot_str_variant_size_vs_gene_constraint(truthset_with_constraint_df, args)
 
+    print("---")
+    constraint_df = pd.read_table(args.constraint_table, compression="gzip")
+    print(f"Genes with pLI > 0.9 are {constraint_df[constraint_df.pLI > 0.9].cds_length.median()/constraint_df[constraint_df.pLI < 0.9].cds_length.median():0.1f}x longer than genes with pLI < 0.9 (based on median)")
+    print(f"Genes with pLI > 0.9 are {constraint_df[constraint_df.pLI > 0.9].cds_length.mean()/constraint_df[constraint_df.pLI < 0.9].cds_length.mean():0.1f}x longer than genes with pLI < 0.9 (based on mean)")
 
 if __name__ == "__main__":
     main()

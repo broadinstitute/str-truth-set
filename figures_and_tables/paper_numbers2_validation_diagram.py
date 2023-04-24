@@ -261,3 +261,49 @@ print(f"Liftover did work for {format_n(liftover_did_work_for)} contraction and 
 print(f"Of these {format_np(n_passed, liftover_did_work_for)} passed all validation steps.")
 
 #%%
+
+df_with_homopolymers_before_validation = pd.read_table("step2.STRs_including_homopolymers.alleles.tsv.gz")
+df_with_homopolymers_before_validation = df_with_homopolymers_before_validation[df_with_homopolymers_before_validation.MotifSize == 1]
+df_with_homopolymers_before_validation = df_with_homopolymers_before_validation[df_with_homopolymers_before_validation.INS_or_DEL == "DEL"]
+
+df_with_homopolymers_after_validation = pd.read_table("STRs_including_homopolymer_truth_set.v1.alleles.tsv.gz")
+df_with_homopolymers_after_validation = df_with_homopolymers_after_validation[df_with_homopolymers_after_validation.MotifSize == 1]
+df_with_homopolymers_after_validation = df_with_homopolymers_after_validation[df_with_homopolymers_after_validation.INS_or_DEL == "DEL"]
+
+print(f"{format_np(len(df_with_homopolymers_after_validation), len(df_with_homopolymers_before_validation))} homopolymers passed all validation steps.")
+print(f"{format_np(len(df_with_homopolymers_after_validation[df_with_homopolymers_after_validation.CanonicalMotif == 'A']), len(df_with_homopolymers_before_validation[df_with_homopolymers_before_validation.CanonicalMotif == 'A']))} A/T homopolymers passed all validation steps.")
+print(f"{format_np(len(df_with_homopolymers_after_validation[df_with_homopolymers_after_validation.CanonicalMotif == 'C']), len(df_with_homopolymers_before_validation[df_with_homopolymers_before_validation.CanonicalMotif == 'C']))} C/G homopolymers passed all validation steps.")
+
+#%%
+
+print("-"*100)
+print("Validation using results from ExpansionHunter, GangSTR, and HipSTR:")
+
+df_variants = pd.read_table("./tool_comparison/combined.results.variants.tsv.gz", na_values="None")
+df_variants = df_variants[df_variants["PositiveOrNegative"] == "positive"]
+df_variants = df_variants[df_variants.Coverage == "40x"]
+df_variants = df_variants[df_variants.IsFoundInReference]
+assert len(df_variants) == 146_318
+
+# assert that fewer than 20k variants skipped validation due to the IndelStraddlesMultipleIntevals error in gatk LiftoverVcf
+assert sum(df_variants["NumRepeatsInT2T"].isna()) < 20_000
+
+df_variants = df_variants[~df_variants["NumRepeatsInT2T"].isna()]
+
+#%%
+
+min_diff_considered_discordant = 3  # 3 repeats is the minimum difference between the T2T allele and the genotype estimated by EH, GangSTR, and HipSTR
+df_discordant = df_variants[
+    (df_variants["MotifSize"] >= 2) &
+    (df_variants[f"Genotype: ExpansionHunter"] == df_variants[f"Genotype: GangSTR"]) &
+    (df_variants[f"Genotype: ExpansionHunter"] == df_variants[f"Genotype: HipSTR"]) &
+    ((df_variants["NumRepeats: Allele 1: ExpansionHunter"] - df_variants["NumRepeatsInT2T"]).abs() >= min_diff_considered_discordant) &
+    ((df_variants["NumRepeats: Allele 2: ExpansionHunter"] - df_variants["NumRepeatsInT2T"]).abs() >= min_diff_considered_discordant)
+]
+
+print(f"{format_n(len(df_discordant))} discordant variants where the T2T allele was 3 or more repeats different from either allele in the consensus genotype estimated by ExpansionHunter, GangSTR, and HipSTR")
+print(f"{format_n(sum(df_discordant.MotifSize == 2))} of these were dinucleotides")
+print(f"{format_n(sum(df_discordant.MotifSize == 4))} of these had a motif size of 4")
+print(f"{format_n(sum((df_discordant.MotifSize >= 3) & df_discordant.IsPureRepeat))} of these were pure repeats and had a motif size >= 3")
+
+#%%

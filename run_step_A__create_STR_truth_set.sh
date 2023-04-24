@@ -304,7 +304,11 @@ didnt_match_t2t_vcf=step4.${STR_type}s.didnt_match_t2t.vcf.gz
 print_input_stats ${input_vcf} "STEP #4: Filter out variants where neither allele matches the T2T reference (chm13v2.0)"
 set -x
 
-python3 -u scripts/filter_out_discordant_variants_after_liftover.py --log-prefix "step4:${STR_type}" --reference-fasta ${t2t_fasta_path} ${input_vcf} ${output_vcf} ${didnt_match_t2t_vcf}
+python3 -u scripts/filter_out_discordant_variants_after_liftover.py --reference-fasta ${t2t_fasta_path} ${input_vcf} ${output_vcf} ${didnt_match_t2t_vcf} \
+    | python3 -u scripts/add_prefix_to_stdout.py "step4:${STR_type}: "
+
+python3 -u scripts/convert_vcf_to_tsv.py ${didnt_match_t2t_vcf} \
+    | python3 -u scripts/add_prefix_to_stdout.py "step4:${STR_type}: "
 
 set +x
 print_output_stats ${input_vcf} ${output_vcf} "step4:${STR_type}"
