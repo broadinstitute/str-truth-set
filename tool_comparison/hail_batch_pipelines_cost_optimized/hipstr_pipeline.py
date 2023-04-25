@@ -30,29 +30,26 @@ def main():
     parser.add_argument("-n", type=int, help="Only process the first n inputs. Useful for testing.")
     args = bp.parse_known_args()
 
-    repeat_spec_paths = REPEAT_SPECS_POSITIVE_LOCI
-
-    cpu_per_machine = 4
-    repeat_specs_per_cpu = 4
+    memory = "highmem"
+    cpu_per_machine = 2
+    repeat_specs_per_cpu = 8
     repeat_specs_per_machine = repeat_specs_per_cpu * cpu_per_machine
-
-    output_dir = args.output_dir
 
     bam_path_ending = "/".join(args.input_bam.split("/")[-2:])
     if not args.force:
-        json_paths = bp.precache_file_paths(os.path.join(output_dir, f"**/*.json"))
+        json_paths = bp.precache_file_paths(os.path.join(args.output_dir, f"**/*.json"))
         logging.info(f"Precached {len(json_paths)} json files")
 
-    repeat_spec_file_stats_list = hl.hadoop_ls(repeat_spec_paths)
+    repeat_spec_file_stats_list = hl.hadoop_ls(REPEAT_SPECS_POSITIVE_LOCI)
     if len(repeat_spec_file_stats_list) == 0:
-        raise ValueError(f"No files found matching {repeat_spec_paths}")
+        raise ValueError(f"No files found matching {REPEAT_SPECS_POSITIVE_LOCI}")
     
     total_repeat_specs = len(repeat_spec_file_stats_list)
     if args.n:
         total_repeat_specs = min(total_repeat_specs, args.n * repeat_specs_per_machine)
 
     bp.set_name(f"TR Truth Set: HipSTR: total_cat={total_repeat_specs:,d}, "
-                f"cat/mac={repeat_specs_per_machine}, cat/cpu={repeat_specs_per_cpu}, cpu/mac={cpu_per_machine}: "
+                f"cat/mac={repeat_specs_per_machine}, cat/cpu={repeat_specs_per_cpu}, cpu/mac={cpu_per_machine}, mem={memory}: "
                 f"{bam_path_ending}")
 
     for batch_i in range(0, len(repeat_spec_file_stats_list), repeat_specs_per_machine):
@@ -63,7 +60,7 @@ def main():
 
         s1 = bp.new_step(
             f"Run HipSTR #{batch_i}-{batch_i + repeat_specs_per_machine}", arg_suffix=f"hipstr", step_number=1,
-            image=DOCKER_IMAGE, cpu=cpu_per_machine, storage="75Gi",
+            image=DOCKER_IMAGE, cpu=cpu_per_machine, memory=memory, storage="75Gi",
             localize_by=Localize.COPY,
             #localize_by=Localize.GSUTIL_COPY,
             delocalize_by=Delocalize.GSUTIL_COPY,
@@ -85,11 +82,11 @@ def main():
 
         s1.command(f"echo Genotyping $(ls {repeat_spec_glob} | wc -l) loci: {repeat_spec_glob}")
         s1.command(f"""ls {repeat_spec_glob} | parallel --lb --jobs {repeat_specs_per_cpu * cpu_per_machine} \
-            "HipSTR --min-reads 5 --max-str-len 1000000 --def-stutter-model --fasta {local_fasta} --bams {local_bam} --regions {{}} --log {{/}}.log --str-vcf hipstr.{{/}}.vcf.gz && python3.9 -m str_analysis.convert_hipstr_vcf_to_expansion_hunter_json hipstr.{{/}}.vcf.gz"
+            "HipSTR --min-reads 5 --max-str-len 1000000 --def-stutter-model --fasta {local_fasta} --bams {local_bam} --regions {{}} --log {{/}}.log --str-vcf hipstr.{{/}}.vcf.gz && python3 -m str_analysis.convert_hipstr_vcf_to_expansion_hunter_json hipstr.{{/}}.vcf.gz"
         """)
         s1.command("ls -lhrt")
 
-        s1.output(f"hipstr*.json", output_dir=os.path.join(output_dir, f"json"))
+        s1.output(f"hipstr*.json", output_dir=os.path.join(args.output_dir, f"json"))
 
     bp.run()
 

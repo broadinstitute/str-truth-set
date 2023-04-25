@@ -28,15 +28,15 @@ def parse_args():
                    "The set of all STR loci in the truth set will be split into variant catalogs of this size.")
     p.add_argument("--gangstr-loci-per-run", type=int, default=10000, help="GangSTR batch size. "
                    "The set of all STR loci in the truth set will be split into repeat spec files of this size.")
+    p.add_argument("--truth-set-bed", default="./STR_truth_set.v1.variants.bed.gz")
+    p.add_argument("--output-negative-loci", action="store_true", help="Also create a catalog generating negative loci")
     p.add_argument("--syndip-high-confidence-regions-bed", default="./ref/full.38.bed.gz",
-                    help="Path of the SynDip high-confidence regions .bed file")
+                   help="Path of the SynDip high-confidence regions .bed file")
     p.add_argument("--syndip-indels-vcf", default="./ref/full.38.INDELs.vcf.gz",
                    help="Path of the original SynDip vcf")
-    p.add_argument("--truth-set-bed", default="./STR_truth_set.v1.variants.bed.gz")
     p.add_argument("--all-hg38-repeats-bed", default="./ref/other/repeat_specs_GRCh38_without_mismatches.sorted.trimmed.at_least_9bp.bed.gz",
                    help="Path of bed file containing all repeats in the reference genome generated using a tool like "
                         "TandemRepeatFinder")
-    p.add_argument("--skip-negative-loci", action="store_true", help="Skip generating negative loci")
     p.add_argument("--skip-eh-catalog", action="store_true", help="Skip generating an ExpansionHunter catalog")
     p.add_argument("--skip-gangstr-catalog", action="store_true", help="Skip generating a GangSTR catalog")
     p.add_argument("--skip-hipstr-catalog", action="store_true", help="Skip generating a HipSTR catalog")
@@ -47,14 +47,15 @@ def parse_args():
 
     for i, path in enumerate([
         args.truth_set_variants_tsv_or_bed_path,
+    ] + ([] if not args.output_negative_loci else [
         args.syndip_high_confidence_regions_bed,
         args.syndip_indels_vcf,
         args.truth_set_bed,
         args.all_hg38_repeats_bed,
-    ]):
+    ])):
         if not os.path.isfile(path):
             p.error(f"{path} not found")
-        print(f"Input {i+1}: {path}")
+        print(f"Input: {path}")
     return args
 
 
@@ -230,7 +231,8 @@ def main():
     args = parse_args()
 
     if re.search(".bed(.gz)?$", args.truth_set_variants_tsv_or_bed_path):
-        truth_set_df = pd.read_table(args.truth_set_variants_tsv_or_bed_path,
+        print("Converting bed file to tsv", args.truth_set_variants_tsv_or_bed_path)
+        truth_set_df = pd.read_table(args.truth_set_variants_tsv_or_bed_path, index_col=False,
                                      names=["Chrom", "Start0Based", "End1Based", "Motif", "_"],
                                      dtype={"Chrom": str, "Start0Based": int, "End1Based": int, "Motif": str})
 
@@ -254,7 +256,7 @@ def main():
 
     locus_sets = [("positive", positive_loci)]
 
-    if not args.skip_negative_loci:
+    if args.output_negative_loci:
         # generate negative (non-variant) loci for the variant catalogs
         negative_loci = generate_set_of_negative_loci(
             args.all_hg38_repeats_bed,
@@ -297,7 +299,7 @@ def main():
     # Make sure positive regions and negative regions don't overlap.
     positive_loci_bedtool = pybedtools.BedTool(
         os.path.expanduser(os.path.join(output_dir, f"positive_loci.bed.gz")))
-    if not args.skip_negative_loci:
+    if args.output_negative_loci:
         overlap_count = positive_loci_bedtool.intersect(
             os.path.expanduser(os.path.join(output_dir, f"negative_loci.bed.gz"))).count()
 

@@ -36,21 +36,21 @@ def main():
     parser.add_argument("-n", type=int, help="Only process the first n inputs. Useful for testing.")
     args = bp.parse_known_args()
 
-    variant_catalog_paths = VARIANT_CATALOG_POSITIVE_LOCI
-
     if args.use_illumina_expansion_hunter:
         tool_exec = "IlluminaExpansionHunter"
         cache_mates_arg = ""
+        memory = "standard"
         cpu_per_machine = 16
         catalogs_per_cpu = 10
-        catalogs_per_machine = 2 * catalogs_per_cpu * cpu_per_machine
+        catalogs_per_machine = catalogs_per_cpu * cpu_per_machine
     else:
         tool_exec = "ExpansionHunter"
-        #cache_mates_arg = "--cache-mates "
-        cache_mates_arg = ""
-        cpu_per_machine = 16
-        catalogs_per_cpu = 10
-        catalogs_per_machine = 2 * catalogs_per_cpu * cpu_per_machine
+        cache_mates_arg = "--cache-mates "
+        #cache_mates_arg = ""
+        memory = "highmem"
+        cpu_per_machine = 4
+        catalogs_per_cpu = 8
+        catalogs_per_machine = catalogs_per_cpu * cpu_per_machine
 
     output_dir = os.path.join(args.output_dir, tool_exec)
 
@@ -68,16 +68,16 @@ def main():
         existing_json_paths = bp.precache_file_paths(os.path.join(output_dir, f"**/*.json"))
         logging.info(f"Precached {len(existing_json_paths)} json files")
 
-    variant_catalog_file_stats_list = hl.hadoop_ls(variant_catalog_paths)
+    variant_catalog_file_stats_list = hl.hadoop_ls(VARIANT_CATALOG_POSITIVE_LOCI)
     if len(variant_catalog_file_stats_list) == 0:
-        raise ValueError(f"No files found matching {variant_catalog_paths}")
+        raise ValueError(f"No files found matching {VARIANT_CATALOG_POSITIVE_LOCI}")
 
     total_catalogs = len(variant_catalog_file_stats_list)
     if args.n:
         total_catalogs = min(total_catalogs, args.n * catalogs_per_machine)
 
     bp.set_name(f"TR Truth Set: {tool_exec} {cache_mates_arg}: total_cat={total_catalogs:,d}, "
-                f"cat/mac={catalogs_per_machine}, cat/cpu={catalogs_per_cpu}, cpu/mac={cpu_per_machine}: "
+                f"cat/mac={catalogs_per_machine}, cat/cpu={catalogs_per_cpu}, cpu/mac={cpu_per_machine}, mem={memory}: "
                 f"{bam_path_ending}")
 
     for batch_i in range(0, len(variant_catalog_file_stats_list), catalogs_per_machine):
@@ -87,7 +87,8 @@ def main():
         current_catalogs = variant_catalog_file_stats_list[batch_i:batch_i + catalogs_per_machine]
         s1 = bp.new_step(
             f"Run EHv5 catalogs #{batch_i}-{batch_i + catalogs_per_machine}", arg_suffix=f"eh", step_number=1,
-            image=DOCKER_IMAGE, cpu=cpu_per_machine, storage="75Gi",
+            image=DOCKER_IMAGE, cpu=cpu_per_machine, memory=memory, storage="75Gi",
+            #localize_by=Localize.HAIL_BATCH_CLOUDFUSE,
             localize_by=Localize.COPY,
             #localize_by=Localize.GSUTIL_COPY,
             delocalize_by=Delocalize.GSUTIL_COPY,

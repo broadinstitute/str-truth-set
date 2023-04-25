@@ -2,6 +2,7 @@ set -ex
 
 # generate variant catalogs of all STR truth set loci
 python3 -u tool_comparison/scripts/convert_truth_set_to_variant_catalogs.py \
+  --output-negative-loci \
   --expansion-hunter-loci-per-run 500 \
   --gangstr-loci-per-run 10000 \
   --output-dir ./tool_comparison/variant_catalogs \
