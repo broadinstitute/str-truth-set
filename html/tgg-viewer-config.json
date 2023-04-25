@@ -1,4 +1,5 @@
 {
+  "isGoogleLoginRequired": false,
   "bamOptions": {
     "alignmentShading": "strand",
     "showSoftClips": true,
