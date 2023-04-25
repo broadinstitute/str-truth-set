@@ -13,7 +13,8 @@ REFERENCE_FASTA_FAI_PATH = "gs://gcp-public-data--broad-references/hg38/v0/Homo_
 CHM1_CHM13_BAM_PATH = "gs://bw2-delete-after-30-days/CHM1_CHM13_WGS2.downsampled_to_30x.bam"
 CHM1_CHM13_BAI_PATH = "gs://bw2-delete-after-30-days/CHM1_CHM13_WGS2.downsampled_to_30x.bam.bai"
 
-VARIANT_CATALOG_POSITIVE_LOCI = "gs://str-truth-set/hg38/variant_catalogs/expansion_hunter/positive_loci.EHv5.*_of_293.json"
+#VARIANT_CATALOG_POSITIVE_LOCI = "gs://str-truth-set/hg38/variant_catalogs/expansion_hunter/positive_loci.EHv5.*_of_293.json"
+VARIANT_CATALOG_POSITIVE_LOCI = "gs://str-truth-set/hg38/ref/other/variant_catalogs_for_at_least_9bp/expansion_hunter/positive_loci.EHv5.*_of_2806.json"
 
 OUTPUT_BASE_DIR = "gs://str-truth-set/hg38/tool_results_cost_optimized/expansion_hunter"
 
@@ -36,20 +37,23 @@ def main():
     parser.add_argument("-n", type=int, help="Only process the first n inputs. Useful for testing.")
     args = bp.parse_known_args()
 
+    localize_by = Localize.COPY
+    #localize_by = Localize.GSUTIL_COPY
+    #localize_by = Localize.HAIL_BATCH_CLOUDFUSE
     if args.use_illumina_expansion_hunter:
         tool_exec = "IlluminaExpansionHunter"
         cache_mates_arg = ""
-        memory = "standard"
+        memory = "lowmem"
         cpu_per_machine = 16
-        catalogs_per_cpu = 10
+        catalogs_per_cpu = 7
         catalogs_per_machine = catalogs_per_cpu * cpu_per_machine
     else:
         tool_exec = "ExpansionHunter"
         cache_mates_arg = "--cache-mates "
         #cache_mates_arg = ""
         memory = "highmem"
-        cpu_per_machine = 4
-        catalogs_per_cpu = 8
+        cpu_per_machine = 16
+        catalogs_per_cpu = 6
         catalogs_per_machine = catalogs_per_cpu * cpu_per_machine
 
     output_dir = os.path.join(args.output_dir, tool_exec)
@@ -88,9 +92,7 @@ def main():
         s1 = bp.new_step(
             f"Run EHv5 catalogs #{batch_i}-{batch_i + catalogs_per_machine}", arg_suffix=f"eh", step_number=1,
             image=DOCKER_IMAGE, cpu=cpu_per_machine, memory=memory, storage="75Gi",
-            #localize_by=Localize.HAIL_BATCH_CLOUDFUSE,
-            localize_by=Localize.COPY,
-            #localize_by=Localize.GSUTIL_COPY,
+            localize_by=localize_by,
             delocalize_by=Delocalize.GSUTIL_COPY,
         )
         s1.gcloud_auth_activate_service_account()
@@ -129,8 +131,8 @@ def main():
 
         s1.command(f"echo Genotyping $(ls {catalog_glob} | wc -l) catalogs: {catalog_glob}")
 
-        s1.command(f"""ls {catalog_glob} | parallel --lb --jobs {catalogs_per_cpu * cpu_per_machine} \
-            "{tool_exec} {cache_mates_arg} --reference {local_fasta} --reads {local_bam} --variant-catalog {{}} --output-prefix expansion_hunter.{{/}}"
+        s1.command(f"""ls {catalog_glob} | parallel --halt-on-error 2 --verbose --lb --jobs {catalogs_per_cpu * cpu_per_machine} \
+            "{tool_exec} {cache_mates_arg} --log-level warn --reference {local_fasta} --reads {local_bam} --variant-catalog {{}} --output-prefix expansion_hunter.{{/}}"
         """)
         s1.command("ls -lhrt")
 

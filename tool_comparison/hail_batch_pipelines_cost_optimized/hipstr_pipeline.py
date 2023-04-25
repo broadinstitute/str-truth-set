@@ -13,7 +13,8 @@ REFERENCE_FASTA_FAI_PATH = "gs://gcp-public-data--broad-references/hg38/v0/Homo_
 CHM1_CHM13_BAM_PATH = "gs://bw2-delete-after-30-days/CHM1_CHM13_WGS2.downsampled_to_30x.bam"
 CHM1_CHM13_BAI_PATH = "gs://bw2-delete-after-30-days/CHM1_CHM13_WGS2.downsampled_to_30x.bam.bai"
 
-REPEAT_SPECS_POSITIVE_LOCI = "gs://str-truth-set/hg38/variant_catalogs/hipstr/positive_loci.*_of_015.bed"
+#REPEAT_SPECS_POSITIVE_LOCI = "gs://str-truth-set/hg38/variant_catalogs/hipstr/positive_loci.*_of_015.bed"
+REPEAT_SPECS_POSITIVE_LOCI = "gs://str-truth-set/hg38/ref/other/variant_catalogs_for_at_least_9bp/hipstr/positive_loci.HipSTR.*_of_281.bed"
 
 OUTPUT_BASE_DIR = "gs://str-truth-set/hg38/tool_results_cost_optimized/hipstr"
 
@@ -30,9 +31,12 @@ def main():
     parser.add_argument("-n", type=int, help="Only process the first n inputs. Useful for testing.")
     args = bp.parse_known_args()
 
+    localize_by=Localize.COPY
+    #localize_by=Localize.GSUTIL_COPY
+    #localize_by = Localize.HAIL_BATCH_CLOUDFUSE
     memory = "highmem"
-    cpu_per_machine = 2
-    repeat_specs_per_cpu = 8
+    cpu_per_machine = 16
+    repeat_specs_per_cpu = 9
     repeat_specs_per_machine = repeat_specs_per_cpu * cpu_per_machine
 
     bam_path_ending = "/".join(args.input_bam.split("/")[-2:])
@@ -61,8 +65,7 @@ def main():
         s1 = bp.new_step(
             f"Run HipSTR #{batch_i}-{batch_i + repeat_specs_per_machine}", arg_suffix=f"hipstr", step_number=1,
             image=DOCKER_IMAGE, cpu=cpu_per_machine, memory=memory, storage="75Gi",
-            localize_by=Localize.COPY,
-            #localize_by=Localize.GSUTIL_COPY,
+            localize_by=localize_by,
             delocalize_by=Delocalize.GSUTIL_COPY,
         )
         s1.gcloud_auth_activate_service_account()
@@ -81,7 +84,7 @@ def main():
         repeat_spec_glob = "repeat_spec.*.bed"
 
         s1.command(f"echo Genotyping $(ls {repeat_spec_glob} | wc -l) loci: {repeat_spec_glob}")
-        s1.command(f"""ls {repeat_spec_glob} | parallel --lb --jobs {repeat_specs_per_cpu * cpu_per_machine} \
+        s1.command(f"""ls {repeat_spec_glob} | parallel --halt-on-error 2 --verbose --lb --jobs {repeat_specs_per_cpu * cpu_per_machine} \
             "HipSTR --min-reads 5 --max-str-len 1000000 --def-stutter-model --fasta {local_fasta} --bams {local_bam} --regions {{}} --log {{/}}.log --str-vcf hipstr.{{/}}.vcf.gz && python3 -m str_analysis.convert_hipstr_vcf_to_expansion_hunter_json hipstr.{{/}}.vcf.gz"
         """)
         s1.command("ls -lhrt")
