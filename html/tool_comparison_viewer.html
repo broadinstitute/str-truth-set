@@ -138,7 +138,7 @@
             <br />
             For GangSTR and HipSTR, the plot uses quality scores provided by the tools themselves. Since ExpansionHunter doesn't output a
             single quality score, the plot compares two different quality scores computed based on ExpansionHunter output:<br/>
-            <b>Q from CIs = 1/exp(4 * (confidence interval size)/(called allele size))</b>  based on the approach used by <a href="https://github.com/gymrek-lab/EnsembleTR">EnsembleTR</a><br />
+            <b>Q from CIs = 1/exp(4 * (confidence interval size)/(total allele size))</b>  based on the approach used by <a href="https://github.com/gymrek-lab/EnsembleTR">EnsembleTR</a><br />
             <b>Q from reads = the fraction of reads that support the allele size vs. all allele sizes considered by ExpansionHunter at the given locus</b>. This is computed
                 using the information provided within ExpansionHunter's json output for each locus.<br />
 
@@ -157,9 +157,9 @@
             <b>Green</b> represents alleles where the tool exactly matched the true allele size. <br />
             <b>Orange</b> is for alleles that the tool overestimated (darker orange means a larger overestimate).<br />
             <br />
-            NOTE: If selected, the quality score (Q) threshold is applied to the Q reported per variant by GangSTR and HipSTR. For
-            ExpansionHunter, it is applied to a quality score computed using the formula from <a href="https://github.com/gymrek-lab/EnsembleTR">EnsemblTR</a>:
-            <i>Q = 1/exp(4 * (confidence interval size)/(called allele size))</i> <br />
+            NOTE: If selected, the quality score (Q) threshold is applied to the per-variant Q score repored by GangSTR and HipSTR. For
+            ExpansionHunter, a Q score is computed using the formula from <a href="https://github.com/gymrek-lab/EnsembleTR">EnsemblTR</a>:
+            <i>Q = 1/exp(4 * (confidence interval size)/(total allele size))</i> <br />
         </div>
     </div>
     <div style="margin-top:0px">
