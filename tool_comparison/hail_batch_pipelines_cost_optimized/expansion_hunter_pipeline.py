@@ -14,7 +14,7 @@ CHM1_CHM13_BAM_PATH = "gs://bw2-delete-after-30-days/CHM1_CHM13_WGS2.downsampled
 CHM1_CHM13_BAI_PATH = "gs://bw2-delete-after-30-days/CHM1_CHM13_WGS2.downsampled_to_30x.bam.bai"
 
 #VARIANT_CATALOG_POSITIVE_LOCI = "gs://str-truth-set/hg38/variant_catalogs/expansion_hunter/positive_loci.EHv5.*_of_293.json"
-VARIANT_CATALOG_POSITIVE_LOCI = "gs://str-truth-set/hg38/ref/other/variant_catalogs_for_at_least_9bp/expansion_hunter/positive_loci.EHv5.*_of_2806.json"
+VARIANT_CATALOG_POSITIVE_LOCI = "gs://str-truth-set/hg38/ref/other/variant_catalogs_for_at_least_9bp/expansion_hunter/positive_loci.EHv5.*_of_5612.json"
 
 OUTPUT_BASE_DIR = "gs://str-truth-set/hg38/tool_results_cost_optimized/expansion_hunter"
 
@@ -37,24 +37,27 @@ def main():
     parser.add_argument("-n", type=int, help="Only process the first n inputs. Useful for testing.")
     args = bp.parse_known_args()
 
+    variant_catalog_positive_loci = VARIANT_CATALOG_POSITIVE_LOCI
+
     localize_by = Localize.COPY
     #localize_by = Localize.GSUTIL_COPY
     #localize_by = Localize.HAIL_BATCH_CLOUDFUSE
     if args.use_illumina_expansion_hunter:
+        variant_catalog_positive_loci = "gs://str-truth-set/hg38/variant_catalogs/expansion_hunter/positive_loci.EHv5.*_of_293.json"
         tool_exec = "IlluminaExpansionHunter"
         cache_mates_arg = ""
-        memory = "lowmem"
-        cpu_per_machine = 16
-        catalogs_per_cpu = 7
+        memory = "standard"
+        cpu_per_machine = 2
+        catalogs_per_cpu = 4
         catalogs_per_machine = catalogs_per_cpu * cpu_per_machine
     else:
         tool_exec = "ExpansionHunter"
         cache_mates_arg = "--cache-mates "
         #cache_mates_arg = ""
-        memory = "highmem"
+        memory = "standard"
         cpu_per_machine = 16
-        catalogs_per_cpu = 6
-        catalogs_per_machine = catalogs_per_cpu * cpu_per_machine
+        catalogs_per_cpu = 3
+        catalogs_per_machine = 30 * catalogs_per_cpu * cpu_per_machine
 
     output_dir = os.path.join(args.output_dir, tool_exec)
 
@@ -72,9 +75,9 @@ def main():
         existing_json_paths = bp.precache_file_paths(os.path.join(output_dir, f"**/*.json"))
         logging.info(f"Precached {len(existing_json_paths)} json files")
 
-    variant_catalog_file_stats_list = hl.hadoop_ls(VARIANT_CATALOG_POSITIVE_LOCI)
+    variant_catalog_file_stats_list = hl.hadoop_ls(variant_catalog_positive_loci)
     if len(variant_catalog_file_stats_list) == 0:
-        raise ValueError(f"No files found matching {VARIANT_CATALOG_POSITIVE_LOCI}")
+        raise ValueError(f"No files found matching {variant_catalog_positive_loci}")
 
     total_catalogs = len(variant_catalog_file_stats_list)
     if args.n:
@@ -91,7 +94,7 @@ def main():
         current_catalogs = variant_catalog_file_stats_list[batch_i:batch_i + catalogs_per_machine]
         s1 = bp.new_step(
             f"Run EHv5 catalogs #{batch_i}-{batch_i + catalogs_per_machine}", arg_suffix=f"eh", step_number=1,
-            image=DOCKER_IMAGE, cpu=cpu_per_machine, memory=memory, storage="75Gi",
+            image=DOCKER_IMAGE, cpu=cpu_per_machine, memory=memory, storage="100Gi",
             localize_by=localize_by,
             delocalize_by=Delocalize.GSUTIL_COPY,
         )
