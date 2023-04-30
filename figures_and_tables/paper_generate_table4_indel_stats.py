@@ -69,7 +69,7 @@ def main():
     df_homopolymers = df_TR_alleles[df_TR_alleles.MotifSize == 1]
     df_TR_alleles  = df_TR_alleles[df_TR_alleles.MotifSize > 1]
 
-    total_indel_alleles_key = "Total indel alleles within SynDip high-confidence regions"
+    total_indel_alleles_key = "Total ins/del alleles within SynDip high-confidence regions"
     allele_counters = collections.defaultdict(int)
     multiallelic_counters = collections.defaultdict(int)
 
@@ -117,9 +117,9 @@ def main():
 
                 if filter_value in {"spans < 9 bp",  "is only 2 repeats",  "INDEL without repeats"}:
                     variant_bases = compute_indel_variant_bases(ref_allele, alt_allele)
-                    filter_value = (f"Indels of size 1-5bp" if len(variant_bases) <= 5 else "Indels of size ≥ 6bp") + f" that did not pass TR filter criteria"
+                    filter_value = (f"Indels of size 1-5bp" if len(variant_bases) <= 5 else "Ins/del alleles of size ≥ 6bp") + f" that did not pass TR filter criteria"
                 elif "STR allele" in filter_values:
-                    filter_value = f"Indel allele within a multi-allelic variant where<br />" \
+                    filter_value = f"Ins/del allele within a multi-allelic variant where<br />" \
                                    f"only one of the alleles passed TR filter criteria"
                 else:
                     rename_dict = {
@@ -147,7 +147,7 @@ def main():
     for key, count in sorted(allele_counters.items(), key=lambda x: -x[1]):
         print(f"{count:10,d} ({count / high_confidence_indel_alleles_from_step_A_log:6.1%}) {key:100s}  ({multiallelic_counters[key]/count:5.1%} multi-allelic)")
 
-    header = ["Description", "# of indel<br />alleles", "% of indel<br />alleles", "Fraction<br/>multi-allelic"]
+    header = ["Description", "# of ins/del<br />alleles", "% of ins/del<br />alleles", "Fraction<br/>multi-allelic"]
 
     table_html = []
     table_html.append(f"<table>")
@@ -167,7 +167,7 @@ def main():
     with open("figures_and_tables/table_template.html", "rt") as f, open(args.output_html, "wt") as fo:
         table_html_template = f.read()
         table_html_template = table_html_template % {
-            "title": "Indel Categories",
+            "title": "Ins/del Categories",
             "table": "\n".join(table_html),
         }
         fo.write(table_html_template)

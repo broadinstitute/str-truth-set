@@ -56,13 +56,17 @@ def compute_catalog_comparison_table(args):
     for label, catalog_path, locus_spans_min_base_pairs in catalog_paths:
         catalog_size = pybedtools.BedTool(catalog_path).count()
         hompolymer_count = 0
-        if "new" not in label.lower():
-            with gzip.open(catalog_path, "rt") as f:
-                for line in f:
-                    fields = line.strip().split("\t")
-                    name = fields[3].strip("()*")
-                    if len(name) == 1:
-                        hompolymer_count += 1
+        min_motif_size = 10**9
+        max_motif_size = 0
+        #if "new" not in label.lower():
+        with gzip.open(catalog_path, "rt") as f:
+            for line in f:
+                fields = line.strip().split("\t")
+                name = fields[3].strip("()*")
+                if len(name) == 1:
+                    hompolymer_count += 1
+                min_motif_size = min(min_motif_size, len(name))
+                max_motif_size = max(max_motif_size, len(name))
 
         # use pybedtools to see how many truth set loci don't overlap any loci in the catalog.
         #   The default minimum overlap is 1bp.
@@ -77,6 +81,8 @@ def compute_catalog_comparison_table(args):
             "catalog": label,
             "catalog_size": catalog_size,
             "homopolymer_loci_in_catalogs": hompolymer_count,
+            "min_motif_size": str(min_motif_size),
+            "max_motif_size": str(max_motif_size),
             "num_loci_missed_by_catalog": num_loci_missed_by_catalog,
             "fraction_missed_by_catalog": num_loci_missed_by_catalog / total_loci_in_truth_set,
             "truth_set_size": total_loci_in_truth_set,
@@ -169,6 +175,7 @@ def generate_html_table(df, args):
         "Catalog name",
         "Catalog size:<br/># of loci",
         "Catalog size:<br />% homopolymers",
+        "Motif sizes",
         "How it was created",
         "# of truth set<br/>loci missed",
         "% of truth set<br />loci missed",
@@ -179,6 +186,7 @@ def generate_html_table(df, args):
             "GangSTR catalog v17",
             df.loc["GangSTR v17 catalog", "catalog_size"],
             df.loc["GangSTR v17 catalog", "homopolymer_loci_in_catalogs"]/df.loc["GangSTR v17 catalog", "catalog_size"],
+            df.loc["GangSTR v17 catalog", "min_motif_size"] + "-" + df.loc["GangSTR v17 catalog", "max_motif_size"] + "bp",
             f"Running TandemRepeatFinder (TRF) on hg38 <br />with mismatch penalty = 5, indel penalty = 17<br />",
             df.loc["GangSTR v17 catalog", "num_loci_missed_by_catalog"],
             df.loc["GangSTR v17 catalog", "fraction_missed_by_catalog"],
@@ -187,6 +195,7 @@ def generate_html_table(df, args):
             "Illumina catalog",
             df.loc["Illumina catalog", "catalog_size"],
             df.loc["Illumina catalog", "homopolymer_loci_in_catalogs"]/df.loc["Illumina catalog", "catalog_size"],
+            df.loc["Illumina catalog", "min_motif_size"] + "-" + df.loc["Illumina catalog", "max_motif_size"] + "bp",
             f"Polymorphic STR loci based on <br />2,504 genomes from 1kGP",
             df.loc["Illumina catalog", "num_loci_missed_by_catalog"],
             df.loc["Illumina catalog", "fraction_missed_by_catalog"],
@@ -195,6 +204,7 @@ def generate_html_table(df, args):
             "HipSTR catalog",
             df.loc["HipSTR catalog", "catalog_size"],
             df.loc["HipSTR catalog", "homopolymer_loci_in_catalogs"]/df.loc["HipSTR catalog", "catalog_size"],
+            df.loc["HipSTR catalog", "min_motif_size"] + "-" + df.loc["Illumina catalog", "max_motif_size"] + "bp",
             f"Running TRF on hg38 using default params:<br />mismatch penalty = 7, indel penalty = 7",
             df.loc["HipSTR catalog", "num_loci_missed_by_catalog"],
             df.loc["HipSTR catalog", "fraction_missed_by_catalog"],
@@ -205,6 +215,7 @@ def generate_html_table(df, args):
             f"New catalog<br />(loci ≥ {min_bp}bp)",
             df.loc[f"New catalog (loci spanning at least {min_bp}bp)", "catalog_size"],
             df.loc[f"New catalog (loci spanning at least {min_bp}bp)", "homopolymer_loci_in_catalogs"]/df.loc[f"New catalog (loci spanning at least {min_bp}bp)", "catalog_size"],
+            df.loc[f"New catalog (loci spanning at least {min_bp}bp)", "min_motif_size"] + "-" + df.loc[f"New catalog (loci spanning at least {min_bp}bp)", "max_motif_size"] + "bp",
             f"Running TRF on hg38 using very large<br />indel & mismatch penalties to find<br />all pure repeats that <b>span at least {min_bp}bp</b>",
             df.loc[f"New catalog (loci spanning at least {min_bp}bp)", "num_loci_missed_by_catalog"],
             df.loc[f"New catalog (loci spanning at least {min_bp}bp)", "fraction_missed_by_catalog"],
@@ -220,9 +231,10 @@ def generate_html_table(df, args):
             f"""<td style="line-height: 1.5; vertical-align: top">{data_row[0]}</td>"""
             f"""<td style="text-align: right; line-height: 1.5; vertical-align: top">{data_row[1]:,d}</td>"""
             f"""<td style="text-align: right; line-height: 1.5; vertical-align: top">{data_row[2]:0.0%}</td>"""
-            f"""<td style="line-height: 1.5; vertical-align: top">{data_row[3]}</td>"""
-            f"""<td style="text-align: right; line-height: 1.5; vertical-align: top">{data_row[4]:,d}</td>"""
-            f"""<td style="text-align: right; line-height: 1.5; vertical-align: top">{data_row[5]:0.1%}</td>"""
+            f"""<td style="text-align: center; line-height: 1.5; vertical-align: top">{data_row[3]}</td>"""
+            f"""<td style="line-height: 1.5; vertical-align: top">{data_row[4]}</td>"""
+            f"""<td style="text-align: right; line-height: 1.5; vertical-align: top">{data_row[5]:,d}</td>"""
+            f"""<td style="text-align: right; line-height: 1.5; vertical-align: top">{data_row[6]:0.1%}</td>"""
             f"</tr>")
 
     table_html.append("</table>")
