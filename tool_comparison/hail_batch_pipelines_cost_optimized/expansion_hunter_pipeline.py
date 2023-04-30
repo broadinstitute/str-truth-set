@@ -55,7 +55,7 @@ def main():
         cache_mates_arg = "--cache-mates "
         #cache_mates_arg = ""
         memory = "standard"
-        cpu_per_machine = 16
+        cpu_per_machine = 4
         catalogs_per_cpu = 3
         catalogs_per_machine = 30 * catalogs_per_cpu * cpu_per_machine
 

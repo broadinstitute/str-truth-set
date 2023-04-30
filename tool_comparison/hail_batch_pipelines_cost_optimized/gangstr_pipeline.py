@@ -35,9 +35,9 @@ def main():
     #localize_by=Localize.GSUTIL_COPY
     #localize_by = Localize.HAIL_BATCH_CLOUDFUSE
     memory = "standard"
-    cpu_per_machine = 16
+    cpu_per_machine = 8
     repeat_specs_per_cpu = 8
-    repeat_specs_per_machine = repeat_specs_per_cpu * cpu_per_machine
+    repeat_specs_per_machine = 4 * repeat_specs_per_cpu * cpu_per_machine
 
     bam_path_ending = "/".join(args.input_bam.split("/")[-2:])
     if not args.force:
