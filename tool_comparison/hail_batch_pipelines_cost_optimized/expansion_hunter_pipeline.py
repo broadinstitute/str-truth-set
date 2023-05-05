@@ -49,7 +49,7 @@ def main():
         memory = "standard"
         cpu_per_machine = 2
         catalogs_per_cpu = 4
-        catalogs_per_machine = catalogs_per_cpu * cpu_per_machine
+        catalogs_per_machine = 1000 * catalogs_per_cpu * cpu_per_machine
     else:
         tool_exec = "ExpansionHunter"
         cache_mates_arg = "--cache-mates "
