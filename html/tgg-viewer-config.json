@@ -10,7 +10,7 @@
   },
   "dataTypesToShow": ["bed", "gtf", "vcf", "alignment"],
   "genome": "hg38",
-  "locus": "chr15:92,835,700-93,031,800",
+  "locus": "chr7:157,009,924-157,010,001",
   "rowsInCategories": [
     {
       "categoryName": "STR Truth Set",
