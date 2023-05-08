@@ -28,7 +28,7 @@ with fopen(args.input_bed, "rt") as f, open(output_bed, "wt") as f2:
         url += chrom.replace("chr", "") + f"-{start_0based}-{end}-{motif}"
         url += ".svg"
 
-        name += f""" [<a href="{url}">image</a>]"""
+        name = f"Label={name}; REViewer=<a href={url}>image</a>;"
         f2.write("\t".join([chrom, start_0based, end, name, fields[4]]) + "\n")
 
 os.system(f"bgzip -f {output_bed}")
