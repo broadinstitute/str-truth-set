@@ -10,7 +10,7 @@ bioRxiv 2023.05.05.539588
 ---
 ### Creating the truth set
 
-After cloning this repo, run:
+After cloning this repo, see:
 ```
 ./run_all_steps.sh
 ```
