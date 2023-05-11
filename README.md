@@ -12,6 +12,7 @@ bioRxiv 2023.05.05.539588
 
 After cloning this repo, run:
 ```
-./run_all_steps.sh - this script runs all the steps for creating the truth set, launching downstream analyses, and generating the tables & figures for the paper
+./run_all_steps.sh
 ```
+This script runs all the steps for creating the truth set, launching downstream analyses, and generating the tables & figures for the paper.
 
