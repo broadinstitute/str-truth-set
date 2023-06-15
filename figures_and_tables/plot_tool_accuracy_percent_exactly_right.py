@@ -191,7 +191,6 @@ def generate_fraction_exactly_right_plot(df, args, filter_description, image_nam
 
 def main():
     p = argparse.ArgumentParser()
-    p.add_argument("--exclude-hipstr-no-call-loci", action="store_true", help="In the plot, exclude HipSTR no-call loci")
     p.add_argument("--output-dir", default=".")
     p.add_argument("--show-title", action="store_true", help="Show title in plot")
     p.add_argument("--width", default=12, type=float)
