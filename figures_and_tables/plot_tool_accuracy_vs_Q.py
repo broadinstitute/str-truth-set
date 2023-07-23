@@ -19,12 +19,16 @@ sns.set_palette(["purple", "blue", "red", "orange"])
 TITLE_FONT_SIZE = 13
 
 
-def plot(df, width, height, figure_title=None):
+def plot(df, width, height, figure_title=None, only_expansion_hunter=False):
     total_allele_count = len(df)
 
     # generate table
     rows = []
-    for tool in "ExpansionHunter: Q from CIs", "ExpansionHunter: Q from read counts", "GangSTR", "HipSTR":
+    curves_to_plot = ["ExpansionHunter: Q from CIs", "ExpansionHunter: Q from read counts"]
+    if not only_expansion_hunter:
+        curves_to_plot += ["GangSTR", "HipSTR"]
+
+    for tool in "ExpansionHunter: Q from CIs", "ExpansionHunter: Q from read counts": #, "GangSTR", "HipSTR":
         df_exactly_right = df[df[f"DiffRepeats: Allele: {tool} - Truth"] == 0]
 
         for min_Q in list(np.arange(0, 0.91, 0.025)) + list(np.arange(0.9, 0.991, 0.01)) + [0.999, 1]:
@@ -82,13 +86,14 @@ def plot(df, width, height, figure_title=None):
         ax.spines.top.set_visible(False)
 
     ymax_ax0 = df_plot[df_plot["Q"] < 0.98]["true positive alleles filtered out"].max()
-    if ymax_ax0 > 0.5:
-        ymax_ax0 = 1
-    elif ymax_ax0 > 0.25:
-        ymax_ax0 = 0.5
-    else:
-        ymax_ax0 = 0.25
-    ax0.set_ylim(0, ymax_ax0+0.02)
+    if not only_expansion_hunter:
+        if ymax_ax0 > 0.5:
+            ymax_ax0 = 1
+        elif ymax_ax0 > 0.25:
+            ymax_ax0 = 0.5
+        else:
+            ymax_ax0 = 0.25
+    ax0.set_ylim(0, ymax_ax0 + (0.005 if only_expansion_hunter else 0.02))
     ax0.yaxis.set_major_formatter(lambda y, pos: f"{int(y*total_allele_count):,d} ({100*y:0.0f}%)")
     ax0.set_ylabel("True Positive Alleles Filtered Out", fontsize=13)
     ax0.get_legend().set_title("")
@@ -96,13 +101,14 @@ def plot(df, width, height, figure_title=None):
 
     ax1.set_xlabel("Q threshold", fontsize=13)
 
-    ymin_ax1 = df_plot[df_plot["Q"] < 0.98].accuracy.min()
-    if ymin_ax1 > 0.75:
-        ymin_ax1 = 0.75
-    elif ymin_ax1 > 0.5:
-        ymin_ax1 = 0.5
-    else:
-        ymin_ax1 = 0
+    ymin_ax1 = df_plot[df_plot["Q"] < (0.99 if only_expansion_hunter else 0.98)].accuracy.min() - 0.01
+    if not only_expansion_hunter:
+        if ymin_ax1 > 0.75:
+            ymin_ax1 = 0.75
+        elif ymin_ax1 > 0.5:
+            ymin_ax1 = 0.5
+        else:
+            ymin_ax1 = 0
 
     ax1.set_ylim(ymin_ax1, 1)
     ax1.set_ylabel("Accuracy", fontsize=13)
@@ -188,11 +194,14 @@ def generate_all_plots(df, args):
                     show_no_call_loci_option = "--show-no-call-loci" in arg_string
                     for exclude_no_call_loci in [False, True] if not hide_no_call_loci_option and not show_no_call_loci_option else ([True] if args.hide_no_call_loci else [False]):
                         if exclude_no_call_loci:
-                            df_plot = df5[
-                                ~df5["Genotype: ExpansionHunter"].isna() &
-                                ~df5["Genotype: GangSTR"].isna() &
-                                ~df5["Genotype: HipSTR"].isna()
-                            ]
+                            if args.only_expansion_hunter:
+                                df_plot = df5[~df5["Genotype: ExpansionHunter"].isna()]
+                            else:
+                                df_plot = df5[
+                                    ~df5["Genotype: ExpansionHunter"].isna() &
+                                    ~df5["Genotype: GangSTR"].isna() &
+                                    ~df5["Genotype: HipSTR"].isna()
+                                ]
                         else:
                             df_plot = df5
 
@@ -279,7 +288,9 @@ def generate_all_plots(df, args):
                         print(figure_title_line)
 
                         try:
-                            plot(df_plot, args.width, args.height, figure_title=figure_title_line if args.show_title else None)
+                            plot(df_plot, args.width, args.height,
+                                 figure_title=figure_title_line if args.show_title else None,
+                                 only_expansion_hunter=args.only_expansion_hunter)
 
                             output_path = os.path.join(output_dir, f"{output_image_filename}.{args.image_type}")
                             plt.savefig(output_path, bbox_inches='tight', dpi=300)
@@ -313,6 +324,8 @@ def main():
     g2 = g.add_mutually_exclusive_group()
     g2.add_argument("--show-no-call-loci", action="store_true", help="Show loci with no call")
     g2.add_argument("--hide-no-call-loci", action="store_true", help="Hide loci with no call")
+
+    p.add_argument("--only-expansion-hunter", action="store_true", help="Plot only the ExpansionHunter curves")
 
     p.add_argument("--output-dir", default=".")
     p.add_argument("--verbose", action="store_true", help="Print additional info")
