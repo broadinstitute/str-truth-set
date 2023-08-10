@@ -31,6 +31,9 @@ TOOL_DF_COLUMNS_TO_KEEP = [
     "DiffFromRefRepeats: Allele 2",
     "DiffFromRefSize (bp): Allele 1",
     "DiffFromRefSize (bp): Allele 2",
+
+    "AdjacentRepeatCount",
+    "AdjacentRepeatMaxDistance (bp)",
 ]
 
 EH_AND_GANGSTR_COLUMNS = [
@@ -84,6 +87,7 @@ def main():
     truth_set_df = pd.read_table(args.truth_set_or_negative_loci_tsv)
 
     tool_df = pd.read_table(args.tool_results_tsv)
+    tool_df = tool_df[~tool_df["VariantId"].str.contains("ADJACENT")]
     tool_df.rename(columns={
         "RepeatUnit": "Motif",
         "RepeatUnitLength": "MotifSize",
@@ -94,7 +98,22 @@ def main():
     }, inplace=True)
 
     tool_df.loc[:, "ReferenceRegion"] = tool_df["ReferenceRegion"].str.replace("^chr", "", regex=True)
-    tool_df.loc[:, "LocusId"] = tool_df["LocusId"].str.replace("^chr", "", regex=True)
+    def process_locus_id(locus_id):
+        if ";" in locus_id:
+            locus_id, adjacent_repeat_count, adjacent_repeat_max_dist = locus_id.split(";")
+            locus_id = locus_id.replace("chr", "")
+            adjacent_repeat_count = int(adjacent_repeat_count.replace("_adjacent_repeats", ""))
+            adjacent_repeat_max_dist = int(adjacent_repeat_max_dist.replace("max_dist_", "").replace("bp", ""))
+
+        else:
+            locus_id = locus_id.replace("chr", "")
+            adjacent_repeat_count = None
+            adjacent_repeat_max_dist = None
+
+        return [locus_id, adjacent_repeat_count, adjacent_repeat_max_dist]
+
+    tool_df[["LocusId", "AdjacentRepeatCount", "AdjacentRepeatMaxDistance (bp)"]] = tool_df["LocusId"].apply(
+        process_locus_id)
 
     def split_reference_region(row):
         result = re.split("[:-]", row["ReferenceRegion"])

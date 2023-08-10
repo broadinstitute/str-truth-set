@@ -70,10 +70,11 @@ def compute_tables_for_fraction_exactly_right_plots(df, coverage_values=("40x", 
     tables_by_coverage = []
     for coverage in coverage_values:
         for tool in ("ExpansionHunter", "GangSTR", "HipSTR"):
-
             df_current = df.copy()
             df_current = df_current[df_current["Coverage"] == coverage]
-
+            if len(df_current) == 0:
+                print("0 records found for", tool, "at", coverage, "coverage. Skipping...")
+                continue
             df_tool, overall_fraction_exactly_right = compute_fraction_exactly_right(df_current, tool)
             df_tool.loc[:, "tool"] = f"{tool}: {coverage} coverage" if len(coverage_values) > 1 else tool
             tables_by_coverage.append(df_tool)
@@ -85,14 +86,41 @@ def compute_tables_for_fraction_exactly_right_plots(df, coverage_values=("40x", 
     return pd.concat(tables_by_coverage, axis=0)
 
 
-def generate_fraction_exactly_right_plot(df, args, filter_description, image_name):
+def compute_tables_for_fraction_exactly_right_plots_by_adjacent_loci(df, max_dist_values=(
+        "no_adjacent_loci", "max_dist_10bp", "max_dist_24bp", "max_dist_50bp")):
+    tool = "ExpansionHunter"
+    tables_by_adjacent_loci = []
+    for max_dist_value in max_dist_values:
+        df_current = df.copy()
+        df_current = df_current[df_current["AdjacentLociLabel"] == max_dist_value]
+        if len(df_current) == 0:
+            print("0 records found for", tool, "at max_dist =", max_dist_value, "bp. Skipping...")
+            continue
 
-    df_fraction = compute_tables_for_fraction_exactly_right_plots(df, coverage_values=("40x", "30x", "20x", "10x"))
+        df_tool, overall_fraction_exactly_right = compute_fraction_exactly_right(df_current, tool)
+        df_tool.loc[:, "tool"] = f"{tool}: {max_dist_value}"
+        df_tool.loc[:, "AdjacentLociLabel"] = max_dist_value.replace("_", " ")
+
+        tables_by_adjacent_loci.append(df_tool)
+
+        print(f"Processed {tool:20s} --  {100*overall_fraction_exactly_right:0.1f}% of calls by {tool} "
+              f" were exactly right for {len(df_current):,d} alleles at {len(set(df_current.LocusId)):,d} loci")
+
+    return pd.concat(tables_by_adjacent_loci, axis=0)
+
+
+def generate_fraction_exactly_right_plot(df, args, filter_description, image_name):
+    if args.by_adjacent_loci:
+        df_fraction = compute_tables_for_fraction_exactly_right_plots_by_adjacent_loci(df)
+    else:
+        df_fraction = compute_tables_for_fraction_exactly_right_plots(df, coverage_values=("40x", "30x", "20x", "10x"))
     df_fraction = df_fraction.reset_index()
     df_fraction = df_fraction.sort_values("DiffFromRefRepeats: Allele: Truth (bin)", key=lambda c: c.str.split(" ").str[0].astype(int))
 
     coverage_levels_to_plot = []
-    if args.by_coverage:
+    if args.by_adjacent_loci:
+        coverage_levels_to_plot.append("40x")
+    elif args.by_coverage:
         coverage_levels_to_plot.append("all")
     elif args.coverage:
         coverage_levels_to_plot.append(args.coverage)
@@ -101,20 +129,22 @@ def generate_fraction_exactly_right_plot(df, args, filter_description, image_nam
 
     for coverage in coverage_levels_to_plot:
         df_current = df_fraction.copy()
-        if coverage == "all":
-            # exclude HipSTR to make plot clearer
-            df_current = df_current[~df_current.tool.str.contains("HipSTR")]
-            df_current = df_current[
-                df_current.tool.str.contains("40x") | df_current.tool.str.contains("20x") | df_current.tool.str.contains("10x")
-            ]
-        else:
-            df_current = df_current[df_current.tool.str.contains(coverage)]
-            df_current.loc[:, "tool"] = df_current["tool"].apply(lambda s: s.split(":")[0])
+        if not args.by_adjacent_loci:
+            if coverage == "all":
+                # exclude HipSTR to make plot clearer
+                df_current = df_current[~df_current.tool.str.contains("HipSTR")]
+                df_current = df_current[
+                    df_current.tool.str.contains("40x") | df_current.tool.str.contains("20x") | df_current.tool.str.contains("10x")
+                ]
+            else:
+                df_current = df_current[df_current.tool.str.contains(coverage)]
+                df_current.loc[:, "tool"] = df_current["tool"].apply(lambda s: s.split(":")[0])
 
-        if coverage == "all":
-            image_name += ".compare_different_coverages"
-        else:
-            image_name += f".{coverage}_coverage"
+            if coverage == "all":
+                image_name += ".compare_different_coverages"
+            else:
+                image_name += f".{coverage}_coverage"
+
 
         figure_title = f"Accuracy of " + ", ".join(sorted(set([t.split(":")[0] for t in set(df_current.tool)])))
         figure_title += "\n\n"
@@ -122,10 +152,17 @@ def generate_fraction_exactly_right_plot(df, args, filter_description, image_nam
 
         print("Plotting", figure_title.replace("\n", " "))
 
-        hue_values = set(df_current["tool"])
-        num_gangstr_colors = len([h for h in hue_values if h.lower().startswith("gangstr")])
-        num_expansion_hunter_colors = len([h for h in hue_values if h.lower().startswith("expansionhunter")])
-        num_hipstr_colors = len([h for h in hue_values if h.lower().startswith("hipstr")])
+        if args.by_adjacent_loci:
+            hue_values = set(df_current["AdjacentLociLabel"])
+            print("Hue values:", hue_values)
+            num_expansion_hunter_colors = len(hue_values)
+            num_gangstr_colors = 0
+            num_hipstr_colors = 0
+        else:
+            hue_values = set(df_current["tool"])
+            num_expansion_hunter_colors = len([h for h in hue_values if h.lower().startswith("expansionhunter")])
+            num_gangstr_colors = len([h for h in hue_values if h.lower().startswith("gangstr")])
+            num_hipstr_colors = len([h for h in hue_values if h.lower().startswith("hipstr")])
 
         # plot figure
         fig, ax = plt.subplots(1, 1, figsize=(args.width, args.height))
@@ -138,20 +175,27 @@ def generate_fraction_exactly_right_plot(df, args, filter_description, image_nam
                 if args.verbose:
                     print(f"Unable to parse hue value: {h}: {e}")
                 return h
+        if args.by_adjacent_loci:
+            palette = None
+        else:
+            palette = []
+            if num_expansion_hunter_colors > 0:
+                palette += list(sns.color_palette("Purples_r", n_colors=num_expansion_hunter_colors) if num_expansion_hunter_colors > 1 else ["#6A51A3"])
+            if num_gangstr_colors > 0:
+                palette += list(sns.color_palette("blend:#FF3355,#FFCCCC", n_colors=num_gangstr_colors))
+            if num_hipstr_colors > 0:
+                list(sns.color_palette("Oranges_r", n_colors=num_hipstr_colors))
 
+        print("len(df_current)", len(df_current))
+        print("len(df_current)", df_current.groupby("AdjacentLociLabel").count())
         sns.pointplot(
             data=df_current,
             x="DiffFromRefRepeats: Allele: Truth (bin)",
             y="FractionExactlyRight",
-            hue="tool",
+            hue="tool" if not args.by_adjacent_loci else "AdjacentLociLabel",
             scale=0.8,
-            hue_order=sorted(hue_values, key=hue_order),
-            palette=(
-                list(sns.color_palette("Purples_r", n_colors=num_expansion_hunter_colors)
-                     if num_expansion_hunter_colors > 1 else ["#6A51A3"]) +
-                list(sns.color_palette("blend:#FF3355,#FFCCCC", n_colors=num_gangstr_colors)) +
-                list(sns.color_palette("Oranges_r", n_colors=num_hipstr_colors))
-            ),
+            hue_order=sorted(hue_values, key=hue_order) if not args.by_adjacent_loci else sorted(hue_values),
+            palette=palette,
             ax=ax,
         )
 
@@ -200,6 +244,7 @@ def main():
     g = p.add_mutually_exclusive_group()
     g.add_argument("--by-coverage", action="store_true", help="Compare different coverages")
     g.add_argument("--coverage", help="Plot by coverage", choices=["40x", "30x", "20x", "10x"])
+    g.add_argument("--by-adjacent-loci", action="store_true", help="Compare different adjacent loci settings")
 
     g = p.add_argument_group("Filters")
     g.add_argument("--min-motif-size", type=int, help="Min motif size")
@@ -241,14 +286,31 @@ def main():
 
     if args.exclude_no_call_loci:
         count_before = len(set(df[df["Coverage"] == "40x"].LocusId))
-        df = df[~df[f"DiffRepeats: Allele: HipSTR - Truth"].isna()]
-        df = df[~df[f"DiffRepeats: Allele: GangSTR - Truth"].isna()]
+        if f"DiffRepeats: Allele: HipSTR - Truth" in df.columns:
+            df = df[~df[f"DiffRepeats: Allele: HipSTR - Truth"].isna()]
+        if f"DiffRepeats: Allele: GangSTR - Truth" in df.columns:
+            df = df[~df[f"DiffRepeats: Allele: GangSTR - Truth"].isna()]
         df = df[~df[f"DiffRepeats: Allele: ExpansionHunter - Truth"].isna()]
         count_discarded = count_before - len(set(df[df["Coverage"] == "40x"].LocusId))
         print(f"Discarded {count_discarded:,d} out of {count_before:,d} ({100.0*count_discarded/count_before:0.1f}%) "
               f"loci where at least one tool had no call")
         filter_description.append(f"excluding no-call loci")
         image_name += f".excluding_no_call_loci"
+
+    if args.by_adjacent_loci:
+        df = df[df["AdjacentLociLabel"].isin({"no_adjacent_loci", "max_dist_50bp"})]
+        adjacent_repeat_count = 1
+        max_dist = 50
+        filter_criteria = df["AdjacentRepeatCount: ExpansionHunter"] >= adjacent_repeat_count
+        filter_criteria &= df["AdjacentRepeatMaxDistance (bp): ExpansionHunter"] <= max_dist
+        #filter_criteria &= df["MotifSize"] == 3
+
+        filter_description.append(f"with at least {adjacent_repeat_count} adjacent locus ≤ {max_dist}bp away")
+
+        locus_ids_with_adjacent_repeats = set(df[filter_criteria].LocusId)
+
+        image_name += ".by_adjacent_loci"
+        df = df[df["LocusId"].isin(locus_ids_with_adjacent_repeats)]
 
     if args.verbose:
         print("Num loci:")

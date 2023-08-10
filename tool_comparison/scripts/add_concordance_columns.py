@@ -91,6 +91,8 @@ def parse_args():
     p = argparse.ArgumentParser()
     p.add_argument("--debug", action="store_true", help="Whether to print additional info about input and output columns.")
     p.add_argument("--output-tsv", help="Output path of combined tsv file")
+    p.add_argument("--concordance-pair-value1", help="First value in concordance pair")
+    p.add_argument("--concordance-pair-value2", help="Second value in concordance pair")
     p.add_argument("combined_tsv", help="Path of the combined tsv containing GangSTR, EH and other results.")
     
     args = p.parse_args()
@@ -110,10 +112,14 @@ def main():
         "LocusSize (bp)": "ReferenceLocusSize (bp)",
     }, inplace=True)
 
-    print("Adding concordance columns...")
-    for label1, label2 in CONCORDANCE_PAIRS:
+    if args.concordance_pair_value1 and args.concordance_pair_value2:
+        concordance_pairs = [(args.concordance_pair_value1, args.concordance_pair_value2)]
+    else:
+        concordance_pairs = CONCORDANCE_PAIRS
+    for label1, label2 in concordance_pairs:
         concordance_column_name = f"Concordance: {label1} vs {label2}"
-    
+        print(f"Adding concordance column: {concordance_column_name}")
+
         df[[f"Allele 1: {concordance_column_name}", f"Allele 2: {concordance_column_name}", f"Variant: {concordance_column_name}"]] = \
             df.apply(compute_concordance_label_func_wrapper(label1, label2), axis=1, result_type="expand")
 
@@ -121,7 +127,7 @@ def main():
         print(f"Computed {concordance_column_name} column. {sum(df[concordance_column_name].isna())} of {len(df)} values are NA")
 
     print("Adding max diff columns...")
-    for label1, label2 in CONCORDANCE_PAIRS:
+    for label1, label2 in concordance_pairs:
         if "truth" not in label1.lower() and "truth" not in label2.lower():
             continue
         #max_diff_column_name = f"Max Diff: {label1} - {label2}"

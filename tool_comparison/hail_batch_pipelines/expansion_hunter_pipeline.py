@@ -26,6 +26,8 @@ def main():
     parser_group = parser.add_mutually_exclusive_group(required=True)
     parser_group.add_argument("--positive-loci", action="store_true", help="Genotype truth set loci")
     parser_group.add_argument("--negative-loci", action="store_true", help="Genotype negative (hom-ref) loci")
+    parser_group.add_argument("--variant-catalog-paths", help="Other variant catalogs")
+
     parser.add_argument("--use-illumina-expansion-hunter", action="store_true", help="Go back to using the Illumina "
          "version of ExpansionHunter instead of the optimized version from https://github.com/bw2/ExpansionHunter.git")
     parser.add_argument("--loci-to-exclude", action="append", help="Path of a file containing locus ids (one per line) "
@@ -48,8 +50,11 @@ def main():
     elif args.negative_loci:
         variant_catalog_paths = VARIANT_CATALOG_NEGATIVE_LOCI
         positive_or_negative_loci = "negative_loci"
+    elif args.variant_catalog_paths:
+        variant_catalog_paths = args.variant_catalog_paths
+        positive_or_negative_loci = "positive_loci"
     else:
-        parser.error("Must specify either --positive-loci or --negative-loci")
+        parser.error("Must specify either --positive-loci, --negative-loci, or --variant-catalog-paths")
 
     if args.use_illumina_expansion_hunter:
         tool_exec = "IlluminaExpansionHunter"
@@ -92,7 +97,14 @@ def main():
             break
 
         s1 = bp.new_step(
-            f"Run EHv5 #{catalog_i}", arg_suffix=f"eh", step_number=1, image=DOCKER_IMAGE, cpu=2, storage="75Gi")
+            f"Run EHv5 #{catalog_i}",
+            arg_suffix=f"eh",
+            step_number=1,
+            image=DOCKER_IMAGE,
+            cpu=2,
+            storage="75Gi",
+            timeout=5*60*60)
+
         step1s.append(s1)
 
         local_fasta = s1.input(args.reference_fasta)
@@ -147,36 +159,44 @@ def main():
 
             done_file = f"done_generating_reviewer_images_for_{output_prefix}"
             s1.command(f"touch {done_file}")
-
             s1.output("*.svg", output_dir=reviewer_remote_output_dir, delocalize_by=Delocalize.GSUTIL_COPY)
             s1.output(done_file, output_dir=reviewer_remote_output_dir)
 
     # step2: combine json files
     if not args.n or args.force:
-        s2 = bp.new_step(name="Combine EHv5 outputs", step_number=2, image=DOCKER_IMAGE, storage="20Gi", cpu=1,
-                         output_dir=output_dir)
+        s2 = bp.new_step(
+            name="Combine EHv5 outputs",
+            step_number=2,
+            image=DOCKER_IMAGE,
+            storage="20Gi",
+            cpu=1,
+            localize_by=Localize.HAIL_BATCH_CLOUDFUSE,
+            output_dir=output_dir,
+            timeout=5*60*60)
 
         for step1 in step1s:
             s2.depends_on(step1)
 
-        s2.command("mkdir /io/run_dir; cd /io/run_dir")
+        local_base_dir = "/run_dir"
+        s2.command(f"mkdir {local_base_dir}; cd {local_base_dir}")
         for json_path in step1_output_json_paths:
             local_path = s2.input(json_path)
             s2.command(f"ln -s {local_path}")
 
         output_prefix = f"combined.{positive_or_negative_loci}"
-        s2.command("set -x")
+        s2.command("set -ex")
         s2.command(f"python3.9 -m str_analysis.combine_str_json_to_tsv --include-extra-expansion-hunter-fields "
                    f"--output-prefix {output_prefix}")
         s2.command(f"bgzip {output_prefix}.{len(step1_output_json_paths)}_json_files.bed")
         s2.command(f"tabix {output_prefix}.{len(step1_output_json_paths)}_json_files.bed.gz")
         s2.command("gzip *.tsv")
         s2.command("ls -lhrt")
-        s2.output(f"{output_prefix}.{len(step1_output_json_paths)}_json_files.variants.tsv.gz")
-        s2.output(f"{output_prefix}.{len(step1_output_json_paths)}_json_files.alleles.tsv.gz")
-        s2.output(f"{output_prefix}.{len(step1_output_json_paths)}_json_files.bed.gz")
-        s2.output(f"{output_prefix}.{len(step1_output_json_paths)}_json_files.bed.gz.tbi")
-        bp.run()
+        s2.output(f"{local_base_dir}/{output_prefix}.{len(step1_output_json_paths)}_json_files.variants.tsv.gz")
+        s2.output(f"{local_base_dir}/{output_prefix}.{len(step1_output_json_paths)}_json_files.alleles.tsv.gz")
+        s2.output(f"{local_base_dir}/{output_prefix}.{len(step1_output_json_paths)}_json_files.bed.gz")
+        s2.output(f"{local_base_dir}/{output_prefix}.{len(step1_output_json_paths)}_json_files.bed.gz.tbi")
+
+    bp.run()
 
 
 if __name__ == "__main__":
