@@ -30,10 +30,10 @@ def parse_args():
                    "The set of all STR loci in the truth set will be split into repeat spec files of this size.")
     p.add_argument("--truth-set-bed", default="./STR_truth_set.v1.variants.bed.gz")
     p.add_argument("--output-negative-loci", action="store_true", help="Also create a catalog generating negative loci")
-    p.add_argument("--syndip-high-confidence-regions-bed", default="./ref/full.38.bed.gz",
+    p.add_argument("--high-confidence-regions-bed", default="./ref/full.38.bed.gz",
                    help="Path of the SynDip high-confidence regions .bed file")
-    p.add_argument("--syndip-indels-vcf", default="./ref/full.38.INDELs.vcf.gz",
-                   help="Path of the original SynDip vcf")
+    p.add_argument("--all-indels-vcf", #default="./ref/full.38.INDELs.vcf.gz",
+                   help="Path of the original SynDip vcf filtered to INDEL variants")
     p.add_argument("--all-hg38-repeats-bed", default="./ref/other/repeat_specs_GRCh38_without_mismatches.sorted.trimmed.at_least_9bp.bed.gz",
                    help="Path of bed file containing all repeats in the reference genome generated using a tool like "
                         "TandemRepeatFinder")
@@ -48,8 +48,8 @@ def parse_args():
     for i, path in enumerate([
         args.truth_set_variants_tsv_or_bed_path,
     ] + ([] if not args.output_negative_loci else [
-        args.syndip_high_confidence_regions_bed,
-        args.syndip_indels_vcf,
+        args.high_confidence_regions_bed,
+        args.all_indels_vcf,
         args.truth_set_bed,
         args.all_hg38_repeats_bed,
     ])):
@@ -98,12 +98,12 @@ def generate_set_of_positive_loci(truth_set_df):
 
 def generate_set_of_negative_loci(
         all_hg38_repeats_bed_path,
-        syndip_high_confidence_regions_bed_path,
-        syndip_indels_vcf_path,
+        high_confidence_regions_bed_path,
+        all_indels_vcf_path,
         truth_set_loci_bed_path,
         positive_loci_counters):
     """Generate negative loci by starting with all pure repeats in hg38, filtering them to those that are within
-    SynDip high-confidence regions, and then excluding all that are near SynDip InDels (in case these are STRs)
+    high-confidence regions, and then excluding all that are near InDels (in case these are STRs)
     or are in the STR truth set. Finally, downsample this set of negative loci to a smaller set so that the number of
     negative loci for each motif size is approximately equal to the number of positive loci for that motif size.
     """
@@ -111,10 +111,11 @@ def generate_set_of_negative_loci(
     pure_repeats_bedtool = pybedtools.BedTool(os.path.expanduser(all_hg38_repeats_bed_path))
 
     negative_loci_bedtool = pure_repeats_bedtool.intersect(
-        syndip_high_confidence_regions_bed_path, f=1, wa=True, u=True)
+        high_confidence_regions_bed_path, f=1, wa=True, u=True)
 
-    negative_loci_bedtool = negative_loci_bedtool.window(
-        syndip_indels_vcf_path, w=MIN_DISTANCE_TO_INDELS_AROUND_NEGATIVE_LOCI, v=True)
+    if all_indels_vcf_path:
+        negative_loci_bedtool = negative_loci_bedtool.window(
+            all_indels_vcf_path, w=MIN_DISTANCE_TO_INDELS_AROUND_NEGATIVE_LOCI, v=True)
 
     negative_loci_bedtool = negative_loci_bedtool.intersect(
         truth_set_loci_bed_path, v=True)
@@ -264,8 +265,8 @@ def main():
         # generate negative (non-variant) loci for the variant catalogs
         negative_loci = generate_set_of_negative_loci(
             args.all_hg38_repeats_bed,
-            args.syndip_high_confidence_regions_bed,
-            args.syndip_indels_vcf,
+            args.high_confidence_regions_bed,
+            args.all_indels_vcf,
             args.truth_set_bed,
             positive_loci_counters)
 

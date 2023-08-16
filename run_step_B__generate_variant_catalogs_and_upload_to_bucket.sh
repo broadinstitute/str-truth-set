@@ -6,8 +6,8 @@ python3 -u tool_comparison/scripts/convert_truth_set_to_variant_catalogs.py \
   --expansion-hunter-loci-per-run 500 \
   --gangstr-loci-per-run 10000 \
   --output-dir ./tool_comparison/variant_catalogs \
-  --syndip-high-confidence-regions-bed ./ref/full.38.bed.gz \
-  --syndip-indels-vcf ./ref/full.38.INDELs.vcf.gz \
+  --high-confidence-regions-bed ./ref/full.38.bed.gz \
+  --all-indels-vcf ./ref/full.38.INDELs.vcf.gz \
   --all-hg38-repeats-bed ./ref/other/repeat_specs_GRCh38_without_mismatches.sorted.trimmed.at_least_9bp.bed.gz \
   STR_truth_set.v1.variants.tsv.gz
 
