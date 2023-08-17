@@ -53,7 +53,7 @@ def parse_args():
         args.truth_set_bed,
         args.all_hg38_repeats_bed,
     ])):
-        if not os.path.isfile(path):
+        if path and not os.path.isfile(path):
             p.error(f"{path} not found")
         print(f"Input: {path}")
     return args
