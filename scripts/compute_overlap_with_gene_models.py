@@ -14,6 +14,8 @@ import tqdm
 GENE_MODELS = {
     "GencodeV42": "./ref/other/gencode.v42.annotation.gtf.gz",
     "MANEv1": "./ref/other/MANE.GRCh38.v1.0.ensembl_genomic.gtf.gz",
+    "GencodeV43": "./ref/other/gencode.v43.annotation.gtf.gz",
+    "MANEv1.2": "./ref/other/MANE.GRCh38.v1.2.ensembl_genomic.gtf.gz",
 }
 
 
