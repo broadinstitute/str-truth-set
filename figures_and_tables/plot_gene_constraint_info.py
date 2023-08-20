@@ -62,30 +62,32 @@ def plot_gene_constraint(df, args):
             x0, y0, width, height = bbox.bounds
             violin.set_clip_path(plt.Rectangle((x0, y0 - 0.1), width, height / 2 + 0.1, transform=ax.transData))
 
-        old_len_collections = len(ax.collections)
-        stripplot_data = df[~df.Source.isin(["All Genes"])]
-        stripplot_data = stripplot_data.sort_values('InheritanceMode')
-        sns.stripplot(
-            x=x_column,
-            y="Source",
-            data=stripplot_data,
-            hue='InheritanceMode',
-            order=y_axis_order,
-            ax=ax,
-            palette=["gray", "red", "blue", "orange", "green"],
-            alpha=0.5,
-        )
+        for strip_plot_category in TRUTH_SET_TRs_LABEL, DISEASE_ASSOCIATED_STRs_LABEL:
+            old_len_collections = len(ax.collections)
+            stripplot_data = df[df.Source.isin([strip_plot_category])]
+            stripplot_data = stripplot_data.sort_values('InheritanceMode')
+            sns.stripplot(
+                x=x_column,
+                y="Source",
+                data=stripplot_data,
+                hue='InheritanceMode',
+                order=y_axis_order,
+                ax=ax,
+                palette=["gray"] if strip_plot_category == TRUTH_SET_TRs_LABEL else ["red", "blue", "orange"],
+                alpha=0.5,
+            )
 
-        for dots in ax.collections[old_len_collections:]:
-            dots.set_offsets(dots.get_offsets() + np.array([0, 0.2]))
+            for dots in ax.collections[old_len_collections:]:
+                dots.set_offsets(dots.get_offsets() + np.array([0, 0.2]))
 
-        for _, row in stripplot_data[~stripplot_data.gene_name.isna()].iterrows():
-            if row.gene_name not in {"RUNX2", "HOXD13"}:
-                continue
+            if strip_plot_category == DISEASE_ASSOCIATED_STRs_LABEL:
+                for _, row in stripplot_data[~stripplot_data.gene_name.isna()].iterrows():
+                    if row.gene_name not in {"RUNX2", "HOXD13"}:
+                        continue
 
-            text_x = row[x_column] + 0.02
-            text_y = 2.4
-            ax.text(x=text_x, y=text_y, s=row.gene_name)
+                    text_x = row[x_column] + 0.02
+                    text_y = 2.4
+                    ax.text(x=text_x, y=text_y, s=row.gene_name)
 
         sns.boxplot(
             y="Source", x=x_column, data=df,
@@ -195,7 +197,7 @@ def main():
     df2 = constraint_df[constraint_df.index.isin(truth_set_df.index)].reset_index()
     print(f"{len(df2):,d} genes with constraint info contain coding truth set STR alleles")
 
-    df3 = constraint_df
+    df3 = constraint_df.reset_index()
     print(f"{len(df3):,d} genes with constraint info total")
 
     df1.loc[:, "Source"] = DISEASE_ASSOCIATED_STRs_LABEL
