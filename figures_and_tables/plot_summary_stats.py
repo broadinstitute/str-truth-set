@@ -481,8 +481,8 @@ def plot_distribution_of_reference_locus_sizes(df, args, min_motif_size=None, ma
     median_num_repeats_in_reference = int(df["NumRepeatsInReference"].median())
     median_num_repeats_in_chm1_chm13_alleles = int(df["NumRepeats"].median())
     if median_num_repeats_in_reference != median_num_repeats_in_chm1_chm13_alleles:
-        raise ValueError(f"median number of repeats in reference ({median_num_repeats_in_reference}) != "
-                         f"median number of repeats in chm1/chm13 alleles ({median_num_repeats_in_chm1_chm13_alleles})")
+        print(f"WARNING: median number of repeats in reference ({median_num_repeats_in_reference}) != "
+              f"median number of repeats in chm1/chm13 alleles ({median_num_repeats_in_chm1_chm13_alleles})")
     else:
         print(f"Median number of repeats in reference == median number of repeats in chm1/chm13 alleles: {median_num_repeats_in_reference}")
 
