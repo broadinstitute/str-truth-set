@@ -31,6 +31,8 @@ def compute_motif_labels(row, existing_motif_labels=(), min_fraction_of_motifs_w
 
 
 def plot_hist(df, output_image_filename, title=None, y_label=None, show_title=True, width=10, height=8):
+    include_homopolymers = sum(df.MotifSize == 1) > 0
+
     fig, ax = plt.subplots(figsize=(width, height))
     ax.set_xlim(0, 15.5)
     ax.set_xlabel("Motif Size (bp)", labelpad=15, fontsize=17)
@@ -63,7 +65,8 @@ def plot_hist(df, output_image_filename, title=None, y_label=None, show_title=Tr
     legend.remove()
     ax.legend(handles, labels, title=None, prop={'size': 16}, frameon=False, ncol=2)
 
-    xticks = range(2, 16, 1)
+    x_min = 1 if include_homopolymers else 2
+    xticks = range(x_min, 16, 1)
     yticks = np.arange(0, 0.75, 0.1)
     ax.set_xticks(xticks)
     ax.set_yticks(yticks)

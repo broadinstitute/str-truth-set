@@ -13,10 +13,16 @@ sns.set_context("paper", font_scale=1.1, rc={
 })
 
 
-def plot_allele_size_distribution(df_truth_set, args, plot_type=1, color_by=None, hue_order=None, yaxis_fraction=False, palette=None):
+def plot_allele_size_distribution(df_truth_set, args, min_motif_size=None, max_motif_size=None, plot_type=1, color_by=None, hue_order=None, yaxis_fraction=False, palette=None):
     binwidth = None
     discrete = None
     bins = None
+
+    if min_motif_size:
+        df_truth_set = df_truth_set[df_truth_set.MotifSize >= min_motif_size]
+    if max_motif_size:
+        df_truth_set = df_truth_set[df_truth_set.MotifSize <= max_motif_size]
+
     if plot_type == 1:
         x_column = "NumRepeatsAwayFromReference"
         xlabel = "Allele Size (# of Repeats)"
@@ -60,6 +66,26 @@ def plot_allele_size_distribution(df_truth_set, args, plot_type=1, color_by=None
 
     if args.only_pure_repeats:
         output_image_name += ".only_pure_repeats"
+
+    if min_motif_size and max_motif_size:
+        if min_motif_size == max_motif_size:
+            output_image_name += f".{min_motif_size}bp_motifs"
+        else:
+            output_image_name += f".{min_motif_size}-{max_motif_size}bp_motifs"
+    elif min_motif_size:
+        output_image_name += f".atleast_{min_motif_size}bp_motifs"
+    elif max_motif_size:
+        output_image_name += f".atmost_{max_motif_size}bp_motifs"
+
+    if min_motif_size and max_motif_size:
+        if min_motif_size == max_motif_size:
+            figure_title += f": {min_motif_size}bp motifs"
+        else:
+            figure_title += f": {min_motif_size}-{max_motif_size}bp motifs"
+    elif min_motif_size:
+        figure_title += f": motifs ≥ {min_motif_size}bp"
+    elif max_motif_size:
+        figure_title += f": motifs ≤ {max_motif_size}bp"
 
     _, ax = plt.subplots(figsize=(8, 7) if args.width is None or args.height is None else (args.width, args.height))
     ax.xaxis.labelpad = ax.yaxis.labelpad = 15
@@ -117,16 +143,41 @@ def plot_allele_size_distribution(df_truth_set, args, plot_type=1, color_by=None
     print(f"Plotted {len(df_truth_set):,d} allele records")
 
 
-def plot_allele_size_and_motif_distribution(df_truth_set, args, color_by=None, hue_order=None, palette=None):
+def plot_allele_size_and_motif_distribution(df_truth_set, args, min_motif_size=None, max_motif_size=None, color_by=None, hue_order=None, palette=None):
     output_image_name = "allele_size_distribution_by_number_of_repeats_and_motif_size"
     if args.only_pure_repeats:
         output_image_name += ".only_pure_repeats"
+
+    if min_motif_size and max_motif_size:
+        if min_motif_size == max_motif_size:
+            output_image_name += f".{min_motif_size}bp_motifs"
+        else:
+            output_image_name += f".{min_motif_size}-{max_motif_size}bp_motifs"
+    elif min_motif_size:
+        output_image_name += f".atleast_{min_motif_size}bp_motifs"
+    elif max_motif_size:
+        output_image_name += f".atmost_{max_motif_size}bp_motifs"
+
+    if min_motif_size:
+        df_truth_set = df_truth_set[df_truth_set.MotifSize >= min_motif_size]
+    if max_motif_size:
+        df_truth_set = df_truth_set[df_truth_set.MotifSize <= max_motif_size]
 
     figure_title = "Allele Size Distribution"
     if color_by == "Multiallelic":
         figure_title = "Multiallelic Loci"
     elif color_by == "OverlapsSegDupIntervals":
         figure_title = "Overlap with Segmental Duplications"
+
+    if min_motif_size and max_motif_size:
+        if min_motif_size == max_motif_size:
+            figure_title += f": {min_motif_size}bp motifs"
+        else:
+            figure_title += f": {min_motif_size}-{max_motif_size}bp motifs"
+    elif min_motif_size:
+        figure_title += f": motifs ≥ {min_motif_size}bp"
+    elif max_motif_size:
+        figure_title += f": motifs ≤ {max_motif_size}bp"
 
     fig, axes = plt.subplots(1, 2, figsize=(16, 6) if args.width is None or args.height is None else (args.width, args.height))
     if args.show_title:
@@ -198,6 +249,7 @@ def plot_allele_size_and_motif_distribution(df_truth_set, args, color_by=None, h
 
 
 def plot_gene_info(df, args, excluding_introns_and_intergenic=False, use_MANE_genes=False):
+    include_homopolymers = sum(df.MotifSize == 1) > 0
 
     if use_MANE_genes:
         gene_region_column = "GeneRegionFromMane_V1"
@@ -239,14 +291,16 @@ def plot_gene_info(df, args, excluding_introns_and_intergenic=False, use_MANE_ge
         extra_artists = [suptitle_artist]
     else:
         extra_artists = []
+
+    x_min = 1 if include_homopolymers else 2
     ax.xaxis.labelpad = ax.yaxis.labelpad = 15
     ax.spines.right.set_visible(False)
     ax.spines.top.set_visible(False)
     xlimit = 30
     ax.set_xlabel("Motif Size (bp)", fontsize=13)
-    ax.set_xticks(range(2, xlimit + 1, 1))
-    ax.set_xticklabels([f"{x}" if x <= 6 or x % 3 == 0 else "" for x in range(2, xlimit + 1, 1)], fontsize=12)
-    ax.set_xlim(2 - 0.52, xlimit + 0.52)
+    ax.set_xticks(range(x_min, xlimit + 1, 1))
+    ax.set_xticklabels([f"{x}" if x <= 6 or x % 3 == 0 else "" for x in range(x_min, xlimit + 1, 1)], fontsize=12)
+    ax.set_xlim(x_min - 0.52, xlimit + 0.52)
 
     sns.histplot(
         df,
@@ -290,33 +344,53 @@ def plot_gene_info(df, args, excluding_introns_and_intergenic=False, use_MANE_ge
     print(f"Plotted {len(df):,d} allele records")
 
 
-def plot_allele_size_distribution_x3(df, args, color_by=None, hue_order=None, palette=None):
+def plot_allele_size_distribution_x3(df, args, color_by=None, hue_order=None, palette=None, base_pairs_on_x_axis=True):
+
+    include_homopolymers = sum(df.MotifSize == 1) > 0
+    if not include_homopolymers:
+        fig_width = 30
+        ncols = 3
+    else:
+        fig_width = 45
+        ncols = 4
 
     """Plot allele size distribution split into 3 plots by motif size ranges"""
-    fig, axes = plt.subplots(ncols=3, figsize=(30, 10) if args.width is None or args.height is None else (args.width, args.height), sharey=True)
+    fig, axes = plt.subplots(ncols=ncols, figsize=(fig_width, 10) if args.width is None or args.height is None else (args.width, args.height), sharey=True)
 
     print("palette", palette)
     if args.show_title:
         fig.suptitle("Allele Size Distributions", fontsize=24)
 
     for i, ax in enumerate(axes):
+        index_of_2to6bp_plot = 1 if include_homopolymers else 0
 
-        xlimit = 1000
-        step_size = 50
+        if base_pairs_on_x_axis:
+            xlimit = 1000
+            step_size = 50
+        else:
+            xlimit = 50
+            step_size = 1
 
-        if i == 0:
+        if i == index_of_2to6bp_plot - 1:
+            df_current = df[df.MotifSize == 1]
+            label = "1bp motifs"
+        elif i == index_of_2to6bp_plot:
             df_current = df[(df.MotifSize >= 2) & (df.MotifSize <= 6)]
-            label = "2bp to 6bp motifs"
-        elif i == 1:
+            label = "2-6bp motifs"
+        elif i == index_of_2to6bp_plot + 1:
             df_current = df[(df.MotifSize >= 7) & (df.MotifSize <= 24)]
-            label = "7bp to 24bp motifs"
-        elif i == 2:
-            label = "25bp to 50bp motifs"
+            label = "7-24bp motifs"
+        elif i == index_of_2to6bp_plot + 2:
+            label = "25-50bp motifs"
             df_current = df[(df.MotifSize >= 25) & (df.MotifSize <= 50)]
         else:
             raise ValueError(f"{i}")
 
-        ax.set_xlabel("Allele Size (bp)", labelpad=15, fontsize=18)
+        if base_pairs_on_x_axis:
+            ax.set_xlabel("Allele Size (bp)", labelpad=15, fontsize=18)
+        else:
+            ax.set_xlabel("Allele Size (# of Repeats)", labelpad=15, fontsize=18)
+
         if i == 0:
             ax.set_ylabel("Number of Alleles", labelpad=15, fontsize=18)
         else:
@@ -324,8 +398,8 @@ def plot_allele_size_distribution_x3(df, args, color_by=None, hue_order=None, pa
 
         ax.spines.right.set_visible(False)
         ax.spines.top.set_visible(False)
-        ax.set_xticks(range(-xlimit, xlimit + 1, step_size*4))
-        ax.set_xticklabels([f"{x}" if x < 0 else f"+{x}" for x in range(-xlimit, xlimit + 1, step_size*4)])
+        ax.set_xticks(range(-xlimit, xlimit + 1, step_size*4 if base_pairs_on_x_axis else step_size*10))
+        ax.set_xticklabels([f"{x}" if x < 0 else f"+{x}" for x in range(-xlimit, xlimit + 1, step_size*4 if base_pairs_on_x_axis else step_size*10)])
         ax.set_xlim(-xlimit - 0.52, xlimit + 0.52)
         ax.set_xticklabels(
             ax.get_xticklabels(),
@@ -339,7 +413,7 @@ def plot_allele_size_distribution_x3(df, args, color_by=None, hue_order=None, pa
 
         p = sns.histplot(
             df_current,
-            x="NumBasePairsAwayFromReference",
+            x="NumBasePairsAwayFromReference" if base_pairs_on_x_axis else "NumRepeatsAwayFromReference",
             hue=color_by,
             hue_order=hue_order,
             palette=palette,
@@ -350,22 +424,29 @@ def plot_allele_size_distribution_x3(df, args, color_by=None, hue_order=None, pa
             ax=ax)
 
         p.set(yscale='log')
-        p.set_title(f"{len(df_current):,d} alleles at {len(set(df_current.LocusId)):,d} loci ({label})", fontsize=18)
+        p.set_title(f"{len(df_current):,d} alleles at {len(set(df_current.LocusId)):,d} loci ({label})", fontsize=18, pad=15)
         if color_by:
             sns.move_legend(ax, loc="upper left")
 
+    if base_pairs_on_x_axis:
+        output_image_name = "allele_size_distribution_by_repeat_size_in_base_pairs.x3"
+    else:
         output_image_name = "allele_size_distribution_by_number_of_repeats.x3"
-        if args.only_pure_repeats:
-            output_image_name += ".only_pure_repeats"
 
-        if color_by:
-            output_image_name += f".color_by_{color_by.lower().replace(' ', '_')}"
+    if args.only_pure_repeats:
+        output_image_name += ".only_pure_repeats"
 
-        output_path = os.path.join(args.output_dir, output_image_name + f".{args.image_type}")
-        fig.savefig(output_path, bbox_inches="tight", dpi=300)
-        print(f"Saved {output_path}")
+    if color_by:
+        output_image_name += f".color_by_{color_by.lower().replace(' ', '_')}"
 
-        print(f"Plotted {len(df):,d} allele records")
+    if include_homopolymers:
+        output_image_name += ".including_homopolymers"
+
+    output_path = os.path.join(args.output_dir, output_image_name + f".{args.image_type}")
+    fig.savefig(output_path, bbox_inches="tight", dpi=300)
+    print(f"Saved {output_path}")
+
+    print(f"Plotted {len(df):,d} allele records")
 
 
 def without_alpha(hex_color_string, alpha=0.5):
@@ -410,7 +491,7 @@ def plot_distribution_of_reference_locus_sizes(df, args, min_motif_size=None, ma
         if min_motif_size == max_motif_size:
             label = f"{min_motif_size}bp motifs"
         else:
-            label = f"{min_motif_size}bp to {max_motif_size}bp motifs"
+            label = f"{min_motif_size} to {max_motif_size}bp motifs"
     else:
         label = ""
 
@@ -591,7 +672,6 @@ def main():
     p.add_argument("--height", type=float, help="Height of image")
     p.add_argument("--show-title", action="store_true", help="If specified, show the title on the plots")
     p.add_argument("--image-type", choices=["svg", "png"], default="svg")
-
     p.add_argument("--output-dir", default=".")
     p.add_argument("--truth-set-alleles-table-before-validation", default="../step2.STRs.alleles.tsv.gz")
     p.add_argument("--truth-set-alleles-table", default="../STR_truth_set.v1.alleles.tsv.gz")
@@ -623,15 +703,22 @@ def main():
 
         plot_allele_size_distribution(df, args, plot_type=1, color_by="Interruptions", hue_order=["No", "Yes"],
                                       yaxis_fraction=False, palette=["#1f77b4", "#8FD7E8"])
+        for min_motif_size, max_motif_size in [(1,1), (2,6), (7, 24), (25, 50)]:
+            plot_allele_size_distribution(df, args, min_motif_size=min_motif_size, max_motif_size=max_motif_size,
+                                          plot_type=1, color_by="Interruptions", hue_order=["No", "Yes"],
+                                          yaxis_fraction=False, palette=["#1f77b4", "#8FD7E8"])
         #plot_allele_size_distribution(df, args, plot_type=3, color_by="Has Interruptions", hue_order=["No", "Yes"])
 
         #plot_allele_size_distribution(df, args, plot_type=1, color_by="OverlapsSegDupIntervals", hue_order=["No", "Yes"], yaxis_fraction=True)
 
     if not args.only_plot or args.only_plot == "3":
-        plot_allele_size_distribution_x3(df, args)
+        plot_allele_size_distribution_x3(df, args, base_pairs_on_x_axis=True)
+        plot_allele_size_distribution_x3(df, args, base_pairs_on_x_axis=False)
 
     if not args.only_plot or args.only_plot == "4":
         plot_allele_size_and_motif_distribution(df, args, color_by="Multiallelic", hue_order=["No", "Yes"], palette=["#1F77B4", "#FF8C1A"])
+        for min_motif_size, max_motif_size in [(1,1), (2,6), (7, 24), (25, 50)]:
+            plot_allele_size_and_motif_distribution(df, args, min_motif_size=min_motif_size, max_motif_size=max_motif_size, color_by="Multiallelic", hue_order=["No", "Yes"], palette=["#1F77B4", "#FF8C1A"])
         plot_allele_size_and_motif_distribution(df, args, color_by="OverlapsSegDupIntervals", hue_order=["No", "Yes"], palette=["#1F77B4", "#FF8C1A"])
 
     if not args.only_plot or args.only_plot == "5":
@@ -642,9 +729,8 @@ def main():
 
     if not args.only_plot or args.only_plot == "6":
         plot_distribution_of_reference_locus_sizes(df, args)
-        plot_distribution_of_reference_locus_sizes(df, args, min_motif_size=2, max_motif_size=6)
-        plot_distribution_of_reference_locus_sizes(df, args, min_motif_size=7, max_motif_size=24)
-        plot_distribution_of_reference_locus_sizes(df, args, min_motif_size=25, max_motif_size=50)
+        for min_motif_size, max_motif_size in [(1,1), (2,6), (7, 24), (25, 50)]:
+            plot_distribution_of_reference_locus_sizes(df, args, min_motif_size=min_motif_size, max_motif_size=max_motif_size)
         for motif_size in range(2, 7):
             plot_distribution_of_reference_locus_sizes(df, args, min_motif_size=motif_size, max_motif_size=motif_size)
 

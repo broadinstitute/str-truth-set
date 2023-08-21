@@ -17,13 +17,15 @@ sns.set_context(font_scale=1.1, rc={
 })
 
 
-def plot_mutation_rate_by_allele_size(df, args, show_dinucleotides=False):
+def plot_mutation_rate_by_allele_size(df, args, show_homopolymers=False, show_dinucleotides=False):
     """This function plots the fraction of alleles that are multi-allelic (a proxy for mutation rates) with allele size
     on the x-axis, and color based on the motif size.
 
     df (pd.DataFrame):
     """
-    if show_dinucleotides:
+    if show_homopolymers:
+        df = df[(df["MotifSize"] >= 1) & (df["MotifSize"] <= 3) & (df["CanonicalMotif"] != "CG")]
+    elif show_dinucleotides:
         df = df[(df["MotifSize"] >= 2) & (df["MotifSize"] <= 3) & (df["CanonicalMotif"] != "CG")]
     else:
         df = df[(df["MotifSize"] >= 3) & (df["MotifSize"] <= 6)]
@@ -34,7 +36,11 @@ def plot_mutation_rate_by_allele_size(df, args, show_dinucleotides=False):
 
     df = df[df.FractionPureRepeats >= 0.75]
 
-    if show_dinucleotides:
+    if show_homopolymers:
+        df["hue"] = df["MotifSize"].astype(str) + "bp" + np.where(
+            df["MotifSize"] <= 2, " (" + df["CanonicalMotif"] + "), ", ", ") + np.where(
+            df["IsPureRepeat"], "pure", "interrupted")
+    elif show_dinucleotides:
         df["hue"] = df["MotifSize"].astype(str) + "bp" + np.where(
             df["MotifSize"] == 2, " (" + df["CanonicalMotif"] + "), ", ", ") + np.where(
             df["IsPureRepeat"], "pure", "interrupted")
@@ -51,7 +57,28 @@ def plot_mutation_rate_by_allele_size(df, args, show_dinucleotides=False):
     df2 = df2[(df2["DataPoints"] >= 20) & (df2[x_column_binned].astype(int) < 65)]
     df2.sort_values(by=["IsPureRepeat", "MotifSize"], ascending=[False, True], inplace=True)
 
-    if show_dinucleotides:
+    if show_homopolymers:
+        hue_order = [
+            "1bp (A), pure",
+            "1bp (C), pure",
+            "2bp (AT), pure",
+            "2bp (AC), pure",
+            "2bp (AG), pure",
+            "3bp, pure",
+            "2bp (AT), interrupted",
+            "2bp (AC), interrupted",
+            "2bp (AG), interrupted",
+            "3bp, interrupted",
+        ]
+        "52EC68"  # 3bp
+        "53BDEC"  # 4bp
+        "9D53EC"  # 5bp
+        "EC53A8"  # 6bp
+
+        palette = list(sns.color_palette("Purples_d", 2))[::-1]
+        palette += list(sns.color_palette("Oranges", 3))[::-1] + ["#52EC68"]
+        palette += list(sns.color_palette("Blues", 3))[::-1] + ["#c8f9cf"]
+    elif show_dinucleotides:
         hue_order = [
             "2bp (AT), pure",
             "2bp (AC), pure",
@@ -101,7 +128,9 @@ def plot_mutation_rate_by_allele_size(df, args, show_dinucleotides=False):
 
     # save figure
     filename = "mutation_rates_by_allele_size"
-    if show_dinucleotides:
+    if show_homopolymers:
+        filename += ".1bp_and_2bp_motifs"
+    elif show_dinucleotides:
         filename += ".2bp_motifs"
     else:
         filename += ".3-6bp_motifs"
@@ -164,6 +193,7 @@ def main():
     print(f"Plotting mutation rates based on {len(df):,d} truth set alleles")
     plot_mutation_rate_by_allele_size(df, args, show_dinucleotides=False)
     plot_mutation_rate_by_allele_size(df, args, show_dinucleotides=True)
+    plot_mutation_rate_by_allele_size(df, args, show_homopolymers=True)
 
     plot_mutation_rate_by_fraction_interrupted_repeats(df, args)
 
