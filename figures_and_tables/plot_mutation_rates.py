@@ -40,6 +40,7 @@ def plot_mutation_rate_by_allele_size(df, args, show_homopolymers=False, show_di
         df["hue"] = df["MotifSize"].astype(str) + "bp" + np.where(
             df["MotifSize"] <= 2, " (" + df["CanonicalMotif"] + "), ", ", ") + np.where(
             df["IsPureRepeat"], "pure", "interrupted")
+        df = df[df["IsPureRepeat"]]
     elif show_dinucleotides:
         df["hue"] = df["MotifSize"].astype(str) + "bp" + np.where(
             df["MotifSize"] == 2, " (" + df["CanonicalMotif"] + "), ", ", ") + np.where(
@@ -59,21 +60,17 @@ def plot_mutation_rate_by_allele_size(df, args, show_homopolymers=False, show_di
 
     if show_homopolymers:
         hue_order = [
-            "1bp (A), pure",
             "1bp (C), pure",
+            "1bp (A), pure",
             "2bp (AT), pure",
             "2bp (AC), pure",
             "2bp (AG), pure",
             "3bp, pure",
-            "2bp (AT), interrupted",
-            "2bp (AC), interrupted",
-            "2bp (AG), interrupted",
-            "3bp, interrupted",
+            #"2bp (AT), interrupted",
+            #"2bp (AC), interrupted",
+            #"2bp (AG), interrupted",
+            #"3bp, interrupted",
         ]
-        "52EC68"  # 3bp
-        "53BDEC"  # 4bp
-        "9D53EC"  # 5bp
-        "EC53A8"  # 6bp
 
         palette = list(sns.color_palette("Purples_d", 2))[::-1]
         palette += list(sns.color_palette("Oranges", 3))[::-1] + ["#52EC68"]

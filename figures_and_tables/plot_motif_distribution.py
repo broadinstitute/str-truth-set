@@ -20,7 +20,7 @@ sns.set_context("paper", font_scale=1.1, rc={
 def compute_motif_labels(row, existing_motif_labels=(), min_fraction_of_motifs_with_same_length=0.1):
     label = f"{len(row.CanonicalMotif)}bp:{row.CanonicalMotif}"
     if label in existing_motif_labels or (not existing_motif_labels and
-        (len(row.CanonicalMotif) == 2 or
+        (len(row.CanonicalMotif) <= 2 or
         (row.MotifSize <= 6 and
          row.NumSTRsWithSameCanonicalMotif/row.NumSTRsWithSameMotifSize >= min_fraction_of_motifs_with_same_length))):
         return label
@@ -79,6 +79,7 @@ def plot_hist(df, output_image_filename, title=None, y_label=None, show_title=Tr
 
 
 def add_columns(df, existing_motif_labels=()):
+
     df.loc[:, "NumSTRsWithSameCanonicalMotif"] = df.groupby('CanonicalMotif')['CanonicalMotif'].transform('count')
     df.loc[:, "NumSTRsWithSameMotifSize"] = df.groupby('MotifSize')['MotifSize'].transform('count')
     df.loc[:, "MotifLabels"] = df.apply(lambda r: compute_motif_labels(r, existing_motif_labels=existing_motif_labels, min_fraction_of_motifs_with_same_length=0.07), axis=1)
@@ -91,6 +92,8 @@ def main():
     p = argparse.ArgumentParser()
     p.add_argument("--output-dir", default=".")
     p.add_argument("--ref-dir", default="../ref")
+
+    p.add_argument("--include-homopolymers", action="store_true", help="Include homopolymers")
 
     g = p.add_mutually_exclusive_group()
     g.add_argument("--only-pure-repeats", action="store_true", help="Only plot pure repeats")
@@ -115,11 +118,15 @@ def main():
     with gzip.open(input_bed_path, "rt") as f:
         for line in tqdm.tqdm(f, unit=" lines", unit_scale=True):
             fields = line.strip().split("\t")
+            motif = fields[3]
+            if len(motif) == 1 and not args.include_homopolymers:
+                continue
+
             rows.append({
                 "chrom": fields[0],
                 "start_0based": int(fields[1]),
                 "end": int(fields[2]),
-                "Motif": fields[3],
+                "Motif": motif,
                 "num_repeats": float(fields[4]),
                 "MotifSize": len(fields[3]),
                 "CanonicalMotif": compute_canonical_motif(fields[3], include_reverse_complement=True),
@@ -140,6 +147,11 @@ def main():
 
     image_name = "motif_distribution"
     df = pd.read_table(args.truth_set_alleles_table)
+    if not args.include_homopolymers:
+        df = df[df["MotifSize"] > 1]
+    else:
+        image_name += ".including_homopolymers"
+
     if args.only_pure_repeats:
         df = df[df["IsPureRepeat"]]
         print(f"Plotting motifs from {len(df):,d} pure truth set loci")
