@@ -23,6 +23,10 @@ def plot_allele_size_distribution(df_truth_set, args, min_motif_size=None, max_m
     if max_motif_size:
         df_truth_set = df_truth_set[df_truth_set.MotifSize <= max_motif_size]
 
+    if len(df_truth_set) == 0:
+        print(f"Table is empty for motif size range {min_motif_size}-{max_motif_size}. Skipping...")
+        return
+
     if plot_type == 1:
         x_column = "NumRepeatsAwayFromReference"
         xlabel = "Allele Size (# of Repeats)"
@@ -162,6 +166,10 @@ def plot_allele_size_and_motif_distribution(df_truth_set, args, min_motif_size=N
         df_truth_set = df_truth_set[df_truth_set.MotifSize >= min_motif_size]
     if max_motif_size:
         df_truth_set = df_truth_set[df_truth_set.MotifSize <= max_motif_size]
+
+    if len(df_truth_set) == 0:
+        print(f"Table is empty for motif size range {min_motif_size}-{max_motif_size}. Skipping...")
+        return
 
     figure_title = "Allele Size Distribution"
     if color_by == "Multiallelic":
@@ -494,6 +502,10 @@ def plot_distribution_of_reference_locus_sizes(df, args, min_motif_size=None, ma
             label = f"{min_motif_size} to {max_motif_size}bp motifs"
     else:
         label = ""
+
+    if len(df) == 0:
+        print(f"Table is empty for motif size range {min_motif_size}-{max_motif_size}. Skipping...")
+        return
 
     hue_limit = 5
     df.loc[:, "NumRepeatsAwayFromReferenceTruncated"] = df["NumRepeatsAwayFromReference"]

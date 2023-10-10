@@ -35,6 +35,7 @@ def plot_gene_constraint(df, args):
     else:
         extra_artists = []
 
+    df.index = range(len(df))
     y_axis_order = [key for key in sorted(Y_AXIS_ORDER, key=Y_AXIS_ORDER.get)]
     for column_i, (x_column, ax) in enumerate(zip([
         'pLI',
@@ -231,6 +232,8 @@ def main():
     truth_set_df.loc[:, 'TR Allele Size (bp)'] = truth_set_df.NumRepeatsDiffFromReference * truth_set_df.MotifSize
     truthset_with_constraint_df = truth_set_df.join(constraint_df, how="inner")
 
+    truthset_with_constraint_df = truthset_with_constraint_df.reset_index()
+    truthset_with_constraint_df.index = range(len(truthset_with_constraint_df))
     plot_str_variant_size_vs_gene_constraint(truthset_with_constraint_df, args)
 
     print("---")
