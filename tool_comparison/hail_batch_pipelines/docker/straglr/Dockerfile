@@ -1,0 +1,48 @@
+FROM python:3.9-slim-bullseye
+
+RUN apt update && apt-get install --no-install-recommends -y \
+    ca-certificates \
+    pkg-config \
+    dpkg-dev \
+    build-essential \
+    libssl-dev \
+    libncurses5-dev \
+    libcurl4-openssl-dev \
+    libbz2-dev \
+    liblzma-dev \
+    zlib1g-dev \
+    gcc \
+    g++ \
+    autoconf \
+    make \
+    unzip \
+    bzip2 \
+    procps \
+    curl \
+    wget \
+    git \
+    jq \
+    time
+
+ENV SAMTOOLS_VERSION="1.17"
+RUN wget https://github.com/samtools/htslib/releases/download/${SAMTOOLS_VERSION}/htslib-${SAMTOOLS_VERSION}.tar.bz2 \
+    && tar xjf htslib-${SAMTOOLS_VERSION}.tar.bz2 \
+    && rm htslib-${SAMTOOLS_VERSION}.tar.bz2 \
+    && cd htslib-${SAMTOOLS_VERSION} \
+    && ./configure \
+    && make \
+    && make install \
+    && make clean
+
+RUN wget -q https://github.com/samtools/samtools/releases/download/${SAMTOOLS_VERSION}/samtools-${SAMTOOLS_VERSION}.tar.bz2 \
+    && tar xjf samtools-${SAMTOOLS_VERSION}.tar.bz2 \
+    && rm samtools-${SAMTOOLS_VERSION}.tar.bz2 \
+    && cd samtools-${SAMTOOLS_VERSION} \
+    && ./configure \
+    && make \
+    && make install \
+    && make clean
+
+RUN python3 -m pip install git+https://github.com/bcgsc/straglr.git@v1.4.1#egg=straglr
+
+ENTRYPOINT ["/bin/bash"]

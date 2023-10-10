@@ -1,0 +1,1 @@
+FROM mgymrek/advntr:latest
