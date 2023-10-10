@@ -16,3 +16,10 @@ After cloning this repo, see:
 ```
 This script runs all the steps for creating the truth set, launching downstream analyses, and generating the tables & figures for the paper.
 
+
+---
+### Tool comparisons
+
+Results from benchmarking widely-used STR callers using this truth set:
+
+https://broadinstitute.github.io/str-truth-set/html/tool_comparison_viewer.html
