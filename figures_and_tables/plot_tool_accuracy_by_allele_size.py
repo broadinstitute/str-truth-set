@@ -139,8 +139,10 @@ def plot_accuracy_by_allele_size(
 
         ax.set_xlabel("True Allele Size Minus Number of Repeats in Reference Genome", fontsize=14)
         if i == 0:
-            ax.spines.right.set_visible(False)
-            ax.spines.top.set_visible(False)
+            if hasattr(ax.spines, 'right'):
+                ax.spines.right.set_visible(False)
+            if hasattr(ax.spines, 'top'):
+                ax.spines.top.set_visible(False)
             ax.set_ylabel("Number of Alleles", fontsize=14)
         else:
             ax.set_ylabel("Fraction of Alleles", fontsize=14)
@@ -359,6 +361,9 @@ def generate_all_plots(df, args):
 
                                     output_image_filename += f".{tool}"
 
+                                    if args.compare_loci_with_adjacent_repeats:
+                                        output_image_filename += f".loci_with_{df_plot.iloc[0].AdjacentLociLabel}"
+
                                     coverage_label = f"exome data" if coverage == "exome" else f"{coverage} genome data"
 
                                     # skip_condition1: HipSTR doesn't support motifs larger than 9bp
@@ -478,13 +483,17 @@ def main():
     g2.add_argument("--show-no-call-loci", action="store_true", help="Show loci with no call")
     g2.add_argument("--hide-no-call-loci", action="store_true", help="Hide loci with no call")
 
+    p.add_argument("--compare-loci-with-adjacent-repeats", action="store_true",
+                   help="Generate plots for loci with vs. without adjacent repeats")
+
     p.add_argument("combined_tool_results_tsv", nargs="?", default="../tool_comparison/combined.results.alleles.tsv.gz")
     args = p.parse_args()
 
     # print command line args from argparse
-    print("Command line args:")
-    for arg in vars(args):
-        print(f"{arg}: {getattr(args, arg)}")
+    if not args.compare_loci_with_adjacent_repeats:
+        print("Command line args:")
+        for arg in vars(args):
+            print(f"{arg}: {getattr(args, arg)}")
 
     if args.only_print_total_number_of_plots:
         df = pd.DataFrame()
@@ -501,14 +510,45 @@ def main():
 
     print("Computing additional columns...")
     df.loc[:, "DiffFromRefRepeats: Allele: Truth (bin)"] = df.apply(bin_num_repeats_wrapper(bin_size=2), axis=1)
-    for tool in ("ExpansionHunter", "GangSTR", "HipSTR",):
-        define_hue_column(df, tool)
-
     df = df.sort_values("DiffFromRefRepeats: Allele: Truth")
 
     print(f"Generating {str(args.n) + ' ' if args.n else ''}plots",
           f"starting with plot #{args.start_with_plot_i}" if args.start_with_plot_i else "")
-    generate_all_plots(df, args)
+
+    if not args.compare_loci_with_adjacent_repeats:
+        for tool in ("ExpansionHunter", "GangSTR", "HipSTR",):
+            define_hue_column(df, tool)
+
+
+        generate_all_plots(df, args)
+
+    else:
+        define_hue_column(df, "ExpansionHunter")
+
+        locus_ids_with_adjacent_repeats = set(df[df["AdjacentRepeatCount: ExpansionHunter"] >= 1].LocusId)
+
+        for i in 1, 2:
+            args.tool = "ExpansionHunter"
+            args.coverage = "40x"
+            args.q_threshold = 0
+            args.genotype = "all"
+            args.min_motif_size = 2
+            args.max_motif_size = 6
+            args.show_no_call_loci_option = True
+
+            args.output_dir = f"loci_with_adjacent_repeats"
+            os.system(f"mkdir -p {args.output_dir}")
+
+            if i == 1:
+                current_df = df[df["AdjacentLociLabel"] == "no_adjacent_loci"]
+                print(f"Generating plot for {len(set(current_df.LocusId)):,d} loci with no adjacent loci")
+            elif i == 2:
+                current_df = df[df["AdjacentLociLabel"] == "max_dist_10bp"]
+                print(f"Generating plot for {len(set(current_df.LocusId)):,d} loci with adjacent loci within 10bp")
+
+            current_df = current_df[current_df.LocusId.isin(locus_ids_with_adjacent_repeats)]
+
+            generate_all_plots(current_df, args)
 
     print(f"Done")
 

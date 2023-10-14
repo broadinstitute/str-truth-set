@@ -18,6 +18,20 @@ suffix=with_overlap_columns
 python3 -u scripts/compute_overlap_with_other_catalogs.py --all-repeats --all-motifs ${negative_loci_bed_path}  ${output_prefix}.${suffix}.tsv.gz
 mv ${output_prefix}.${suffix}.tsv.gz  ${output_prefix}.tsv.gz
 
+# compute catalogs with adjacent loci
+for max_dist in 10 24 50; do 
+    mkdir -p tool_comparison/variant_catalogs/expansion_hunter_with_adjacent_loci__max_dist_${max_dist}bp
+    for positive_or_negative in "positive" "negative"; do
+	python3 -u -m str_analysis.add_adjacent_loci_to_expansion_hunter_catalog tool_comparison/variant_catalogs/expansion_hunter/${positive_or_negative}*.json \
+		            --ref-fasta ./ref/hg38.fa \
+		            --add-extra-fields -d ${max_dist} \
+		            --source-of-adjacent-loci ./ref/other/repeat_specs_GRCh38_without_mismatches.including_homopolymers.sorted.at_least_9bp.bed.gz \
+		            --output-dir ./tool_comparison/variant_catalogs/expansion_hunter_with_adjacent_loci__max_dist_${max_dist}bp/ &
+    done
+    
+    wait
+done
+
 suffix=with_gencode_v42_columns
 python3 -u scripts/compute_overlap_with_gene_models.py ./ref/other/gencode.v42.annotation.sorted.gtf.gz  ${output_prefix}.tsv.gz  ${output_prefix}.${suffix}.tsv.gz
 mv ${output_prefix}.${suffix}.tsv.gz  ${output_prefix}.tsv.gz
@@ -29,9 +43,10 @@ mv ${output_prefix}.${suffix}.tsv.gz  ${output_prefix}.tsv.gz
 # upload catalogs to bucket
 gsutil -q -m cp tool_comparison/variant_catalogs/positive_loci.bed.gz* tool_comparison/variant_catalogs/negative_loci.bed.gz* gs://str-truth-set/hg38/
 
-gsutil -q -m cp -r tool_comparison/variant_catalogs/expansion_hunter  gs://str-truth-set/hg38/variant_catalogs/
-gsutil -q -m cp -r tool_comparison/variant_catalogs/gangstr           gs://str-truth-set/hg38/variant_catalogs/
-gsutil -q -m cp -r tool_comparison/variant_catalogs/hipstr            gs://str-truth-set/hg38/variant_catalogs/
+gsutil -q -m cp -r tool_comparison/variant_catalogs/expansion_hunter   gs://str-truth-set/hg38/variant_catalogs/
+gsutil -q -m cp -r tool_comparison/variant_catalogs/gangstr            gs://str-truth-set/hg38/variant_catalogs/
+gsutil -q -m cp -r tool_comparison/variant_catalogs/hipstr             gs://str-truth-set/hg38/variant_catalogs/
+gsutil -q -m cp -r tool_comparison/variant_catalogs/expansion_hunter_with_adjacent_loci*   gs://str-truth-set/hg38/variant_catalogs/
 
 
 set +x
