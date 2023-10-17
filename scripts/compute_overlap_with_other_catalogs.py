@@ -19,6 +19,7 @@ OTHER_STR_CATALOGS = {
     "GangSTRCatalog17": "./ref/other/hg38_ver17.adjusted.bed.gz",
     "GangSTRCatalog13": "./ref/other/hg38_ver13.adjusted.bed.gz",
     "HipSTRCatalog": "./ref/other/hg38.hipstr_reference.adjusted.bed.gz",
+    "PopSTRCatalog": "./ref/other/popstr_catalog_v2.bed.gz",
     "KnownDiseaseAssociatedSTRs": "./ref/other/known_disease_associated_STR_loci.GRCh38.bed.gz",
 
     "TRFPureRepeats15bp": "./ref/other/repeat_specs_GRCh38_without_mismatches.sorted.trimmed.at_least_15bp.bed.gz",
@@ -269,7 +270,7 @@ def main():
     g = p.add_mutually_exclusive_group(required=True)
     g.add_argument("--only-2to6bp-motifs", action="store_true", help="Only include motifs of size 2 to 6bp.")
     g.add_argument("--only-2to24bp-motifs", action="store_true", help="Only include motifs of size 2 to 24bp.")
-    g.add_argument("--all-motifs", action="store_true", help="Include both pure and interrupted repeats.")
+    g.add_argument("--all-motifs", action="store_true", help="Include motifs of all sizes.")
 
     p.add_argument("-c", "--catalog", action="append", choices=list(OTHER_STR_CATALOGS) + list(GENOMIC_REGIONS),
                    help="The name of the genomic region or catalog to check overlap with. This option can be specified "
