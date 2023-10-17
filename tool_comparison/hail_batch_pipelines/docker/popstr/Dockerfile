@@ -38,5 +38,7 @@ RUN apt-get install libboost-all-dev --no-install-recommends -y \
 	&& chmod 777 ./install.sh ./setUp.sh \
 	&& ./install.sh
 
+RUN cd /popSTR-2.0/ \
+	&& tar xzf kernel.tar.gz
 
 ENTRYPOINT ["/bin/bash"]
