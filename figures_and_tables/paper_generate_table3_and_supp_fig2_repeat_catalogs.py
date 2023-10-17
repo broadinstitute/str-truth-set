@@ -55,7 +55,7 @@ def compute_catalog_comparison_table(args):
     table_rows = []
     for label, catalog_path, locus_spans_min_base_pairs in catalog_paths:
         catalog_size = pybedtools.BedTool(catalog_path).count()
-        hompolymer_count = 0
+        homopolymer_count = 0
         min_motif_size = 10**9
         max_motif_size = 0
         #if "new" not in label.lower():
@@ -64,7 +64,7 @@ def compute_catalog_comparison_table(args):
                 fields = line.strip().split("\t")
                 name = fields[3].strip("()*")
                 if len(name) == 1:
-                    hompolymer_count += 1
+                    homopolymer_count += 1
                 min_motif_size = min(min_motif_size, len(name))
                 max_motif_size = max(max_motif_size, len(name))
 
@@ -74,13 +74,13 @@ def compute_catalog_comparison_table(args):
         num_loci_missed_by_catalog = pybedtools.BedTool(truth_set_tmp_path).subtract(catalog_path, A=True).count()
 
         print(f"{num_loci_missed_by_catalog:,d} out of {total_loci_in_truth_set:,d} ({num_loci_missed_by_catalog / total_loci_in_truth_set:.1%}) "
-              f"loci missed by {label} which contains {catalog_size:,d} loci. {hompolymer_count/catalog_size:.1%} of loci in {label} are homopolymers.")
+              f"loci missed by {label} which contains {catalog_size:,d} loci. {homopolymer_count/catalog_size:.1%} of loci in {label} are homopolymers.")
 
         table_rows.append({
             "catalog_long_name": label + (" (loci spanning at least %dbp)" % locus_spans_min_base_pairs if locus_spans_min_base_pairs else ""),
             "catalog": label,
             "catalog_size": catalog_size,
-            "homopolymer_loci_in_catalogs": hompolymer_count,
+            "homopolymer_loci_in_catalogs": homopolymer_count,
             "min_motif_size": str(min_motif_size),
             "max_motif_size": str(max_motif_size),
             "num_loci_missed_by_catalog": num_loci_missed_by_catalog,
