@@ -26,6 +26,8 @@ def main():
     parser_group = parser.add_mutually_exclusive_group(required=True)
     parser_group.add_argument("--positive-loci", action="store_true", help="Genotype truth set loci")
     parser_group.add_argument("--negative-loci", action="store_true", help="Genotype negative (hom-ref) loci")
+    parser_group.add_argument("--variant-catalog", action="append", help="Path of variant catalog json file(s) to process")
+
     parser.add_argument("--use-illumina-expansion-hunter", action="store_true", help="Go back to using the Illumina "
          "version of ExpansionHunter instead of the optimized version from https://github.com/bw2/ExpansionHunter.git")
     parser.add_argument("--loci-to-exclude", action="append", help="Path of a file containing locus ids (one per line) "
@@ -34,6 +36,8 @@ def main():
         "ExpansionHunter to exit with the error message 'Flanks can contain at most 5 characters N but found x Ns.'")
     parser.add_argument("--reference-fasta", default=REFERENCE_FASTA_PATH)
     parser.add_argument("--reference-fasta-fai", default=REFERENCE_FASTA_FAI_PATH)
+    parser.add_argument("--use-streaming-mode", action="store_true", help="Run ExpansionHunter with "
+        "--analysis-mode streaming. This uses ~100Gb of RAM, but can process all loci at once.")
     parser.add_argument("--input-bam", default=CHM1_CHM13_CRAM_PATH)
     parser.add_argument("--input-bai", default=CHM1_CHM13_CRAI_PATH)
     parser.add_argument("--min-locus-coverage", type=int, help="Sets ExpansionHunter's --min-locus-coverage arg")
@@ -43,11 +47,18 @@ def main():
     args = bp.parse_known_args()
 
     if args.positive_loci:
-        variant_catalog_paths = VARIANT_CATALOG_POSITIVE_LOCI
         positive_or_negative_loci = "positive_loci"
+        variant_catalog_file_stats_list = hl.hadoop_ls(VARIANT_CATALOG_POSITIVE_LOCI)
+        if len(variant_catalog_file_stats_list) == 0:
+            raise ValueError(f"No files found matching {VARIANT_CATALOG_POSITIVE_LOCI}")
     elif args.negative_loci:
-        variant_catalog_paths = VARIANT_CATALOG_NEGATIVE_LOCI
         positive_or_negative_loci = "negative_loci"
+        variant_catalog_file_stats_list = hl.hadoop_ls(VARIANT_CATALOG_NEGATIVE_LOCI)
+        if len(variant_catalog_file_stats_list) == 0:
+            raise ValueError(f"No files found matching {VARIANT_CATALOG_NEGATIVE_LOCI}")
+    elif args.variant_catalog:
+        positive_or_negative_loci = os.path.basename(args.variant_catalog[0]).replace(".json", "")
+        variant_catalog_file_stats_list = [{"path": path} for path in args.variant_catalog]
     else:
         parser.error("Must specify either --positive-loci or --negative-loci")
 
@@ -81,18 +92,32 @@ def main():
 
     step1s = []
     step1_output_json_paths = []
-    variant_catalog_file_stats_list = hl.hadoop_ls(variant_catalog_paths)
-    if len(variant_catalog_file_stats_list) == 0:
-        raise ValueError(f"No files found matching {variant_catalog_paths}")
-
     for catalog_i, variant_catalog_file_stats in enumerate(variant_catalog_file_stats_list):
         variant_catalog_path = variant_catalog_file_stats["path"]
 
         if args.n and catalog_i >= args.n:
             break
 
-        s1 = bp.new_step(
-            f"Run EHv5 #{catalog_i}", arg_suffix=f"eh", step_number=1, image=DOCKER_IMAGE, cpu=2, storage="75Gi")
+        if not args.use_streaming_mode:
+            s1 = bp.new_step(
+                f"Run EHv5 #{catalog_i}",
+                arg_suffix=f"eh",
+                step_number=1,
+                image=DOCKER_IMAGE,
+                cpu=2,
+                storage="120Gi")
+        else:
+            s1 = bp.new_step(
+                f"Run EHv5 #{catalog_i}",
+                arg_suffix=f"eh",
+                step_number=1,
+                image=DOCKER_IMAGE,
+                cpu=16,
+                memory="highmem",
+                #custom_machine_type="n1-highmem-32",
+                #custom_machine_is_preemptible=True,
+                storage="75Gi")
+
         step1s.append(s1)
 
         local_fasta = s1.input(args.reference_fasta)
@@ -121,11 +146,21 @@ def main():
         output_prefix = re.sub(".json$", "", local_variant_catalog.filename)
         s1.command(f"echo Genotyping $(cat {local_variant_catalog_path} | grep LocusId | wc -l) loci")
 
-        s1.command(f"""/usr/bin/time --verbose {tool_exec} {cache_mates_arg} {min_locus_coverage_arg} \
-            --reference {local_fasta} \
-            --reads {local_bam} \
-            --variant-catalog {local_variant_catalog_path} \
-            --output-prefix {output_prefix}""")
+        if not args.use_streaming_mode:
+            s1.command(f"""/usr/bin/time --verbose {tool_exec} {cache_mates_arg} {min_locus_coverage_arg} \
+                --reference {local_fasta} \
+                --reads {local_bam} \
+                --variant-catalog {local_variant_catalog_path} \
+                --output-prefix {output_prefix}""")
+        else:
+            s1.command(f"""/usr/bin/time --verbose {tool_exec} {min_locus_coverage_arg} \
+                --reference {local_fasta} \
+                --reads {local_bam} \
+                --variant-catalog {local_variant_catalog_path} \
+                --analysis-mode streaming \
+                --threads 16 \
+                --output-prefix {output_prefix}""")
+
         s1.command("ls -lhrt")
 
         s1.output(f"{output_prefix}.json", output_dir=os.path.join(output_dir, f"json"))
@@ -153,7 +188,12 @@ def main():
 
     # step2: combine json files
     if not args.n or args.force:
-        s2 = bp.new_step(name="Combine EHv5 outputs", step_number=2, image=DOCKER_IMAGE, storage="20Gi", cpu=1,
+        s2 = bp.new_step(name="Combine EHv5 outputs",
+                         step_number=2,
+                         image=DOCKER_IMAGE,
+                         cpu=1,
+                         memory="highmem",
+                         storage="20Gi",
                          output_dir=output_dir)
 
         for step1 in step1s:
@@ -176,7 +216,7 @@ def main():
         s2.output(f"{output_prefix}.{len(step1_output_json_paths)}_json_files.alleles.tsv.gz")
         s2.output(f"{output_prefix}.{len(step1_output_json_paths)}_json_files.bed.gz")
         s2.output(f"{output_prefix}.{len(step1_output_json_paths)}_json_files.bed.gz.tbi")
-        bp.run()
+    bp.run()
 
 
 if __name__ == "__main__":
