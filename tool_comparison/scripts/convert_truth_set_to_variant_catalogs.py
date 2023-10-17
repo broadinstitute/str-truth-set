@@ -5,10 +5,12 @@ number of loci from other places in the genome to use as true-negatives.
 
 import argparse
 import collections
+import gzip
 import json
 import os
 import pandas as pd
 import pybedtools
+import pyfaidx
 import random
 import re
 
@@ -24,6 +26,7 @@ MIN_DISTANCE_TO_INDELS_AROUND_NEGATIVE_LOCI = 100  # base pairs
 
 def parse_args():
     p = argparse.ArgumentParser()
+    p.add_argument("-R", "--ref-fasta", help="Reference fasta path")
     p.add_argument("--expansion-hunter-loci-per-run", type=int, default=500, help="ExpansionHunter batch size. "
                    "The set of all STR loci in the truth set will be split into variant catalogs of this size.")
     p.add_argument("--gangstr-loci-per-run", type=int, default=10000, help="GangSTR batch size. "
@@ -37,25 +40,36 @@ def parse_args():
     p.add_argument("--all-hg38-repeats-bed", default="./ref/other/repeat_specs_GRCh38_without_mismatches.sorted.trimmed.at_least_9bp.bed.gz",
                    help="Path of bed file containing all repeats in the reference genome generated using a tool like "
                         "TandemRepeatFinder")
-    p.add_argument("--skip-eh-catalog", action="store_true", help="Skip generating an ExpansionHunter catalog")
-    p.add_argument("--skip-gangstr-catalog", action="store_true", help="Skip generating a GangSTR catalog")
-    p.add_argument("--skip-hipstr-catalog", action="store_true", help="Skip generating a HipSTR catalog")
+    p.add_argument("--only", choices=["eh", "gangstr", "hipstr", "popstr"], action="append",
+                   help="Only generate catalogs for the specified tool(s)")
+    p.add_argument("--skip-eh", action="store_true", help="Skip generating an ExpansionHunter catalog")
+    p.add_argument("--skip-gangstr", action="store_true", help="Skip generating a GangSTR catalog")
+    p.add_argument("--skip-hipstr", action="store_true", help="Skip generating a HipSTR catalog")
+    p.add_argument("--skip-popstr", action="store_true", help="Skip generating a popSTR catalog")
     p.add_argument("--output-dir", default="./tool_comparison/variant_catalogs/", help="Directory where to write output files")
     p.add_argument("truth_set_variants_tsv_or_bed_path", nargs="?", default="STR_truth_set.v1.variants.tsv",
                    help="Path of the STR truth set .variants.tsv or of an arbitrary bed file")
     args = p.parse_args()
 
-    for i, path in enumerate([
-        args.truth_set_variants_tsv_or_bed_path,
+    print("Args:")
+    for i, (label, path) in enumerate([
+        ("truth set variants", args.truth_set_variants_tsv_or_bed_path),
     ] + ([] if not args.output_negative_loci else [
-        args.high_confidence_regions_bed,
-        args.all_indels_vcf,
-        args.truth_set_bed,
-        args.all_hg38_repeats_bed,
+        ("--high-confidence-regions-bed", args.high_confidence_regions_bed),
+        ("--all-indels-vcf", args.all_indels_vcf),
+        ("--truth-set-bed", args.truth_set_bed),
+        ("--all-hg38-repeats-bed", args.all_hg38_repeats_bed),
     ])):
         if path and not os.path.isfile(path):
             p.error(f"{path} not found")
-        print(f"Input: {path}")
+        print(f"{label:>30s}: {path}")
+
+    if not args.skip_popstr and (not args.only or "popstr" in args.only):
+        if args.ref_fasta is None:
+            p.error("--ref-fasta must be set to write popSTR catalogs")
+        if not os.path.isfile(args.ref_fasta):
+            p.error(f"{args.ref_fasta} not found")
+
     return args
 
 
@@ -184,6 +198,76 @@ def write_expansion_hunter_variant_catalogs(locus_set, output_path_prefix, loci_
     print(f"Wrote {len(batches):,d} ExpansionHunter variant catalogs to {output_path_prefix}*.json")
 
 
+def compute_repeat_purity(ref_sequence, pure_sequence):
+    if len(ref_sequence) != len(pure_sequence):
+        raise ValueError(f"ref_sequence and pure_sequence must be the same length: "
+                         f"{len(ref_sequence)} != {len(pure_sequence)}: {ref_sequence} vs {pure_sequence}")
+
+    match_counter = sum(1 for a, b in zip(ref_sequence, pure_sequence) if a.upper() == b.upper())
+    return match_counter / len(ref_sequence)
+
+
+def write_popstr_catalogs(locus_set, fasta_obj, output_path_prefix):
+    """Example row from a popSTR markerInfo file:
+$1                     chrom : chr22
+$2           startCoordinate : 10517060  (1-based)
+$3             endCoordinate : 10517070
+$4               repeatMotif : ATGAG
+$5         numOfRepeatsInRef : 2.2
+$6   1000refBasesBeforeStart : AAAAGTCCATCATCAAATGAACAGATGAAGAAAATATGGTATATGTGTGTGTGTGTATATATATATATGTATGGTATATATATGTATGGTGTATATATATATATATGTATGATATATATAGTATGGCATATATATGTATGGTGTATATATATGGTATATTTATGTGTATATATATGTATATATGTATATATATGTATATATACATACACACACAGAATGGAATATTAGTCAGCCTTCAAAAGGAAAATTCTGTCGTATTTCAACATGTATCAAGCTTAAGGATATTGTGCTAAGTGAAATAAGCCAGACACAAAGACAAATATATCGTGATTCCATTTATATGATGTATTGAAAGTAGCCAAACACATGGAAACACAAGATAAAATGGTAGTGGTCAGGGCCTGGAGGAAACAGGAAATCTGGAGTTGCTGTTCACCAGGTGTAGAGTTTCAGTCAAGCAAGATAAAAACATTCTAGATTTCTGCTGTACAACAATGTGTATATCATTAACAAAATGTTCTGCAAACTTAAAATTTTGTTAAGATGGTAGATTTTTTTGTTATGTGTTTTTTAATTACAAAAATTTCTGTCTGTATTTAGTTTACATTTTAGTAAGAAAAGACAAATAACCTAATAAATGGTAATGATAAATGCTGTAAGGATATCTAGAGCAATAAAAGAAGTTATGGATATGGGAGTATAATTTTAGATAGTGAAGATTTCTGTATTCAAATGCCACATGCAAAAAGGACTAAGGGGAATGAGGAGATGAGTCATATGGAATGCCCAAGACACAGAAAAAGGCAGGCAGAGAAAATAACAAGGATAAAGACACTGAAGTAAAATCATGCTTTCTATGTTTCAAAACAGCAGCAAGTACACTACTGTGATAGAGCAGGAGTGACCAATGGGAGGCTGGAGATTTTGTCAGAGATATTGTCAAGGCTCAGGATCGTACAGGGACTTGTAAGCCTGGAAAGCACTTTGAATTTTATTCAGA
+$7      1000refBasesAfterEnd : AGCCATTGAAAAGTTTTTAAGCAGATGAGTAAAATAATCCACCTTGTATTTTAAGAGGAGCATTCTACCTTCTCTGTGGAATAGAGAGGTGGAAGGGAAAGCTTGAAGCAGAGAGAGCAGTGAAGAGTGTGCTGTAATATTCTTATGTGAGAAATAGTGGAGGGAATGAGAGGTGGTCAGCCTTAAACTGCCATTTGCTCTCTGTATCAGGGCTCAGGGACTTTCAGACTCTCCAGGGATTCCTTACAGTTTTTACATTTGTTTCTCAGTTGCAAACATAATCTCTTCACTCTATGAGAACTCTAGATCTGAATCCTTGTTATGAGTCAGGAGTCCTCTCTAGTTTACTCTCTTGTCAGTAACTAGACTTGAAATGTTTTGATATTAATTGATATAGTAATAAGATTGGTTAGAGAAATAGCAAAGAGAGAGCATCCCCATCCTATGACCATATCAGCACCAGAAGAGAAAAACACATCTACACAGTTTTTCCCTTGGCATAGGTCCTGGTATTCTGTTAGGGAACAGGTTATGAAGGAAATACAAAGGGTCTTTGTACTTACTTTCAGAATGTATTTTCTTTAACATGAAAAGAATCCAAGGCCTTTTTGCTTCTAATTGCTTTTTGTGTATCTACTACCATCCCTTGCTAAATTATTGATAGGTTTCCTCAAATCTCGGCATGATGTCCTACATTCTAAATTTTCAATAGCTGAAAATTTCACCTTTTCAGTGCCTTCAAGTTTATCTCAGTAAAAAGTTGAGAAAGACTGTAATAGAGTTATTTAATCAGATTTTTTTCATCTACCATAATTTTTGAATAAGGAAAAACAGCAATACTTTTTCTCCTTACTTGGCAAGTAATTTTCATAGAGAGGAAAAAAACAATCAAAACAGGTACAAAATGTAACAAAACCAAAGGACCATGTGAGGTGAAATTTAAAATGAGAAAAATGTCCACAGTACTTTGGGCAATGCAACTCCTGAGAAATAGTAACTC
+$8          repeatSeqFromRef : ATGAGATGAGA
+$9              minFlankLeft : 4
+$10            minFlankRight : 4
+$11             repeatPurity : 1.00
+$12          defaultSlippage : 0.017275
+$13           defaultStutter : 0.946913
+$14         fractionAinMotif : 0.4
+$15         fractionCinMotif : 0
+$16         fractionGinMotif : 0.4
+$17         fractionTinMotif : 0.2
+    """
+    f = None
+    previous_chrom = None
+    for chrom, start_0based, end_1based, motif in sorted(locus_set):
+        if not chrom.startswith("chr"):
+            chrom = f"chr{chrom}"
+
+        if chrom != previous_chrom:
+            previous_chrom = chrom
+            output_path = f"{output_path_prefix}.{chrom}.markerInfo.gz"
+            if f is not None:
+                f.close()
+            f = gzip.open(output_path, "wt")
+            print(f"Writing to {output_path}")
+
+        repeat_seq_from_ref = fasta_obj[chrom][start_0based : end_1based]
+        num_repeats_in_ref = len(repeat_seq_from_ref) / len(motif)
+        pure_repeat_seq = motif * int(num_repeats_in_ref + 1)
+        f.write(" ".join(map(str, [
+            chrom,                  # chrom
+            str(start_0based + 1),  # startCoordinate
+            str(end_1based),        # endCoordinate
+            motif,                  # repeatMotif
+            "%0.1f" % num_repeats_in_ref,                            # numOfRepeatsInRef
+            fasta_obj[chrom][start_0based - 1000 : start_0based],   # 1000refBasesBeforeStart
+            fasta_obj[chrom][end_1based : end_1based + 1000],       # 1000refBasesAfterEnd
+            repeat_seq_from_ref,                                    # repeatSeqFromRef
+            4,     # minFlankLeft
+            4,     # minFlankRight
+            compute_repeat_purity(repeat_seq_from_ref, pure_repeat_seq[:len(repeat_seq_from_ref)]),  # repeatPurity
+            0.02,  # defaultSlippage
+            0.95,  # defaultStutter
+            "%0.1f" % (motif.upper().count("A") / len(motif)),  # fractionAinMotif
+            "%0.1f" % (motif.upper().count("C") / len(motif)),  # fractionCinMotif
+            "%0.1f" % (motif.upper().count("G") / len(motif)),  # fractionGinMotif
+            "%0.1f" % (motif.upper().count("T") / len(motif)),  # fractionTinMotif
+        ])) + "\n")
+
+    if f is not None:
+        f.close()
+
+
 def write_gangstr_or_hipstr_repeat_specs(locus_set, output_path_prefix, gangstr=False, hipstr=False, loci_per_run=None):
     locus_list = list(locus_set)
 
@@ -275,10 +359,12 @@ def main():
 
     # Generate variant catalogs
     subdirs_to_create = []
-    if not args.skip_eh_catalog:       subdirs_to_create.append("expansion_hunter")
-    if not args.skip_gangstr_catalog:  subdirs_to_create.append("gangstr")
-    if not args.skip_hipstr_catalog:   subdirs_to_create.append("hipstr")
+    if not args.skip_eh and (not args.only or "eh" in args.only): subdirs_to_create.append("expansion_hunter")
+    if not args.skip_gangstr and (not args.only or "gangstr" in args.only): subdirs_to_create.append("gangstr")
+    if not args.skip_hipstr and (not args.only or "hipstr" in args.only):   subdirs_to_create.append("hipstr")
+    if not args.skip_popstr and (not args.only or "popstr" in args.only):   subdirs_to_create.append("popstr")
 
+    fasta_obj = None
     output_dir = args.output_dir
     for label, locus_set in locus_sets:
         for subdir in subdirs_to_create:
@@ -287,18 +373,25 @@ def main():
                 print(f"Creating directory {subdir_path}")
                 os.makedirs(subdir_path)
 
-        if not args.skip_eh_catalog:
+        if not args.skip_eh and (not args.only or "eh" in args.only):
             write_expansion_hunter_variant_catalogs(locus_set,
                 os.path.join(output_dir, f"expansion_hunter/{label}_loci.EHv5"),
                 loci_per_run=args.expansion_hunter_loci_per_run)
-        if not args.skip_gangstr_catalog:
+        if not args.skip_gangstr and (not args.only or "gangstr" in args.only):
             write_gangstr_or_hipstr_repeat_specs(locus_set,
                  os.path.join(output_dir, f"gangstr/{label}_loci.GangSTR"),
                  gangstr=True, loci_per_run=args.gangstr_loci_per_run)
-        if not args.skip_hipstr_catalog:
+        if not args.skip_hipstr and (not args.only or "hipstr" in args.only):
             write_gangstr_or_hipstr_repeat_specs(locus_set,
                  os.path.join(output_dir, f"hipstr/{label}_loci.HipSTR"),
                  hipstr=True, loci_per_run=args.gangstr_loci_per_run)
+        if not args.skip_popstr and (not args.only or "popstr" in args.only):
+            if fasta_obj is None:
+                fasta_obj = pyfaidx.Fasta(args.ref_fasta, one_based_attributes=False, as_raw=True, sequence_always_upper=True)
+
+            write_popstr_catalogs(locus_set, fasta_obj,
+                 os.path.join(output_dir, f"popstr/{label}_loci.popSTR"))
+
         write_bed_files(locus_set, os.path.join(output_dir, f"{label}_loci.bed"))
 
     # Make sure positive regions and negative regions don't overlap.
