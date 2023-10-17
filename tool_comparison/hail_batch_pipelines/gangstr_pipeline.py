@@ -26,6 +26,8 @@ def main():
     parser_group = parser.add_mutually_exclusive_group(required=True)
     parser_group.add_argument("--positive-loci", action="store_true", help="Genotype truth set loci")
     parser_group.add_argument("--negative-loci", action="store_true", help="Genotype negative (hom-ref) loci")
+    parser_group.add_argument("--repeat-specs", action="append", help="Path of repeat spec bed file(s) to process")
+
     parser.add_argument("--reference-fasta", default=REFERENCE_FASTA_PATH)
     parser.add_argument("--reference-fasta-fai", default=REFERENCE_FASTA_FAI_PATH)
     parser.add_argument("--input-bam", default=CHM1_CHM13_CRAM_PATH)
@@ -35,11 +37,18 @@ def main():
     args = bp.parse_known_args()
 
     if args.positive_loci:
-        repeat_spec_paths = REPEAT_SPECS_POSITIVE_LOCI
         positive_or_negative_loci = "positive_loci"
+        repeat_spec_file_stats_list = hl.hadoop_ls(REPEAT_SPECS_POSITIVE_LOCI)
+        if len(repeat_spec_file_stats_list) == 0:
+            raise ValueError(f"No files found matching {REPEAT_SPECS_POSITIVE_LOCI}")
     elif args.negative_loci:
-        repeat_spec_paths = REPEAT_SPECS_NEGATIVE_LOCI
         positive_or_negative_loci = "negative_loci"
+        repeat_spec_file_stats_list = hl.hadoop_ls(REPEAT_SPECS_NEGATIVE_LOCI)
+        if len(repeat_spec_file_stats_list) == 0:
+            raise ValueError(f"No files found matching {REPEAT_SPECS_NEGATIVE_LOCI}")
+    elif args.repeat_specs:
+        positive_or_negative_loci = os.path.basename(args.repeat_specs[0]).replace(".bed", "").replace(".gz", "")
+        repeat_spec_file_stats_list = [{"path": path} for path in args.repeat_specs]
     else:
         parser.error("Must specify either --positive-loci or --negative-loci")
 
@@ -52,17 +61,18 @@ def main():
 
     step1s = []
     step1_output_json_paths = []
-    repeat_spec_file_stats_list = hl.hadoop_ls(repeat_spec_paths)
-    if len(repeat_spec_file_stats_list) == 0:
-        raise ValueError(f"No files found matching {repeat_spec_paths}")
-
     for repeat_spec_i, repeat_spec_file_stats in enumerate(repeat_spec_file_stats_list):
         repeat_spec_path = repeat_spec_file_stats["path"]
 
         if args.n and repeat_spec_i >= args.n:
             break
 
-        s1 = bp.new_step(f"Run GangSTR #{repeat_spec_i}", arg_suffix=f"gangstr", step_number=1, image=DOCKER_IMAGE, cpu=2, storage="75Gi")
+        s1 = bp.new_step(f"Run GangSTR #{repeat_spec_i}",
+                         arg_suffix=f"gangstr",
+                         step_number=1,
+                         image=DOCKER_IMAGE,
+                         cpu=1,
+                         storage="100Gi")
         step1s.append(s1)
 
         local_fasta = s1.input(args.reference_fasta, localize_by=Localize.COPY)
@@ -96,7 +106,12 @@ def main():
         step1_output_json_paths.append(os.path.join(output_dir, f"json", f"{output_prefix}.json"))
 
     # step2: combine json files
-    s2 = bp.new_step(name="Combine GangSTR outputs", step_number=2, image=DOCKER_IMAGE, storage="20Gi", cpu=1,
+    s2 = bp.new_step(name="Combine GangSTR outputs",
+                     step_number=2,
+                     image=DOCKER_IMAGE,
+                     cpu=1,
+                     memory="highmem",
+                     storage="20Gi",
                      output_dir=output_dir)
     for step1 in step1s:
         s2.depends_on(step1)
