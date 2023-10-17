@@ -17,7 +17,7 @@ from str_analysis.utils.canonical_repeat_unit import compute_canonical_motif
 OTHER_STR_CATALOGS = {
     "IlluminaSTRCatalog": "./ref/other/illumina_variant_catalog.sorted.bed.gz",
     "GangSTRCatalog17": "./ref/other/hg38_ver17.adjusted.bed.gz",
-    "GangSTRCatalog13": "./ref/other/hg38_ver13.adjusted.bed.gz",
+    #"GangSTRCatalog13": "./ref/other/hg38_ver13.adjusted.bed.gz",
     "HipSTRCatalog": "./ref/other/hg38.hipstr_reference.adjusted.bed.gz",
     "PopSTRCatalog": "./ref/other/popstr_catalog_v2.bed.gz",
     "KnownDiseaseAssociatedSTRs": "./ref/other/known_disease_associated_STR_loci.GRCh38.bed.gz",
@@ -31,10 +31,10 @@ TRF_CATALOGS_EXCLUDING_HOMOPOLYMERS = {
 }
 
 TRF_CATALOGS_INCLUDING_HOMOPOLYMERS = {
-    "TRFPureRepeats15bp": "./ref/other/repeat_specs_GRCh38_without_mismatches.including_homopolymers.sorted.at_least_15bp.bed.gz",
-    "TRFPureRepeats12bp": "./ref/other/repeat_specs_GRCh38_without_mismatches.including_homopolymers.sorted.at_least_12bp.bed.gz",
-    "TRFPureRepeats9bp": "./ref/other/repeat_specs_GRCh38_without_mismatches.including_homopolymers.sorted.at_least_9bp.bed.gz",
-    "TRFPureRepeats6bp": "./ref/other/repeat_specs_GRCh38_without_mismatches.including_homopolymers.sorted.at_least_6bp.bed.gz",
+    "TRFPureRepeats15bp+Homopolymers": "./ref/other/repeat_specs_GRCh38_without_mismatches.including_homopolymers.sorted.at_least_15bp.bed.gz",
+    "TRFPureRepeats12bp+Homopolymers": "./ref/other/repeat_specs_GRCh38_without_mismatches.including_homopolymers.sorted.at_least_12bp.bed.gz",
+    "TRFPureRepeats9bp+Homopolymers": "./ref/other/repeat_specs_GRCh38_without_mismatches.including_homopolymers.sorted.at_least_9bp.bed.gz",
+    "TRFPureRepeats6bp+Homopolymers": "./ref/other/repeat_specs_GRCh38_without_mismatches.including_homopolymers.sorted.at_least_6bp.bed.gz",
 }
 
 GENOMIC_REGIONS = {
@@ -308,10 +308,12 @@ def main():
         elif args.only_interrupted_repeats:
             truth_set_or_bed_df = truth_set_or_bed_df[~truth_set_or_bed_df.IsPureRepeat]
 
-    if args.only_2to6bp_motifs:
-        truth_set_or_bed_df = truth_set_or_bed_df[truth_set_or_bed_df.MotifSize <= 6]
+    if args.exclude_homopolymers:
+        truth_set_or_bed_df = truth_set_or_bed_df[truth_set_or_bed_df.MotifSize >= 1]
+    elif args.only_2to6bp_motifs:
+        truth_set_or_bed_df = truth_set_or_bed_df[(truth_set_or_bed_df.MotifSize >= 2) & (truth_set_or_bed_df.MotifSize <= 6)]
     elif args.only_2to24bp_motifs:
-        truth_set_or_bed_df = truth_set_or_bed_df[truth_set_or_bed_df.MotifSize <= 24]
+        truth_set_or_bed_df = truth_set_or_bed_df[(truth_set_or_bed_df.MotifSize >= 2) & (truth_set_or_bed_df.MotifSize <= 24)]
 
 
     if args.output_tsv:
@@ -338,7 +340,7 @@ def main():
     # init "Overlaps" columns
     for other_catalog_label, is_STR_catalog, _ in other_catalogs:
         for locus_or_motif in [": Locus", ": Motif"] if is_STR_catalog else [""]:
-            truth_set_or_bed_df.at[:, f"Overlaps{other_catalog_label}{locus_or_motif}"] = ""
+            truth_set_or_bed_df[f"Overlaps{other_catalog_label}{locus_or_motif}"] = ""
 
     # Iterate over all STR variants in the truth set and check overlap
     print(f"Processing rows from {args.truth_set_tsv_or_bed_path}")
