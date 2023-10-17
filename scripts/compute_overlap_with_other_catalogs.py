@@ -315,7 +315,6 @@ def main():
     elif args.only_2to24bp_motifs:
         truth_set_or_bed_df = truth_set_or_bed_df[(truth_set_or_bed_df.MotifSize >= 2) & (truth_set_or_bed_df.MotifSize <= 24)]
 
-
     if args.output_tsv:
         output_tsv_path = args.output_tsv
     else:
