@@ -53,13 +53,11 @@ def main():
     s1.command("chmod 777 /usr/local/bin/mosdepth")
 
     s1.command(f"mosdepth -x coverage {local_bam}")
-    s1.command(f"cat coverage.mosdepth.summary.txt | cut -f 4 | tail -n +2 | head -n 23 | awk '{{s+=$1}}END{{print s/NR}}' > mean_coverage.txt")
-
     s1.command(f"time gatk --java-options '-Xmx11G' DownsampleSam "
                f"REFERENCE_SEQUENCE={local_fasta} "
                f"I={local_bam} "
                f"O={output_bam_filename} "
-               f"""P=$(echo "{args.target_coverage} / $(cat mean_coverage.txt)" | bc -l | awk '{{printf "%.4f", $0}}') """
+               f"""P=$(echo "{args.target_coverage} / $(grep total coverage.mosdepth.summary.txt | cut -f 4)" | bc -l | awk '{{printf "%.4f", $0}}') """
                f"CREATE_INDEX=true")
 
     s1.command(f"mv {output_bam_filename.replace('.bam', '.bai')} {output_bam_filename}.bai")  # rename the .bai file
@@ -67,6 +65,7 @@ def main():
 
     s1.command(f"mosdepth -x coverage_after_downsampling {output_bam_filename}")
     s1.command(f"cat coverage_after_downsampling.mosdepth.summary.txt | cut -f 4 | tail -n +2 | head -n 23")
+    s1.command(f"grep total coverage_after_downsampling.mosdepth.summary.txt")
 
     #s1.command(f"gatk CollectWgsMetrics STOP_AFTER={5*10**7} I={output_bam_filename} O=metrics.txt R={local_fasta}")
     #s1.command(f"cat metrics.txt | head -n 8 | tail -n 2")
