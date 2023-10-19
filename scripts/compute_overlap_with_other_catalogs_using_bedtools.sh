@@ -18,7 +18,7 @@ function subtract {
     t=$(gzcat $catalog_bed | wc -l)
     # c = records in truth set that don't overlap anything in the catalog.
     c=$(bedtools subtract -a <(gzcat $truthset_bed | grep -v ':0=') -b $catalog_bed -A | wc -l)
-    echo "${label} This catalog misses $(printf "%'d" ${c}) out of $(printf "%'d" ${total}) ($(echo scale=1\; 100*"${c}"/"${total}" | bc)) truth set records. The catalog contains $(printf "%'d" ${t}) records."
+    echo "${label} This catalog misses $(printf "%'d" ${c}) out of $(printf "%'d" ${total}) ($(echo scale=1\; 100*"${c}"/"${total}" | bc)%) truth set records. The catalog contains $(printf "%'d" ${t}) records."
 }
 
 # process each catalog
