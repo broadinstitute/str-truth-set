@@ -28,8 +28,6 @@ def main():
     pipeline_name = f"Downsample {os.path.basename(args.input_bam)} to {args.target_coverage}x"
     bp.set_name(pipeline_name)
 
-    if args.input_coverage <= 1:
-        parser.error("--input-coverage arg must be > 1")
     if args.target_coverage <= 1:
         parser.error("--target-coverage arg must be > 1")
     if args.target_coverage >= args.input_coverage:

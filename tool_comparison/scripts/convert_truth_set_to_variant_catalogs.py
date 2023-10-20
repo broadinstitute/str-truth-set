@@ -16,7 +16,6 @@ import re
 
 from str_analysis.utils.canonical_repeat_unit import compute_canonical_motif
 
-
 """This threshold defines how far away an STR locus must be from any indels in the syndip truth set before it is 
 considered a negative (ie. non-variant locus).
 """
@@ -40,12 +39,13 @@ def parse_args():
     p.add_argument("--all-hg38-repeats-bed", default="./ref/other/repeat_specs_GRCh38_without_mismatches.sorted.trimmed.at_least_9bp.bed.gz",
                    help="Path of bed file containing all repeats in the reference genome generated using a tool like "
                         "TandemRepeatFinder")
-    p.add_argument("--only", choices=["eh", "gangstr", "hipstr", "popstr"], action="append",
+    p.add_argument("--only", choices=["eh", "gangstr", "hipstr", "popstr", "trgt"], action="append",
                    help="Only generate catalogs for the specified tool(s)")
     p.add_argument("--skip-eh", action="store_true", help="Skip generating an ExpansionHunter catalog")
     p.add_argument("--skip-gangstr", action="store_true", help="Skip generating a GangSTR catalog")
     p.add_argument("--skip-hipstr", action="store_true", help="Skip generating a HipSTR catalog")
     p.add_argument("--skip-popstr", action="store_true", help="Skip generating a popSTR catalog")
+    p.add_argument("--skip-trgt", action="store_true", help="Skip generating a TRGT catalog")
     p.add_argument("--output-dir", default="./tool_comparison/variant_catalogs/", help="Directory where to write output files")
     p.add_argument("truth_set_variants_tsv_or_bed_path", nargs="?", default="STR_truth_set.v1.variants.tsv",
                    help="Path of the STR truth set .variants.tsv or of an arbitrary bed file")
@@ -306,6 +306,17 @@ def write_gangstr_or_hipstr_repeat_specs(locus_set, output_path_prefix, gangstr=
     print(f"Wrote {len(batches):,d} GangSTR repeat spec bed files to {output_path_prefix}*.bed")
 
 
+def write_trgt_catalog(locus_set, output_path):
+    with open(os.path.expanduser(output_path), "wt") as f:
+        # example: chr1	1224281	1224291	ID=chr1_1224281_1224291;MOTIFS=TTTTA;STRUC=(TTTTA)n
+        for chrom, start_0based, end_1based, motif in sorted(locus_set):
+            column4 = f"ID={chrom}_{start_0based}_{end_1based};MOTIFS={motif};STRUC=({motif})n"
+            f.write("\t".join(map(str, [chrom, start_0based, end_1based, column4])) + "\n")
+
+    print(f"Wrote {len(locus_set):,d} loci to {output_path}")
+
+
+
 def write_bed_files(locus_set, output_path):
     with open(os.path.expanduser(output_path), "wt") as f:
         for chrom, start_0based, end_1based, motif in sorted(locus_set):
@@ -363,6 +374,7 @@ def main():
     if not args.skip_gangstr and (not args.only or "gangstr" in args.only): subdirs_to_create.append("gangstr")
     if not args.skip_hipstr and (not args.only or "hipstr" in args.only):   subdirs_to_create.append("hipstr")
     if not args.skip_popstr and (not args.only or "popstr" in args.only):   subdirs_to_create.append("popstr")
+    if not args.skip_trgt and (not args.only or "popstr" in args.only):   subdirs_to_create.append("trgt")
 
     fasta_obj = None
     output_dir = args.output_dir
@@ -391,6 +403,9 @@ def main():
 
             write_popstr_catalogs(locus_set, fasta_obj,
                  os.path.join(output_dir, f"popstr/{label}_loci.popSTR"))
+
+        if not args.skip_trgt and (not args.only or "trgt" in args.only):
+            write_trgt_catalog(locus_set, os.path.join(output_dir, f"trgt/{label}_loci.TRGT_repeat_catalog.bed"))
 
         write_bed_files(locus_set, os.path.join(output_dir, f"{label}_loci.bed"))
 

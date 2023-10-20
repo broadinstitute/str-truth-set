@@ -26,6 +26,8 @@ subtract "${prefix}              Illumina:" ./ref/other/illumina_variant_catalog
 subtract "${prefix}              GangSTR:" ./ref/other/hg38_ver17.adjusted.bed.gz
 subtract "${prefix}               HipSTR:" ./ref/other/hg38.hipstr_reference.adjusted.bed.gz
 subtract "${prefix}               PopSTR:" ./ref/other/popstr_catalog_v2.bed.gz
+subtract "${prefix}               TRGT:"  ./ref/other/trgt_repeat_catalog.hg38.bed.gz
+
 for i in $(seq 6 3 30); do
     subtract "${prefix}   PureRepeats >= ${i}bp, including homopolymers:"  ./ref/other/repeat_specs_GRCh38_without_mismatches.including_homopolymers.sorted.at_least_${i}bp.bed.gz
 done
