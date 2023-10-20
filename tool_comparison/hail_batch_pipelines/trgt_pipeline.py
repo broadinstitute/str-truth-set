@@ -135,7 +135,7 @@ def main():
 
         s1.output(f"{output_prefix}.log.gz")
         s1.output(f"{output_prefix}.vcf.gz")
-        s1.output(f"{output_prefix}.sample.spanning.bam")
+        s1.output(f"{output_prefix}.spanning.bam")
 
     bp.run()
     return
