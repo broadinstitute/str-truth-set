@@ -126,14 +126,11 @@ def main():
                                      --reads {local_bam} \
                                      --repeats {local_trgt_catalog_bed} \
                                      --output-prefix {output_prefix} \
-                                     --threads {cpu} | tee {output_prefix}.log""")
+                                     --threads {cpu}""")
 
         s1.command("ls -lhrt")
 
         #s1.command(f"python3.9 -m str_analysis.convert_hipstr_vcf_to_expansion_hunter_json {output_prefix}.vcf.gz")
-        s1.command(f"gzip {output_prefix}.log")
-
-        s1.output(f"{output_prefix}.log.gz")
         s1.output(f"{output_prefix}.vcf.gz")
         s1.output(f"{output_prefix}.spanning.bam")
 
