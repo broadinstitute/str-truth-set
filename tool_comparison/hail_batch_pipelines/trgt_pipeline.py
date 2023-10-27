@@ -22,7 +22,7 @@ Options:
           What to show in the plot [default: motifs] [possible values: motifs, meth]
       --flank-len <FLANK_LEN>
           Length of flanking regions [default: 50]
-  -v, --verbose...
+      -v, --verbose...
 """
 
 import hail as hl
@@ -43,7 +43,7 @@ CHM1_CHM13_CRAI_PATH = "gs://broad-public-datasets/CHM1_CHM13_WGS2/CHM1_CHM13_WG
 TRGT_CATALOG_BED_POSITIVE_LOCI = "gs://str-truth-set/hg38/variant_catalogs/trgt/positive_loci.TRGT_repeat_catalog.bed"
 TRGT_CATALOG_BED_NEGATIVE_LOCI = "gs://str-truth-set/hg38/variant_catalogs/trgt/negative_loci.TRGT_repeat_catalog.bed"
 
-OUTPUT_BASE_DIR = "gs://str-truth-set/hg38/tool_results/hipstr"
+OUTPUT_BASE_DIR = "gs://str-truth-set/hg38/tool_results/trgt"
 
 
 def main():
@@ -91,7 +91,6 @@ def main():
         logging.info(f"Precached {len(bam_paths)} log files")
 
     step1s = []
-    step1_output_json_paths = []
     for trgt_catalog_i, trgt_catalog_bed_file_stats in enumerate(trgt_catalog_bed_file_stats_list):
         trgt_catalog_bed_path = trgt_catalog_bed_file_stats["path"]
 
@@ -126,7 +125,9 @@ def main():
                                      --reads {local_bam} \
                                      --repeats {local_trgt_catalog_bed} \
                                      --output-prefix {output_prefix} \
-                                     --threads {cpu}""")
+                                     --threads {cpu} \
+                                     --verbose
+        """)
 
         s1.command("ls -lhrt")
 
@@ -138,7 +139,7 @@ def main():
     return
 
     # step2: combine json files
-    s2 = bp.new_step(name="Combine HipSTR outputs",
+    s2 = bp.new_step(name="Combine TRGT outputs",
                      step_number=2,
                      image=DOCKER_IMAGE,
                      cpu=2,
@@ -155,7 +156,7 @@ def main():
 
     output_prefix = f"combined.{positive_or_negative_loci}"
     s2.command("set -x")
-    s2.command(f"python3.9 -m str_analysis.combine_str_json_to_tsv --include-extra-hipstr-fields "
+    s2.command(f"python3.9 -m str_analysis.combine_str_json_to_tsv "
                f"--output-prefix {output_prefix}")
     s2.command(f"bgzip {output_prefix}.{len(step1_output_json_paths)}_json_files.bed")
     s2.command(f"tabix {output_prefix}.{len(step1_output_json_paths)}_json_files.bed.gz")
