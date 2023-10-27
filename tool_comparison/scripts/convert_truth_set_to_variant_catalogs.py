@@ -30,6 +30,8 @@ def parse_args():
                    "The set of all STR loci in the truth set will be split into variant catalogs of this size.")
     p.add_argument("--gangstr-loci-per-run", type=int, default=10000, help="GangSTR batch size. "
                    "The set of all STR loci in the truth set will be split into repeat spec files of this size.")
+    p.add_argument("--straglr-loci-per-run", type=int, default=10000, help="Straglr batch size. "
+                   "The set of all STR loci in the truth set will be split into bed files of this size.")
     p.add_argument("--truth-set-bed", default="./STR_truth_set.v1.variants.bed.gz")
     p.add_argument("--output-negative-loci", action="store_true", help="Also create a catalog generating negative loci")
     p.add_argument("--high-confidence-regions-bed", default="./ref/full.38.bed.gz",
@@ -39,13 +41,14 @@ def parse_args():
     p.add_argument("--all-hg38-repeats-bed", default="./ref/other/repeat_specs_GRCh38_without_mismatches.sorted.trimmed.at_least_9bp.bed.gz",
                    help="Path of bed file containing all repeats in the reference genome generated using a tool like "
                         "TandemRepeatFinder")
-    p.add_argument("--only", choices=["eh", "gangstr", "hipstr", "popstr", "trgt"], action="append",
+    p.add_argument("--only", choices=["eh", "gangstr", "hipstr", "popstr", "trgt", "straglr"], action="append",
                    help="Only generate catalogs for the specified tool(s)")
     p.add_argument("--skip-eh", action="store_true", help="Skip generating an ExpansionHunter catalog")
     p.add_argument("--skip-gangstr", action="store_true", help="Skip generating a GangSTR catalog")
     p.add_argument("--skip-hipstr", action="store_true", help="Skip generating a HipSTR catalog")
     p.add_argument("--skip-popstr", action="store_true", help="Skip generating a popSTR catalog")
     p.add_argument("--skip-trgt", action="store_true", help="Skip generating a TRGT catalog")
+    p.add_argument("--skip-straglr", action="store_true", help="Skip generating a Straglr catalog")
     p.add_argument("--output-dir", default="./tool_comparison/variant_catalogs/", help="Directory where to write output files")
     p.add_argument("truth_set_variants_tsv_or_bed_path", nargs="?", default="STR_truth_set.v1.variants.tsv",
                    help="Path of the STR truth set .variants.tsv or of an arbitrary bed file")
@@ -230,6 +233,9 @@ $17         fractionTinMotif : 0.2
     f = None
     previous_chrom = None
     for chrom, start_0based, end_1based, motif in sorted(locus_set):
+        if len(motif) > 6:
+            continue
+
         if not chrom.startswith("chr"):
             chrom = f"chr{chrom}"
 
@@ -316,6 +322,22 @@ def write_trgt_catalog(locus_set, output_path):
     print(f"Wrote {len(locus_set):,d} loci to {output_path}")
 
 
+def write_straglr_catalog(locus_set, output_path_prefix, loci_per_run=None):
+    if loci_per_run is None:
+        batches = [locus_set]
+    else:
+        locus_list = list(locus_set)
+        batches = [
+            locus_list[i:i+loci_per_run] for i in range(0, len(locus_list), loci_per_run)
+        ]
+
+    for batch_i, current_locus_list in enumerate(batches):
+        with open(f"{output_path_prefix}.{batch_i+1:03d}_of_{len(batches):03d}.bed", "wt") as f:
+            for chrom, start_0based, end_1based, motif in sorted(current_locus_list):
+                f.write("\t".join(map(str, [chrom, start_0based, end_1based, motif])) + "\n")
+
+    print(f"Wrote {len(batches):,d} Straglr catalogs to {output_path_prefix}*.bed")
+
 
 def write_bed_files(locus_set, output_path):
     with open(os.path.expanduser(output_path), "wt") as f:
@@ -374,7 +396,8 @@ def main():
     if not args.skip_gangstr and (not args.only or "gangstr" in args.only): subdirs_to_create.append("gangstr")
     if not args.skip_hipstr and (not args.only or "hipstr" in args.only):   subdirs_to_create.append("hipstr")
     if not args.skip_popstr and (not args.only or "popstr" in args.only):   subdirs_to_create.append("popstr")
-    if not args.skip_trgt and (not args.only or "popstr" in args.only):   subdirs_to_create.append("trgt")
+    if not args.skip_trgt and (not args.only or "trgt" in args.only):   subdirs_to_create.append("trgt")
+    if not args.skip_straglr and (not args.only or "straglr" in args.only):   subdirs_to_create.append("straglr")
 
     fasta_obj = None
     output_dir = args.output_dir
@@ -406,6 +429,10 @@ def main():
 
         if not args.skip_trgt and (not args.only or "trgt" in args.only):
             write_trgt_catalog(locus_set, os.path.join(output_dir, f"trgt/{label}_loci.TRGT_repeat_catalog.bed"))
+
+        if not args.skip_straglr and (not args.only or "straglr" in args.only):
+            write_straglr_catalog(locus_set, os.path.join(output_dir, f"straglr/{label}_loci.straglr_catalog"),
+                                  loci_per_run=args.straglr_loci_per_run)
 
         write_bed_files(locus_set, os.path.join(output_dir, f"{label}_loci.bed"))
 
