@@ -1,10 +1,18 @@
-FROM python:3.9-slim-bullseye
+FROM python:3.9-bullseye
 
-RUN apt-get update && apt-get install -y curl
-ENV STRLING_VERSION="v0.5.1"
+RUN apt-get update && apt-get install -y curl time
+
+ENV STRLING_VERSION="v0.5.2"
 RUN curl -L https://github.com/quinlan-lab/STRling/releases/download/${STRLING_VERSION}/strling -o /usr/local/bin/strling \
     && chmod 777 /usr/local/bin/strling
 
-RUN python3 -m pip install str_analysis
+# install bedtools
+ENV BED_TOOLS_VERSION="2.31.0"
+RUN curl https://github.com/arq5x/bedtools2/releases/download/v${BED_TOOLS_VERSION}/bedtools.static -o bedtools.static \
+	&& chmod 777 bedtools.static \
+	&& mv bedtools.static /usr/bin/bedtools
+
+RUN python3 -m pip install --upgrade pip \
+ 	&& python3 -m pip install str_analysis
 
 ENTRYPOINT ["/bin/bash"]

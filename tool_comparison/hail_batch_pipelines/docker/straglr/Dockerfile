@@ -45,4 +45,9 @@ RUN wget -q https://github.com/samtools/samtools/releases/download/${SAMTOOLS_VE
 
 RUN python3 -m pip install git+https://github.com/bcgsc/straglr.git@v1.4.1#egg=straglr
 
+
+RUN wget https://github.com/Benson-Genomics-Lab/TRF/releases/download/v4.09.1/trf409.linux64 \
+	&& chmod 777 trf409.linux64 \
+	&& mv trf409.linux64 /usr/bin/trf
+
 ENTRYPOINT ["/bin/bash"]

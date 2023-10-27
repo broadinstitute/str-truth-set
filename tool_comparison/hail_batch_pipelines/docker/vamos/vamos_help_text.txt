@@ -1,0 +1,38 @@
+Usage: vamos [subcommand] [options] [-b in.bam] [-r vntrs_region_motifs.bed] [-o output.vcf] [-s sample_name] [-t threads]
+Version: 1.3.6
+subcommand:
+vamos --contig [-b in.bam] [-r vntrs_region_motifs.bed] [-o output.vcf] [-s sample_name] [-t threads]
+vamos --read [-b in.bam] [-r vntrs_region_motifs.bed] [-o output.vcf] [-s sample_name] [-t threads] [-p phase_flank]
+vamos -m [verison of efficient motif set]
+
+   Input:
+       -b   FILE         Input indexed bam file.
+       -r   FILE         File containing region coordinate and motifs of each VNTR locus.
+                         The file format: columns `chrom,start,end,motifs` are tab-delimited.
+                         Column `motifs` is a comma-separated (no spaces) list of motifs for this VNTR.
+       -s   CHAR         Sample name.
+   Output:
+       -o   FILE         Output vcf file.
+       -S                Output assembly/read consensus sequence in each call.
+   Dynamic Programming:
+       -d   DOUBLE       Penalty of indel in dynamic programming (double) DEFAULT: 1.0.
+       -c   DOUBLE       Penalty of mismatch in dynamic programming (double) DEFAULT: 1.0.
+       -a   DOUBLE       Global accuracy of the reads. DEFAULT: 0.98.
+       --naive           Specify the naive version of code to do the annotation, DEFAULT: faster implementation.
+   Phase reads:
+       -p   INT            Range of flanking sequences which is used in the phasing step. DEFAULT: 15000 bps.
+   Downloading motifs:
+Original (no filtering)
+   curl "https://zenodo.org/record/8357361/files/original_motifs.set148.bed.gz?download=1" > original_motifs.set148.bed.gz
+q10:
+   curl "https://zenodo.org/record/8357361/files/q-0.1_motifs.set148.bed.gz?download=1"  > q-0.1_motifs.set148.bed.gz
+q20:
+   curl "https://zenodo.org/record/8357361/files/q-0.2_motifs.set148.bed.gz?download=1"  > q-0.2_motifs.set148.bed.gz
+q30:
+   curl "https://zenodo.org/record/8357361/files/q-0.3_motifs.set148.bed.gz?download=1"  > q-0.3_motifs.set148.bed.gz
+
+   Others:
+       -L   INT          Maximum length locus to compute annotation for (10000)
+       -t   INT          Number of threads, DEFAULT: 1.
+       --debug           Print out debug information.
+       -h                Print out help message.
