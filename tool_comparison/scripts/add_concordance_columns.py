@@ -2,12 +2,13 @@ import argparse
 import os
 import pandas as pd
 
-CONCORDANCE_PAIRS = [
-    ("ExpansionHunter", "Truth"),
-    ("GangSTR", "Truth"),
-    ("ExpansionHunter", "GangSTR"),
-    ("HipSTR", "Truth"),
-]
+#CONCORDANCE_PAIRS = [
+    #("ExpansionHunter", "Truth"),
+    #("GangSTR", "Truth"),
+    #("ExpansionHunter", "GangSTR"),
+    #("HipSTR", "Truth"),
+    #("TRGT", "Truth"),
+#]
 
 WARNING_COUNTER = 0
 
@@ -91,6 +92,10 @@ def parse_args():
     p = argparse.ArgumentParser()
     p.add_argument("--debug", action="store_true", help="Whether to print additional info about input and output columns.")
     p.add_argument("--output-tsv", help="Output path of combined tsv file")
+    p.add_argument("--tool", help="Which tool to compare to the true genotype", required=True,
+                   choices=["ExpansionHunter", "GangSTR", "HipSTR", "TRGT"])
+    p.add_argument("--compare-to", help="Which tool to compare to the true genotype", default="Truth",
+                   choices=["Truth", "ExpansionHunter", "GangSTR", "HipSTR", "TRGT"])
     p.add_argument("combined_tsv", help="Path of the combined tsv containing GangSTR, EH and other results.")
     
     args = p.parse_args()
@@ -110,30 +115,29 @@ def main():
         "LocusSize (bp)": "ReferenceLocusSize (bp)",
     }, inplace=True)
 
-    print("Adding concordance columns...")
-    for label1, label2 in CONCORDANCE_PAIRS:
-        concordance_column_name = f"Concordance: {label1} vs {label2}"
-    
-        df[[f"Allele 1: {concordance_column_name}", f"Allele 2: {concordance_column_name}", f"Variant: {concordance_column_name}"]] = \
-            df.apply(compute_concordance_label_func_wrapper(label1, label2), axis=1, result_type="expand")
+    label1 = args.tool
+    label2 = args.compare_to
 
-        concordance_column_name = f"Variant: {concordance_column_name}"
-        print(f"Computed {concordance_column_name} column. {sum(df[concordance_column_name].isna())} of {len(df)} values are NA")
+    print("Adding concordance columns...")
+    concordance_column_name = f"Concordance: {label1} vs {label2}"
+
+    df[[f"Allele 1: {concordance_column_name}", f"Allele 2: {concordance_column_name}", f"Variant: {concordance_column_name}"]] = \
+        df.apply(compute_concordance_label_func_wrapper(label1, label2), axis=1, result_type="expand")
+
+    concordance_column_name = f"Variant: {concordance_column_name}"
+    print(f"Computed {concordance_column_name} column. {sum(df[concordance_column_name].isna())} of {len(df)} values are NA")
 
     print("Adding max diff columns...")
-    for label1, label2 in CONCORDANCE_PAIRS:
-        if "truth" not in label1.lower() and "truth" not in label2.lower():
-            continue
-        #max_diff_column_name = f"Max Diff: {label1} - {label2}"
-        diff_repeats1_column_name = f"DiffRepeats: Allele 1: {label1} - {label2}"
-        diff_repeats2_column_name = f"DiffRepeats: Allele 2: {label1} - {label2}"
-        diff_size1_column_name = f"DiffSize (bp): Allele 1: {label1} - {label2}"
-        diff_size2_column_name = f"DiffSize (bp): Allele 2: {label1} - {label2}"
-        df[[diff_repeats1_column_name, diff_repeats2_column_name, diff_size1_column_name, diff_size2_column_name]] = \
-            df.apply(compute_distance_func_wrapper(label1, label2), axis=1, result_type="expand")
+    #max_diff_column_name = f"Max Diff: {label1} - {label2}"
+    diff_repeats1_column_name = f"DiffRepeats: Allele 1: {label1} - {label2}"
+    diff_repeats2_column_name = f"DiffRepeats: Allele 2: {label1} - {label2}"
+    diff_size1_column_name = f"DiffSize (bp): Allele 1: {label1} - {label2}"
+    diff_size2_column_name = f"DiffSize (bp): Allele 2: {label1} - {label2}"
+    df[[diff_repeats1_column_name, diff_repeats2_column_name, diff_size1_column_name, diff_size2_column_name]] = \
+        df.apply(compute_distance_func_wrapper(label1, label2), axis=1, result_type="expand")
 
-        for column_name in diff_repeats1_column_name, diff_repeats2_column_name, diff_size1_column_name, diff_size2_column_name:
-            print(f"Computed {column_name} column. {sum(df[column_name].isna())} of {len(df)} values are NA")
+    for column_name in diff_repeats1_column_name, diff_repeats2_column_name, diff_size1_column_name, diff_size2_column_name:
+        print(f"Computed {column_name} column. {sum(df[column_name].isna())} of {len(df)} values are NA")
 
     if not args.output_tsv:
         args.output_tsv = args.combined_tsv.replace(".tsv", ".with_concordance.tsv")
