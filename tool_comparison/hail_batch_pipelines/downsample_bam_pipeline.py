@@ -10,7 +10,7 @@ CHM1_CHM13_CRAI_PATH = "gs://broad-public-datasets/CHM1_CHM13_WGS2/CHM1_CHM13_WG
 
 CHM1_CHM13_CRAM_COVERAGE = 40
 
-DOCKER_IMAGE = "docker.io/weisburd/gatk:4.3.0.0"
+DOCKER_IMAGE = "weisburd/gatk@sha256:6ba1245f0875a01e3fa31ecd65dbce1732eadfad550c6a3aec9895ed6ca9e416"
 
 
 def main():
@@ -30,8 +30,6 @@ def main():
 
     if args.target_coverage <= 1:
         parser.error("--target-coverage arg must be > 1")
-    if args.target_coverage >= args.input_coverage:
-        parser.error(f"--target-coverage arg must be < {args.input_coverage}")
 
     s1 = bp.new_step(pipeline_name, image=DOCKER_IMAGE, cpu=2, memory="highmem", storage="250Gi", output_dir=args.output_dir)
     local_fasta = s1.input(args.reference_fasta, localize_by=Localize.HAIL_BATCH_CLOUDFUSE)
@@ -50,7 +48,8 @@ def main():
     s1.command("wget https://github.com/brentp/mosdepth/releases/download/v0.3.5/mosdepth -O /usr/local/bin/mosdepth")
     s1.command("chmod 777 /usr/local/bin/mosdepth")
 
-    s1.command(f"mosdepth -x coverage {local_bam}")
+    s1.command(f"mosdepth -f {local_fasta} -x coverage {local_bam}")
+
     s1.command(f"time gatk --java-options '-Xmx11G' DownsampleSam "
                f"REFERENCE_SEQUENCE={local_fasta} "
                f"I={local_bam} "
@@ -58,10 +57,13 @@ def main():
                f"""P=$(echo "{args.target_coverage} / $(grep total coverage.mosdepth.summary.txt | cut -f 4)" | bc -l | awk '{{printf "%.4f", $0}}') """
                f"CREATE_INDEX=true")
 
-    s1.command(f"mv {output_bam_filename.replace('.bam', '.bai')} {output_bam_filename}.bai")  # rename the .bai file
+    s1.command(f"samtools calmd -b {output_bam_filename} {local_fasta} > {output_bam_filename}.with_NM_tag.bam")
+    s1.command(f"mv {output_bam_filename}.with_NM_tag.bam {output_bam_filename}")
+    s1.command(f"samtools index {output_bam_filename}")
+
     s1.command("ls -lh")
 
-    s1.command(f"mosdepth -x coverage_after_downsampling {output_bam_filename}")
+    s1.command(f"mosdepth -f {local_fasta} -x coverage_after_downsampling {output_bam_filename}")
     s1.command(f"cat coverage_after_downsampling.mosdepth.summary.txt | cut -f 4 | tail -n +2 | head -n 23")
     s1.command(f"grep total coverage_after_downsampling.mosdepth.summary.txt")
 
