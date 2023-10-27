@@ -1,123 +1,7 @@
 """
-# ls -1 ./popSTR-2.0/kernel/
-kernelMarkersInfo
-kernelModels
-kernelSlippageRates
-
-:/popSTR-2.0# ./popSTR
-Usage: ./popSTR <subcommand>
-
-Where subcommand is one of: computeReadAttributes, computePnSlippage, computePnSlippageDefault, msGenotyper and msGenotyperDefault
-
-# ./popSTR computeReadAttributes
-USAGE: computeReadAttributes bamFiles outputDirectory markerInfoFile minFlankLength maxRepeatLength chrom reference expansions jumpToExpansions[Y/N]
-
-
-
-# ./popSTR computePnSlippage
-computePnSlippage - Compute slippage rate for a list of individuals.
-====================================================================
-    computePnSlippage -ML MarkerList -PL pnList -AD attributesDirectory -OF outputFile -IN iterationNumber -FP
-    firstPnIdx -NPN minPnsPerMarker -MS markerSlippageFile -MD regressionModelDirectory
-
-# ./popSTR computePnSlippageDefault
-computePnSlippageDefault - Compute individual specific slippage rate for the provided individuals.
-==================================================================================================
-    computePnSlippageDefault -PL pnList -AD attributesDirectory -OF outputFile -FP firstPnIdx -MS markerSlippageFile
-    -MD regressionModelDirectory
-    Try 'computePnSlippageDefault --help' for more information
-
-# ./popSTR msGenotyper
-msGenotyper - Microsatellite genotyper
-======================================
-    msGenotyper -AD attributesDirectory/chromNum -PNS pnSlippageFile -ML markerList -I intervalIndex -MS
-    markerSlippageFile -MD regressionModelDirectory -IN iterationNumber -FP firstPnIdx -VD vcfOutputDirectory -VN
-    vcfFileName
-
-# ./popSTR msGenotyperDefault
-msGenotyperDefault - Microsatellite genotyper
-=============================================
-    msGenotyperDefault -ADCN attributesDirectory/chromNum -PNS pnSlippageFile -MS markerSlippageFile -VD
-    vcfOutputDirectory -VN vcfFileName -ML markerList -I intervalIndex -FP firstPnIdx
-    Try 'msGenotyperDefault --help' for more information.
-
-------------------
-# ./popSTR computePnSlippage --help
-computePnSlippage - Compute slippage rate for a list of individuals.
-====================================================================
-
-SYNOPSIS
-    computePnSlippage -ML MarkerList -PL pnList -AD attributesDirectory -OF outputFile -IN iterationNumber -FP
-    firstPnIdx -NPN minPnsPerMarker -MS markerSlippageFile -MD regressionModelDirectory
-
-DESCRIPTION
-    This program will estimate an individual specific slipppage rate for the individuals specified based on the marker
-    slippage rates and models specified.
-
-    -h, --help
-          Display the help message.
-    --version
-          Display version information.
-    -ML, --markerList IN-FILE
-          List of marker to estimate slippage over.
-    -PL, --pnList IN-FILE
-          A list of PNs whose slippage will be estimated. Required only when iteration number = 0
-    -AD, --attributesDirectory IN-DIR
-          Path to attributes files for the markers being used for slippage estimation.
-    -OF, --outputFile OUT-FILE
-          The slippage rates estimated will be appended to this file.
-    -IN, --iterationNumber INDEX
-          Index of the iteration being performed, 0-based.
-    -FP, --firstPnIdx INTEGER
-          Index of first Pn in pnList within the attributeFile.
-    -NPN, --minPnsPerMarker INTEGER
-          Minimum number of pns available at marker so it can be included in estimation.
-    -MS, --markerSlippageFile IN-FILE
-          A file containing slippage rates for the microsatellites, supplied when iterationNumber>0.
-    -MD, --regressionModelDirectory IN-DIR
-          A directory where logistic regression models for all markers in the markerList are stored, supplied when
-          iterationNumber>0.
-
-------------------
-# ./popSTR msGenotyper --help
-
-msGenotyper - Microsatellite genotyper
-======================================
-
-SYNOPSIS
-    msGenotyper -AD attributesDirectory/chromNum -PNS pnSlippageFile -ML markerList -I intervalIndex -MS
-    markerSlippageFile -MD regressionModelDirectory -IN iterationNumber -FP firstPnIdx -VD vcfOutputDirectory -VN
-    vcfFileName
-
-DESCRIPTION
-    Performs genptyping for all PNs in the pnSlippageFile over all markers in the markerFile. The genotypes are
-    written to a file specified by the user.
-
-    -h, --help
-          Display the help message.
-    --version
-          Display version information.
-    -AD, --attributesDirectory/chromNum IN-DIR
-          Path to attributes files for the markers being genotyped.
-    -PNS, --pnSlippageFile IN-FILE
-          A file containing slippage rates for the pns to be genotyped.
-    -ML, --markerList IN-FILE
-          List of markers to genotype.
-    -I, --intervalIndex INDEX
-          Index of the interval being processed
-    -MS, --markerSlippageFile OUT-FILE
-          A file containing estimated slippage rates for the microsatellites.
-    -MD, --regressionModelDirectory IN-DIR
-          A directory where logistic regression models for all markers in the markerList are stored
-    -IN, --iterationNumber INDEX
-          Index of the iteration being performed, 1-based.
-    -FP, --firstPnIdx INTEGER
-          Index of first Pn in pnList within the attributeFile.
-    -VD, --vcfOutputDirectory OUT-DIR
-          A directory to write the vcf file to.
-    -VN, --vcfFileName OUT-FILE
-          Name of vcf output file.
-
+BAMLIST=$1
+REFERENCE=$2
+MARKERS_PER_JOB=$3
 """
 
 
@@ -128,7 +12,7 @@ import re
 
 from step_pipeline import pipeline, Backend, Localize, Delocalize
 
-DOCKER_IMAGE = "weisburd/hipstr@sha256:879e8fdc7dc2a8c62fa5d8aa726a4a3f27905aed18bea23ebdf72c6974fa28d5"
+DOCKER_IMAGE = "weisburd/popstr@sha256:d05ac1a56baba5d311564781a722bb74497dca0fa27f2fcdc00ba54838b510ba"
 
 REFERENCE_FASTA_PATH = "gs://gcp-public-data--broad-references/hg38/v0/Homo_sapiens_assembly38.fasta"
 REFERENCE_FASTA_FAI_PATH = "gs://gcp-public-data--broad-references/hg38/v0/Homo_sapiens_assembly38.fasta.fai"
@@ -136,10 +20,10 @@ REFERENCE_FASTA_FAI_PATH = "gs://gcp-public-data--broad-references/hg38/v0/Homo_
 CHM1_CHM13_CRAM_PATH = "gs://broad-public-datasets/CHM1_CHM13_WGS2/CHM1_CHM13_WGS2.cram"
 CHM1_CHM13_CRAI_PATH = "gs://broad-public-datasets/CHM1_CHM13_WGS2/CHM1_CHM13_WGS2.cram.crai"
 
-REGIONS_BED_POSITIVE_LOCI = "gs://str-truth-set/hg38/variant_catalogs/hipstr/positive_loci.*_of_015.bed"
-REGIONS_BED_NEGATIVE_LOCI = "gs://str-truth-set/hg38/variant_catalogs/hipstr/negative_loci.*_of_015.bed"
+MARKER_INFO_POSITIVE_LOCI = "gs://str-truth-set-v2/filter_vcf/all_repeats_including_homopolymers/CHM1_CHM13/positive_loci.popSTR.chr*.markerInfo.gz"
+MARKER_INFO_NEGATIVE_LOCI = "gs://str-truth-set-v2/filter_vcf/all_repeats_including_homopolymers/CHM1_CHM13/negative_loci.popSTR.chr*.markerInfo.gz"
 
-OUTPUT_BASE_DIR = "gs://str-truth-set/hg38/tool_results/hipstr"
+OUTPUT_BASE_DIR = "gs://str-truth-set/hg38/tool_results/popstr"
 
 
 def main():
@@ -149,7 +33,7 @@ def main():
     parser_group = parser.add_mutually_exclusive_group(required=True)
     parser_group.add_argument("--positive-loci", action="store_true", help="Genotype truth set loci")
     parser_group.add_argument("--negative-loci", action="store_true", help="Genotype negative (hom-ref) loci")
-    parser_group.add_argument("--regions-bed", action="append", help="Path of regions bed file(s) to process")
+    parser_group.add_argument("--marker-info-path-prefix", help="Path of marker info file(s) to process")
 
     parser.add_argument("--reference-fasta", default=REFERENCE_FASTA_PATH)
     parser.add_argument("--reference-fasta-fai", default=REFERENCE_FASTA_FAI_PATH)
@@ -161,86 +45,103 @@ def main():
 
     if args.positive_loci:
         positive_or_negative_loci = "positive_loci"
-        regions_bed_file_stats_list = hl.hadoop_ls(REGIONS_BED_POSITIVE_LOCI)
-        if len(regions_bed_file_stats_list) == 0:
-            raise ValueError(f"No files found matching {REGIONS_BED_POSITIVE_LOCI}")
+        output_dir = os.path.join(args.output_dir, positive_or_negative_loci)
+        marker_info_file_stats_list = hl.hadoop_ls(MARKER_INFO_POSITIVE_LOCI)
+        if len(marker_info_file_stats_list) == 0:
+            raise ValueError(f"No files found matching {MARKER_INFO_POSITIVE_LOCI}")
     elif args.negative_loci:
         positive_or_negative_loci = "negative_loci"
-        regions_bed_file_stats_list = hl.hadoop_ls(REGIONS_BED_NEGATIVE_LOCI)
-        if len(regions_bed_file_stats_list) == 0:
-            raise ValueError(f"No files found matching {REGIONS_BED_NEGATIVE_LOCI}")
-    elif args.regions_bed:
-        positive_or_negative_loci = os.path.basename(args.regions_bed[0]).replace(".bed", "").replace(".gz", "")
-        regions_bed_file_stats_list = [{"path": path} for path in args.regions_bed]
+        output_dir = os.path.join(args.output_dir, positive_or_negative_loci)
+        marker_info_file_stats_list = hl.hadoop_ls(MARKER_INFO_NEGATIVE_LOCI)
+        if len(marker_info_file_stats_list) == 0:
+            raise ValueError(f"No files found matching {MARKER_INFO_NEGATIVE_LOCI}")
+    elif args.marker_info_path_prefix:
+        positive_or_negative_loci = os.path.basename(args.marker_info_path_prefix)
+        output_dir = args.output_dir
+        marker_info_file_stats_list = hl.hadoop_ls(f"{args.marker_info_path_prefix}*.markerInfo.gz")
     else:
         parser.error("Must specify either --positive-loci or --negative-loci")
 
     bam_path_ending = "/".join(args.input_bam.split("/")[-2:])
-    bp.set_name(f"STR Truth Set: HipSTR: {positive_or_negative_loci}: {bam_path_ending}")
-    output_dir = os.path.join(args.output_dir, positive_or_negative_loci)
+    bp.set_name(f"STR Truth Set: popSTR: {positive_or_negative_loci}: {bam_path_ending}")
     if not args.force:
         json_paths = bp.precache_file_paths(os.path.join(output_dir, f"**/*.json"))
         logging.info(f"Precached {len(json_paths)} json files")
 
     step1s = []
-    step1_output_json_paths = []
-    for repeat_spec_i, regions_bed_file_stats in enumerate(regions_bed_file_stats_list):
-        regions_bed_path = regions_bed_file_stats["path"]
 
-        if args.n and repeat_spec_i >= args.n:
-            break
+    n_cpus = 8
+    s1 = bp.new_step(
+        f"Run popSTR",
+        arg_suffix=f"popSTR",
+        step_number=1,
+        image=DOCKER_IMAGE,
+        cpu=n_cpus,
+        memory="highmem",
+        storage="100Gi",
+        output_dir=output_dir
+    )
+    step1s.append(s1)
 
-        s1 = bp.new_step(f"Run HipSTR #{repeat_spec_i}",
-                         arg_suffix=f"hipstr",
-                         step_number=1,
-                         image=DOCKER_IMAGE,
-                         cpu=1,
-                         storage="100Gi")
-        step1s.append(s1)
+    local_fasta = s1.input(args.reference_fasta, localize_by=Localize.COPY)
+    if args.reference_fasta_fai:
+        s1.input(args.reference_fasta_fai, localize_by=Localize.COPY)
 
-        local_fasta = s1.input(args.reference_fasta, localize_by=Localize.COPY)
-        if args.reference_fasta_fai:
-            s1.input(args.reference_fasta_fai, localize_by=Localize.COPY)
+    local_bam = s1.input(args.input_bam, localize_by=Localize.COPY)
+    if args.input_bai:
+        s1.input(args.input_bai, localize_by=Localize.COPY)
 
-        local_bam = s1.input(args.input_bam, localize_by=Localize.COPY)
-        if args.input_bai:
-            s1.input(args.input_bai, localize_by=Localize.COPY)
+    local_marker_info_paths = s1.inputs([
+        marker_info_file_stats["path"] for marker_info_file_stats in marker_info_file_stats_list])
 
-        local_regions_bed = s1.input(regions_bed_path)
+    sample_id = os.path.basename(args.input_bam).replace(".cram", "").replace(".bam", "")
 
-        output_prefix = re.sub(".bed(.gz)?$", "", local_regions_bed.filename)
-        s1.command(f"echo Genotyping $(cat {local_regions_bed} | wc -l) loci")
-        s1.command("set -ex")
-        s1.command(f"""/usr/bin/time --verbose HipSTR \
-                --bams {local_bam} \
-                --fasta {local_fasta} \
-                --regions {local_regions_bed} \
-                --def-stutter-model \
-                --min-reads 5 \
-                --max-str-len 1000000 \
-                --log {output_prefix}.log \
-                --str-vcf {output_prefix}.vcf.gz \
-                --viz-out {output_prefix}.viz.gz""")
+    s1.command("set -ex")
+    s1.command("cd /popSTR-2.0")
+    s1.command(f"echo $'{sample_id}\\t{local_bam}' > bamList.txt")
+    s1.command(f"cat bamList.txt")
+    s1.command(f"ls -lh {local_bam}")
+    s1.command(f"ls -lh {local_bam}.bai")
+    s1.command("mkdir markerInfo")
+    s1.command("cp defaultModel markerInfo/")
+    for local_marker_info_path in local_marker_info_paths:
+        match = re.search("(chr.{1,2}.markerInfo).gz", str(local_marker_info_path))
+        if not match:
+            print("WARNING: unexpected marker info path: " + str(local_marker_info_path))
+        symlink_filename = match.group(1).replace(".", "")
+        #s1.command(f"ln -s {local_marker_info_path} {symlink_filename}.gz")
+        s1.command(f"gunzip -c {local_marker_info_path} > markerInfo/{symlink_filename}")
+    s1.command("ls -lh .")
+    s1.command("echo --------")
+    s1.command("ls -lh markerInfo/")
+    s1.command(f"./run.sh bamList.txt {local_fasta} {n_cpus}")
 
-        s1.command("ls -lhrt")
+    s1.command("ls -lhrt")
+    s1.command("ls -lhrt vcfs")
+    s1.command(f"tar czf {sample_id}.vcfs.tar.gz vcfs")
+    s1.output(f"{sample_id}.vcfs.tar.gz")
+    #s1.command(f"python3.9 -m str_analysis.convert_popstr_vcf_to_expansion_hunter_json {output_prefix}.vcf.gz")
+    #s1.command(f"gzip {output_prefix}.log")
+    #s1.output(f"{output_prefix}.vcf.gz", output_dir=os.path.join(output_dir, f"vcf"))
+    #s1.output(f"{output_prefix}.log.gz", output_dir=os.path.join(output_dir, f"log"))
+    #s1.output(f"{output_prefix}.viz.gz", output_dir=os.path.join(output_dir, f"viz"))
+    #s1.output(f"{output_prefix}.json", output_dir=os.path.join(output_dir, f"json"))
 
-        s1.command(f"python3.9 -m str_analysis.convert_hipstr_vcf_to_expansion_hunter_json {output_prefix}.vcf.gz")
-        s1.command(f"gzip {output_prefix}.log")
-        s1.output(f"{output_prefix}.vcf.gz", output_dir=os.path.join(output_dir, f"vcf"))
-        s1.output(f"{output_prefix}.log.gz", output_dir=os.path.join(output_dir, f"log"))
-        s1.output(f"{output_prefix}.viz.gz", output_dir=os.path.join(output_dir, f"viz"))
-        s1.output(f"{output_prefix}.json", output_dir=os.path.join(output_dir, f"json"))
+    #step1_output_json_paths.append(os.path.join(output_dir, f"json", f"{output_prefix}.json"))
 
-        step1_output_json_paths.append(os.path.join(output_dir, f"json", f"{output_prefix}.json"))
+    bp.run()
+
+    return
 
     # step2: combine json files
-    s2 = bp.new_step(name="Combine HipSTR outputs",
+    s2 = bp.new_step(name="Combine popSTR outputs",
                      step_number=2,
                      image=DOCKER_IMAGE,
                      cpu=2,
                      memory="highmem",
                      storage="20Gi",
                      output_dir=output_dir)
+
     for step1 in step1s:
         s2.depends_on(step1)
 
@@ -251,7 +152,7 @@ def main():
 
     output_prefix = f"combined.{positive_or_negative_loci}"
     s2.command("set -x")
-    s2.command(f"python3.9 -m str_analysis.combine_str_json_to_tsv --include-extra-hipstr-fields "
+    s2.command(f"python3.9 -m str_analysis.combine_str_json_to_tsv --include-extra-popSTR-fields "
                f"--output-prefix {output_prefix}")
     s2.command(f"bgzip {output_prefix}.{len(step1_output_json_paths)}_json_files.bed")
     s2.command(f"tabix {output_prefix}.{len(step1_output_json_paths)}_json_files.bed.gz")
