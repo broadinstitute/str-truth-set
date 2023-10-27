@@ -467,7 +467,7 @@ def main():
                    "print the total number of plots that would be generated.")
 
     g = p.add_argument_group("Filters")
-    g.add_argument("--tool", choices=["ExpansionHunter", "GangSTR", "HipSTR"], help="Plot only this tool")
+    g.add_argument("--tool", choices=["ExpansionHunter", "GangSTR", "HipSTR", "TRGT"], help="Plot only this tool")
     g.add_argument("--q-threshold", type=float, help="Plot only this Q threshold")
     g.add_argument("--coverage", choices=["40x", "30x", "20x", "10x", "exome"], help="Plot only this coverage")
     g.add_argument("--min-motif-size", type=int, help="Min motif size")
@@ -493,7 +493,20 @@ def main():
 
     print(f"Loading {args.combined_tool_results_tsv}")
     df = pd.read_table(args.combined_tool_results_tsv)
-    df = df[df["IsFoundInReference"] & (df["PositiveOrNegative"] == "positive")]
+
+    before = len(df)
+    df = df[~df["DiffFromRefRepeats: Allele: Truth"].isna()]
+    print(f"Filtered out {before - len(df)} out of {before} ({(before - len(df))/before:0.1%}) rows with no NumRepeats")
+
+    if "IsFoundInReference" in df.columns:
+        df = df[df["IsFoundInReference"]]
+    else:
+        print("WARNING: IsFoundInReference column not found in input file. Assuming all loci are found in reference...")
+
+    if "PositiveOrNegative" in df.columns:
+        df = df[df["PositiveOrNegative"] == "positive"]
+    else:
+        print("WARNING: PositiveOrNegative column not found in input file. Assuming all loci are positive...")
 
     if args.verbose:
         print("Num loci:")
@@ -501,7 +514,7 @@ def main():
 
     print("Computing additional columns...")
     df.loc[:, "DiffFromRefRepeats: Allele: Truth (bin)"] = df.apply(bin_num_repeats_wrapper(bin_size=2), axis=1)
-    for tool in ("ExpansionHunter", "GangSTR", "HipSTR",):
+    for tool in (args.tool or ("ExpansionHunter", "GangSTR", "HipSTR", "TRGT")):
         define_hue_column(df, tool)
 
     df = df.sort_values("DiffFromRefRepeats: Allele: Truth")
