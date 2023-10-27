@@ -52,8 +52,9 @@ MERGE_KEY_COLUMNS = ["LocusId", "Motif", "MotifSize"]
 def parse_args():
     p = argparse.ArgumentParser()
     p.add_argument("--verbose", action="store_true", help="Whether to print additional info about input and output columns.")
+    p.add_argument("--tool", choices={"ExpansionHunter", "GangSTR", "HipSTR", "TRGT"}, required=True,
+                   help="Which tool's results are in the input tsv file")
     p.add_argument("--output-tsv", help="Output path of combined tsv file")
-    p.add_argument("--tool", choices={"ExpansionHunter", "GangSTR", "HipSTR"})
     p.add_argument("tool_results_tsv", help="Path of the tool results combined tsv file.")
     p.add_argument("truth_set_or_negative_loci_tsv", help="Path of the truth set or negative_loci tsv")
 
@@ -78,6 +79,8 @@ def main():
         tool_df_columns_to_keep += ["Q"]
     elif args.tool == "HipSTR":
         tool_df_columns_to_keep += ["Q", "DP", "AB", "FS", "DFLANKINDEL", "DSTUTTER"]
+    elif args.tool == "TRGT":
+        tool_df_columns_to_keep += []
     else:
         raise ValueError(f"Unexpected tool: {args.tool}")
     
