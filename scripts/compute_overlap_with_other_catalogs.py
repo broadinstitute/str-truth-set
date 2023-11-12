@@ -20,7 +20,8 @@ OTHER_STR_CATALOGS = {
     #"GangSTRCatalog13": "./ref/other/hg38_ver13.adjusted.bed.gz",
     "HipSTRCatalog": "./ref/other/hg38.hipstr_reference.adjusted.bed.gz",
     "PopSTRCatalog": "./ref/other/popstr_catalog_v2.bed.gz",
-    "TRGT": "./ref/other/trgt_repeat_catalog.hg38.bed.gz",
+    "TRGT": "./ref/other/trgt_repeat_catalog.hg38.reformatted_to_motif_only.bed.gz",
+    #"Adotto": "./ref/other/adotto_tr_catalog_v1.2.bed.gz",
     "KnownDiseaseAssociatedSTRs": "./ref/other/known_disease_associated_STR_loci.GRCh38.bed.gz",
 }
 
