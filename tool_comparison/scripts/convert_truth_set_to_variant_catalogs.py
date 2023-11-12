@@ -176,14 +176,14 @@ def generate_set_of_negative_loci(
 def write_expansion_hunter_variant_catalogs(locus_set, output_path_prefix, loci_per_run=None):
     variant_catalog = []
 
-    for chrom, start_0based, end_1based, motif in sorted(
+    for unmodified_chrom, start_0based, end_1based, motif in sorted(
         # sort by canonical motif to improve cache hit rate for the optimized version of ExpansionHunter
         locus_set, key=lambda x: compute_canonical_motif(x[3], include_reverse_complement=True)
     ):
-        chrom = chrom.replace("chr", "")
+        chrom = unmodified_chrom.replace("chr", "")
         variant_catalog.append({
             "LocusId": f"{chrom}-{start_0based}-{end_1based}-{motif}",
-            "ReferenceRegion": f"{chrom}:{start_0based}-{end_1based}",
+            "ReferenceRegion": f"{unmodified_chrom}:{start_0based}-{end_1based}",
             "LocusStructure": f"({motif})*",
             "VariantType": "Repeat",
         })
