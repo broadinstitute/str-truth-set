@@ -49,7 +49,10 @@ def compute_concordance_label_func_wrapper(column_suffix1="ExpansionHunter", col
                     concordance_labels.append(0)
             elif row[f"NumRepeats: Allele {allele_number}: {label1}"] == row[f"NumRepeats: Allele {allele_number}: {label2}"]:
                 concordance_labels.append(2)
-            elif row[f"CI end: Allele {allele_number}: {label1}"] >= row[f"CI start: Allele {allele_number}: {label2}"] and \
+            elif all(c in row for c in (
+                f"CI start: Allele {allele_number}: {label1}", f"CI end: Allele {allele_number}: {label1}",
+                f"CI start: Allele {allele_number}: {label2}", f"CI end: Allele {allele_number}: {label2}",
+            )) and row[f"CI end: Allele {allele_number}: {label1}"] >= row[f"CI start: Allele {allele_number}: {label2}"] and \
                 row[f"CI start: Allele {allele_number}: {label1}"] <= row[f"CI end: Allele {allele_number}: {label2}"]:
                 # |--i1---|
                 #     |----i2---| i2_end
@@ -93,7 +96,7 @@ def parse_args():
     p.add_argument("--debug", action="store_true", help="Whether to print additional info about input and output columns.")
     p.add_argument("--output-tsv", help="Output path of combined tsv file")
     p.add_argument("--tool", help="Which tool to compare to the true genotype", required=True,
-                   choices=["ExpansionHunter", "GangSTR", "HipSTR", "TRGT"])
+                   choices=["ExpansionHunter", "GangSTR", "HipSTR", "TRGT", "NewTruthSet"])
     p.add_argument("--compare-to", help="Which tool to compare to the true genotype", default="Truth",
                    choices=["Truth", "ExpansionHunter", "GangSTR", "HipSTR", "TRGT"])
     p.add_argument("combined_tsv", help="Path of the combined tsv containing GangSTR, EH and other results.")
