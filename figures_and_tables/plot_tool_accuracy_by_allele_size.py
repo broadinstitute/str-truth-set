@@ -467,7 +467,7 @@ def main():
                    "print the total number of plots that would be generated.")
 
     g = p.add_argument_group("Filters")
-    g.add_argument("--tool", choices=["ExpansionHunter", "GangSTR", "HipSTR", "TRGT"], help="Plot only this tool")
+    g.add_argument("--tool", choices=["ExpansionHunter", "GangSTR", "HipSTR", "TRGT", "NewTruthSet"], help="Plot only this tool")
     g.add_argument("--q-threshold", type=float, help="Plot only this Q threshold")
     g.add_argument("--coverage", choices=["40x", "30x", "20x", "10x", "exome"], help="Plot only this coverage")
     g.add_argument("--min-motif-size", type=int, help="Min motif size")
@@ -508,13 +508,18 @@ def main():
     else:
         print("WARNING: PositiveOrNegative column not found in input file. Assuming all loci are positive...")
 
+    if "Coverage" not in df.columns:
+        df["Coverage"] = args.coverage
+    if f"Q: {args.tool}" not in df.columns:
+        df[f"Q: {args.tool}"] = 1
+
     if args.verbose:
         print("Num loci:")
         print(df.groupby(["PositiveOrNegative", "Coverage", "IsPureRepeat"]).count().LocusId/2)
 
     print("Computing additional columns...")
     df.loc[:, "DiffFromRefRepeats: Allele: Truth (bin)"] = df.apply(bin_num_repeats_wrapper(bin_size=2), axis=1)
-    for tool in (args.tool or ("ExpansionHunter", "GangSTR", "HipSTR", "TRGT")):
+    for tool in ([args.tool] or ("ExpansionHunter", "GangSTR", "HipSTR", "TRGT")):
         define_hue_column(df, tool)
 
     df = df.sort_values("DiffFromRefRepeats: Allele: Truth")
