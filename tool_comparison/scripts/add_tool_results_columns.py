@@ -1,4 +1,7 @@
 import argparse
+import collections
+import gzip
+from intervaltree import IntervalTree, Interval
 import os
 import pandas as pd
 from pprint import pprint
@@ -52,8 +55,11 @@ MERGE_KEY_COLUMNS = ["LocusId", "Motif", "MotifSize"]
 def parse_args():
     p = argparse.ArgumentParser()
     p.add_argument("--verbose", action="store_true", help="Whether to print additional info about input and output columns.")
-    p.add_argument("--tool", choices={"ExpansionHunter", "GangSTR", "HipSTR", "TRGT"}, required=True,
+    p.add_argument("--tool", choices={"ExpansionHunter", "GangSTR", "HipSTR", "TRGT", "NewTruthSet"}, required=True,
                    help="Which tool's results are in the input tsv file")
+    p.add_argument("--filter-to-regions", action="append",
+                   help="Optional bed file(s) of regions of interest. Rows in the input table that aren't contained "
+                        "in the regions in the bed file(s) will be discarded.")
     p.add_argument("--output-tsv", help="Output path of combined tsv file")
     p.add_argument("tool_results_tsv", help="Path of the tool results combined tsv file.")
     p.add_argument("truth_set_or_negative_loci_tsv", help="Path of the truth set or negative_loci tsv")
@@ -65,6 +71,39 @@ def parse_args():
             p.error(f"{path} not found")
 
     return args
+
+
+def parse_bed_to_interval_tree(bed_file_path):
+    interval_trees = collections.defaultdict(IntervalTree)
+
+    counter = 0
+    fopen = gzip.open if bed_file_path.endswith("gz") else open
+    with fopen(bed_file_path, "rt") as f:
+        for i, line in enumerate(f):
+            fields = line.strip().split("\t")
+            chrom = fields[0].replace("chr", "")
+            start_0based = int(fields[1])
+            end_1based = int(fields[2])
+            interval_trees[chrom].add(Interval(start_0based, end_1based))
+            counter += 1
+    print(f"Parsed {counter:,d} rows from {bed_file_path}")
+    return interval_trees
+
+
+def filter_to_regions(df, interval_trees, genomic_region_column="ReferenceRegion"):
+    def is_row_in_interval_trees(row):
+        genomic_region = row[genomic_region_column]
+        fields = re.split("[:-]", genomic_region)
+        chrom = fields[0].replace("chr", "")
+        start = int(fields[1])
+        end = int(fields[2])
+        row_interval = Interval(start, end)
+        for tree_interval in interval_trees[chrom].overlap(start, end):
+            if tree_interval.contains_interval(row_interval):
+                return True
+        return False
+
+    return df[df.apply(is_row_in_interval_trees, axis=1)]
 
 
 def main():
@@ -81,12 +120,45 @@ def main():
         tool_df_columns_to_keep += ["Q", "DP", "AB", "FS", "DFLANKINDEL", "DSTUTTER"]
     elif args.tool == "TRGT":
         tool_df_columns_to_keep += []
+    elif args.tool == "NewTruthSet":
+        for key in [
+            'Coverage',
+            'Genotype',
+            'GenotypeConfidenceInterval',
+            'CI start: Allele 1',
+            'CI end: Allele 1',
+            'CI size: Allele 1',
+            'CI start: Allele 2',
+            'CI end: Allele 2',
+            'CI size: Allele 2',
+        ]:
+            tool_df_columns_to_keep.remove(key)
     else:
         raise ValueError(f"Unexpected tool: {args.tool}")
     
     truth_set_df = pd.read_table(args.truth_set_or_negative_loci_tsv)
-
     tool_df = pd.read_table(args.tool_results_tsv)
+
+    for bed_file_path in args.filter_to_regions:
+        regions_interval_trees = parse_bed_to_interval_tree(bed_file_path)
+        before = len(truth_set_df)
+        truth_set_df = filter_to_regions(truth_set_df, regions_interval_trees, genomic_region_column="LocusId")
+        if before != len(truth_set_df):
+            print(f"Filtered out {before-len(truth_set_df):,d} out of {before:,d} ({(before-len(truth_set_df))/before:0.1%}) "
+                  f"rows when filtering {args.truth_set_or_negative_loci_tsv} to regions in {bed_file_path}")
+        else:
+            print(f"All {len(truth_set_df):,d} rows from {args.truth_set_or_negative_loci_tsv} are already in regions "
+                  f"from {bed_file_path}")
+
+        before = len(tool_df)
+        tool_df = filter_to_regions(tool_df, regions_interval_trees, genomic_region_column="Locus")
+        if before != len(tool_df):
+            print(f"Filtered out {before-len(tool_df):,d} out of {before:,d} ({(before-len(tool_df))/before:0.1%}) "
+                  f"rows when filtering {args.tool_results_tsv} to regions in {bed_file_path}")
+        else:
+            print(f"All {len(tool_df):,d} rows from {args.tool_results_tsv} are already in regions "
+                  f"from {bed_file_path}")
+
     tool_df.rename(columns={
         "RepeatUnit": "Motif",
         "RepeatUnitLength": "MotifSize",
@@ -96,8 +168,19 @@ def main():
         "Num Repeats: Allele 2": "NumRepeats: Allele 2",
     }, inplace=True)
 
+    if "Locus" in tool_df.columns:
+        tool_df.rename(columns={
+            "Locus": "ReferenceRegion",
+            "NumRepeatsShortAllele": "NumRepeats: Allele 1",
+            "NumRepeatsLongAllele": "NumRepeats: Allele 2",
+            "RepeatSizeShortAllele (bp)": "RepeatSize (bp): Allele 1",
+            "RepeatSizeLongAllele (bp)": "RepeatSize (bp): Allele 2",
+        }, inplace=True)
+
     tool_df.loc[:, "ReferenceRegion"] = tool_df["ReferenceRegion"].str.replace("^chr", "", regex=True)
     tool_df.loc[:, "LocusId"] = tool_df["LocusId"].str.replace("^chr", "", regex=True)
+    tool_df["RepeatSize (bp): Allele 1"] = tool_df["RepeatSize (bp): Allele 1"].fillna(tool_df["NumRepeatsInReference"]*tool_df["MotifSize"])
+    tool_df["RepeatSize (bp): Allele 2"] = tool_df["RepeatSize (bp): Allele 2"].fillna(tool_df["NumRepeatsInReference"]*tool_df["MotifSize"])
 
     def split_reference_region(row):
         result = re.split("[:-]", row["ReferenceRegion"])
@@ -170,6 +253,11 @@ def main():
     for column in sorted(df_merged.columns):
         is_nan_count = sum(pd.isna(df_merged[column]))
         print(f"\t{is_nan_count:7,d} of {len(df_merged):,d} ({100*is_nan_count/len(df_merged):5.1f}%) NaN values in {column}")
+        if is_nan_count > 0 and column == f"RepeatSize (bp): Allele 1: {args.tool}":
+            print("\t\tExamples:")
+            for _, row in df_merged[pd.isna(df_merged[column])][["LocusId", "SummaryString"]].iloc[:30].iterrows():
+                print("\t\t\t", row.to_dict())
+
     print(f"Wrote {len(df_merged):,d} rows to {args.output_tsv}")
 
 
