@@ -8,6 +8,7 @@
     "showInsertionText": true,
     "showDeletionText": true
   },
+  "showRightSideBar": false,
   "dataTypesToShow": ["bed", "gtf", "vcf", "alignment"],
   "genome": "hg38",
   "locus": "chr1:149,390,359-149,391,286",
@@ -15,6 +16,11 @@
     {
       "categoryName": "TR Catalogs",
       "rows": [
+        {
+          "name": "Combined Catalog (9.5M)",
+          "description": "Catalog of loci combined from 9 catalogs listed below",
+          "data": [{"type": "bed", "url": "gs://str-truth-set-v2/combined_catalogs/combined_catalog.trf_at_least_6bp.bed.gz"}]
+        },
         {
           "name": "Illumina (174k)",
           "description": "Catalog of 174k loci that are polymorphic in the 2,504 samples from the 1000 Genomes Project",
