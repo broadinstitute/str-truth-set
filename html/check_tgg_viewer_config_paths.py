@@ -1,11 +1,12 @@
 """This script checks that all file paths references in tgg-viewer-config.json are valid."""
 
 import argparse
-import hail as hl
+import hailtop.fs as hfs
 import json
 import os
+import requests
 import sys
-
+import tqdm
 
 def is_url(path):
     """Takes a string and returns True if it starts with gs://, http://, or https://."""
@@ -29,7 +30,21 @@ def get_all_urls(json_data):
             for path in get_all_urls(value):
                 yield path
 
-
+def check_url(url):
+    if url.startswith("http"):
+        r = requests.get(url, stream=True, verify=False)
+        
+        if r.status_code == 200:
+            content = next(r.iter_content(10))
+            return True
+        
+        return False
+    elif url.startswith("gs://"):
+        return hfs.is_file(url)
+    else:
+        print(f"ERROR: Unexpected url prefix: {url}")
+        return False
+        
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("json_config_path", nargs="?", default="tgg-viewer-config.json",
@@ -46,16 +61,15 @@ def main():
     if len(urls) == 0:
         parser.error(f"No URLs found in {args.json_config_path}")
 
-    hl.init(log="/dev/null")
-
     missing_file_counter = 0
     total_file_counter = 0
-    for url in urls:
+    for url in tqdm.tqdm(urls, unit=" urls"):
         total_file_counter += 1
-        if not hl.hadoop_is_file(url):
+        if not check_url(url):
             print(f"File not found: {url}")
             missing_file_counter += 1
-
+            continue
+        
         # check that index file also exists
         for suffix, idx_suffix in (
             (".bam", ".bai"),
@@ -69,8 +83,7 @@ def main():
             if url.endswith(suffix):
                 if idx_suffix is not None:
                     total_file_counter += 1
-                    if not hl.hadoop_is_file(f"{url}{idx_suffix}") and \
-                       not hl.hadoop_is_file(f"{url.replace(suffix, idx_suffix)}"):
+                    if not check_url(f"{url}{idx_suffix}") and not check_url(f"{url.replace(suffix, idx_suffix)}"):
                         print(f"File not found: {url}{idx_suffix}")
                         missing_file_counter += 1
                 break
