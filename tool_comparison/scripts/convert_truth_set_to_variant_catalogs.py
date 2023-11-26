@@ -153,6 +153,8 @@ def generate_set_of_negative_loci(
     negative_loci_counters = collections.defaultdict(int)
     enough_negative_loci = collections.defaultdict(bool)
     for chrom, start_0based, end, motif in negative_loci:
+        if "N" in motif.upper():
+            continue
         key = compute_row_key(motif)
         if enough_negative_loci[key]:
             continue
