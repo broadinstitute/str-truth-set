@@ -57,6 +57,6 @@ RUN wget https://github.com/Illumina/ExpansionHunter/archive/refs/heads/release-
     && cp /ExpansionHunter-release-2.5.5/build/ExpansionHunter /bin/ \
     && make clean
 
-RUN python3 -m pip install str_analysis==0.9.15
+RUN python3 -m pip install ≥
 
 ENTRYPOINT ["/bin/bash"]

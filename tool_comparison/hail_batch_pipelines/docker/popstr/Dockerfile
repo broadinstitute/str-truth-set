@@ -40,7 +40,7 @@ RUN wget -q https://github.com/samtools/samtools/releases/download/${SAMTOOLS_VE
 	&& make install \
 	&& make clean
 
-#RUN python3 -m pip install str_analysis==0.9.17
+#RUN python3 -m pip install str_analysis==1.2.5
 
 RUN apt-get install libboost-all-dev --no-install-recommends -y \
 	&& wget https://github.com/DecodeGenetics/popSTR/archive/2.0.zip \
@@ -62,7 +62,9 @@ COPY runPerChrom.sh /popSTR-2.0/runPerChrom.sh
 
 RUN cd /popSTR-2.0/ \
  	&& ./install.sh \
-	&& tar xzf kernel.tar.gz
+	&& tar xzfCumulative kernel.tar.gz
 
+RUN wget https://github.com/DecodeGenetics/popSTR/releases/download/2.0/popSTR
+RUN chmod 777 popSTR
 
 ENTRYPOINT ["/bin/bash"]

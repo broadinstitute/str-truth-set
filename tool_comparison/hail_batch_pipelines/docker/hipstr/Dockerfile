@@ -32,6 +32,6 @@ RUN wget https://github.com/samtools/htslib/releases/download/${SAMTOOLS_VERSION
 	&& make install \
 	&& make clean
 
-RUN python3 -m pip install str_analysis==0.9.17
+RUN python3 -m pip install str_analysis==1.2.5
 
 ENTRYPOINT ["/bin/bash"]
