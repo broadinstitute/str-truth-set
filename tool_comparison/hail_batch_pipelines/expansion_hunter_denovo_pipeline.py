@@ -8,8 +8,8 @@ REFERENCE_FASTA_FAI_PATH = "gs://gcp-public-data--broad-references/hg38/v0/Homo_
 CHM1_CHM13_CRAM_PATH = "gs://broad-public-datasets/CHM1_CHM13_WGS2/CHM1_CHM13_WGS2.cram"
 CHM1_CHM13_CRAI_PATH = "gs://broad-public-datasets/CHM1_CHM13_WGS2/CHM1_CHM13_WGS2.cram.crai"
 
-EXPANSION_HUNTER_DENOVO_DOCKER_IMAGE = "weisburd/expansion-hunter-denovo@sha256:4f92e4504a088f607ef77896bbeae225499c5789351547e8762c8dc9fed075a7"
-EXPANSION_HUNTER_DOCKER_IMAGE = "weisburd/expansion-hunter@sha256:154d136d3c78d6036c834b37e3466237ab682ac9bdc949837ea0f6841f96faeb"
+EXPANSION_HUNTER_DENOVO_DOCKER_IMAGE = "weisburd/expansion-hunter-denovo@sha256:06f7c54283ef2f18074f437c97e0348d57590509e047b95e13d768df3ad992b7"
+EXPANSION_HUNTER_DOCKER_IMAGE = "weisburd/expansion-hunter@sha256:16a74ecb3809341e220379bd83ec317b35129ac09e04b42d05fbd821fd4d4bf0"
 
 OUTPUT_BASE_DIR = "gs://str-truth-set/hg38/tool_results/expansion_hunter_denovo"
 

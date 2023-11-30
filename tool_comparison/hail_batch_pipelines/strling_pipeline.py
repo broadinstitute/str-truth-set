@@ -31,7 +31,7 @@ import re
 
 from step_pipeline import pipeline, Backend, Localize, Delocalize
 
-DOCKER_IMAGE = "weisburd/strling@sha256:e867138fadfa08969c7c0e043fd80999aa60b0592d933f183f3ffb1c5887bfc1"
+DOCKER_IMAGE = "weisburd/strling@sha256:25d537954fe5b7b20cedd88567d11b5d267856493e61ca7b9e86713f26c71087"
 
 REFERENCE_FASTA_PATH = "gs://gcp-public-data--broad-references/hg38/v0/Homo_sapiens_assembly38.fasta"
 REFERENCE_FASTA_FAI_PATH = "gs://gcp-public-data--broad-references/hg38/v0/Homo_sapiens_assembly38.fasta.fai"

@@ -10,7 +10,7 @@ CHM1_CHM13_CRAI_PATH = "gs://broad-public-datasets/CHM1_CHM13_WGS2/CHM1_CHM13_WG
 
 CHM1_CHM13_CRAM_COVERAGE = 40
 
-DOCKER_IMAGE = "weisburd/gatk@sha256:6ba1245f0875a01e3fa31ecd65dbce1732eadfad550c6a3aec9895ed6ca9e416"
+DOCKER_IMAGE = "weisburd/gatk@sha256:b9b39f21b51ec9ef17937e6581dc3624a0a232d464616eddffb7678171fba578"
 
 
 def main():
