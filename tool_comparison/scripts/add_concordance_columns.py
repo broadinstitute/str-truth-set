@@ -96,9 +96,9 @@ def parse_args():
     p.add_argument("--debug", action="store_true", help="Whether to print additional info about input and output columns.")
     p.add_argument("--output-tsv", help="Output path of combined tsv file")
     p.add_argument("--tool", help="Which tool to compare to the true genotype", required=True,
-                   choices=["ExpansionHunter", "GangSTR", "HipSTR", "TRGT", "NewTruthSet"])
+                   choices=["ExpansionHunter", "GangSTR", "HipSTR", "TRGT", "LongTR", "NewTruthSet"])
     p.add_argument("--compare-to", help="Which tool to compare to the true genotype", default="Truth",
-                   choices=["Truth", "ExpansionHunter", "GangSTR", "HipSTR", "TRGT"])
+                   choices=["Truth", "ExpansionHunter", "GangSTR", "HipSTR", "LongTR", "TRGT"])
     p.add_argument("combined_tsv", help="Path of the combined tsv containing GangSTR, EH and other results.")
     
     args = p.parse_args()
