@@ -20,7 +20,7 @@ FILTERED_CALL_LABEL = "Filtered"
 HOM_REF_LABEL = "Called Hom Ref"
 HET_REF_LABEL = "Called Het Ref"
 WRONG_DIRECTION_LABEL = "Wrong Direction"
-
+NO_DIFFERENCE_LABEL = "Same"
 
 def bin_num_repeats_wrapper(bin_size=1):
     """Create a function that converts the integer number of STR repeats to a histogram bin"""
@@ -53,20 +53,26 @@ def bin_num_repeats_wrapper(bin_size=1):
     return bin_num_repeats
 
 
-def bin_repeats_vs_truth_wrapper():
+def bin_repeats_vs_truth_wrapper(tool):
     """Create a function that converts the difference between a tool's output allele size (number of STR repeats) and
     the true number of repeats to a histogram bin"""
 
-    def bin_repeats_vs_truth(num_repeats_diff):
+    def bin_repeats_vs_truth(row):
+        num_repeats_diff = row[f"DiffRepeats: Allele: {tool} - Truth"]
         if pd.isna(num_repeats_diff):
             return NO_CALL_LABEL
 
-        sign = "-" if num_repeats_diff < 0 else ""
+        num_repeats = int(row[f"NumRepeats: Allele: {tool}"])
+        sign = "-" if num_repeats_diff < -1 else ""
         num_repeats_diff = abs(num_repeats_diff)
-        if num_repeats_diff <= 2:
+        if (num_repeats_diff <= 1) or (num_repeats > 120 and num_repeats_diff <= 2) or (num_repeats > 240 and num_repeats_diff <= 3) or (num_repeats > 360 and num_repeats_diff <= 4):
+            return NO_DIFFERENCE_LABEL
+        elif num_repeats_diff == 2:
             return f"{sign}{int(num_repeats_diff)}"
-        elif 3 <= num_repeats_diff <= 7:
-            return f"{sign}3 to {sign}7"
+        elif 3 <= num_repeats_diff <= 4:
+            return f"{sign}3 to {sign}4"
+        elif 5 <= num_repeats_diff <= 7:
+            return f"{sign}5 to {sign}7"
         elif 8 <= num_repeats_diff <= 20:
             return f"{sign}8 to {sign}20"
         elif num_repeats_diff >= 21:
@@ -79,8 +85,7 @@ def bin_repeats_vs_truth_wrapper():
 
 def define_hue_column(df, tool):
     """Adds a new column to the input table which is used to color the plots"""
-    df.loc[:, f"DiffRepeats: Allele: {tool} - Truth (bin)"] = df[f"DiffRepeats: Allele: {tool} - Truth"].apply(
-        bin_repeats_vs_truth_wrapper())
+    df.loc[:, f"DiffRepeats: Allele: {tool} - Truth (bin)"] = df.apply(bin_repeats_vs_truth_wrapper(tool), axis=1)
 
     df.loc[:, f"DiffRepeats: Allele: {tool} - Truth (bin)"] = np.where(
         (df["DiffFromRefRepeats: Allele: Truth"] != 0) &
@@ -193,6 +198,8 @@ def hue_sorter(value):
         return -1000
     elif value == WRONG_DIRECTION_LABEL:
         return -500
+    elif value == NO_DIFFERENCE_LABEL:
+        return 0
     else:
         return int(float(value.split(" ")[0]))
 
@@ -390,7 +397,7 @@ def generate_all_plots(df, args):
                                         continue
 
                                     print(f"Generating plot #{plot_counter}")
-                                    num_alleles_exactly_right = sum(df_plot[f"DiffRepeats: Allele: {tool} - Truth (bin)"] == "0")
+                                    num_alleles_exactly_right = sum(df_plot[f"DiffRepeats: Allele: {tool} - Truth (bin)"] == "0") + sum(df_plot[f"DiffRepeats: Allele: {tool} - Truth (bin)"] == NO_DIFFERENCE_LABEL)
                                     hue_values = set(df_plot.loc[:, f"DiffRepeats: Allele: {tool} - Truth (bin)"])
 
                                     figure_title_line1 += f"{tool} got {num_alleles_exactly_right:,d} out of {len(df_plot):,d} alleles ({100*num_alleles_exactly_right/len(df_plot):0.1f}%) exactly right for {coverage_label}"
@@ -416,7 +423,7 @@ def generate_all_plots(df, args):
                                     n_blue_colors = sum(1 for h in hue_values if h.startswith("-"))
                                     if n_blue_colors > 0:
                                         palette += list(sns.color_palette("Blues_r", n_colors=n_blue_colors))
-                                    if '0' in hue_values:
+                                    if '0' in hue_values or NO_DIFFERENCE_LABEL in hue_values:
                                         palette += [GREEN_COLOR]
                                     n_orange_colors = len(hue_values) - len(palette)
                                     if n_orange_colors > 0:

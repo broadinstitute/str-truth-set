@@ -41,7 +41,7 @@ def parse_args():
     p.add_argument("--all-hg38-repeats-bed", default="./ref/other/repeat_specs_GRCh38_without_mismatches.sorted.trimmed.at_least_9bp.bed.gz",
                    help="Path of bed file containing all repeats in the reference genome generated using a tool like "
                         "TandemRepeatFinder")
-    p.add_argument("--only", choices=["eh", "gangstr", "hipstr", "popstr", "trgt", "straglr"], action="append",
+    p.add_argument("--only", choices=["eh", "gangstr", "hipstr", "popstr", "trgt", "straglr", "longtr"], action="append",
                    help="Only generate catalogs for the specified tool(s)")
     p.add_argument("--skip-eh", action="store_true", help="Skip generating an ExpansionHunter catalog")
     p.add_argument("--skip-gangstr", action="store_true", help="Skip generating a GangSTR catalog")
@@ -49,6 +49,7 @@ def parse_args():
     p.add_argument("--skip-popstr", action="store_true", help="Skip generating a popSTR catalog")
     p.add_argument("--skip-trgt", action="store_true", help="Skip generating a TRGT catalog")
     p.add_argument("--skip-straglr", action="store_true", help="Skip generating a Straglr catalog")
+    p.add_argument("--skip-longtr", action="store_true", help="Skip generating a LongTR catalog")
     p.add_argument("--output-dir", default="./tool_comparison/variant_catalogs/", help="Directory where to write output files")
     p.add_argument("truth_set_variants_tsv_or_bed_path", nargs="?", default="STR_truth_set.v1.variants.tsv",
                    help="Path of the STR truth set .variants.tsv or of an arbitrary bed file")
@@ -276,11 +277,11 @@ $17         fractionTinMotif : 0.2
         f.close()
 
 
-def write_gangstr_or_hipstr_repeat_specs(locus_set, output_path_prefix, gangstr=False, hipstr=False, loci_per_run=None):
+def write_gangstr_hipstr_or_longtr_repeat_specs(locus_set, output_path_prefix, tool="gangstr", loci_per_run=None):
     locus_list = list(locus_set)
 
-    if (not gangstr and not hipstr) or (gangstr and hipstr):
-        raise ValueError(f"Can not set gangstr={gangstr} and hipstr={hipstr}")
+    if tool not in ("gangstr", "hipstr", "longtr"):
+        raise ValueError(f"Invalid tool arg: '{tool}'. Must be 'gangstr', 'hipstr', or 'longtr'")
 
     # write out GangSTR repeat specs
     if loci_per_run is None:
@@ -294,9 +295,14 @@ def write_gangstr_or_hipstr_repeat_specs(locus_set, output_path_prefix, gangstr=
         with open(f"{output_path_prefix}.{batch_i+1:03d}_of_{len(batches):03d}.bed", "wt") as f:
             for chrom, start_0based, end_1based, motif in current_repeat_specs:
                 chrom = chrom
-                if gangstr:
+                if tool == "gangstr":
                     output_fields = [chrom, start_0based + 1, end_1based, len(motif), motif]
-                elif hipstr:
+                elif tool == "longtr":
+                    output_fields = [
+                        chrom, start_0based + 1, end_1based, len(motif), int((end_1based - start_0based)/len(motif)),
+                        f"{chrom}-{start_0based}-{end_1based}-{motif}"
+                    ]
+                elif tool == "hipstr":
                     if len(motif) > 9 or (end_1based - start_0based) <= 1:
                         # HipSTR doesn't support motifs longer than 9bp or loci where start_1based == stop_1based
                         # (https://github.com/tfwillems/HipSTR/blob/master/src/region.cpp#L33-L35)
@@ -311,7 +317,7 @@ def write_gangstr_or_hipstr_repeat_specs(locus_set, output_path_prefix, gangstr=
 
                 f.write("\t".join(map(str, output_fields)) + "\n")
 
-    print(f"Wrote {len(batches):,d} GangSTR repeat spec bed files to {output_path_prefix}*.bed")
+    print(f"Wrote {len(batches):,d} {tool} repeat spec bed files to {output_path_prefix}*.bed")
 
 
 def write_trgt_catalog(locus_set, output_path):
@@ -400,6 +406,7 @@ def main():
     if not args.skip_popstr and (not args.only or "popstr" in args.only):   subdirs_to_create.append("popstr")
     if not args.skip_trgt and (not args.only or "trgt" in args.only):   subdirs_to_create.append("trgt")
     if not args.skip_straglr and (not args.only or "straglr" in args.only):   subdirs_to_create.append("straglr")
+    if not args.skip_longtr and (not args.only or "longtr" in args.only):   subdirs_to_create.append("longtr")
 
     fasta_obj = None
     output_dir = args.output_dir
@@ -415,13 +422,13 @@ def main():
                 os.path.join(output_dir, f"expansion_hunter/{label}_loci.EHv5"),
                 loci_per_run=args.expansion_hunter_loci_per_run)
         if not args.skip_gangstr and (not args.only or "gangstr" in args.only):
-            write_gangstr_or_hipstr_repeat_specs(locus_set,
+            write_gangstr_hipstr_or_longtr_repeat_specs(locus_set,
                  os.path.join(output_dir, f"gangstr/{label}_loci.GangSTR"),
-                 gangstr=True, loci_per_run=args.gangstr_loci_per_run)
+                 tool="gangstr", loci_per_run=args.gangstr_loci_per_run)
         if not args.skip_hipstr and (not args.only or "hipstr" in args.only):
-            write_gangstr_or_hipstr_repeat_specs(locus_set,
+            write_gangstr_hipstr_or_longtr_repeat_specs(locus_set,
                  os.path.join(output_dir, f"hipstr/{label}_loci.HipSTR"),
-                 hipstr=True, loci_per_run=args.gangstr_loci_per_run)
+                 tool="hipstr", loci_per_run=args.gangstr_loci_per_run)
         if not args.skip_popstr and (not args.only or "popstr" in args.only):
             if fasta_obj is None:
                 fasta_obj = pyfaidx.Fasta(args.ref_fasta, one_based_attributes=False, as_raw=True, sequence_always_upper=True)
@@ -435,6 +442,11 @@ def main():
         if not args.skip_straglr and (not args.only or "straglr" in args.only):
             write_straglr_catalog(locus_set, os.path.join(output_dir, f"straglr/{label}_loci.straglr_catalog"),
                                   loci_per_run=args.straglr_loci_per_run)
+
+        if not args.skip_longtr and (not args.only or "longtr" in args.only):
+            write_gangstr_hipstr_or_longtr_repeat_specs(locus_set,
+                os.path.join(output_dir, f"longtr/{label}_loci.LongTR"),
+                tool="longtr", loci_per_run=None)
 
         write_bed_files(locus_set, os.path.join(output_dir, f"{label}_loci.bed"))
 
