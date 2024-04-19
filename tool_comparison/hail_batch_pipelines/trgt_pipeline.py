@@ -32,7 +32,7 @@ import re
 
 from step_pipeline import pipeline, Backend, Localize, Delocalize
 
-DOCKER_IMAGE = "weisburd/trgt@sha256:597399183813eb7b47e4cced7d7bfc0e0561abb0d33e7cb7da14e0d59a934189"
+DOCKER_IMAGE = "weisburd/trgt@sha256:031ed186025494b715fdf3decd2906b0fff82d9ce99f52f788ca8d89689e47dc"
 
 REFERENCE_FASTA_PATH = "gs://gcp-public-data--broad-references/hg38/v0/Homo_sapiens_assembly38.fasta"
 REFERENCE_FASTA_FAI_PATH = "gs://gcp-public-data--broad-references/hg38/v0/Homo_sapiens_assembly38.fasta.fai"
@@ -103,10 +103,11 @@ def main():
                          step_number=1,
                          image=DOCKER_IMAGE,
                          cpu=cpu,
-                         storage="100Gi",
+                         storage="200Gi",
                          output_dir=output_dir)
         step1s.append(s1)
 
+        s1.command("set -ex")
         local_fasta = s1.input(args.reference_fasta, localize_by=Localize.COPY)
         if args.reference_fasta_fai:
             s1.input(args.reference_fasta_fai, localize_by=Localize.COPY)
@@ -116,10 +117,9 @@ def main():
             s1.input(args.input_bai, localize_by=Localize.COPY)
 
         local_trgt_catalog_bed = s1.input(trgt_catalog_bed_path)
-
+        s1.command("df -kh")
         output_prefix = re.sub(".bed(.gz)?$", "", local_trgt_catalog_bed.filename)
         s1.command(f"echo Genotyping $(cat {local_trgt_catalog_bed} | wc -l) loci")
-        s1.command("set -ex")
         s1.command(f"""/usr/bin/time --verbose trgt \
                                      --genome {local_fasta} \
                                      --reads {local_bam} \

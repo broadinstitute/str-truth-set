@@ -33,6 +33,6 @@ RUN wget -q https://github.com/samtools/samtools/releases/download/${SAMTOOLS_VE
 	&& make install \
 	&& make clean
 
-RUN python3.7 -m pip install str_analysis
+RUN python3.7 -m pip install --no-cache-dir str_analysis
 
 ENTRYPOINT ["/bin/bash"]

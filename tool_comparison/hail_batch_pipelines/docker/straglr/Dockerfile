@@ -43,7 +43,7 @@ RUN wget -q https://github.com/samtools/samtools/releases/download/${SAMTOOLS_VE
     && make install \
     && make clean
 
-RUN python3 -m pip install git+https://github.com/bcgsc/straglr.git@v1.4.1#egg=straglr
+RUN python3 -m pip install --no-cache-dir git+https://github.com/bcgsc/straglr.git@v1.4.1#egg=straglr
 
 
 RUN wget https://github.com/Benson-Genomics-Lab/TRF/releases/download/v4.09.1/trf409.linux64 \

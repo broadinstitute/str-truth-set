@@ -40,7 +40,7 @@ RUN wget -q https://github.com/samtools/samtools/releases/download/${SAMTOOLS_VE
 	&& make install \
 	&& make clean
 
-#RUN python3 -m pip install str_analysis==1.2.5
+#RUN python3 -m pip install --no-cache-dir str_analysis==1.2.5
 
 RUN apt-get install libboost-all-dev --no-install-recommends -y \
 	&& wget https://github.com/DecodeGenetics/popSTR/archive/2.0.zip \

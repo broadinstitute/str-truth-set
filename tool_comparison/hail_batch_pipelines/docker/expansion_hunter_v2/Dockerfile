@@ -41,7 +41,7 @@ RUN wget -q https://github.com/samtools/samtools/releases/download/${SAMTOOLS_VE
 	&& make install \
 	&& make clean
 
-RUN python3 -m pip install --upgrade cmake pip
+RUN python3 -m pip install --no-cache-dir --upgrade cmake pip
 
 RUN apt update && apt-get install --no-install-recommends -y libboost-all-dev
 
@@ -56,7 +56,5 @@ RUN wget https://github.com/Illumina/ExpansionHunter/archive/refs/heads/release-
     && make install \
     && cp /ExpansionHunter-release-2.5.5/build/ExpansionHunter /bin/ \
     && make clean
-
-RUN python3 -m pip install ≥
 
 ENTRYPOINT ["/bin/bash"]

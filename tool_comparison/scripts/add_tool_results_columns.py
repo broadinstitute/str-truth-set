@@ -57,7 +57,7 @@ def parse_args():
     p.add_argument("--verbose", action="store_true", help="Whether to print additional info about input and output columns.")
     p.add_argument("--tool", choices={"ExpansionHunter", "GangSTR", "HipSTR", "TRGT", "NewTruthSet"}, required=True,
                    help="Which tool's results are in the input tsv file")
-    p.add_argument("--filter-to-regions", action="append",
+    p.add_argument("--filter-to-regions", action="append", default=[],
                    help="Optional bed file(s) of regions of interest. Rows in the input table that aren't contained "
                         "in the regions in the bed file(s) will be discarded.")
     p.add_argument("--output-tsv", help="Output path of combined tsv file")
@@ -65,7 +65,7 @@ def parse_args():
     p.add_argument("truth_set_or_negative_loci_tsv", help="Path of the truth set or negative_loci tsv")
 
     args = p.parse_args()
-
+    
     for path in args.tool_results_tsv, args.truth_set_or_negative_loci_tsv:
         if path and not os.path.isfile(path):
             p.error(f"{path} not found")
@@ -179,9 +179,6 @@ def main():
 
     tool_df.loc[:, "ReferenceRegion"] = tool_df["ReferenceRegion"].str.replace("^chr", "", regex=True)
     tool_df.loc[:, "LocusId"] = tool_df["LocusId"].str.replace("^chr", "", regex=True)
-    tool_df["RepeatSize (bp): Allele 1"] = tool_df["RepeatSize (bp): Allele 1"].fillna(tool_df["NumRepeatsInReference"]*tool_df["MotifSize"])
-    tool_df["RepeatSize (bp): Allele 2"] = tool_df["RepeatSize (bp): Allele 2"].fillna(tool_df["NumRepeatsInReference"]*tool_df["MotifSize"])
-
     def split_reference_region(row):
         result = re.split("[:-]", row["ReferenceRegion"])
         if len(result) != 3:
@@ -198,6 +195,9 @@ def main():
     tool_df.loc[:, "DiffFromRefRepeats: Allele 2"] = tool_df["NumRepeats: Allele 2"] - tool_df["NumRepeatsInReference"]
     tool_df.loc[:, "DiffFromRefSize (bp): Allele 1"] = tool_df["DiffFromRefRepeats: Allele 1"] * tool_df["MotifSize"]
     tool_df.loc[:, "DiffFromRefSize (bp): Allele 2"] = tool_df["DiffFromRefRepeats: Allele 2"] * tool_df["MotifSize"]
+
+    tool_df["RepeatSize (bp): Allele 1"] = tool_df["RepeatSize (bp): Allele 1"].fillna(tool_df["NumRepeatsInReference"]*tool_df["MotifSize"])
+    tool_df["RepeatSize (bp): Allele 2"] = tool_df["RepeatSize (bp): Allele 2"].fillna(tool_df["NumRepeatsInReference"]*tool_df["MotifSize"])
 
     tool_df.loc[:, "IsRef: Allele 1"] = tool_df["LocusSize (bp)"].astype(int) == tool_df["RepeatSize (bp): Allele 1"].astype(int)
     tool_df.loc[:, "IsRef: Allele 2"] = tool_df["LocusSize (bp)"].astype(int) == tool_df["RepeatSize (bp): Allele 2"].astype(int)

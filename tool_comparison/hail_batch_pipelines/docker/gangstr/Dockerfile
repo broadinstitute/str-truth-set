@@ -32,7 +32,7 @@ RUN wget -q https://github.com/gymreklab/GangSTR/releases/download/v2.5/GangSTR-
 
 WORKDIR /GangSTR-${GANGSTR_VERSION}
 
-RUN python3 -m pip install --upgrade cmake pip
+RUN python3 -m pip install --no-cache-dir --upgrade cmake pip
 
 RUN mkdir build \
     && cd build \
@@ -53,6 +53,6 @@ RUN wget https://github.com/samtools/htslib/releases/download/${SAMTOOLS_VERSION
 	&& make install \
 	&& make clean
 
-RUN python3 -m pip install str_analysis==1.2.5
+RUN python3 -m pip install --no-cache-dir str_analysis==1.2.5
 
 ENTRYPOINT ["/bin/bash"]

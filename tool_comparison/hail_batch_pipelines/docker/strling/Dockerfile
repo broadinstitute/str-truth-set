@@ -12,7 +12,7 @@ RUN curl https://github.com/arq5x/bedtools2/releases/download/v${BED_TOOLS_VERSI
 	&& chmod 777 bedtools.static \
 	&& mv bedtools.static /usr/bin/bedtools
 
-RUN python3 -m pip install --upgrade pip \
- 	&& python3 -m pip install str_analysis
+RUN python3 -m pip install --no-cache-dir --upgrade pip \
+ 	&& python3 -m pip install --no-cache-dir str_analysis
 
 ENTRYPOINT ["/bin/bash"]

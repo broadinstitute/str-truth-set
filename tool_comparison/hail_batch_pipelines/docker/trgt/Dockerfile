@@ -43,27 +43,25 @@ RUN wget -q https://github.com/samtools/samtools/releases/download/${SAMTOOLS_VE
     && make install \
     && make clean
 
-RUN python3 -m pip install --upgrade cmake pip
+RUN python3 -m pip install --no-cache-dir --upgrade cmake pip
 
-# install the optimized version of ExpansionHunter which runs 2 to 3x faster and produces the same output
-# wget -q https://github.com/PacificBiosciences/trgt/releases/download/v0.5.0/trvz-v0.5.0-linux_x86_64.gz \
-
-RUN wget -q https://github.com/PacificBiosciences/trgt/releases/download/v0.5.0/trgt-v0.5.0-linux_x86_64.gz \
-    && wget -q https://github.com/PacificBiosciences/trgt/releases/download/v0.5.0/trvz-v0.5.0-linux_x86_64.gz \
-	&& gunzip trgt-v0.5.0-linux_x86_64.gz trvz-v0.5.0-linux_x86_64.gz \
-    && chmod 777 trgt-v0.5.0-linux_x86_64 trvz-v0.5.0-linux_x86_64 \
-    && mv trgt-v0.5.0-linux_x86_64 /usr/bin/trgt \
-    && mv trvz-v0.5.0-linux_x86_64 /usr/bin/trvz
-
-# install gcloud
-ENV GCLOUD_SDK_VERISON="419.0.0"
+ENV GCLOUD_SDK_VERISON="468.0.0"
 RUN wget https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-${GCLOUD_SDK_VERISON}-linux-x86_64.tar.gz \
     && tar xzf google-cloud-sdk-${GCLOUD_SDK_VERISON}-linux-x86_64.tar.gz \
     && /google-cloud-sdk/install.sh -q \
     && /google-cloud-sdk/bin/gcloud components update --quiet
 
+ENV TRGT_VERSION="0.8.0"
+RUN wget -q https://github.com/PacificBiosciences/trgt/releases/download/v${TRGT_VERSION}/trgt-v${TRGT_VERSION}-linux_x86_64.gz \
+    && wget -q https://github.com/PacificBiosciences/trgt/releases/download/v${TRGT_VERSION}/trvz-v${TRGT_VERSION}-linux_x86_64.gz \
+	&& gunzip trgt-v${TRGT_VERSION}-linux_x86_64.gz trvz-v${TRGT_VERSION}-linux_x86_64.gz \
+    && chmod 777 trgt-v${TRGT_VERSION}-linux_x86_64 trvz-v${TRGT_VERSION}-linux_x86_64 \
+    && mv trgt-v${TRGT_VERSION}-linux_x86_64 /usr/bin/trgt \
+    && mv trvz-v${TRGT_VERSION}-linux_x86_64 /usr/bin/trvz
+
+
 ENV PATH=/google-cloud-sdk/bin:$PATH
 
-RUN python3 -m pip install str_analysis==1.2.5
+RUN python3 -m pip install --no-cache-dir git+https://github.com/broadinstitute/str-analysis.git
 
 ENTRYPOINT ["/bin/bash"]
