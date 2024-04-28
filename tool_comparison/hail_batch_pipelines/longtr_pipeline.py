@@ -62,7 +62,7 @@ import re
 
 from step_pipeline import pipeline, Backend, Localize, Delocalize
 
-DOCKER_IMAGE = "weisburd/longtr@sha256:1b4ab7bba5c4642cb938ee7c60fb388b3ebdc99b5de09e0fba15f44e4750b4c1"
+DOCKER_IMAGE = "weisburd/longtr@sha256:017c2056972181c96779c687d0f918203db7c4afd9a4defe4fa6ed6aad626015"
 
 REFERENCE_FASTA_PATH = "gs://gcp-public-data--broad-references/hg38/v0/Homo_sapiens_assembly38.fasta"
 REFERENCE_FASTA_FAI_PATH = "gs://gcp-public-data--broad-references/hg38/v0/Homo_sapiens_assembly38.fasta.fai"
@@ -146,6 +146,7 @@ def main():
         s1.command(f"echo Genotyping $(cat {local_regions_bed} | wc -l) loci")
         s1.command("set -ex")
         s1.command(f"""/usr/bin/time --verbose LongTR \
+                --skip-assembly \
                 --min-reads 2 \
                 --bams {local_bam} \
                 --fasta {local_fasta} \

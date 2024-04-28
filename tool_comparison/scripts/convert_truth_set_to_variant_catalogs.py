@@ -421,14 +421,17 @@ def main():
             write_expansion_hunter_variant_catalogs(locus_set,
                 os.path.join(output_dir, f"expansion_hunter/{label}_loci.EHv5"),
                 loci_per_run=args.expansion_hunter_loci_per_run)
+            
         if not args.skip_gangstr and (not args.only or "gangstr" in args.only):
             write_gangstr_hipstr_or_longtr_repeat_specs(locus_set,
                  os.path.join(output_dir, f"gangstr/{label}_loci.GangSTR"),
                  tool="gangstr", loci_per_run=args.gangstr_loci_per_run)
+
         if not args.skip_hipstr and (not args.only or "hipstr" in args.only):
             write_gangstr_hipstr_or_longtr_repeat_specs(locus_set,
                  os.path.join(output_dir, f"hipstr/{label}_loci.HipSTR"),
                  tool="hipstr", loci_per_run=args.gangstr_loci_per_run)
+
         if not args.skip_popstr and (not args.only or "popstr" in args.only):
             if fasta_obj is None:
                 fasta_obj = pyfaidx.Fasta(args.ref_fasta, one_based_attributes=False, as_raw=True, sequence_always_upper=True)

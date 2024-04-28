@@ -51,7 +51,7 @@ RUN wget https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud
     && /google-cloud-sdk/install.sh -q \
     && /google-cloud-sdk/bin/gcloud components update --quiet
 
-ENV TRGT_VERSION="0.8.0"
+ENV TRGT_VERSION="0.9.0"
 RUN wget -q https://github.com/PacificBiosciences/trgt/releases/download/v${TRGT_VERSION}/trgt-v${TRGT_VERSION}-linux_x86_64.gz \
     && wget -q https://github.com/PacificBiosciences/trgt/releases/download/v${TRGT_VERSION}/trvz-v${TRGT_VERSION}-linux_x86_64.gz \
 	&& gunzip trgt-v${TRGT_VERSION}-linux_x86_64.gz trvz-v${TRGT_VERSION}-linux_x86_64.gz \
