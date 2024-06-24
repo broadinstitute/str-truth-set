@@ -22,7 +22,7 @@ RUN git clone https://github.com/HipSTR-Tool/HipSTR \
     && cp /HipSTR/HipSTR /bin/HipSTR \
     && make clean
 
-ENV SAMTOOLS_VERSION="1.9"
+ENV SAMTOOLS_VERSION="1.20"
 RUN wget https://github.com/samtools/htslib/releases/download/${SAMTOOLS_VERSION}/htslib-${SAMTOOLS_VERSION}.tar.bz2 \
 	&& tar xjf htslib-${SAMTOOLS_VERSION}.tar.bz2 \
 	&& rm htslib-${SAMTOOLS_VERSION}.tar.bz2 \

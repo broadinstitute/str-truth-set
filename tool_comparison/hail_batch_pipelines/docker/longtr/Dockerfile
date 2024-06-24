@@ -26,7 +26,7 @@ RUN apt update && apt-get install --no-install-recommends -y \
     jq \
     time
 
-ENV SAMTOOLS_VERSION="1.17"
+ENV SAMTOOLS_VERSION="1.20"
 RUN wget -q https://github.com/samtools/htslib/releases/download/${SAMTOOLS_VERSION}/htslib-${SAMTOOLS_VERSION}.tar.bz2 \
     && tar xjf htslib-${SAMTOOLS_VERSION}.tar.bz2 \
     && rm htslib-${SAMTOOLS_VERSION}.tar.bz2 \
@@ -47,7 +47,7 @@ RUN wget -q https://github.com/samtools/samtools/releases/download/${SAMTOOLS_VE
 
 RUN python3 -m pip install --no-cache-dir --upgrade cmake pip
 
-ENV GCLOUD_SDK_VERISON="468.0.0"
+ENV GCLOUD_SDK_VERISON="481.0.0"
 RUN wget https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-${GCLOUD_SDK_VERISON}-linux-x86_64.tar.gz \
     && tar xzf google-cloud-sdk-${GCLOUD_SDK_VERISON}-linux-x86_64.tar.gz \
     && /google-cloud-sdk/install.sh -q \

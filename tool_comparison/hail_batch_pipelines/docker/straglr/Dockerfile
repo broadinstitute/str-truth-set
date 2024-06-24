@@ -24,7 +24,7 @@ RUN apt update && apt-get install --no-install-recommends -y \
     jq \
     time
 
-ENV SAMTOOLS_VERSION="1.17"
+ENV SAMTOOLS_VERSION="1.20"
 RUN wget https://github.com/samtools/htslib/releases/download/${SAMTOOLS_VERSION}/htslib-${SAMTOOLS_VERSION}.tar.bz2 \
     && tar xjf htslib-${SAMTOOLS_VERSION}.tar.bz2 \
     && rm htslib-${SAMTOOLS_VERSION}.tar.bz2 \
@@ -43,7 +43,7 @@ RUN wget -q https://github.com/samtools/samtools/releases/download/${SAMTOOLS_VE
     && make install \
     && make clean
 
-RUN python3 -m pip install --no-cache-dir git+https://github.com/bcgsc/straglr.git@v1.4.1#egg=straglr
+RUN python3 -m pip install --no-cache-dir git+https://github.com/bcgsc/straglr.git@v1.5.0#egg=straglr
 
 
 RUN wget https://github.com/Benson-Genomics-Lab/TRF/releases/download/v4.09.1/trf409.linux64 \
