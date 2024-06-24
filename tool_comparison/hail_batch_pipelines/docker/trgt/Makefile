@@ -1,4 +1,4 @@
-VERSION = v0.9
+VERSION = v1.0
 TAG = weisburd/trgt
 
 all: build push

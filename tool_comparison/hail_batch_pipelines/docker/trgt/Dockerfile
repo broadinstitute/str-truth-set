@@ -51,13 +51,11 @@ RUN wget https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud
     && /google-cloud-sdk/install.sh -q \
     && /google-cloud-sdk/bin/gcloud components update --quiet
 
-ENV TRGT_VERSION="0.9.0"
-RUN wget -q https://github.com/PacificBiosciences/trgt/releases/download/v${TRGT_VERSION}/trgt-v${TRGT_VERSION}-linux_x86_64.gz \
-    && wget -q https://github.com/PacificBiosciences/trgt/releases/download/v${TRGT_VERSION}/trvz-v${TRGT_VERSION}-linux_x86_64.gz \
-	&& gunzip trgt-v${TRGT_VERSION}-linux_x86_64.gz trvz-v${TRGT_VERSION}-linux_x86_64.gz \
-    && chmod 777 trgt-v${TRGT_VERSION}-linux_x86_64 trvz-v${TRGT_VERSION}-linux_x86_64 \
-    && mv trgt-v${TRGT_VERSION}-linux_x86_64 /usr/bin/trgt \
-    && mv trvz-v${TRGT_VERSION}-linux_x86_64 /usr/bin/trvz
+ENV TRGT_VERSION="1.0.0"
+RUN wget -q https://github.com/PacificBiosciences/trgt/releases/download/v${TRGT_VERSION}/trgt-v${TRGT_VERSION}-x86_64-unknown-linux-gnu.tar.gz \
+    && tar xzf trgt-v${TRGT_VERSION}-x86_64-unknown-linux-gnu.tar.gz \
+    && chmod 777 trgt-v${TRGT_VERSION}-x86_64-unknown-linux-gnu/trgt \
+    && mv trgt-v${TRGT_VERSION}-x86_64-unknown-linux-gnu/trgt /usr/bin/trgt
 
 
 ENV PATH=/google-cloud-sdk/bin:$PATH
