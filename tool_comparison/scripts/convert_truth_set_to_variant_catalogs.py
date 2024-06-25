@@ -26,9 +26,9 @@ MIN_DISTANCE_TO_INDELS_AROUND_NEGATIVE_LOCI = 100  # base pairs
 def parse_args():
     p = argparse.ArgumentParser()
     p.add_argument("-R", "--ref-fasta", help="Reference fasta path")
-    p.add_argument("--expansion-hunter-loci-per-run", type=int, default=500, help="ExpansionHunter batch size. "
+    p.add_argument("--expansion-hunter-loci-per-run", type=int, default=1000, help="ExpansionHunter batch size. "
                    "The set of all STR loci in the truth set will be split into variant catalogs of this size.")
-    p.add_argument("--gangstr-loci-per-run", type=int, default=10000, help="GangSTR batch size. "
+    p.add_argument("--gangstr-loci-per-run", type=int, default=100000, help="GangSTR batch size. "
                    "The set of all STR loci in the truth set will be split into repeat spec files of this size.")
     p.add_argument("--straglr-loci-per-run", type=int, default=10000, help="Straglr batch size. "
                    "The set of all STR loci in the truth set will be split into bed files of this size.")
@@ -51,6 +51,7 @@ def parse_args():
     p.add_argument("--skip-straglr", action="store_true", help="Skip generating a Straglr catalog")
     p.add_argument("--skip-longtr", action="store_true", help="Skip generating a LongTR catalog")
     p.add_argument("--output-dir", default="./tool_comparison/variant_catalogs/", help="Directory where to write output files")
+    p.add_argument("--output-filename-prefix", help="Prefix of output files")
     p.add_argument("truth_set_variants_tsv_or_bed_path", nargs="?", default="STR_truth_set.v1.variants.tsv",
                    help="Path of the STR truth set .variants.tsv or of an arbitrary bed file")
     args = p.parse_args()
@@ -416,6 +417,10 @@ def main():
             if not os.path.isdir(subdir_path):
                 print(f"Creating directory {subdir_path}")
                 os.makedirs(subdir_path)
+
+        output_filename_prefix = label
+        if args.output_filename_prefix:
+            output_filename_prefix = f"{args.output_filename_prefix}.{label}"
 
         if not args.skip_eh and (not args.only or "eh" in args.only):
             write_expansion_hunter_variant_catalogs(locus_set,
