@@ -424,17 +424,17 @@ def main():
 
         if not args.skip_eh and (not args.only or "eh" in args.only):
             write_expansion_hunter_variant_catalogs(locus_set,
-                os.path.join(output_dir, f"expansion_hunter/{label}_loci.EHv5"),
+                os.path.join(output_dir, f"expansion_hunter/{output_filename_prefix}_loci.EHv5"),
                 loci_per_run=args.expansion_hunter_loci_per_run)
             
         if not args.skip_gangstr and (not args.only or "gangstr" in args.only):
             write_gangstr_hipstr_or_longtr_repeat_specs(locus_set,
-                 os.path.join(output_dir, f"gangstr/{label}_loci.GangSTR"),
+                 os.path.join(output_dir, f"gangstr/{output_filename_prefix}_loci.GangSTR"),
                  tool="gangstr", loci_per_run=args.gangstr_loci_per_run)
 
         if not args.skip_hipstr and (not args.only or "hipstr" in args.only):
             write_gangstr_hipstr_or_longtr_repeat_specs(locus_set,
-                 os.path.join(output_dir, f"hipstr/{label}_loci.HipSTR"),
+                 os.path.join(output_dir, f"hipstr/{output_filename_prefix}_loci.HipSTR"),
                  tool="hipstr", loci_per_run=args.gangstr_loci_per_run)
 
         if not args.skip_popstr and (not args.only or "popstr" in args.only):
@@ -442,21 +442,21 @@ def main():
                 fasta_obj = pyfaidx.Fasta(args.ref_fasta, one_based_attributes=False, as_raw=True, sequence_always_upper=True)
 
             write_popstr_catalogs(locus_set, fasta_obj,
-                 os.path.join(output_dir, f"popstr/{label}_loci.popSTR"))
+                 os.path.join(output_dir, f"popstr/{output_filename_prefix}_loci.popSTR"))
 
         if not args.skip_trgt and (not args.only or "trgt" in args.only):
-            write_trgt_catalog(locus_set, os.path.join(output_dir, f"trgt/{label}_loci.TRGT_repeat_catalog.bed"))
+            write_trgt_catalog(locus_set, os.path.join(output_dir, f"trgt/{output_filename_prefix}_loci.TRGT_repeat_catalog.bed"))
 
         if not args.skip_straglr and (not args.only or "straglr" in args.only):
-            write_straglr_catalog(locus_set, os.path.join(output_dir, f"straglr/{label}_loci.straglr_catalog"),
+            write_straglr_catalog(locus_set, os.path.join(output_dir, f"straglr/{output_filename_prefix}_loci.straglr_catalog"),
                                   loci_per_run=args.straglr_loci_per_run)
 
         if not args.skip_longtr and (not args.only or "longtr" in args.only):
             write_gangstr_hipstr_or_longtr_repeat_specs(locus_set,
-                os.path.join(output_dir, f"longtr/{label}_loci.LongTR"),
+                os.path.join(output_dir, f"longtr/{output_filename_prefix}_loci.LongTR"),
                 tool="longtr", loci_per_run=None)
 
-        write_bed_files(locus_set, os.path.join(output_dir, f"{label}_loci.bed"))
+        write_bed_files(locus_set, os.path.join(output_dir, f"{output_filename_prefix}_loci.bed"))
 
     # Make sure positive regions and negative regions don't overlap.
     positive_loci_bedtool = pybedtools.BedTool(
