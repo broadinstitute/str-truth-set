@@ -33,7 +33,7 @@ def parse_args():
     p.add_argument("--straglr-loci-per-run", type=int, default=10000, help="Straglr batch size. "
                    "The set of all STR loci in the truth set will be split into bed files of this size.")
     p.add_argument("--truth-set-bed", default="./STR_truth_set.v1.variants.bed.gz")
-    p.add_argument("--output-negative-loci", action="store_true", help="Also create a catalog generating negative loci")
+    p.add_argument("--skip-negative-loci", action="store_true", help="Also create a catalog generating negative loci")
     p.add_argument("--high-confidence-regions-bed", default="./ref/full.38.bed.gz",
                    help="Path of the SynDip high-confidence regions .bed file")
     p.add_argument("--all-indels-vcf", #default="./ref/full.38.INDELs.vcf.gz",
@@ -59,7 +59,7 @@ def parse_args():
     print("Args:")
     for i, (label, path) in enumerate([
         ("truth set variants", args.truth_set_variants_tsv_or_bed_path),
-    ] + ([] if not args.output_negative_loci else [
+    ] + ([] if args.skip_negative_loci else [
         ("--high-confidence-regions-bed", args.high_confidence_regions_bed),
         ("--all-indels-vcf", args.all_indels_vcf),
         ("--truth-set-bed", args.truth_set_bed),
@@ -387,7 +387,7 @@ def main():
 
     locus_sets = [("positive", positive_loci)]
 
-    if args.output_negative_loci:
+    if not args.skip_negative_loci:
         # generate negative (non-variant) loci for the variant catalogs
         negative_loci = generate_set_of_negative_loci(
             args.all_hg38_repeats_bed,
@@ -424,7 +424,13 @@ def main():
             write_expansion_hunter_variant_catalogs(locus_set,
                 os.path.join(output_dir, f"expansion_hunter/{output_filename_prefix}{label}_loci.EHv5"),
                 loci_per_run=args.expansion_hunter_loci_per_run)
-            
+
+            # also output a single catalog with all loci
+            if args.expansion_hunter_loci_per_run < len(locus_set):
+                write_expansion_hunter_variant_catalogs(locus_set,
+                    os.path.join(output_dir, f"expansion_hunter/{output_filename_prefix}{label}_loci.EHv5"),
+                    loci_per_run=10**9)
+
         if not args.skip_gangstr and (not args.only or "gangstr" in args.only):
             write_gangstr_hipstr_or_longtr_repeat_specs(locus_set,
                  os.path.join(output_dir, f"gangstr/{output_filename_prefix}{label}_loci.GangSTR"),
@@ -459,7 +465,7 @@ def main():
     # Make sure positive regions and negative regions don't overlap.
     positive_loci_bedtool = pybedtools.BedTool(
         os.path.expanduser(os.path.join(output_dir, f"{output_filename_prefix}positive_loci.bed.gz")))
-    if args.output_negative_loci:
+    if not args.skip_negative_loci:
         overlap_count = positive_loci_bedtool.intersect(
             os.path.expanduser(os.path.join(output_dir, f"{output_filename_prefix}negative_loci.bed.gz"))).count()
 
