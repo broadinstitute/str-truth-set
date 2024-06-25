@@ -65,7 +65,8 @@ def main():
 
     s1.command(f"mosdepth -f {local_fasta} -x coverage_after_downsampling {output_bam_filename}")
     s1.command(f"cat coverage_after_downsampling.mosdepth.summary.txt | cut -f 4 | tail -n +2 | head -n 23")
-    s1.command(f"grep total coverage_after_downsampling.mosdepth.summary.txt")
+    s1.command(f"grep total coverage_after_downsampling.mosdepth.summary.txt > coverage_after_downsampling.total_coverage.txt")
+    s1.command(f"cat coverage_after_downsampling.total_coverage.txt")
 
     #s1.command(f"gatk CollectWgsMetrics STOP_AFTER={5*10**7} I={output_bam_filename} O=metrics.txt R={local_fasta}")
     #s1.command(f"cat metrics.txt | head -n 8 | tail -n 2")

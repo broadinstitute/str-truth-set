@@ -24,7 +24,7 @@ RUN apt update && apt-get install --no-install-recommends -y \
     jq \
     time
 
-ENV SAMTOOLS_VERSION="1.20"
+ENV SAMTOOLS_VERSION="1.20.0"
 RUN wget -q https://github.com/samtools/htslib/releases/download/${SAMTOOLS_VERSION}/htslib-${SAMTOOLS_VERSION}.tar.bz2 \
     && tar xjf htslib-${SAMTOOLS_VERSION}.tar.bz2 \
     && rm htslib-${SAMTOOLS_VERSION}.tar.bz2 \

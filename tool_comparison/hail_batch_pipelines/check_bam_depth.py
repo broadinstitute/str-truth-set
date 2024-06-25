@@ -16,14 +16,22 @@ def main():
     parser = bp.get_config_arg_parser()
     parser.add_argument("--reference-fasta", default=REFERENCE_FASTA_PATH)
     parser.add_argument("--reference-fasta-fai")
-    parser.add_argument("--output-dir", required=True, help="Google storage directory for output file")
+    parser.add_argument("--output-dir", help="Google Storage directory for output files. If not specified, it will be the same as the input file.")
     parser.add_argument("input_bam", nargs="+")
     args = bp.parse_known_args()
 
+    if len(args.input_bam) == 1:
+        bp.set_name(f"coverage: {os.path.basename(args.input_bam[0])}")
+    else:
+        bp.set_name(f"coverage: {len(args.input_bam)} bams")
 
+    output_dir = args.output_dir
     for input_bam in args.input_bam:
+        if not args.output_dir:
+            output_dir = os.path.dirname(input_bam)
+
         bam_or_cram_prefix = re.sub("(.bam|.cram)$", "", os.path.basename(input_bam))
-        s1 = bp.new_step(f"Coverage: {bam_or_cram_prefix}", image=DOCKER_IMAGE, cpu=1, memory="standard", storage="20Gi", output_dir=args.output_dir)
+        s1 = bp.new_step(f"Coverage: {bam_or_cram_prefix}", image=DOCKER_IMAGE, cpu=1, memory="standard", storage="20Gi", output_dir=output_dir)
         local_fasta = s1.input(args.reference_fasta, localize_by=Localize.HAIL_BATCH_CLOUDFUSE)
         if args.reference_fasta_fai:
             s1.input(args.reference_fasta_fai, localize_by=Localize.HAIL_BATCH_CLOUDFUSE)
@@ -39,7 +47,7 @@ def main():
 
         s1.command(f"cat {bam_or_cram_prefix}.coverage.mosdepth.summary.txt | cut -f 4 | tail -n +2 | head -n 23")
         s1.command(f"grep total {bam_or_cram_prefix}.coverage.mosdepth.summary.txt > {bam_or_cram_prefix}.total_coverage.txt")
-
+        s1.command(f"cat {bam_or_cram_prefix}.total_coverage.txt")
         s1.output(f"{bam_or_cram_prefix}.total_coverage.txt")
 
     bp.run()
