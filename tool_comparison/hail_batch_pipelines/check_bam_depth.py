@@ -46,9 +46,9 @@ def main():
         #s1.output(f"{bam_or_cram_prefix}.coverage.mosdepth.summary.txt")
 
         s1.command(f"cat {bam_or_cram_prefix}.coverage.mosdepth.summary.txt | cut -f 4 | tail -n +2 | head -n 23")
-        s1.command(f"grep total {bam_or_cram_prefix}.coverage.mosdepth.summary.txt > {bam_or_cram_prefix}.total_coverage.txt")
-        s1.command(f"cat {bam_or_cram_prefix}.total_coverage.txt")
-        s1.output(f"{bam_or_cram_prefix}.total_coverage.txt")
+        s1.command(f"grep total {bam_or_cram_prefix}.coverage.mosdepth.summary.txt > {bam_or_cram_prefix}.total_depth.txt")
+        s1.command(f"cat {bam_or_cram_prefix}.total_depth.txt")
+        s1.output(f"{bam_or_cram_prefix}.total_depth.txt")
 
     bp.run()
 
