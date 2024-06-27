@@ -51,11 +51,11 @@ def main():
     s1.command(f"mosdepth -f {local_fasta} -x coverage {local_bam}")
 
     s1.command(f"time gatk --java-options '-Xmx11G' DownsampleSam "
-               f"REFERENCE_SEQUENCE={local_fasta} "
-               f"I={local_bam} "
-               f"O={output_bam_filename} "
-               f"""P=$(echo "{args.target_coverage} / $(grep total coverage.mosdepth.summary.txt | cut -f 4)" | bc -l | awk '{{printf "%.4f", $0}}') """
-               f"CREATE_INDEX=true")
+               f"--REFERENCE_SEQUENCE {local_fasta} "
+               f"-I {local_bam} "
+               f"-O {output_bam_filename} "
+               f"""-P $(echo "{args.target_coverage} / $(grep total coverage.mosdepth.summary.txt | cut -f 4)" | bc -l | awk '{{printf "%.4f", $0}}') """
+               f"--CREATE_INDEX true")
 
     s1.command(f"samtools calmd -b {output_bam_filename} {local_fasta} > {output_bam_filename}.with_NM_tag.bam")
     s1.command(f"mv {output_bam_filename}.with_NM_tag.bam {output_bam_filename}")
