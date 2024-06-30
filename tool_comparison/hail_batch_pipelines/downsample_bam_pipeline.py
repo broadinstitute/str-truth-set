@@ -18,14 +18,17 @@ def main():
     parser = bp.get_config_arg_parser()
     parser.add_argument("--reference-fasta", default=REFERENCE_FASTA_PATH)
     parser.add_argument("--reference-fasta-fai")
-    parser.add_argument("--input-bam", default=CHM1_CHM13_CRAM_PATH)
-    parser.add_argument("--input-bai")
+    parser.add_argument("--input-index-file")
     #parser.add_argument("--input-coverage", required=True, type=float, help="Input bam coverage.")
     parser.add_argument("--target-coverage", default=30, type=float, help="Target coverage. Must be less than the input coverage.")
-    parser.add_argument("--output-dir", required=True, help="Google storage directory for output file")
+    parser.add_argument("--output-dir", help="Google storage directory for output file. If not specified, it will be based on the input bam")
+    parser.add_argument("input_bam_or_cram", default=CHM1_CHM13_CRAM_PATH)    
     args = bp.parse_known_args()
 
-    pipeline_name = f"Downsample {os.path.basename(args.input_bam)} to {args.target_coverage}x"
+    if not args.output_dir:
+        args.output_dir = os.path.dirname(args.input_bam_or_cram)
+
+    pipeline_name = f"Downsample {os.path.basename(args.input_bam_or_cram)} to {args.target_coverage}x"
     bp.set_name(pipeline_name)
 
     if args.target_coverage <= 1:
@@ -36,9 +39,9 @@ def main():
     if args.reference_fasta_fai:
         s1.input(args.reference_fasta_fai, localize_by=Localize.HAIL_BATCH_CLOUDFUSE)
 
-    local_bam = s1.input(args.input_bam, localize_by=Localize.HAIL_BATCH_CLOUDFUSE)
-    if args.input_bai:
-        s1.input(args.input_bai, localize_by=Localize.HAIL_BATCH_CLOUDFUSE)
+    local_bam = s1.input(args.input_bam_or_cram, localize_by=Localize.HAIL_BATCH_CLOUDFUSE)
+    if args.input_index_file:
+        s1.input(args.input_index_file, localize_by=Localize.HAIL_BATCH_CLOUDFUSE)
 
     bam_or_cram_prefix = re.sub("(.bam|.cram)$", "", local_bam.filename)
     output_bam_filename = f"{bam_or_cram_prefix}.downsampled_to_{int(args.target_coverage)}x.bam"
