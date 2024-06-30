@@ -97,43 +97,14 @@ def main():
         if args.n and trgt_catalog_i >= args.n:
             break
 
-        cpu = 16
-        s1 = bp.new_step(f"Run TRGT #{trgt_catalog_i}",
-                         arg_suffix=f"trgt",
-                         step_number=1,
-                         image=DOCKER_IMAGE,
-                         cpu=cpu,
-                         storage="200Gi",
-                         output_dir=output_dir)
-        step1s.append(s1)
-
-        s1.command("set -ex")
-        local_fasta = s1.input(args.reference_fasta, localize_by=Localize.COPY)
-        if args.reference_fasta_fai:
-            s1.input(args.reference_fasta_fai, localize_by=Localize.COPY)
-
-        local_bam = s1.input(args.input_bam, localize_by=Localize.COPY)
-        if args.input_bai:
-            s1.input(args.input_bai, localize_by=Localize.COPY)
-
-        local_trgt_catalog_bed = s1.input(trgt_catalog_bed_path)
-        s1.command("df -kh")
         output_prefix = re.sub(".bed(.gz)?$", "", local_trgt_catalog_bed.filename)
-        s1.command(f"echo Genotyping $(cat {local_trgt_catalog_bed} | wc -l) loci")
-        s1.command(f"""/usr/bin/time --verbose trgt \
-                                     --genome {local_fasta} \
-                                     --reads {local_bam} \
-                                     --repeats {local_trgt_catalog_bed} \
-                                     --output-prefix {output_prefix} \
-                                     --threads {cpu} \
-                                     --verbose
-        """)
-
-        s1.command("ls -lhrt")
-
-        #s1.command(f"python3.9 -m str_analysis.convert_hipstr_vcf_to_expansion_hunter_json {output_prefix}.vcf.gz")
-        s1.output(f"{output_prefix}.vcf.gz")
-        s1.output(f"{output_prefix}.spanning.bam")
+        s1 = create_trgt_step(
+            bp,
+            reference_fasta = args.reference_fasta,
+            trgt_catalog_bed_path = args.trgt_catalog_bed_path,
+            output_dir = output_dir,
+            output_prefix = output_prefix)
+        step1s.append(s1)
 
     bp.run()
     return
@@ -168,6 +139,42 @@ def main():
     s2.output(f"{output_prefix}.{len(step1_output_json_paths)}_json_files.bed.gz.tbi")
     bp.run()
 
+
+def create_trgt_step(bp, *, reference_fasta, input_bam, input_bai, trgt_catalog_bed_path, output_dir, output_prefix, reference_fasta_fai=None):
+    cpu = 16
+    s1 = bp.new_step(f"Run TRGT #{os.path.basename(input_bam)}",
+                     arg_suffix=f"trgt",
+                     step_number=1,
+                     image=DOCKER_IMAGE,
+                     cpu=cpu,
+                     storage="200Gi",
+                     output_dir=output_dir)
+    s1.command("set -ex")
+    local_fasta = s1.input(reference_fasta, localize_by=Localize.COPY)
+    if reference_fasta_fai:
+        s1.input(reference_fasta_fai, localize_by=Localize.COPY)
+    else:
+        s1.input(f"{reference_fasta}.fai", localize_by=Localize.COPY)
+    local_bam = s1.input(input_bam, localize_by=Localize.COPY)
+    if input_bai:
+        s1.input(input_bai, localize_by=Localize.COPY)
+    local_trgt_catalog_bed = s1.input(trgt_catalog_bed_path)
+    s1.command("df -kh")
+    s1.command(f"echo Genotyping $(cat {local_trgt_catalog_bed} | wc -l) loci")
+    s1.command(f"""/usr/bin/time --verbose trgt genotype \
+                                     --genome {local_fasta} \
+                                     --reads {local_bam} \
+                                     --repeats {local_trgt_catalog_bed} \
+                                     --output-prefix {output_prefix} \
+                                     --threads {cpu} \
+                                     --verbose
+        """)
+    s1.command("ls -lhrt")
+    # s1.command(f"python3.9 -m str_analysis.convert_hipstr_vcf_to_expansion_hunter_json {output_prefix}.vcf.gz")
+    s1.output(f"{output_prefix}.vcf.gz")
+    s1.output(f"{output_prefix}.spanning.bam")
+
+    return s1
 
 if __name__ == "__main__":
     main()
