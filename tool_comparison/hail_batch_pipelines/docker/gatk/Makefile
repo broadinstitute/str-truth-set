@@ -1,4 +1,4 @@
-VERSION = 4.3.0.0
+VERSION = 4.6.0.0
 TAG = weisburd/gatk
 
 all: build push

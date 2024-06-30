@@ -1,4 +1,4 @@
-FROM broadinstitute/gatk:4.3.0.0
+FROM broadinstitute/gatk:4.6.0.0
 
 RUN curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
 RUN apt-get update && apt-get install --no-install-recommends -y \
@@ -7,12 +7,19 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
     zlib1g-dev \
     liblzma-dev \
     libssl-dev \
-    python3.7 \
+    python3.11-dev \
     time \
     libcurl4-openssl-dev \
     build-essential \
 	libncurses5-dev
 
+WORKDIR /
+
+ENV GCLOUD_SDK_VERISON="481.0.0"
+RUN wget https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-${GCLOUD_SDK_VERISON}-linux-x86_64.tar.gz \
+    && tar xzf google-cloud-sdk-${GCLOUD_SDK_VERISON}-linux-x86_64.tar.gz \
+    && /google-cloud-sdk/install.sh -q \
+    && /google-cloud-sdk/bin/gcloud components update --quiet
 
 ENV SAMTOOLS_VERSION="1.20"
 RUN wget https://github.com/samtools/htslib/releases/download/${SAMTOOLS_VERSION}/htslib-${SAMTOOLS_VERSION}.tar.bz2 \
@@ -33,6 +40,8 @@ RUN wget -q https://github.com/samtools/samtools/releases/download/${SAMTOOLS_VE
 	&& make install \
 	&& make clean
 
-RUN python3.7 -m pip install --no-cache-dir str_analysis
+RUN rm /opt/miniconda/envs/gatk/bin/python3 \
+    && ln -s $(which python3.11) /opt/miniconda/envs/gatk/bin/python3 \
+	&& python3 -m pip install --no-cache-dir str_analysis
 
 ENTRYPOINT ["/bin/bash"]

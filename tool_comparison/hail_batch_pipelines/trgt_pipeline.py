@@ -142,7 +142,7 @@ def main():
 
 def create_trgt_step(bp, *, reference_fasta, input_bam, input_bai, trgt_catalog_bed_path, output_dir, output_prefix, reference_fasta_fai=None):
     cpu = 16
-    s1 = bp.new_step(f"Run TRGT #{os.path.basename(input_bam)}",
+    s1 = bp.new_step(f"Run TRGT on {os.path.basename(input_bam)}",
                      arg_suffix=f"trgt",
                      step_number=1,
                      image=DOCKER_IMAGE,
@@ -166,9 +166,8 @@ def create_trgt_step(bp, *, reference_fasta, input_bam, input_bai, trgt_catalog_
                                      --reads {local_bam} \
                                      --repeats {local_trgt_catalog_bed} \
                                      --output-prefix {output_prefix} \
-                                     --threads {cpu} \
-                                     --verbose
-        """)
+                                     --threads {cpu}                       
+    """)
     s1.command("ls -lhrt")
     # s1.command(f"python3.9 -m str_analysis.convert_hipstr_vcf_to_expansion_hunter_json {output_prefix}.vcf.gz")
     s1.output(f"{output_prefix}.vcf.gz")
