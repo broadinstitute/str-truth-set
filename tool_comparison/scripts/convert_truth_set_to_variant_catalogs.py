@@ -295,6 +295,10 @@ def write_gangstr_hipstr_or_longtr_repeat_specs(locus_set, output_path_prefix, t
     for batch_i, current_repeat_specs in enumerate(batches):
         with open(f"{output_path_prefix}.{batch_i+1:03d}_of_{len(batches):03d}.bed", "wt") as f:
             for chrom, start_0based, end_1based, motif in current_repeat_specs:
+                if end_1based - start_0based <= 1:
+                    # This can happen with homopolymers where there is only 1 repeat in the reference, so it passes
+                    # the IsFoundInReference filter, but then errors out for HipSTR, and LongTR
+                    continue
                 chrom = chrom
                 if tool == "gangstr":
                     output_fields = [chrom, start_0based + 1, end_1based, len(motif), motif]
@@ -304,7 +308,7 @@ def write_gangstr_hipstr_or_longtr_repeat_specs(locus_set, output_path_prefix, t
                         f"{chrom}-{start_0based}-{end_1based}-{motif}"
                     ]
                 elif tool == "hipstr":
-                    if len(motif) > 9 or (end_1based - start_0based) <= 1:
+                    if len(motif) > 9:
                         # HipSTR doesn't support motifs longer than 9bp or loci where start_1based == stop_1based
                         # (https://github.com/tfwillems/HipSTR/blob/master/src/region.cpp#L33-L35)
                         continue
