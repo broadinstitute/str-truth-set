@@ -81,10 +81,10 @@ def main():
 
         for target_coverage in args.target_coverage:
             s2 = bp.new_step(f"downsample: {os.path.basename(input_bam_or_cram)} to {target_coverage}x",
-                             image=DOCKER_IMAGE, cpu=2, memory="highmem", storage=f"{read_data_size+20}Gi",
+                             image=DOCKER_IMAGE, cpu=2, memory="highmem", storage=f"{2*read_data_size + 25}Gi",
                              output_dir=output_dir)
             s2.depends_on(s1)
-            local_fasta, _ = s2.inputs(args.reference_fasta, args.reference_fasta_fai, localize_by=Localize.COPY)
+            local_fasta, _ = s2.inputs(args.reference_fasta, args.reference_fasta_fai, localize_by=Localize.HAIL_BATCH_CLOUDFUSE)
             local_bam, _ = s2.inputs(input_bam_or_cram, input_bam_or_cram_index, localize_by=Localize.HAIL_BATCH_CLOUDFUSE)
             total_depth_file = s2.use_previous_step_outputs_as_inputs(s1, localize_by=Localize.COPY)
 
