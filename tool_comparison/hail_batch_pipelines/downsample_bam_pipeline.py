@@ -11,7 +11,7 @@ CHM1_CHM13_CRAI_PATH = "gs://broad-public-datasets/CHM1_CHM13_WGS2/CHM1_CHM13_WG
 
 CHM1_CHM13_CRAM_COVERAGE = 40
 
-DOCKER_IMAGE = "weisburd/gatk@sha256:b9b39f21b51ec9ef17937e6581dc3624a0a232d464616eddffb7678171fba578"
+DOCKER_IMAGE = "weisburd/gatk@sha256:433406c13c62fb9088bb6cfa842278ff7b6980f540ab8390d224cae20d0f3742"
 
 
 def main():
@@ -28,7 +28,7 @@ def main():
     if args.input_index_file and len(args.input_bam_or_cram) > 1:
         parser.error("Cannot specify --input-index-file when more than one input BAM or CRAM file is provided. The index files must be in the same directory as the input BAM or CRAM files.")
 
-    bp.set_name(f"Downsample: " + os.path.basename(args.input_bam_or_cram[0]) if len(args.input_bam_or_cram) == 1 else f"{len(args.input_bam_or_cram)} files")
+    bp.set_name(f"Downsample: " + (os.path.basename(args.input_bam_or_cram[0]) if len(args.input_bam_or_cram) == 1 else f"{len(args.input_bam_or_cram)} files"))
 
     if not args.target_coverage:
         target_coverage = [30]
@@ -89,9 +89,13 @@ def main():
             total_depth_file = s2.use_previous_step_outputs_as_inputs(s1, localize_by=Localize.COPY)
 
             output_bam_filename_prefix = f"{filename_prefix}.downsampled_to_{int(target_coverage)}x"
+            s2.command("curl -L https://github.com/brentp/mosdepth/releases/download/v0.3.5/mosdepth -o /usr/local/bin/mosdepth")
+            s2.command("chmod 777 /usr/local/bin/mosdepth")
+
             s2.command("set -ex")
             s2.command("cd /io/")
             s2.command(f"time gatk --java-options '-Xmx11G' DownsampleSam "
+                       f"--VALIDATION_STRINGENCY SILENT "
                        f"--REFERENCE_SEQUENCE {local_fasta} "
                        f"-I {local_bam} "
                        f"-O {output_bam_filename_prefix}.bam "
@@ -107,7 +111,7 @@ def main():
             s2.command(f"mosdepth -f {local_fasta} -x coverage_after_downsampling {output_bam_filename_prefix}.bam")
             s2.command(f"cat coverage_after_downsampling.mosdepth.summary.txt | cut -f 4 | tail -n +2 | head -n 23")
             s2.command(f"grep total coverage_after_downsampling.mosdepth.summary.txt > {output_bam_filename_prefix}.total_depth.txt")
-            s2.command(f"cat {filename_prefix}.total_depth.txt")
+            s2.command(f"cat {output_bam_filename_prefix}.total_depth.txt")
 
             s2.output(f"{output_bam_filename_prefix}.total_depth.txt")
             s2.output(f"{output_bam_filename_prefix}.bam")

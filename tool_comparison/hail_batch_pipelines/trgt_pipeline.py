@@ -121,7 +121,7 @@ def main():
         s2.depends_on(step1)
 
     s2.command("mkdir /io/run_dir; cd /io/run_dir")
-    for json_path in step1_output_json_paths:
+    for json_path in s1_output_json_paths:
         local_path = s2.input(json_path, localize_by=Localize.COPY)
         s2.command(f"ln -s {local_path}")
 
@@ -129,18 +129,24 @@ def main():
     s2.command("set -x")
     s2.command(f"python3.9 -m str_analysis.combine_str_json_to_tsv "
                f"--output-prefix {output_prefix}")
-    s2.command(f"bgzip {output_prefix}.{len(step1_output_json_paths)}_json_files.bed")
-    s2.command(f"tabix {output_prefix}.{len(step1_output_json_paths)}_json_files.bed.gz")
+    s2.command(f"bgzip {output_prefix}.{len(s1_output_json_paths)}_json_files.bed")
+    s2.command(f"tabix {output_prefix}.{len(s1_output_json_paths)}_json_files.bed.gz")
     s2.command("gzip *.tsv")
     s2.command("ls -lhrt")
-    s2.output(f"{output_prefix}.{len(step1_output_json_paths)}_json_files.variants.tsv.gz")
-    s2.output(f"{output_prefix}.{len(step1_output_json_paths)}_json_files.alleles.tsv.gz")
-    s2.output(f"{output_prefix}.{len(step1_output_json_paths)}_json_files.bed.gz")
-    s2.output(f"{output_prefix}.{len(step1_output_json_paths)}_json_files.bed.gz.tbi")
+    s2.output(f"{output_prefix}.{len(s1_output_json_paths)}_json_files.variants.tsv.gz")
+    s2.output(f"{output_prefix}.{len(s1_output_json_paths)}_json_files.alleles.tsv.gz")
+    s2.output(f"{output_prefix}.{len(s1_output_json_paths)}_json_files.bed.gz")
+    s2.output(f"{output_prefix}.{len(s1_output_json_paths)}_json_files.bed.gz.tbi")
     bp.run()
 
 
-def create_trgt_step(bp, *, reference_fasta, input_bam, input_bai, trgt_catalog_bed_path, output_dir, output_prefix, reference_fasta_fai=None):
+def create_trgt_step(bp, *, reference_fasta, input_bam, input_bai, trgt_catalog_bed_paths, output_dir, output_prefix, reference_fasta_fai=None):
+    if len(trgt_catalog_bed_paths) > 1:
+        raise ValueError("Only one TRGT catalog bed file is currently supported")
+    trgt_catalog_bed_path = trgt_catalog_bed_paths[0]
+
+    s1_output_json_paths = []
+
     cpu = 16
     s1 = bp.new_step(f"Run TRGT on {os.path.basename(input_bam)}",
                      arg_suffix=f"trgt",
@@ -169,11 +175,49 @@ def create_trgt_step(bp, *, reference_fasta, input_bam, input_bai, trgt_catalog_
                                      --threads {cpu}                       
     """)
     s1.command("ls -lhrt")
-    # s1.command(f"python3.9 -m str_analysis.convert_hipstr_vcf_to_expansion_hunter_json {output_prefix}.vcf.gz")
+
+    s1.command(f"python3 -m str_analysis.convert_trgt_vcf_to_expansion_hunter_json --discard-hom-ref {output_prefix}.vcf.gz")
+    
     s1.output(f"{output_prefix}.vcf.gz")
     s1.output(f"{output_prefix}.spanning.bam")
+    s1.output(f"{output_prefix}.json")
 
-    return s1
+    s1_output_json_paths.append(os.path.join(output_dir, f"{output_prefix}.json"))
+    
+    # step2: combine json file
+    s2 = bp.new_step(name=f"Combine TRGT outputs for {os.path.basename(input_bam)}", 
+                     step_number=2,
+                     image=DOCKER_IMAGE,
+                     cpu=2,
+                     memory="highmem",
+                     storage="20Gi",
+                     output_dir=output_dir)
+    
+    s2.depends_on(s1)
+
+    s2.command("mkdir /io/run_dir; cd /io/run_dir")
+    for json_path in s1_output_json_paths:
+        local_path = s2.input(json_path, localize_by=Localize.COPY)
+        s2.command(f"ln -s {local_path}")
+
+    s2.command("set -x")
+    s2.command(f"python3 -m str_analysis.combine_str_json_to_tsv --include-extra-trgt-fields "
+               f"--output-prefix {output_prefix}")
+
+    s2.command(f"mv {output_prefix}.{len(s1_output_json_paths)}_json_files.bed {output_prefix}.bed")
+    s2.command(f"mv {output_prefix}.{len(s1_output_json_paths)}_json_files.variants.tsv {output_prefix}.variants.tsv")
+    s2.command(f"mv {output_prefix}.{len(s1_output_json_paths)}_json_files.alleles.tsv {output_prefix}.alleles.tsv")
+
+    s2.command(f"bgzip {output_prefix}.bed")
+    s2.command(f"tabix {output_prefix}.bed.gz")
+    s2.command("gzip *.tsv")
+    s2.command("ls -lhrt")
+    s2.output(f"{output_prefix}.variants.tsv.gz")
+    s2.output(f"{output_prefix}.alleles.tsv.gz")
+    s2.output(f"{output_prefix}.bed.gz")
+    s2.output(f"{output_prefix}.bed.gz.tbi")
+
+    return s2
 
 if __name__ == "__main__":
     main()
