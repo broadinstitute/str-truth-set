@@ -279,7 +279,7 @@ $17         fractionTinMotif : 0.2
 
 
 def write_gangstr_hipstr_or_longtr_repeat_specs(locus_set, output_path_prefix, tool="gangstr", loci_per_run=None):
-    locus_list = list(locus_set)
+    locus_list = list(sorted(locus_set))
 
     if tool not in ("gangstr", "hipstr", "longtr"):
         raise ValueError(f"Invalid tool arg: '{tool}'. Must be 'gangstr', 'hipstr', or 'longtr'")
@@ -336,10 +336,10 @@ def write_trgt_catalog(locus_set, output_path):
 
 
 def write_straglr_catalog(locus_set, output_path_prefix, loci_per_run=None):
+    locus_list = list(sorted(locus_set))
     if loci_per_run is None:
-        batches = [locus_set]
+        batches = [locus_list]
     else:
-        locus_list = list(locus_set)
         batches = [
             locus_list[i:i+loci_per_run] for i in range(0, len(locus_list), loci_per_run)
         ]

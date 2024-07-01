@@ -134,26 +134,28 @@ def main():
 def create_longtr_steps(bp, *, reference_fasta, input_bam, input_bai, regions_bed_paths, output_dir, output_prefix, reference_fasta_fai=None):
     step1s = []
     step1_output_json_paths = []
+    hfs_ls_results = hfs.ls(input_bam)
+    if len(hfs_ls_results) == 0:
+        raise ValueError(f"No files found matching {input_bam}")
+    input_bam_file_stats = hfs_ls_results[0]
+
     for repeat_spec_i, regions_bed_path in enumerate(regions_bed_paths):
-        hfs_ls_results = hfs.ls(input_bam)
-        if len(hfs_ls_results) == 0:
-            raise ValueError(f"No files found matching {input_bam}")
-        input_bam_file_stats = hfs_ls_results[0]
         s1 = bp.new_step(f"Run LongTR on {os.path.basename(input_bam)}",
                          arg_suffix=f"longtr",
                          step_number=1,
                          image=DOCKER_IMAGE,
                          cpu=1,
+                         localize_by=Localize.COPY,
                          storage=f"{int(input_bam_file_stats.size/10**9) + 25}Gi")
         step1s.append(s1)
 
-        local_fasta = s1.input(reference_fasta, localize_by=Localize.COPY)
+        local_fasta = s1.input(reference_fasta)
         if reference_fasta_fai:
-            s1.input(reference_fasta_fai, localize_by=Localize.COPY)
+            s1.input(reference_fasta_fai)
 
-        local_bam = s1.input(input_bam, localize_by=Localize.COPY)
+        local_bam = s1.input(input_bam)
         if input_bai:
-            s1.input(input_bai, localize_by=Localize.COPY)
+            s1.input(input_bai)
 
         local_regions_bed = s1.input(regions_bed_path)
 
@@ -163,7 +165,6 @@ def create_longtr_steps(bp, *, reference_fasta, input_bam, input_bai, regions_be
         s1.command(f"echo Genotyping $(cat {local_regions_bed} | wc -l) loci")
         s1.command("set -ex")
         s1.command(f"""/usr/bin/time --verbose LongTR \
-                --skip-assembly \
                 --min-reads 2 \
                 --bam-samps {input_bam_filename_prefix} \
                 --bam-libs {input_bam_filename_prefix} \

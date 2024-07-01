@@ -62,19 +62,22 @@ def main():
 
     if args.positive_loci:
         positive_or_negative_loci = "positive_loci"
-        straglr_catalog_bed_file_stats_list = hl.hadoop_ls(STRAGLR_CATALOG_BED_POSITIVE_LOCI)
-        if len(straglr_catalog_bed_file_stats_list) == 0:
+        straglr_catalog_bed_paths = [x.path for x in hfs.ls(STRAGLR_CATALOG_BED_POSITIVE_LOCI)]
+        if len(straglr_catalog_bed_paths) == 0:
             raise ValueError(f"No files found matching {STRAGLR_CATALOG_BED_POSITIVE_LOCI}")
     elif args.negative_loci:
         positive_or_negative_loci = "negative_loci"
-        straglr_catalog_bed_file_stats_list = hl.hadoop_ls(STRAGLR_CATALOG_BED_NEGATIVE_LOCI)
-        if len(straglr_catalog_bed_file_stats_list) == 0:
+        straglr_catalog_bed_paths = [x.path for x in hfs.ls(STRAGLR_CATALOG_BED_NEGATIVE_LOCI)]
+        if len(straglr_catalog_bed_paths) == 0:
             raise ValueError(f"No files found matching {STRAGLR_CATALOG_BED_NEGATIVE_LOCI}")
     elif args.straglr_catalog_bed:
         positive_or_negative_loci = os.path.basename(args.straglr_catalog_bed[0]).replace(".bed", "").replace(".gz", "")
-        straglr_catalog_bed_file_stats_list = [{"path": path} for path in args.straglr_catalog_bed]
+        straglr_catalog_bed_paths = [x.path for x in hfs.ls(args.straglr_catalog_bed)]
     else:
         parser.error("Must specify either --positive-loci or --negative-loci")
+
+    if args.n:
+        straglr_catalog_bed_paths = straglr_catalog_bed_paths[:args.n]
 
     bam_path_ending = "/".join(args.input_bam.split("/")[-2:])
     bp.set_name(f"STR Truth Set: straglr: {positive_or_negative_loci}: {bam_path_ending}")
@@ -85,12 +88,27 @@ def main():
         vcf_paths = bp.precache_file_paths(os.path.join(output_dir, f"**/*.bed.gz*"))
         logging.info(f"Precached {len(vcf_paths)} bed and tbi files")
 
-    step1s = []
-    for straglr_catalog_i, straglr_catalog_bed_file_stats in enumerate(straglr_catalog_bed_file_stats_list):
-        straglr_catalog_bed_path = straglr_catalog_bed_file_stats["path"]
+    create_straglr_steps(
+        bp,
+        reference_fasta=args.reference_fasta,
+        input_bam=args.input_bam,
+        input_bai=args.input_bai,
+        straglr_catalog_bed_paths=straglr_catalog_bed_paths,
+        output_dir=output_dir,
+        output_prefix=f"combined.{positive_or_negative_loci}",
+        reference_fasta_fai=args.reference_fasta_fai)
+    bp.run()
 
-        if args.n and straglr_catalog_i >= args.n:
-            break
+
+def create_straglr_steps(bp, *, reference_fasta, input_bam, input_bai, straglr_catalog_bed_paths, output_dir, output_prefix, reference_fasta_fai=None):
+    step1s = []
+    #step1_output_paths = []
+    hfs_ls_results = hfs.ls(input_bam)
+    if len(hfs_ls_results) == 0:
+        raise ValueError(f"No files found matching {input_bam}")
+    input_bam_file_stats = hfs_ls_results[0]
+
+    for straglr_catalog_i, straglr_catalog_bed_path in enumerate(straglr_catalog_bed_paths):
 
         cpu = 16
         s1 = bp.new_step(f"Run straglr #{straglr_catalog_i}",
@@ -98,19 +116,18 @@ def main():
                          step_number=1,
                          image=DOCKER_IMAGE,
                          cpu=cpu,
-                         storage="100Gi",
                          localize_by=Localize.COPY,
-                         #localize_by=Localize.HAIL_BATCH_CLOUDFUSE,
+                         storage=f"{int(input_bam_file_stats.size/10**9) + 25}Gi")
                          output_dir=output_dir)
         step1s.append(s1)
 
-        local_fasta = s1.input(args.reference_fasta)
-        if args.reference_fasta_fai:
-            s1.input(args.reference_fasta_fai)
+        local_fasta = s1.input(reference_fasta)
+        if reference_fasta_fai:
+            s1.input(reference_fasta_fai)
 
-        local_bam = s1.input(args.input_bam)
-        if args.input_bai:
-            s1.input(args.input_bai)
+        local_bam = s1.input(input_bam)
+        if input_bai:
+            s1.input(input_bai)
 
         local_straglr_catalog_bed = s1.input(straglr_catalog_bed_path)
 
@@ -118,8 +135,8 @@ def main():
         s1.command(f"echo Genotyping $(cat {local_straglr_catalog_bed} | wc -l) loci")
         s1.command("set -ex")
         s1.command(f"""/usr/bin/time --verbose python3 /usr/local/bin/straglr.py {local_bam} {local_fasta} {output_prefix} \
-                                     --loci {local_straglr_catalog_bed} \
-                                     --nprocs {cpu//2}""")
+                --loci {local_straglr_catalog_bed} \
+                --nprocs {cpu//2}""")
 
         s1.command("ls -lhrt")
 
@@ -132,11 +149,8 @@ def main():
         s1.output(f"{output_prefix}.bed.gz")
         s1.output(f"{output_prefix}.bed.gz.tbi")
 
-    bp.run()
-    return
-
     # step2: combine json files
-    s2 = bp.new_step(name="Combine straglr outputs",
+    s2 = bp.new_step(name=f"Combine straglr outputs for {os.path.basename(input_bam)}",
                      step_number=2,
                      image=DOCKER_IMAGE,
                      cpu=2,
@@ -145,25 +159,28 @@ def main():
                      output_dir=output_dir)
     for step1 in step1s:
         s2.depends_on(step1)
-
     s2.command("mkdir /io/run_dir; cd /io/run_dir")
-    for json_path in step1_output_json_paths:
+    for json_path in step1_output_paths:
         local_path = s2.input(json_path, localize_by=Localize.COPY)
         s2.command(f"ln -s {local_path}")
 
-    output_prefix = f"combined.{positive_or_negative_loci}"
     s2.command("set -x")
     s2.command(f"python3.9 -m str_analysis.combine_str_json_to_tsv "
                f"--output-prefix {output_prefix}")
-    s2.command(f"bgzip {output_prefix}.{len(step1_output_json_paths)}_json_files.bed")
-    s2.command(f"tabix {output_prefix}.{len(step1_output_json_paths)}_json_files.bed.gz")
+    s2.command(f"mv {output_prefix}.{len(step1_output_json_paths)}_json_files.bed {output_prefix}.bed")
+    s2.command(f"mv {output_prefix}.{len(step1_output_json_paths)}_json_files.variants.tsv {output_prefix}.variants.tsv")
+    s2.command(f"mv {output_prefix}.{len(step1_output_json_paths)}_json_files.alleles.tsv {output_prefix}.alleles.tsv")
+
+    s2.command(f"bgzip {output_prefix}.bed")
+    s2.command(f"tabix {output_prefix}.bed.gz")
     s2.command("gzip *.tsv")
     s2.command("ls -lhrt")
-    s2.output(f"{output_prefix}.{len(step1_output_json_paths)}_json_files.variants.tsv.gz")
-    s2.output(f"{output_prefix}.{len(step1_output_json_paths)}_json_files.alleles.tsv.gz")
-    s2.output(f"{output_prefix}.{len(step1_output_json_paths)}_json_files.bed.gz")
-    s2.output(f"{output_prefix}.{len(step1_output_json_paths)}_json_files.bed.gz.tbi")
-    bp.run()
+    s2.output(f"{output_prefix}.variants.tsv.gz")
+    s2.output(f"{output_prefix}.alleles.tsv.gz")
+    s2.output(f"{output_prefix}.bed.gz")
+    s2.output(f"{output_prefix}.bed.gz.tbi")
+
+    return s2
 
 
 if __name__ == "__main__":
