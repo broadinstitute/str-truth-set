@@ -131,7 +131,6 @@ def main():
                f"--output-prefix {output_prefix}")
     s2.command(f"bgzip {output_prefix}.{len(s1_output_json_paths)}_json_files.bed")
     s2.command(f"tabix {output_prefix}.{len(s1_output_json_paths)}_json_files.bed.gz")
-    s2.command("gzip *.tsv")
     s2.command("ls -lhrt")
     s2.output(f"{output_prefix}.{len(s1_output_json_paths)}_json_files.variants.tsv.gz")
     s2.output(f"{output_prefix}.{len(s1_output_json_paths)}_json_files.alleles.tsv.gz")
@@ -205,12 +204,11 @@ def create_trgt_step(bp, *, reference_fasta, input_bam, input_bai, trgt_catalog_
                f"--output-prefix {output_prefix}")
 
     s2.command(f"mv {output_prefix}.{len(s1_output_json_paths)}_json_files.bed {output_prefix}.bed")
-    s2.command(f"mv {output_prefix}.{len(s1_output_json_paths)}_json_files.variants.tsv {output_prefix}.variants.tsv")
-    s2.command(f"mv {output_prefix}.{len(s1_output_json_paths)}_json_files.alleles.tsv {output_prefix}.alleles.tsv")
+    s2.command(f"mv {output_prefix}.{len(s1_output_json_paths)}_json_files.variants.tsv.gz {output_prefix}.variants.tsv.gz")
+    s2.command(f"mv {output_prefix}.{len(s1_output_json_paths)}_json_files.alleles.tsv.gz {output_prefix}.alleles.tsv.gz")
 
     s2.command(f"bgzip {output_prefix}.bed")
     s2.command(f"tabix {output_prefix}.bed.gz")
-    s2.command("gzip *.tsv")
     s2.command("ls -lhrt")
     s2.output(f"{output_prefix}.variants.tsv.gz")
     s2.output(f"{output_prefix}.alleles.tsv.gz")

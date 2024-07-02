@@ -210,7 +210,6 @@ def main():
                    f"--output-prefix {output_prefix}")
         s2.command(f"bgzip {output_prefix}.{len(step1_output_json_paths)}_json_files.bed")
         s2.command(f"tabix {output_prefix}.{len(step1_output_json_paths)}_json_files.bed.gz")
-        s2.command("gzip *.tsv")
         s2.command("ls -lhrt")
         s2.output(f"{output_prefix}.{len(step1_output_json_paths)}_json_files.variants.tsv.gz")
         s2.output(f"{output_prefix}.{len(step1_output_json_paths)}_json_files.alleles.tsv.gz")
