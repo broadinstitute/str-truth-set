@@ -22,14 +22,14 @@ Options:
     --tmpdir: user-specified directory for holding temporary files
 """
 
-import hail as hl
+import hailtop.fs as hfs
 import logging
 import os
 import re
 
 from step_pipeline import pipeline, Backend, Localize, Delocalize
 
-DOCKER_IMAGE = "weisburd/straglr@sha256:307cdbd0f10eb47da8355457e0292559206b7441a10ab82df0cb7f9eff1a8ed9"
+DOCKER_IMAGE = "weisburd/straglr@sha256:9bb6847bcc844a4435f6f7cf9d15ce2cc50dfcad43b913e6bb92c47405b3c7d8"
 
 REFERENCE_FASTA_PATH = "gs://gcp-public-data--broad-references/hg38/v0/Homo_sapiens_assembly38.fasta"
 REFERENCE_FASTA_FAI_PATH = "gs://gcp-public-data--broad-references/hg38/v0/Homo_sapiens_assembly38.fasta.fai"
@@ -83,8 +83,8 @@ def main():
     bp.set_name(f"STR Truth Set: straglr: {positive_or_negative_loci}: {bam_path_ending}")
     output_dir = os.path.join(args.output_dir, positive_or_negative_loci)
     if not args.force:
-        log_paths = bp.precache_file_paths(os.path.join(output_dir, f"**/*.tsv.gz"))
-        logging.info(f"Precached {len(log_paths)} tsv files")
+        #tsv_paths = bp.precache_file_paths(os.path.join(output_dir, f"**/*.tsv.gz"))
+        #logging.info(f"Precached {len(tsv_paths)} tsv files")
         vcf_paths = bp.precache_file_paths(os.path.join(output_dir, f"**/*.bed.gz*"))
         logging.info(f"Precached {len(vcf_paths)} bed and tbi files")
 
@@ -102,7 +102,7 @@ def main():
 
 def create_straglr_steps(bp, *, reference_fasta, input_bam, input_bai, straglr_catalog_bed_paths, output_dir, output_prefix, reference_fasta_fai=None):
     step1s = []
-    #step1_output_paths = []
+    step1_output_paths = []
     hfs_ls_results = hfs.ls(input_bam)
     if len(hfs_ls_results) == 0:
         raise ValueError(f"No files found matching {input_bam}")
@@ -117,7 +117,7 @@ def create_straglr_steps(bp, *, reference_fasta, input_bam, input_bai, straglr_c
                          image=DOCKER_IMAGE,
                          cpu=cpu,
                          localize_by=Localize.COPY,
-                         storage=f"{int(input_bam_file_stats.size/10**9) + 25}Gi")
+                         storage=f"{int(input_bam_file_stats.size/10**9) + 25}Gi",
                          output_dir=output_dir)
         step1s.append(s1)
 
@@ -140,14 +140,17 @@ def create_straglr_steps(bp, *, reference_fasta, input_bam, input_bai, straglr_c
 
         s1.command("ls -lhrt")
 
-        s1.command(f"gzip {output_prefix}.tsv")
-
+        #s1.command(f"gzip {output_prefix}.tsv")
         s1.command(f"bgzip {output_prefix}.bed")
         s1.command(f"tabix {output_prefix}.bed.gz")
 
-        s1.output(f"{output_prefix}.tsv.gz")
+        s1.command(f"python3.9 -m str_analysis.convert_straglr_bed_to_expansion_hunter_json {output_prefix}.bed.gz")
+
+        #s1.output(f"{output_prefix}.tsv.gz")
         s1.output(f"{output_prefix}.bed.gz")
         s1.output(f"{output_prefix}.bed.gz.tbi")
+
+    return
 
     # step2: combine json files
     s2 = bp.new_step(name=f"Combine straglr outputs for {os.path.basename(input_bam)}",

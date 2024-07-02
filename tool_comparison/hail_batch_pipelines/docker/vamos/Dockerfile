@@ -50,7 +50,6 @@ RUN apt update && apt-get install --no-install-recommends -y \
 
 RUN git clone https://github.com/ChaissonLab/vamos.git \
 	&& cd vamos*/src/ \
-	&& git checkout 1.3.6 \
 	&& make \
 	&& cp vamos /usr/bin/
 

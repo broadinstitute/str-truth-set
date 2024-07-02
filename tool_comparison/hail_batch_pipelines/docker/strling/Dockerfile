@@ -13,6 +13,6 @@ RUN curl https://github.com/arq5x/bedtools2/releases/download/v${BED_TOOLS_VERSI
 	&& mv bedtools.static /usr/bin/bedtools
 
 RUN python3 -m pip install --no-cache-dir --upgrade pip \
- 	&& python3 -m pip install --no-cache-dir str_analysis
+ 	&& python3 -m pip install --no-cache-dir git+https://github.com/broadinstitute/str-analysis.git
 
 ENTRYPOINT ["/bin/bash"]
