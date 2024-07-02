@@ -31,7 +31,7 @@ def main():
             output_dir = os.path.dirname(input_bam)
 
         bam_or_cram_prefix = re.sub("(.bam|.cram)$", "", os.path.basename(input_bam))
-        s1 = bp.new_step(f"Coverage: {bam_or_cram_prefix}", image=DOCKER_IMAGE, cpu=1, memory="standard", storage="20Gi", output_dir=output_dir)
+        s1 = bp.new_step(f"Coverage: {bam_or_cram_prefix}", image=DOCKER_IMAGE, cpu=1, memory="standard", storage="20Gi", output_dir=output_dir, arg_suffix="depth")
         local_fasta = s1.input(args.reference_fasta, localize_by=Localize.HAIL_BATCH_CLOUDFUSE)
         if args.reference_fasta_fai:
             s1.input(args.reference_fasta_fai, localize_by=Localize.HAIL_BATCH_CLOUDFUSE)
