@@ -21,7 +21,7 @@ OTHER_STR_CATALOGS = {
     "HipSTRCatalog": "./ref/other/hg38.hipstr_reference.adjusted.bed.gz",
     "PopSTRCatalog": "./ref/other/popstr_catalog_v2.bed.gz",
     "TRGT": "./ref/other/trgt_repeat_catalog.hg38.reformatted_to_motif_only.bed.gz",
-    #"Adotto": "./ref/other/adotto_tr_catalog_v1.2.bed.gz",
+    "Adotto": "./ref/other/adotto_tr_catalog_v1.2.bed.gz",
     "KnownDiseaseAssociatedSTRs": "./ref/other/known_disease_associated_STR_loci.GRCh38.bed.gz",
 }
 
@@ -101,7 +101,12 @@ def process_truth_set_row(
 ):
     """This method is called for each row in the truth set, and does overlap checks with the interval trees"""
     truth_set_repeat_unit = truth_set_row.Motif
-    truth_set_canonical_repeat_unit = compute_canonical_motif(truth_set_repeat_unit, include_reverse_complement=True)
+    try:
+        truth_set_canonical_repeat_unit = compute_canonical_motif(truth_set_repeat_unit, include_reverse_complement=True)
+    except Exception as e:
+        print(f"Unable to compute canonical motif for truth set motif: {truth_set_repeat_unit}. Skipping...")
+        return
+    
     truth_set_chrom = str(truth_set_row.Chrom).replace("chr", "")
     truth_set_locus_interval = Interval(truth_set_row.Start1Based - 1, truth_set_row.End1Based + 0.1)
     a1 = int(truth_set_locus_interval.begin)
@@ -126,6 +131,7 @@ def process_truth_set_row(
         # Look for the entry with the most similarity.
         other_catalog_interval_trees = interval_trees[other_catalog_label]
         overlapping_intervals_from_other_catalog = other_catalog_interval_trees[truth_set_chrom].overlap(truth_set_locus_interval)
+        other_catalog_repeat_unit = None
         for overlapping_interval_from_other_catalog in overlapping_intervals_from_other_catalog:
             # must overlap by at least 1bp
             if overlapping_interval_from_other_catalog.overlap_size(truth_set_locus_interval) < 1:
@@ -150,7 +156,12 @@ def process_truth_set_row(
                 b1 = int(overlapping_interval_from_other_catalog.begin)
                 b2 = int(overlapping_interval_from_other_catalog.end)
 
-                other_catalog_canonical_repeat_unit = compute_canonical_motif(other_catalog_repeat_unit, include_reverse_complement=True)
+                try:
+                    other_catalog_canonical_repeat_unit = compute_canonical_motif(other_catalog_repeat_unit, include_reverse_complement=True)
+                except Exception as e:
+                    print(f"Unable to compute canonical motif for other catalog motif: {other_catalog_repeat_unit}. Skipping...")
+                    continue
+                
                 if a1 == b1 and a2 == b2:
                     locus_similarity = "STR locus has exact same coordinates as truth set STR locus"
                     locus_similarity_rank = 1
@@ -187,6 +198,7 @@ def process_truth_set_row(
         if is_STR_catalog:
             truth_set_df.at[truth_set_row_idx, locus_similarity_column_name] = final_locus_similarity
             truth_set_df.at[truth_set_row_idx, motif_similarity_column_name] = final_motif_similarity
+            truth_set_df.at[truth_set_row_idx, f"Overlaps{other_catalog_label}: RepeatUnit"] = compute_canonical_motif(other_catalog_repeat_unit, include_reverse_complement=True) if other_catalog_repeat_unit else None
             if count_this_locus:
                 counters[f"overlap:{is_STR_catalog}|{other_catalog_label}|{final_locus_similarity}|{final_motif_similarity}"] += 1
             bed_filename = f"STR_{other_catalog_label}_{final_locus_similarity}.bed"
