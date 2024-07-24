@@ -62,7 +62,7 @@ import re
 
 from step_pipeline import pipeline, Backend, Localize, Delocalize
 
-DOCKER_IMAGE = "weisburd/longtr@sha256:9b1dbef2f25e22058183474a9bd6ad8bd40de29d0e12b679ae90d168aaa06346"
+DOCKER_IMAGE = "weisburd/longtr@sha256:85b9b6cdb63b797163efd53d415e6d5851212a59aba04caebcd605d3321144cd"
 
 REFERENCE_FASTA_PATH = "gs://gcp-public-data--broad-references/hg38/v0/Homo_sapiens_assembly38.fasta"
 REFERENCE_FASTA_FAI_PATH = "gs://gcp-public-data--broad-references/hg38/v0/Homo_sapiens_assembly38.fasta.fai"
@@ -178,12 +178,13 @@ def create_longtr_steps(bp, *, reference_fasta, input_bam, input_bai, regions_be
 
         s1.command(f"python3.9 -m str_analysis.convert_hipstr_vcf_to_expansion_hunter_json {current_output_prefix}.vcf.gz")
         s1.command(f"gzip {current_output_prefix}.log")
+        s1.command(f"gzip {current_output_prefix}.json")
 
         s1.output(f"{current_output_prefix}.vcf.gz", output_dir=os.path.join(output_dir, f"vcf"))
         s1.output(f"{current_output_prefix}.log.gz", output_dir=os.path.join(output_dir, f"log"))
-        s1.output(f"{current_output_prefix}.json", output_dir=os.path.join(output_dir, f"json"))
+        s1.output(f"{current_output_prefix}.json.gz", output_dir=os.path.join(output_dir, f"json"))
 
-        step1_output_json_paths.append(os.path.join(output_dir, f"json", f"{current_output_prefix}.json"))
+        step1_output_json_paths.append(os.path.join(output_dir, f"json", f"{current_output_prefix}.json.gz"))
 
     # step2: combine json files
     s2 = bp.new_step(name=f"Combine LongTR outputs for {os.path.basename(input_bam)}",
@@ -216,7 +217,6 @@ def create_longtr_steps(bp, *, reference_fasta, input_bam, input_bai, regions_be
     s2.output(f"{output_prefix}.bed.gz.tbi")
 
     return s2
-
 
 if __name__ == "__main__":
     main()

@@ -90,6 +90,6 @@ RUN wget https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud
 
 ENV PATH=/google-cloud-sdk/bin:$PATH
 
-RUN python3 -m pip install --no-cache-dir str_analysis==1.2.5
+RUN python3 -m pip install --no-cache-dir git+https://github.com/broadinstitute/str-analysis
 
 ENTRYPOINT ["/bin/bash"]

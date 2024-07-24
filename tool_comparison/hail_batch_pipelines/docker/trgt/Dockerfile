@@ -60,6 +60,6 @@ RUN wget -q https://github.com/PacificBiosciences/trgt/releases/download/v${TRGT
 
 ENV PATH=/google-cloud-sdk/bin:$PATH
 
-RUN python3 -m pip install --no-cache-dir git+https://github.com/broadinstitute/str-analysis.git
+RUN python3 -m pip install --no-cache-dir git+https://github.com/broadinstitute/str-analysis
 
 ENTRYPOINT ["/bin/bash"]

@@ -42,6 +42,6 @@ RUN wget -q https://github.com/samtools/samtools/releases/download/${SAMTOOLS_VE
 
 RUN rm /opt/miniconda/envs/gatk/bin/python3 \
     && ln -s $(which python3.11) /opt/miniconda/envs/gatk/bin/python3 \
-	&& python3 -m pip install --no-cache-dir str_analysis
+	&& python3 -m pip install --no-cache-dir git+https://github.com/broadinstitute/str-analysis
 
 ENTRYPOINT ["/bin/bash"]

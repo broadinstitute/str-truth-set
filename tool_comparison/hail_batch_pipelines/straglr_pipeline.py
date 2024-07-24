@@ -29,7 +29,7 @@ import re
 
 from step_pipeline import pipeline, Backend, Localize, Delocalize
 
-DOCKER_IMAGE = "weisburd/straglr@sha256:9bb6847bcc844a4435f6f7cf9d15ce2cc50dfcad43b913e6bb92c47405b3c7d8"
+DOCKER_IMAGE = "weisburd/straglr@sha256:b95c51f44b55655fad6d48a1b694ed2f8115b2633b528f09673057bccd2c1719"
 
 REFERENCE_FASTA_PATH = "gs://gcp-public-data--broad-references/hg38/v0/Homo_sapiens_assembly38.fasta"
 REFERENCE_FASTA_FAI_PATH = "gs://gcp-public-data--broad-references/hg38/v0/Homo_sapiens_assembly38.fasta.fai"
@@ -141,16 +141,15 @@ def create_straglr_steps(bp, *, reference_fasta, input_bam, input_bai, straglr_c
         s1.command("ls -lhrt")
 
         #s1.command(f"gzip {output_prefix}.tsv")
+        s1.command(f"python3.9 -m str_analysis.convert_straglr_bed_to_expansion_hunter_json {output_prefix}.bed")
+        s1.command("ls -lhtr")
+        s1.command(f"gzip {output_prefix}.json")
         s1.command(f"bgzip {output_prefix}.bed")
         s1.command(f"tabix {output_prefix}.bed.gz")
-
-        s1.command(f"python3.9 -m str_analysis.convert_straglr_bed_to_expansion_hunter_json {output_prefix}.bed.gz")
-
-        #s1.output(f"{output_prefix}.tsv.gz")
         s1.output(f"{output_prefix}.bed.gz")
         s1.output(f"{output_prefix}.bed.gz.tbi")
-
-    return
+        s1.output(f"{output_prefix}.json.gz")
+        step1_output_paths.append(os.path.join(output_dir, f"{output_prefix}.json.gz"))
 
     # step2: combine json files
     s2 = bp.new_step(name=f"Combine straglr outputs for {os.path.basename(input_bam)}",
@@ -183,7 +182,6 @@ def create_straglr_steps(bp, *, reference_fasta, input_bam, input_bai, straglr_c
     s2.output(f"{output_prefix}.bed.gz.tbi")
 
     return s2
-
 
 if __name__ == "__main__":
     main()

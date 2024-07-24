@@ -62,6 +62,6 @@ RUN git clone https://github.com/gymrek-lab/LongTR.git \
 
 ENV PATH=/google-cloud-sdk/bin:$PATH
 
-RUN python3 -m pip install --no-cache-dir git+https://github.com/broadinstitute/str-analysis.git
+RUN python3 -m pip install --no-cache-dir git+https://github.com/broadinstitute/str-analysis
 
 ENTRYPOINT ["/bin/bash"]

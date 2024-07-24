@@ -31,7 +31,7 @@ def main():
             output_dir = os.path.dirname(input_bam)
 
         bam_or_cram_prefix = re.sub("(.bam|.cram)$", "", os.path.basename(input_bam))
-        s1 = bp.new_step(f"Coverage: {bam_or_cram_prefix}", image=DOCKER_IMAGE, cpu=1, memory="standard", storage="20Gi", output_dir=output_dir, arg_suffix="depth")
+        s1 = bp.new_step(f"Coverage: {bam_or_cram_prefix}", image=DOCKER_IMAGE, cpu=1, memory="standard", storage="50Gi", output_dir=output_dir, arg_suffix="depth")
         local_fasta = s1.input(args.reference_fasta, localize_by=Localize.HAIL_BATCH_CLOUDFUSE)
         if args.reference_fasta_fai:
             s1.input(args.reference_fasta_fai, localize_by=Localize.HAIL_BATCH_CLOUDFUSE)
@@ -39,9 +39,10 @@ def main():
         local_bam = s1.input(input_bam, localize_by=Localize.HAIL_BATCH_CLOUDFUSE)
 
         s1.command("set -ex")
+        s1.command("cd /io/")
         s1.command("wget https://github.com/brentp/mosdepth/releases/download/v0.3.5/mosdepth -O /usr/local/bin/mosdepth")
         s1.command("chmod 777 /usr/local/bin/mosdepth")
-
+        
         s1.command(f"mosdepth -f {local_fasta} -x {bam_or_cram_prefix}.coverage {local_bam}")
         #s1.output(f"{bam_or_cram_prefix}.coverage.mosdepth.summary.txt")
 
