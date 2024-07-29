@@ -83,7 +83,7 @@ def main():
     parser_group = parser.add_mutually_exclusive_group(required=True)
     parser_group.add_argument("--positive-loci", action="store_true", help="Genotype truth set loci")
     parser_group.add_argument("--negative-loci", action="store_true", help="Genotype negative (hom-ref) loci")
-    parser_group.add_argument("--regions-bed", action="append", help="Path of regions bed file(s) to process")
+    parser_group.add_argument("--regions-bed", help="Path of regions bed file(s) to process")
 
     parser.add_argument("--reference-fasta", default=REFERENCE_FASTA_PATH)
     parser.add_argument("--reference-fasta-fai", default=REFERENCE_FASTA_FAI_PATH)
@@ -104,7 +104,7 @@ def main():
         if len(regions_bed_paths) == 0:
             raise ValueError(f"No files found matching {REGIONS_BED_NEGATIVE_LOCI}")
     elif args.regions_bed:
-        positive_or_negative_loci = os.path.basename(args.regions_bed[0]).replace(".bed", "").replace(".gz", "")
+        positive_or_negative_loci = os.path.basename(args.regions_bed).replace(".bed", "").replace(".gz", "")
         regions_bed_paths = [x.path for x in hfs.ls(args.regions_bed)]
     else:
         parser.error("Must specify either --positive-loci or --negative-loci")
@@ -141,7 +141,7 @@ def create_longtr_steps(bp, *, reference_fasta, input_bam, input_bai, regions_be
     input_bam_file_stats = hfs_ls_results[0]
 
     for repeat_spec_i, regions_bed_path in enumerate(regions_bed_paths):
-        s1 = bp.new_step(f"Run LongTR on {os.path.basename(input_bam)}",
+        s1 = bp.new_step(f"Run LongTR on {os.path.basename(input_bam)} ({os.path.basename(regions_bed_path)})",
                          arg_suffix=f"longtr",
                          step_number=1,
                          image=DOCKER_IMAGE,

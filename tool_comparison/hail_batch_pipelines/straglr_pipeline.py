@@ -50,7 +50,7 @@ def main():
     parser_group = parser.add_mutually_exclusive_group(required=True)
     parser_group.add_argument("--positive-loci", action="store_true", help="Genotype truth set loci")
     parser_group.add_argument("--negative-loci", action="store_true", help="Genotype negative (hom-ref) loci")
-    parser_group.add_argument("--straglr-catalog-bed", action="append", help="Path of straglr catalog bed file(s) to process")
+    parser_group.add_argument("--straglr-catalog-bed", help="Path of straglr catalog bed file(s) to process")
 
     parser.add_argument("--reference-fasta", default=REFERENCE_FASTA_PATH)
     parser.add_argument("--reference-fasta-fai", default=REFERENCE_FASTA_FAI_PATH)
@@ -71,7 +71,7 @@ def main():
         if len(straglr_catalog_bed_paths) == 0:
             raise ValueError(f"No files found matching {STRAGLR_CATALOG_BED_NEGATIVE_LOCI}")
     elif args.straglr_catalog_bed:
-        positive_or_negative_loci = os.path.basename(args.straglr_catalog_bed[0]).replace(".bed", "").replace(".gz", "")
+        positive_or_negative_loci = os.path.basename(args.straglr_catalog_bed).replace(".bed", "").replace(".gz", "")
         straglr_catalog_bed_paths = [x.path for x in hfs.ls(args.straglr_catalog_bed)]
     else:
         parser.error("Must specify either --positive-loci or --negative-loci")
@@ -110,11 +110,12 @@ def create_straglr_steps(bp, *, reference_fasta, input_bam, input_bai, straglr_c
     input_bam_file_stats = hfs_ls_results[0]
 
     for straglr_catalog_i, straglr_catalog_bed_path in enumerate(straglr_catalog_bed_paths):
-        s1 = bp.new_step(f"Run straglr #{straglr_catalog_i}",
+        cpu = 16
+        s1 = bp.new_step(f"Run straglr #{straglr_catalog_i} ({os.path.basename(straglr_catalog_bed_path)})",
                          arg_suffix=f"straglr",
                          step_number=1,
                          image=DOCKER_IMAGE,
-                         cpu=16,
+                         cpu=cpu,
                          localize_by=Localize.COPY,
                          storage=f"{int(input_bam_file_stats.size/10**9) + 25}Gi",
                          output_dir=output_dir)
@@ -169,9 +170,9 @@ def create_straglr_steps(bp, *, reference_fasta, input_bam, input_bai, straglr_c
     s2.command("set -x")
     s2.command(f"python3.9 -m str_analysis.combine_str_json_to_tsv "
                f"--output-prefix {output_prefix}")
-    s2.command(f"mv {output_prefix}.{len(step1_output_json_paths)}_json_files.bed {output_prefix}.bed")
-    s2.command(f"mv {output_prefix}.{len(step1_output_json_paths)}_json_files.variants.tsv.gz {output_prefix}.variants.tsv.gz")
-    s2.command(f"mv {output_prefix}.{len(step1_output_json_paths)}_json_files.alleles.tsv.gz {output_prefix}.alleles.tsv.gz")
+    s2.command(f"mv {output_prefix}.{len(step1_output_paths)}_json_files.bed {output_prefix}.bed")
+    s2.command(f"mv {output_prefix}.{len(step1_output_paths)}_json_files.variants.tsv.gz {output_prefix}.variants.tsv.gz")
+    s2.command(f"mv {output_prefix}.{len(step1_output_paths)}_json_files.alleles.tsv.gz {output_prefix}.alleles.tsv.gz")
 
     s2.command(f"bgzip {output_prefix}.bed")
     s2.command(f"tabix {output_prefix}.bed.gz")

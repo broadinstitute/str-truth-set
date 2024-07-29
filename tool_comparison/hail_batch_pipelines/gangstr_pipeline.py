@@ -26,7 +26,7 @@ def main():
     parser_group = parser.add_mutually_exclusive_group(required=True)
     parser_group.add_argument("--positive-loci", action="store_true", help="Genotype truth set loci")
     parser_group.add_argument("--negative-loci", action="store_true", help="Genotype negative (hom-ref) loci")
-    parser_group.add_argument("--repeat-specs", action="append", help="Path of repeat spec bed file(s) to process")
+    parser_group.add_argument("--repeat-specs", help="Path of repeat spec bed file(s) to process")
 
     parser.add_argument("--reference-fasta", default=REFERENCE_FASTA_PATH)
     parser.add_argument("--reference-fasta-fai", default=REFERENCE_FASTA_FAI_PATH)
@@ -47,7 +47,7 @@ def main():
         if len(repeat_spec_file_stats_list) == 0:
             raise ValueError(f"No files found matching {REPEAT_SPECS_NEGATIVE_LOCI}")
     elif args.repeat_specs:
-        positive_or_negative_loci = os.path.basename(args.repeat_specs[0]).replace(".bed", "").replace(".gz", "")
+        positive_or_negative_loci = os.path.basename(args.repeat_specs).replace(".bed", "").replace(".gz", "")
         repeat_spec_file_paths = [x.path for x in hfs.ls(args.repeat_specs)]        
     else:
         parser.error("Must specify either --positive-loci or --negative-loci")
@@ -85,7 +85,7 @@ def create_gangstr_steps(bp, *, reference_fasta, input_bam, input_bai, repeat_sp
     input_bam_file_stats = hfs_ls_results[0]
     
     for repeat_spec_i, repeat_spec_file_path in enumerate(repeat_spec_file_paths):
-        s1 = bp.new_step(f"Run GangSTR #{repeat_spec_i}",
+        s1 = bp.new_step(f"Run GangSTR #{repeat_spec_i} on {os.path.basename(input_bam)} ({os.path.basename(repeat_spec_file_path)})",
                          arg_suffix=f"gangstr",
                          step_number=1,
                          image=DOCKER_IMAGE,
@@ -129,7 +129,7 @@ def create_gangstr_steps(bp, *, reference_fasta, input_bam, input_bai, repeat_sp
         step1_output_paths.append(os.path.join(output_dir, f"json", f"{output_prefix}.json"))
 
     # step2: combine json files
-    s2 = bp.new_step(name="Combine GangSTR outputs",
+    s2 = bp.new_step(name=f"Combine GangSTR outputs for {os.path.basename(input_bam)}",
                      step_number=2,
                      image=DOCKER_IMAGE,
                      cpu=1,

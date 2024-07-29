@@ -25,7 +25,7 @@ Options:
       -v, --verbose...
 """
 
-import hail as hl
+import hailtop.fs as hfs
 import logging
 import os
 import re
@@ -53,7 +53,7 @@ def main():
     parser_group = parser.add_mutually_exclusive_group(required=True)
     parser_group.add_argument("--positive-loci", action="store_true", help="Genotype truth set loci")
     parser_group.add_argument("--negative-loci", action="store_true", help="Genotype negative (hom-ref) loci")
-    parser_group.add_argument("--trgt-catalog-bed", action="append", help="Path of TRGT catalog bed file(s) to process")
+    parser_group.add_argument("--trgt-catalog-bed", help="Path of TRGT catalog bed file(s) to process")
 
     parser.add_argument("--reference-fasta", default=REFERENCE_FASTA_PATH)
     parser.add_argument("--reference-fasta-fai", default=REFERENCE_FASTA_FAI_PATH)
@@ -65,19 +65,22 @@ def main():
 
     if args.positive_loci:
         positive_or_negative_loci = "positive_loci"
-        trgt_catalog_bed_file_stats_list = hl.hadoop_ls(TRGT_CATALOG_BED_POSITIVE_LOCI)
-        if len(trgt_catalog_bed_file_stats_list) == 0:
+        trgt_catalog_bed_paths = [x.path for x in hfs.ls(TRGT_CATALOG_BED_POSITIVE_LOCI)]
+        if len(trgt_catalog_bed_paths) == 0:
             raise ValueError(f"No files found matching {TRGT_CATALOG_BED_POSITIVE_LOCI}")
     elif args.negative_loci:
         positive_or_negative_loci = "negative_loci"
-        trgt_catalog_bed_file_stats_list = hl.hadoop_ls(TRGT_CATALOG_BED_NEGATIVE_LOCI)
-        if len(trgt_catalog_bed_file_stats_list) == 0:
+        trgt_catalog_bed_paths = [x.path for x in hfs.ls(TRGT_CATALOG_BED_NEGATIVE_LOCI)]
+        if len(trgt_catalog_bed_paths) == 0:
             raise ValueError(f"No files found matching {TRGT_CATALOG_BED_NEGATIVE_LOCI}")
     elif args.trgt_catalog_bed:
-        positive_or_negative_loci = os.path.basename(args.trgt_catalog_bed[0]).replace(".bed", "").replace(".gz", "")
-        trgt_catalog_bed_file_stats_list = [{"path": path} for path in args.trgt_catalog_bed]
+        positive_or_negative_loci = os.path.basename(args.trgt_catalog_bed).replace(".bed", "").replace(".gz", "")
+        trgt_catalog_bed_paths = [x.path for x in hfs.ls(args.trgt_catalog_bed)]
     else:
         parser.error("Must specify either --positive-loci or --negative-loci")
+
+    if args.n:
+        trgt_catalog_bed_paths = trgt_catalog_bed_paths[:args.n]
 
     bam_path_ending = "/".join(args.input_bam.split("/")[-2:])
     bp.set_name(f"STR Truth Set: TRGT: {positive_or_negative_loci}: {bam_path_ending}")
@@ -90,52 +93,17 @@ def main():
         bam_paths = bp.precache_file_paths(os.path.join(output_dir, f"**/*.bam"))
         logging.info(f"Precached {len(bam_paths)} log files")
 
-    step1s = []
-    for trgt_catalog_i, trgt_catalog_bed_file_stats in enumerate(trgt_catalog_bed_file_stats_list):
-        trgt_catalog_bed_path = trgt_catalog_bed_file_stats["path"]
-
-        if args.n and trgt_catalog_i >= args.n:
-            break
-
-        output_prefix = re.sub(".bed(.gz)?$", "", local_trgt_catalog_bed.filename)
+    for trgt_catalog_i, trgt_catalog_bed_path in enumerate(trgt_catalog_bed_paths):
+        output_prefix = re.sub(".bed(.gz)?$", "", os.path.basename(trgt_catalog_bed_path))
         s1 = create_trgt_step(
             bp,
-            reference_fasta = args.reference_fasta,
-            trgt_catalog_bed_path = args.trgt_catalog_bed_path,
-            output_dir = output_dir,
-            output_prefix = output_prefix)
-        step1s.append(s1)
-
-    bp.run()
-    return
-
-    # step2: combine json files
-    s2 = bp.new_step(name="Combine TRGT outputs",
-                     step_number=2,
-                     image=DOCKER_IMAGE,
-                     cpu=2,
-                     memory="highmem",
-                     storage="20Gi",
-                     output_dir=output_dir)
-    for step1 in step1s:
-        s2.depends_on(step1)
-
-    s2.command("mkdir /io/run_dir; cd /io/run_dir")
-    for json_path in s1_output_json_paths:
-        local_path = s2.input(json_path, localize_by=Localize.COPY)
-        s2.command(f"ln -s {local_path}")
-
-    output_prefix = f"combined.{positive_or_negative_loci}"
-    s2.command("set -x")
-    s2.command(f"python3.9 -m str_analysis.combine_str_json_to_tsv "
-               f"--output-prefix {output_prefix}")
-    s2.command(f"bgzip {output_prefix}.{len(s1_output_json_paths)}_json_files.bed")
-    s2.command(f"tabix {output_prefix}.{len(s1_output_json_paths)}_json_files.bed.gz")
-    s2.command("ls -lhrt")
-    s2.output(f"{output_prefix}.{len(s1_output_json_paths)}_json_files.variants.tsv.gz")
-    s2.output(f"{output_prefix}.{len(s1_output_json_paths)}_json_files.alleles.tsv.gz")
-    s2.output(f"{output_prefix}.{len(s1_output_json_paths)}_json_files.bed.gz")
-    s2.output(f"{output_prefix}.{len(s1_output_json_paths)}_json_files.bed.gz.tbi")
+            reference_fasta=args.reference_fasta,
+            input_bam=args.input_bam,
+            input_bai=args.input_bai,
+            trgt_catalog_bed_paths=trgt_catalog_bed_paths,
+            output_dir=output_dir,
+            output_prefix=output_prefix,
+            reference_fasta_fai=args.reference_fasta_fai)
     bp.run()
 
 
@@ -150,7 +118,7 @@ def create_trgt_step(bp, *, reference_fasta, input_bam, input_bai, trgt_catalog_
     s1_output_json_paths = []
 
     cpu = 16
-    s1 = bp.new_step(f"Run TRGT on {os.path.basename(input_bam)}",
+    s1 = bp.new_step(f"Run TRGT on {os.path.basename(input_bam)}  {os.path.basename(trgt_catalog_bed_path)}",
                      arg_suffix=f"trgt",
                      step_number=1,
                      image=DOCKER_IMAGE,
@@ -169,11 +137,11 @@ def create_trgt_step(bp, *, reference_fasta, input_bam, input_bai, trgt_catalog_
     local_trgt_catalog_bed = s1.input(trgt_catalog_bed_path)
     s1.command("df -kh")
     karyotype = "XX" if male_or_female == "female" else "XY"
-    s1.command(f"echo Genotyping $(cat {local_trgt_catalog_bed} | wc -l) loci in {local_bam.filename}  (karyotype={karyotype})")
+    s1.command(f"echo Genotyping $(cat {local_trgt_catalog_bed} | wc -l) loci in {local_bam.filename}  karyotype={karyotype}")
     s1.command(f"""/usr/bin/time --verbose trgt genotype \
                                      --genome {local_fasta} \
                                      --reads {local_bam} \
-                                     --karyotype {karyotype}
+                                     --karyotype {karyotype} \
                                      --repeats {local_trgt_catalog_bed} \
                                      --output-prefix {output_prefix} \
                                      --threads {cpu}                       

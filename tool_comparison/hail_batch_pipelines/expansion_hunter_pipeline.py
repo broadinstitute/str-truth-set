@@ -26,7 +26,7 @@ def main():
     parser_group = parser.add_mutually_exclusive_group(required=True)
     parser_group.add_argument("--positive-loci", action="store_true", help="Genotype truth set loci")
     parser_group.add_argument("--negative-loci", action="store_true", help="Genotype negative (hom-ref) loci")
-    parser_group.add_argument("--variant-catalog", action="append", help="Path of variant catalog json file(s) to process")
+    parser_group.add_argument("--variant-catalog", help="Path of variant catalog json file(s) to process")
 
     parser.add_argument("--use-illumina-expansion-hunter", action="store_true", help="Go back to using the Illumina "
          "version of ExpansionHunter instead of the optimized version from https://github.com/bw2/ExpansionHunter.git")
@@ -57,7 +57,7 @@ def main():
         if len(variant_catalog_file_paths) == 0:
             raise ValueError(f"No files found matching {VARIANT_CATALOG_NEGATIVE_LOCI}")
     elif args.variant_catalog:
-        positive_or_negative_loci = os.path.basename(args.variant_catalog[0]).replace(".json", "")
+        positive_or_negative_loci = os.path.basename(args.variant_catalog).replace(".json", "")
         variant_catalog_file_paths = [x.path for x in hfs.ls(args.variant_catalog)]
     else:
         parser.error("Must specify either --positive-loci or --negative-loci")
@@ -126,7 +126,7 @@ def create_expansion_hunter_steps(bp, *, reference_fasta, input_bam, input_bai, 
     for catalog_i, variant_catalog_path in enumerate(variant_catalog_file_paths):
         if not use_streaming_mode:
             s1 = bp.new_step(
-                f"Run EHv5 #{catalog_i}",
+                f"Run EHv5 #{catalog_i} on {os.path.basename(input_bam)} ({os.path.basename(variant_catalog_path)})",
                 arg_suffix=f"eh",
                 step_number=1,
                 image=DOCKER_IMAGE,
@@ -136,7 +136,7 @@ def create_expansion_hunter_steps(bp, *, reference_fasta, input_bam, input_bai, 
                 output_dir=output_dir)
         else:
             s1 = bp.new_step(
-                f"Run EHv5 #{catalog_i}",
+                f"Run EHv5 #{catalog_i} on {os.path.basename(input_bam)} ({os.path.basename(variant_catalog_path)})",
                 arg_suffix=f"eh",
                 step_number=1,
                 image=DOCKER_IMAGE,
@@ -218,7 +218,7 @@ def create_expansion_hunter_steps(bp, *, reference_fasta, input_bam, input_bai, 
             s1.output(done_file, output_dir=reviewer_remote_output_dir)
 
     # step2: combine json files
-    s2 = bp.new_step(name="Combine EHv5 outputs",
+    s2 = bp.new_step(name=f"Combine EHv5 outputs for {os.path.basename(input_bam)}",
                      step_number=2,
                      image=DOCKER_IMAGE,
                      cpu=1,
