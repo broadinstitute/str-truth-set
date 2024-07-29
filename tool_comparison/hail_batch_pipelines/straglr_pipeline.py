@@ -109,13 +109,11 @@ def create_straglr_steps(bp, *, reference_fasta, input_bam, input_bai, straglr_c
     input_bam_file_stats = hfs_ls_results[0]
 
     for straglr_catalog_i, straglr_catalog_bed_path in enumerate(straglr_catalog_bed_paths):
-
-        cpu = 16
         s1 = bp.new_step(f"Run straglr #{straglr_catalog_i}",
                          arg_suffix=f"straglr",
                          step_number=1,
                          image=DOCKER_IMAGE,
-                         cpu=cpu,
+                         cpu=16,
                          localize_by=Localize.COPY,
                          storage=f"{int(input_bam_file_stats.size/10**9) + 25}Gi",
                          output_dir=output_dir)

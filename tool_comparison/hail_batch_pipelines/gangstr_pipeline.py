@@ -1,4 +1,4 @@
-import hail as hl
+import hailtop.fs as hfs
 import logging
 import os
 import re
@@ -38,19 +38,22 @@ def main():
 
     if args.positive_loci:
         positive_or_negative_loci = "positive_loci"
-        repeat_spec_file_stats_list = hl.hadoop_ls(REPEAT_SPECS_POSITIVE_LOCI)
+        repeat_spec_file_paths = [x.path for x in hfs.ls(REPEAT_SPECS_POSITIVE_LOCI)]        
         if len(repeat_spec_file_stats_list) == 0:
             raise ValueError(f"No files found matching {REPEAT_SPECS_POSITIVE_LOCI}")
     elif args.negative_loci:
         positive_or_negative_loci = "negative_loci"
-        repeat_spec_file_stats_list = hl.hadoop_ls(REPEAT_SPECS_NEGATIVE_LOCI)
+        repeat_spec_file_paths = [x.path for x in hfs.ls(REPEAT_SPECS_NEGATIVE_LOCI)]        
         if len(repeat_spec_file_stats_list) == 0:
             raise ValueError(f"No files found matching {REPEAT_SPECS_NEGATIVE_LOCI}")
     elif args.repeat_specs:
         positive_or_negative_loci = os.path.basename(args.repeat_specs[0]).replace(".bed", "").replace(".gz", "")
-        repeat_spec_file_stats_list = [{"path": path} for path in args.repeat_specs]
+        repeat_spec_file_paths = [x.path for x in hfs.ls(args.repeat_specs)]        
     else:
         parser.error("Must specify either --positive-loci or --negative-loci")
+
+    if args.n:
+        repeat_spec_file_paths = repeat_spec_file_paths[:args.n]
 
     bam_path_ending = "/".join(args.input_bam.split("/")[-2:])
     bp.set_name(f"STR Truth Set: GangSTR: {positive_or_negative_loci}: {bam_path_ending}")
@@ -59,31 +62,46 @@ def main():
         json_paths = bp.precache_file_paths(os.path.join(output_dir, f"**/*.json"))
         logging.info(f"Precached {len(json_paths)} json files")
 
+    create_gangstr_steps(
+        bp,
+        reference_fasta=args.reference_fasta,
+        input_bam=args.input_bam,
+        input_bai=args.input_bai,
+        repeat_spec_file_paths=repeat_spec_file_paths,
+        output_dir=output_dir,
+        output_prefix=f"combined.{positive_or_negative_loci}",
+        reference_fasta_fai=args.reference_fasta_fai)
+    bp.run()
+
+def create_gangstr_steps(bp, *, reference_fasta, input_bam, input_bai, repeat_spec_file_paths, output_dir, output_prefix, reference_fasta_fai=None):
     step1s = []
-    step1_output_json_paths = []
-    for repeat_spec_i, repeat_spec_file_stats in enumerate(repeat_spec_file_stats_list):
-        repeat_spec_path = repeat_spec_file_stats["path"]
+    step1_output_paths = []
 
-        if args.n and repeat_spec_i >= args.n:
-            break
-
+    hfs_ls_results = hfs.ls(input_bam)
+    if len(hfs_ls_results) == 0:
+        raise ValueError(f"No files found matching {input_bam}")
+    input_bam_file_stats = hfs_ls_results[0]
+    
+    for repeat_spec_i, repeat_spec_file_path in enumerate(repeat_spec_file_paths):
         s1 = bp.new_step(f"Run GangSTR #{repeat_spec_i}",
                          arg_suffix=f"gangstr",
                          step_number=1,
                          image=DOCKER_IMAGE,
                          cpu=1,
-                         storage="100Gi")
+                         localize_by=Localize.COPY,
+                         storage=f"{int(input_bam_file_stats.size/10**9) + 25}Gi",
+                         output_dir=output_dir)
         step1s.append(s1)
 
-        local_fasta = s1.input(args.reference_fasta, localize_by=Localize.COPY)
-        if args.reference_fasta_fai:
-            s1.input(args.reference_fasta_fai, localize_by=Localize.COPY)
+        local_fasta = s1.input(reference_fasta)
+        if reference_fasta_fai:
+            s1.input(reference_fasta_fai)
 
-        local_bam = s1.input(args.input_bam, localize_by=Localize.COPY)
-        if args.input_bai:
-            s1.input(args.input_bai, localize_by=Localize.COPY)
+        local_bam = s1.input(input_bam)
+        if input_bai:
+            s1.input(input_bai)
 
-        local_repeat_spec = s1.input(repeat_spec_path)
+        local_repeat_spec = s1.input(repeat_spec_file_path)
 
         output_prefix = re.sub(".bed$", "", local_repeat_spec.filename)
         s1.command(f"echo Genotyping $(cat {local_repeat_spec} | wc -l) loci")
@@ -103,7 +121,7 @@ def main():
         s1.output(f"{output_prefix}.log.gz", output_dir=os.path.join(output_dir, f"log"))
         s1.output(f"{output_prefix}.json", output_dir=os.path.join(output_dir, f"json"))
 
-        step1_output_json_paths.append(os.path.join(output_dir, f"json", f"{output_prefix}.json"))
+        step1_output_paths.append(os.path.join(output_dir, f"json", f"{output_prefix}.json"))
 
     # step2: combine json files
     s2 = bp.new_step(name="Combine GangSTR outputs",
@@ -117,22 +135,20 @@ def main():
         s2.depends_on(step1)
 
     s2.command("mkdir /io/run_dir; cd /io/run_dir")
-    for json_path in step1_output_json_paths:
+    for json_path in step1_output_paths:
         local_path = s2.input(json_path, localize_by=Localize.COPY)
         s2.command(f"ln -s {local_path}")
 
-    output_prefix = f"combined.{positive_or_negative_loci}"
     s2.command("set -x")
     s2.command(f"python3.9 -m str_analysis.combine_str_json_to_tsv --include-extra-gangstr-fields "
                f"--output-prefix {output_prefix}")
-    s2.command(f"bgzip {output_prefix}.{len(step1_output_json_paths)}_json_files.bed")
-    s2.command(f"tabix {output_prefix}.{len(step1_output_json_paths)}_json_files.bed.gz")
+    s2.command(f"bgzip {output_prefix}.{len(step1_output_paths)}_json_files.bed")
+    s2.command(f"tabix {output_prefix}.{len(step1_output_paths)}_json_files.bed.gz")
     s2.command("ls -lhrt")
-    s2.output(f"{output_prefix}.{len(step1_output_json_paths)}_json_files.variants.tsv.gz")
-    s2.output(f"{output_prefix}.{len(step1_output_json_paths)}_json_files.alleles.tsv.gz")
-    s2.output(f"{output_prefix}.{len(step1_output_json_paths)}_json_files.bed.gz")
-    s2.output(f"{output_prefix}.{len(step1_output_json_paths)}_json_files.bed.gz.tbi")
-    bp.run()
+    s2.output(f"{output_prefix}.{len(step1_output_paths)}_json_files.variants.tsv.gz")
+    s2.output(f"{output_prefix}.{len(step1_output_paths)}_json_files.alleles.tsv.gz")
+    s2.output(f"{output_prefix}.{len(step1_output_paths)}_json_files.bed.gz")
+    s2.output(f"{output_prefix}.{len(step1_output_paths)}_json_files.bed.gz.tbi")
 
 
 if __name__ == "__main__":
