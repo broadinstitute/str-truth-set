@@ -60,10 +60,9 @@ def plot_hist(df, output_image_filename, title=None, y_label=None, show_title=Tr
 
     # set legend to have 2 columns
     legend = ax.get_legend()
-    handles = legend.legendHandles
     labels = [text.get_text() for text in legend.get_texts()]
     legend.remove()
-    ax.legend(handles, labels, title=None, prop={'size': 16}, frameon=False, ncol=2)
+    ax.legend(legend.legend_handles, labels, title=None, prop={'size': 16}, frameon=False, ncol=2)
 
     x_min = 1 if include_homopolymers else 2
     xticks = range(x_min, 16, 1)
