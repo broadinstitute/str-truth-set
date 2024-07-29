@@ -62,7 +62,7 @@ import re
 
 from step_pipeline import pipeline, Backend, Localize, Delocalize
 
-DOCKER_IMAGE = "weisburd/longtr@sha256:85b9b6cdb63b797163efd53d415e6d5851212a59aba04caebcd605d3321144cd"
+DOCKER_IMAGE = "weisburd/longtr@sha256:868c31bb5996e32f1cfb0c1620cb1cf93922bde5abf4697d79764dff9dbce533"
 
 REFERENCE_FASTA_PATH = "gs://gcp-public-data--broad-references/hg38/v0/Homo_sapiens_assembly38.fasta"
 REFERENCE_FASTA_FAI_PATH = "gs://gcp-public-data--broad-references/hg38/v0/Homo_sapiens_assembly38.fasta.fai"
@@ -131,7 +131,8 @@ def main():
     bp.run()
 
 
-def create_longtr_steps(bp, *, reference_fasta, input_bam, input_bai, regions_bed_paths, output_dir, output_prefix, reference_fasta_fai=None):
+def create_longtr_steps(bp, *, reference_fasta, input_bam, input_bai, regions_bed_paths, output_dir, output_prefix,
+                        reference_fasta_fai=None, male_or_female="female"):
     step1s = []
     step1_output_json_paths = []
     hfs_ls_results = hfs.ls(input_bam)

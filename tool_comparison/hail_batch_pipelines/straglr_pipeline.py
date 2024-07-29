@@ -29,7 +29,7 @@ import re
 
 from step_pipeline import pipeline, Backend, Localize, Delocalize
 
-DOCKER_IMAGE = "weisburd/straglr@sha256:b95c51f44b55655fad6d48a1b694ed2f8115b2633b528f09673057bccd2c1719"
+DOCKER_IMAGE = "weisburd/straglr@sha256:37227b4df904e783aee00fd40e2a11418f9e7807cadc9552f9de38e747310418"
 
 REFERENCE_FASTA_PATH = "gs://gcp-public-data--broad-references/hg38/v0/Homo_sapiens_assembly38.fasta"
 REFERENCE_FASTA_FAI_PATH = "gs://gcp-public-data--broad-references/hg38/v0/Homo_sapiens_assembly38.fasta.fai"
@@ -100,7 +100,8 @@ def main():
     bp.run()
 
 
-def create_straglr_steps(bp, *, reference_fasta, input_bam, input_bai, straglr_catalog_bed_paths, output_dir, output_prefix, reference_fasta_fai=None):
+def create_straglr_steps(bp, *, reference_fasta, input_bam, input_bai, straglr_catalog_bed_paths, output_dir, output_prefix,
+                         reference_fasta_fai=None, male_or_female="female"):
     step1s = []
     step1_output_paths = []
     hfs_ls_results = hfs.ls(input_bam)
@@ -133,6 +134,7 @@ def create_straglr_steps(bp, *, reference_fasta, input_bam, input_bai, straglr_c
         s1.command(f"echo Genotyping $(cat {local_straglr_catalog_bed} | wc -l) loci")
         s1.command("set -ex")
         s1.command(f"""/usr/bin/time --verbose python3 /usr/local/bin/straglr.py {local_bam} {local_fasta} {output_prefix} \
+                --sex {male_or_female} \
                 --loci {local_straglr_catalog_bed} \
                 --nprocs {cpu//2}""")
 

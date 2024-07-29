@@ -1,6 +1,6 @@
-set -ex
+set -x
 
-for d in expansion_hunter gangstr hipstr expansion_hunter_denovo  trgt  longtr   straglr   vamos
+for d in trgt  longtr   straglr   vamos  expansion_hunter gangstr hipstr expansion_hunter_denovo  
 do
     echo $d
     cd $d;

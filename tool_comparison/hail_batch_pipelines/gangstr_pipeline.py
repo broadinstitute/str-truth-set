@@ -5,7 +5,7 @@ import re
 
 from step_pipeline import pipeline, Backend, Localize, Delocalize
 
-DOCKER_IMAGE = "weisburd/gangstr@sha256:f9b2157e011ab4df2476b4bd59e73e0d580fd9c670c6c313e7057ad535099fc2"
+DOCKER_IMAGE = "weisburd/gangstr@sha256:d71d7ae63888be2dfcb45793ed4f0043cf450cb622b2dd4c4d9f7c2a4a06dbb4"
 
 REFERENCE_FASTA_PATH = "gs://gcp-public-data--broad-references/hg38/v0/Homo_sapiens_assembly38.fasta"
 REFERENCE_FASTA_FAI_PATH = "gs://gcp-public-data--broad-references/hg38/v0/Homo_sapiens_assembly38.fasta.fai"
@@ -70,10 +70,12 @@ def main():
         repeat_spec_file_paths=repeat_spec_file_paths,
         output_dir=output_dir,
         output_prefix=f"combined.{positive_or_negative_loci}",
-        reference_fasta_fai=args.reference_fasta_fai)
+        reference_fasta_fai=args.reference_fasta_fai,
+        male_or_female="female")
     bp.run()
 
-def create_gangstr_steps(bp, *, reference_fasta, input_bam, input_bai, repeat_spec_file_paths, output_dir, output_prefix, reference_fasta_fai=None):
+def create_gangstr_steps(bp, *, reference_fasta, input_bam, input_bai, repeat_spec_file_paths, output_dir, output_prefix, 
+                         reference_fasta_fai=None, male_or_female="female"):
     step1s = []
     step1_output_paths = []
 
@@ -102,13 +104,16 @@ def create_gangstr_steps(bp, *, reference_fasta, input_bam, input_bai, repeat_sp
             s1.input(input_bai)
 
         local_repeat_spec = s1.input(repeat_spec_file_path)
-
+        
+        input_bam_filename_prefix = re.sub("(.bam|.cram)$", "", os.path.basename(local_bam.filename))
         output_prefix = re.sub(".bed$", "", local_repeat_spec.filename)
         s1.command(f"echo Genotyping $(cat {local_repeat_spec} | wc -l) loci")
         s1.command("set -ex")
         s1.command(f"""/usr/bin/time --verbose GangSTR \
             --ref {local_fasta} \
             --bam {local_bam} \
+            --bam-samps {input_bam_filename_prefix} \
+            --samp-sex {male_or_female[0].upper()} \
             --regions {local_repeat_spec} \
             --out {output_prefix} |& tee {output_prefix}.log""")
 

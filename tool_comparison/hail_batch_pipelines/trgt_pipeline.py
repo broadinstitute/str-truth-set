@@ -32,7 +32,7 @@ import re
 
 from step_pipeline import pipeline, Backend, Localize, Delocalize
 
-DOCKER_IMAGE = "weisburd/trgt@sha256:cd0596d7f24e40566e9da11fbcd35aa183f802c0e69c88f1da239dca47e1a1e3"
+DOCKER_IMAGE = "weisburd/trgt@sha256:91be43a2bdd44943b81fe630007f28708fe7d70d94e54a618fadb6647d9f34c4"
 
 REFERENCE_FASTA_PATH = "gs://gcp-public-data--broad-references/hg38/v0/Homo_sapiens_assembly38.fasta"
 REFERENCE_FASTA_FAI_PATH = "gs://gcp-public-data--broad-references/hg38/v0/Homo_sapiens_assembly38.fasta.fai"
@@ -139,9 +139,12 @@ def main():
     bp.run()
 
 
-def create_trgt_step(bp, *, reference_fasta, input_bam, input_bai, trgt_catalog_bed_paths, output_dir, output_prefix, reference_fasta_fai=None):
+def create_trgt_step(bp, *, reference_fasta, input_bam, input_bai, trgt_catalog_bed_paths, output_dir, output_prefix,
+                     reference_fasta_fai=None, male_or_female="female"):
     if len(trgt_catalog_bed_paths) > 1:
         raise ValueError("Only one TRGT catalog bed file is currently supported")
+    if len(trgt_catalog_bed_paths) == 0:
+        raise ValueError("No TRGT catalog bed file provided")
     trgt_catalog_bed_path = trgt_catalog_bed_paths[0]
 
     s1_output_json_paths = []
@@ -165,10 +168,12 @@ def create_trgt_step(bp, *, reference_fasta, input_bam, input_bai, trgt_catalog_
         s1.input(input_bai, localize_by=Localize.COPY)
     local_trgt_catalog_bed = s1.input(trgt_catalog_bed_path)
     s1.command("df -kh")
-    s1.command(f"echo Genotyping $(cat {local_trgt_catalog_bed} | wc -l) loci")
+    karyotype = "XX" if male_or_female == "female" else "XY"
+    s1.command(f"echo Genotyping $(cat {local_trgt_catalog_bed} | wc -l) loci in {local_bam.filename}  (karyotype={karyotype})")
     s1.command(f"""/usr/bin/time --verbose trgt genotype \
                                      --genome {local_fasta} \
                                      --reads {local_bam} \
+                                     --karyotype {karyotype}
                                      --repeats {local_trgt_catalog_bed} \
                                      --output-prefix {output_prefix} \
                                      --threads {cpu}                       

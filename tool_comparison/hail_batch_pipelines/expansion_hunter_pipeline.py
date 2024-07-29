@@ -5,7 +5,7 @@ import re
 
 from step_pipeline import pipeline, Backend, Localize, Delocalize
 
-DOCKER_IMAGE = "weisburd/expansion-hunter@sha256:36c44829db35fadcbf155abc24243b40773b43f7d4676636fa061d855eca8c2e"
+DOCKER_IMAGE = "weisburd/expansion-hunter@sha256:aa315698ca40e3e237a7d01f7c14fc9257b74151dbcad00e25116436f1594a65"
 
 REFERENCE_FASTA_PATH = "gs://gcp-public-data--broad-references/hg38/v0/Homo_sapiens_assembly38.fasta"
 REFERENCE_FASTA_FAI_PATH = "gs://gcp-public-data--broad-references/hg38/v0/Homo_sapiens_assembly38.fasta.fai"
@@ -81,6 +81,7 @@ def main():
         reference_fasta=args.reference_fasta,
         input_bam=args.input_bam,
         input_bai=args.input_bai,
+        male_or_female="female",
         variant_catalog_file_paths=variant_catalog_file_paths,
         output_dir=output_dir,
         output_prefix=f"combined.{positive_or_negative_loci}",
@@ -92,7 +93,7 @@ def main():
         run_reviewer=args.run_reviewer)
     bp.run()
         
-def create_expansion_hunter_steps(bp, *, reference_fasta, input_bam, input_bai, variant_catalog_file_paths, output_dir, output_prefix, reference_fasta_fai=None,
+def create_expansion_hunter_steps(bp, *, reference_fasta, input_bam, input_bai, variant_catalog_file_paths, output_dir, output_prefix, reference_fasta_fai=None, male_or_female="female",
                                   use_streaming_mode=False, loci_to_exclude=None, min_locus_coverage=None, use_illumina_expansion_hunter=False, run_reviewer=False):
 
     if use_illumina_expansion_hunter:
@@ -178,12 +179,14 @@ def create_expansion_hunter_steps(bp, *, reference_fasta, input_bam, input_bai, 
             s1.command(f"""/usr/bin/time --verbose {tool_exec} {cache_mates_arg} {min_locus_coverage_arg} \
                 --reference {local_fasta} \
                 --reads {local_bam} \
+                --sex {male_or_female} \
                 --variant-catalog {local_variant_catalog_path} \
                 --output-prefix {output_prefix}""")
         else:
             s1.command(f"""/usr/bin/time --verbose {tool_exec} {min_locus_coverage_arg} \
                 --reference {local_fasta} \
                 --reads {local_bam} \
+                --sex {male_or_female} \
                 --variant-catalog {local_variant_catalog_path} \
                 --analysis-mode streaming \
                 --threads 16 \

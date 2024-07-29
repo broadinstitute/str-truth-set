@@ -5,7 +5,7 @@ import re
 
 from step_pipeline import pipeline, Backend, Localize, Delocalize
 
-DOCKER_IMAGE = "weisburd/hipstr@sha256:d02f4bbe94dbe55df911317e7b8e063cf03f8cab2c77c1b9c6ab24b5d883f8e5"
+DOCKER_IMAGE = "weisburd/hipstr@sha256:3c18925e50b35f7bd69362e22f4f1f5fb8c2c8fc79c016120f44459b7eef53c3"
 
 REFERENCE_FASTA_PATH = "gs://gcp-public-data--broad-references/hg38/v0/Homo_sapiens_assembly38.fasta"
 REFERENCE_FASTA_FAI_PATH = "gs://gcp-public-data--broad-references/hg38/v0/Homo_sapiens_assembly38.fasta.fai"
@@ -70,10 +70,12 @@ def main():
         regions_bed_file_paths=regions_bed_file_paths,
         output_dir=output_dir,
         output_prefix=f"combined.{positive_or_negative_loci}",
-        reference_fasta_fai=args.reference_fasta_fai)
+        reference_fasta_fai=args.reference_fasta_fai,
+        male_or_female="female")
     bp.run()
 
-def create_hipstr_steps(bp, *, reference_fasta, input_bam, input_bai, regions_bed_file_paths, output_dir, output_prefix, reference_fasta_fai=None): 
+def create_hipstr_steps(bp, *, reference_fasta, input_bam, input_bai, regions_bed_file_paths, output_dir, output_prefix, reference_fasta_fai=None,
+                        male_or_female="female"):
     step1s = []
     step1_output_paths = []
 
@@ -102,12 +104,13 @@ def create_hipstr_steps(bp, *, reference_fasta, input_bam, input_bai, regions_be
             s1.input(input_bai)
 
         local_regions_bed = s1.input(regions_bed_file_path)
-
+        input_bam_filename_prefix = re.sub("(.bam|.cram)$", "", os.path.basename(local_bam.filename))
         output_prefix = re.sub(".bed(.gz)?$", "", local_regions_bed.filename)
         s1.command(f"echo Genotyping $(cat {local_regions_bed} | wc -l) loci")
         s1.command("set -ex")
         s1.command(f"""/usr/bin/time --verbose HipSTR \
                 --bams {local_bam} \
+                --bam-samps {input_bam_filename_prefix} \
                 --fasta {local_fasta} \
                 --regions {local_regions_bed} \
                 --def-stutter-model \
