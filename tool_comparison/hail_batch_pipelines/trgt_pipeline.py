@@ -60,6 +60,7 @@ def main():
     parser.add_argument("--input-bam", default=CHM1_CHM13_CRAM_PATH)
     parser.add_argument("--input-bai", default=CHM1_CHM13_CRAI_PATH)
     parser.add_argument("--output-dir", default=OUTPUT_BASE_DIR)
+    parser.add_argument("--cpu", type=int, default=16)
     parser.add_argument("-n", type=int, help="Only process the first n inputs. Useful for testing.")
     args = bp.parse_known_args()
 
@@ -103,12 +104,13 @@ def main():
             trgt_catalog_bed_paths=trgt_catalog_bed_paths,
             output_dir=output_dir,
             output_prefix=output_prefix,
-            reference_fasta_fai=args.reference_fasta_fai)
+            reference_fasta_fai=args.reference_fasta_fai,
+            cpu=args.cpu)
     bp.run()
 
 
 def create_trgt_step(bp, *, reference_fasta, input_bam, input_bai, trgt_catalog_bed_paths, output_dir, output_prefix,
-                     reference_fasta_fai=None, male_or_female="female"):
+                     reference_fasta_fai=None, male_or_female="female", cpu=16):
     if len(trgt_catalog_bed_paths) > 1:
         raise ValueError("Only one TRGT catalog bed file is currently supported")
     if len(trgt_catalog_bed_paths) == 0:
@@ -117,7 +119,6 @@ def create_trgt_step(bp, *, reference_fasta, input_bam, input_bai, trgt_catalog_
 
     s1_output_json_paths = []
 
-    cpu = 16
     s1 = bp.new_step(f"Run TRGT on {os.path.basename(input_bam)}  {os.path.basename(trgt_catalog_bed_path)}",
                      arg_suffix=f"trgt",
                      step_number=1,
