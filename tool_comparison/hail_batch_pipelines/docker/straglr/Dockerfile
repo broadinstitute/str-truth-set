@@ -46,6 +46,14 @@ RUN wget -q https://github.com/samtools/samtools/releases/download/${SAMTOOLS_VE
 ENV STRAGLR_VERSION=v1.5.0
 RUN python3 -m pip install --no-cache-dir git+https://github.com/bcgsc/straglr.git@${STRAGLR_VERSION}#egg=straglr
 
+#https://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/LATEST/ncbi-blast-2.16.0+-x64-linux.tar.gz
+ENV BLAST_VERSION="2.16.0+"
+RUN wget https://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/LATEST/ncbi-blast-${BLAST_VERSION}-x64-linux.tar.gz \
+	&& tar xzf ncbi-blast-${BLAST_VERSION}-x64-linux.tar.gz \
+	&& rm ncbi-blast-${BLAST_VERSION}-x64-linux.tar.gz \
+	&& mv ncbi-blast-2.16.0+/bin/blastn /usr/bin/blastn \
+    && rm  -rf ncbi-blast-2.16.0+ \
+    && chmod 777 /usr/bin/blastn
 
 RUN wget https://github.com/Benson-Genomics-Lab/TRF/releases/download/v4.09.1/trf409.linux64 \
 	&& chmod 777 trf409.linux64 \

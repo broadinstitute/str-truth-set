@@ -142,7 +142,7 @@ def create_longtr_steps(bp, *, reference_fasta, input_bam, input_bai, regions_be
 
     for repeat_spec_i, regions_bed_path in enumerate(regions_bed_paths):
         s1 = bp.new_step(f"Run LongTR on {os.path.basename(input_bam)} ({os.path.basename(regions_bed_path)})",
-                         arg_suffix=f"longtr",
+                         arg_suffix=f"run-longtr-step",
                          step_number=1,
                          image=DOCKER_IMAGE,
                          cpu=1,
@@ -190,6 +190,7 @@ def create_longtr_steps(bp, *, reference_fasta, input_bam, input_bai, regions_be
     # step2: combine json files
     s2 = bp.new_step(name=f"Combine LongTR outputs for {os.path.basename(input_bam)}",
                      step_number=2,
+                     arg_suffix=f"combine-longtr-step",
                      image=DOCKER_IMAGE,
                      cpu=2,
                      memory="highmem",

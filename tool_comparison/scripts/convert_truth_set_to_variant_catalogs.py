@@ -299,7 +299,7 @@ def write_gangstr_hipstr_or_longtr_repeat_specs(locus_set, output_path_prefix, t
                     # This can happen with homopolymers where there is only 1 repeat in the reference, so it passes
                     # the IsFoundInReference filter, but then errors out for HipSTR, and LongTR
                     continue
-                chrom = chrom
+
                 if tool == "gangstr":
                     output_fields = [chrom, start_0based + 1, end_1based, len(motif), motif]
                 elif tool == "longtr":
@@ -328,9 +328,10 @@ def write_gangstr_hipstr_or_longtr_repeat_specs(locus_set, output_path_prefix, t
 def write_trgt_catalog(locus_set, output_path):
     with open(os.path.expanduser(output_path), "wt") as f:
         # example: chr1	1224281	1224291	ID=chr1_1224281_1224291;MOTIFS=TTTTA;STRUC=(TTTTA)n
-        for chrom, start_0based, end_1based, motif in sorted(locus_set):
-            column4 = f"ID={chrom}_{start_0based}_{end_1based};MOTIFS={motif};STRUC=({motif})n"
-            f.write("\t".join(map(str, [chrom, start_0based, end_1based, column4])) + "\n")
+        for unmodified_chrom, start_0based, end_1based, motif in sorted(locus_set):
+            chrom = unmodified_chrom.replace("chr", "")
+            column4 = f"ID={chrom}-{start_0based}-{end_1based}-{motif};MOTIFS={motif};STRUC=({motif})n"
+            f.write("\t".join(map(str, [unmodified_chrom, start_0based, end_1based, column4])) + "\n")
 
     print(f"Wrote {len(locus_set):,d} loci to {output_path}")
 

@@ -112,7 +112,7 @@ def create_straglr_steps(bp, *, reference_fasta, input_bam, input_bai, straglr_c
     for straglr_catalog_i, straglr_catalog_bed_path in enumerate(straglr_catalog_bed_paths):
         cpu = 16
         s1 = bp.new_step(f"Run straglr #{straglr_catalog_i} ({os.path.basename(straglr_catalog_bed_path)})",
-                         arg_suffix=f"straglr",
+                         arg_suffix=f"run-straglr-step",
                          step_number=1,
                          image=DOCKER_IMAGE,
                          cpu=cpu,
@@ -135,8 +135,9 @@ def create_straglr_steps(bp, *, reference_fasta, input_bam, input_bai, straglr_c
         s1.command(f"echo Genotyping $(cat {local_straglr_catalog_bed} | wc -l) loci")
         s1.command("set -ex")
         s1.command(f"""/usr/bin/time --verbose python3 /usr/local/bin/straglr.py {local_bam} {local_fasta} {output_prefix} \
-                --sex {male_or_female} \
                 --loci {local_straglr_catalog_bed} \
+                --min_cluster_size 1 \
+                --sex {male_or_female} \
                 --nprocs {cpu//2}""")
 
         s1.command("ls -lhrt")
@@ -155,6 +156,7 @@ def create_straglr_steps(bp, *, reference_fasta, input_bam, input_bai, straglr_c
     # step2: combine json files
     s2 = bp.new_step(name=f"Combine straglr outputs for {os.path.basename(input_bam)}",
                      step_number=2,
+                     arg_suffix=f"combine-straglr-step",
                      image=DOCKER_IMAGE,
                      cpu=2,
                      memory="highmem",

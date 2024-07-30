@@ -86,7 +86,7 @@ def create_gangstr_steps(bp, *, reference_fasta, input_bam, input_bai, repeat_sp
     
     for repeat_spec_i, repeat_spec_file_path in enumerate(repeat_spec_file_paths):
         s1 = bp.new_step(f"Run GangSTR #{repeat_spec_i} on {os.path.basename(input_bam)} ({os.path.basename(repeat_spec_file_path)})",
-                         arg_suffix=f"gangstr",
+                         arg_suffix=f"run-gangstr-step",
                          step_number=1,
                          image=DOCKER_IMAGE,
                          cpu=1,
@@ -131,6 +131,7 @@ def create_gangstr_steps(bp, *, reference_fasta, input_bam, input_bai, repeat_sp
     # step2: combine json files
     s2 = bp.new_step(name=f"Combine GangSTR outputs for {os.path.basename(input_bam)}",
                      step_number=2,
+                     arg_suffix=f"combine-gangstr-step",
                      image=DOCKER_IMAGE,
                      cpu=1,
                      memory="highmem",
@@ -155,6 +156,7 @@ def create_gangstr_steps(bp, *, reference_fasta, input_bam, input_bai, repeat_sp
     s2.output(f"{output_prefix}.{len(step1_output_paths)}_json_files.bed.gz")
     s2.output(f"{output_prefix}.{len(step1_output_paths)}_json_files.bed.gz.tbi")
 
+    return s2
 
 if __name__ == "__main__":
     main()

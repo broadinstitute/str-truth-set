@@ -86,7 +86,7 @@ def create_hipstr_steps(bp, *, reference_fasta, input_bam, input_bai, regions_be
 
     for repeat_spec_i, regions_bed_file_path in enumerate(regions_bed_file_paths):
         s1 = bp.new_step(f"Run HipSTR #{repeat_spec_i} on {os.path.basename(input_bam)} ({os.path.basename(regions_bed_file_path)})",
-                         arg_suffix=f"hipstr",
+                         arg_suffix=f"run-hipstr-step",
                          step_number=1,
                          image=DOCKER_IMAGE,
                          cpu=1,
@@ -136,6 +136,7 @@ def create_hipstr_steps(bp, *, reference_fasta, input_bam, input_bai, regions_be
     # step2: combine json files
     s2 = bp.new_step(name=f"Combine HipSTR outputs for {os.path.basename(input_bam)}",
                      step_number=2,
+                     arg_suffix=f"combine-hipstr-step",
                      image=DOCKER_IMAGE,
                      cpu=2,
                      memory="highmem",
@@ -161,6 +162,7 @@ def create_hipstr_steps(bp, *, reference_fasta, input_bam, input_bai, regions_be
     s2.output(f"{output_prefix}.{len(step1_output_paths)}_json_files.bed.gz")
     s2.output(f"{output_prefix}.{len(step1_output_paths)}_json_files.bed.gz.tbi")
 
+    return s2
 
 if __name__ == "__main__":
     main()

@@ -120,7 +120,7 @@ def create_trgt_step(bp, *, reference_fasta, input_bam, input_bai, trgt_catalog_
     s1_output_json_paths = []
 
     s1 = bp.new_step(f"Run TRGT on {os.path.basename(input_bam)}  {os.path.basename(trgt_catalog_bed_path)}",
-                     arg_suffix=f"trgt",
+                     arg_suffix=f"run-trgt-step",
                      step_number=1,
                      image=DOCKER_IMAGE,
                      cpu=cpu,
@@ -160,6 +160,7 @@ def create_trgt_step(bp, *, reference_fasta, input_bam, input_bai, trgt_catalog_
     # step2: combine json file
     s2 = bp.new_step(name=f"Combine TRGT outputs for {os.path.basename(input_bam)}", 
                      step_number=2,
+                     arg_suffix=f"combine-trgt-step",
                      image=DOCKER_IMAGE,
                      cpu=2,
                      memory="highmem",

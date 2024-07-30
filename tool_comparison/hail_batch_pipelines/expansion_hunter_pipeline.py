@@ -127,7 +127,7 @@ def create_expansion_hunter_steps(bp, *, reference_fasta, input_bam, input_bai, 
         if not use_streaming_mode:
             s1 = bp.new_step(
                 f"Run EHv5 #{catalog_i} on {os.path.basename(input_bam)} ({os.path.basename(variant_catalog_path)})",
-                arg_suffix=f"eh",
+                arg_suffix=f"run-expansion-hunter-step",
                 step_number=1,
                 image=DOCKER_IMAGE,
                 cpu=2,
@@ -137,7 +137,7 @@ def create_expansion_hunter_steps(bp, *, reference_fasta, input_bam, input_bai, 
         else:
             s1 = bp.new_step(
                 f"Run EHv5 #{catalog_i} on {os.path.basename(input_bam)} ({os.path.basename(variant_catalog_path)})",
-                arg_suffix=f"eh",
+                arg_suffix=f"run-expansion-hunter-step",
                 step_number=1,
                 image=DOCKER_IMAGE,
                 cpu=16,
@@ -220,6 +220,7 @@ def create_expansion_hunter_steps(bp, *, reference_fasta, input_bam, input_bai, 
     # step2: combine json files
     s2 = bp.new_step(name=f"Combine EHv5 outputs for {os.path.basename(input_bam)}",
                      step_number=2,
+                     arg_suffix=f"combine-expansion-hunter-step",
                      image=DOCKER_IMAGE,
                      cpu=1,
                      memory="highmem",
@@ -245,6 +246,7 @@ def create_expansion_hunter_steps(bp, *, reference_fasta, input_bam, input_bai, 
     s2.output(f"{output_prefix}.{len(step1_output_paths)}_json_files.bed.gz")
     s2.output(f"{output_prefix}.{len(step1_output_paths)}_json_files.bed.gz.tbi")
 
+    return s2
 
 if __name__ == "__main__":
     main()
