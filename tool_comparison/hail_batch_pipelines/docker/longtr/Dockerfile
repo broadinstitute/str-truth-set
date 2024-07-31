@@ -62,6 +62,7 @@ RUN git clone https://github.com/gymrek-lab/LongTR.git \
 
 ENV PATH=/google-cloud-sdk/bin:$PATH
 
+ADD "https://www.random.org/cgi-bin/randbyte?nbytes=10&format=h" skipcache
 RUN python3 -m pip install --no-cache-dir git+https://github.com/broadinstitute/str-analysis
 
 ENTRYPOINT ["/bin/bash"]
