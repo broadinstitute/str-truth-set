@@ -476,7 +476,7 @@ def main():
     g = p.add_argument_group("Filters")
     g.add_argument("--tool", choices=["ExpansionHunter", "GangSTR", "HipSTR", "TRGT", "LongTR", "NewTruthSet"], help="Plot only this tool")
     g.add_argument("--q-threshold", type=float, help="Plot only this Q threshold")
-    g.add_argument("--coverage", choices=["40x", "30x", "20x", "10x", "exome"], help="Plot only this coverage")
+    g.add_argument("--coverage", help="Plot only this coverage (example: \"20x\" or \"exome\")")
     g.add_argument("--min-motif-size", type=int, help="Min motif size")
     g.add_argument("--max-motif-size", type=int, help="Max motif size")
     g.add_argument("--genotype", choices=["all", "HET", "HOM", "MULTI"], help="Plot only this genotype")
@@ -509,11 +509,13 @@ def main():
         df = df[df["IsFoundInReference"]]
     else:
         print("WARNING: IsFoundInReference column not found in input file. Assuming all loci are found in reference...")
+        df["IsFoundInReference"] = True
 
     if "PositiveOrNegative" in df.columns:
         df = df[df["PositiveOrNegative"] == "positive"]
     else:
         print("WARNING: PositiveOrNegative column not found in input file. Assuming all loci are positive...")
+        df["PositiveOrNegative"] = "positive"
 
     if "Coverage" not in df.columns:
         df["Coverage"] = args.coverage

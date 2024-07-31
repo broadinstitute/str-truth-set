@@ -316,7 +316,7 @@ def main():
     p.add_argument("--show-title", action="store_true", help="Show title in plot")
 
     g = p.add_argument_group("Filters")
-    g.add_argument("--coverage", choices=["40x", "30x", "20x", "10x", "exome"], help="Plot only this coverage")
+    g.add_argument("--coverage", help="Plot only this coverage (example: \"30x\" or \"exome\")")
     g.add_argument("--min-motif-size", type=int, help="Min motif size")
     g.add_argument("--max-motif-size", type=int, help="Max motif size")
     g.add_argument("--genotype", choices=["all", "HET", "HOM", "MULTI"], help="Plot only this genotype")
@@ -334,6 +334,15 @@ def main():
 
     print(f"Loading {args.combined_tool_results_tsv}")
     df = pd.read_table(args.combined_tool_results_tsv)
+
+    if "IsFoundInReference" not in df.columns:
+        print("WARNING: IsFoundInReference column not found in input file. Assuming all loci are found in reference...")
+        df["IsFoundInReference"] = True
+
+    if "PositiveOrNegative" not in df.columns:
+        print("WARNING: PositiveOrNegative column not found in input file. Assuming all loci are positive...")
+        df["PositiveOrNegative"] = "positive"
+
     df = df[df["IsFoundInReference"] & (df["PositiveOrNegative"] == "positive")]
 
     if args.verbose:

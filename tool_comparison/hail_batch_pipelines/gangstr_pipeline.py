@@ -115,6 +115,7 @@ def create_gangstr_steps(bp, *, reference_fasta, input_bam, input_bai, repeat_sp
             --bam-samps {input_bam_filename_prefix} \
             --samp-sex {male_or_female[0].upper()} \
             --regions {local_repeat_spec} \
+            --verbose \
             --out {output_prefix} |& tee {output_prefix}.log""")
 
         s1.command("ls -lhrt")
