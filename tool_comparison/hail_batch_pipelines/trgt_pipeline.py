@@ -32,7 +32,7 @@ import re
 
 from step_pipeline import pipeline, Backend, Localize, Delocalize
 
-DOCKER_IMAGE = "weisburd/trgt@sha256:2ec546c42dfc0ebdcb98ea35d7dcd22389cf7f69081da071a0e80bae7d59f945"
+DOCKER_IMAGE = "weisburd/trgt@sha256:628374a3da1b354984a358ccf36328708e0477aedb6902da78b673726d9a5a96"
 
 REFERENCE_FASTA_PATH = "gs://gcp-public-data--broad-references/hg38/v0/Homo_sapiens_assembly38.fasta"
 REFERENCE_FASTA_FAI_PATH = "gs://gcp-public-data--broad-references/hg38/v0/Homo_sapiens_assembly38.fasta.fai"
@@ -110,7 +110,7 @@ def main():
 
 
 def create_trgt_step(bp, *, reference_fasta, input_bam, input_bai, trgt_catalog_bed_paths, output_dir, output_prefix,
-                     reference_fasta_fai=None, male_or_female="female", cpu=16):
+                     reference_fasta_fai=None, male_or_female="female", parse_reference_region_from_locus_id=False, cpu=16):
     if len(trgt_catalog_bed_paths) > 1:
         raise ValueError("Only one TRGT catalog bed file is currently supported")
     if len(trgt_catalog_bed_paths) == 0:
@@ -149,7 +149,9 @@ def create_trgt_step(bp, *, reference_fasta, input_bam, input_bai, trgt_catalog_
     """)
     s1.command("ls -lhrt")
 
-    s1.command(f"python3 -m str_analysis.convert_trgt_vcf_to_expansion_hunter_json --discard-hom-ref {output_prefix}.vcf.gz")
+    parse_reference_region_from_locus_id_arg = "--parse-reference-region-from-locus-id" if parse_reference_region_from_locus_id else ""
+    s1.command(f"python3 -m str_analysis.convert_trgt_vcf_to_expansion_hunter_json --discard-hom-ref "
+               f"{parse_reference_region_from_locus_id_arg} {output_prefix}.vcf.gz")
     
     s1.output(f"{output_prefix}.vcf.gz")
     s1.output(f"{output_prefix}.spanning.bam")

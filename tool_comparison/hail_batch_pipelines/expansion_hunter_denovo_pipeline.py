@@ -9,7 +9,7 @@ CHM1_CHM13_CRAM_PATH = "gs://broad-public-datasets/CHM1_CHM13_WGS2/CHM1_CHM13_WG
 CHM1_CHM13_CRAI_PATH = "gs://broad-public-datasets/CHM1_CHM13_WGS2/CHM1_CHM13_WGS2.cram.crai"
 
 EXPANSION_HUNTER_DENOVO_DOCKER_IMAGE = "weisburd/expansion-hunter-denovo@sha256:5debe1871f98c96b258a6b57cac10019239d7f7e2774d4331a74e43c23bb4cb2"
-EXPANSION_HUNTER_DOCKER_IMAGE = "weisburd/expansion-hunter@sha256:ffe8d512b6e69f1a84bbe5a9751f8a19fda53218b1db4e4cfbe1af5af9177ca4"
+EXPANSION_HUNTER_DOCKER_IMAGE = "weisburd/expansion-hunter@sha256:b65ea747efb08d02be23377d8bc60c7827c8f4f4dd2ec8c53df83a0bc31982f9"
 
 OUTPUT_BASE_DIR = "gs://str-truth-set/hg38/tool_results/expansion_hunter_denovo"
 
