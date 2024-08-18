@@ -26,6 +26,8 @@ MIN_DISTANCE_TO_INDELS_AROUND_NEGATIVE_LOCI = 100  # base pairs
 def parse_args():
     p = argparse.ArgumentParser()
     p.add_argument("-R", "--ref-fasta", help="Reference fasta path")
+    p.add_argument("--skip-loci-not-found-in-the-reference", action="store_true",
+                   help="Skip loci that have 0 width (ie. are not found in the reference genome)")
     p.add_argument("--expansion-hunter-loci-per-run", type=int, default=1000, help="ExpansionHunter batch size. "
                    "The set of all STR loci in the truth set will be split into variant catalogs of this size.")
     p.add_argument("--gangstr-loci-per-run", type=int, default=100000, help="GangSTR batch size. "
@@ -380,11 +382,11 @@ def main():
 
     print(f"Parsed {len(truth_set_df):,d} records from {args.truth_set_variants_tsv_or_bed_path}")
 
-    # Must be found in reference for EH and GangSTR to work
-    length_before = len(truth_set_df)
-    truth_set_df = truth_set_df[truth_set_df["IsFoundInReference"]]
-    if length_before > len(truth_set_df):
-        print(f"Discarded {length_before - len(truth_set_df):,d} loci without matching repeats in the reference")
+    if args.skip_loci_not_found_in_the_reference:
+        length_before = len(truth_set_df)
+        truth_set_df = truth_set_df[truth_set_df["IsFoundInReference"]]
+        if length_before > len(truth_set_df):
+            print(f"Discarded {length_before - len(truth_set_df):,d} loci without matching repeats in the reference")
 
     # Generate positive (ie. variant) loci for the variant catalogs
     positive_loci, positive_loci_counters = generate_set_of_positive_loci(truth_set_df)
