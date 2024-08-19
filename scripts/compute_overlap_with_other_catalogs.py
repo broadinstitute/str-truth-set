@@ -33,10 +33,10 @@ TRF_CATALOGS_EXCLUDING_HOMOPOLYMERS = {
 }
 
 TRF_CATALOGS_INCLUDING_HOMOPOLYMERS = {
-    "TRFPureRepeats15bp+Homopolymers": "./ref/other/repeat_specs_GRCh38_without_mismatches.including_homopolymers.sorted.at_least_15bp.bed.gz",
-    "TRFPureRepeats12bp+Homopolymers": "./ref/other/repeat_specs_GRCh38_without_mismatches.including_homopolymers.sorted.at_least_12bp.bed.gz",
-    "TRFPureRepeats9bp+Homopolymers": "./ref/other/repeat_specs_GRCh38_without_mismatches.including_homopolymers.sorted.at_least_9bp.bed.gz",
-    "TRFPureRepeats6bp+Homopolymers": "./ref/other/repeat_specs_GRCh38_without_mismatches.including_homopolymers.sorted.at_least_6bp.bed.gz",
+    "TRFPureRepeats15bp": "./ref/other/repeat_specs_GRCh38_without_mismatches.including_homopolymers.sorted.at_least_15bp.bed.gz",
+    "TRFPureRepeats12bp": "./ref/other/repeat_specs_GRCh38_without_mismatches.including_homopolymers.sorted.at_least_12bp.bed.gz",
+    "TRFPureRepeats9bp": "./ref/other/repeat_specs_GRCh38_without_mismatches.including_homopolymers.sorted.at_least_9bp.bed.gz",
+    "TRFPureRepeats6bp": "./ref/other/repeat_specs_GRCh38_without_mismatches.including_homopolymers.sorted.at_least_6bp.bed.gz",
 }
 
 GENOMIC_REGIONS = {
