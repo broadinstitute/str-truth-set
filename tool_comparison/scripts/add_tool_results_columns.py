@@ -202,7 +202,8 @@ def main():
     tool_df.loc[:, "DiffFromRefRepeats: Allele 2"] = tool_df["NumRepeats: Allele 2"] - tool_df["NumRepeatsInReference"]
     tool_df.loc[:, "DiffFromRefSize (bp): Allele 1"] = tool_df["DiffFromRefRepeats: Allele 1"] * tool_df["MotifSize"]
     tool_df.loc[:, "DiffFromRefSize (bp): Allele 2"] = tool_df["DiffFromRefRepeats: Allele 2"] * tool_df["MotifSize"]
-
+    tool_df["RepeatSize (bp): Allele 1"] =  tool_df["NumRepeats: Allele 1"] * tool_df["MotifSize"]
+    tool_df["RepeatSize (bp): Allele 2"] =  tool_df["NumRepeats: Allele 2"] * tool_df["MotifSize"]
     tool_df["RepeatSize (bp): Allele 1"] = tool_df["RepeatSize (bp): Allele 1"].fillna(tool_df["NumRepeatsInReference"]*tool_df["MotifSize"])
     tool_df["RepeatSize (bp): Allele 2"] = tool_df["RepeatSize (bp): Allele 2"].fillna(tool_df["NumRepeatsInReference"]*tool_df["MotifSize"])
 
