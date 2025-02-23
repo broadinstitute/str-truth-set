@@ -141,8 +141,11 @@ def main():
         raise ValueError(f"Unexpected tool: {args.tool}")
     
     truth_set_df = pd.read_table(args.truth_set_or_negative_loci_tsv)
+    print(f"Read {len(truth_set_df):,d} rows from {args.truth_set_or_negative_loci_tsv} with {len(truth_set_df.columns):,d} columns:")
+    print(", ".join(truth_set_df.columns))
     tool_df = pd.read_table(args.tool_results_tsv)
-
+    print(f"Read {len(tool_df):,d} rows from {args.tool_results_tsv} with {len(tool_df.columns):,d} columns:")
+    print(", ".join(tool_df.columns))
     for bed_file_path in args.filter_to_regions:
         regions_interval_trees = parse_bed_to_interval_tree(bed_file_path)
         before = len(truth_set_df)
