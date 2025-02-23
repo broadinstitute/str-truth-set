@@ -5,7 +5,8 @@ import re
 
 from step_pipeline import pipeline, Backend, Localize, Delocalize
 
-DOCKER_IMAGE = "weisburd/expansion-hunter@sha256:b65ea747efb08d02be23377d8bc60c7827c8f4f4dd2ec8c53df83a0bc31982f9"
+DOCKER_IMAGE = "weisburd/expansion-hunter@sha256:aa315698ca40e3e237a7d01f7c14fc9257b74151dbcad00e25116436f1594a65"
+DOCKER_IMAGE_DEV = "weisburd/expansion-hunter-dev@sha256:4baa218fdb7bc76af97d6628d13718ff4ad22290d1cc4ffeb2f8e3ea3c5a13b3"
 
 REFERENCE_FASTA_PATH = "gs://gcp-public-data--broad-references/hg38/v0/Homo_sapiens_assembly38.fasta"
 REFERENCE_FASTA_FAI_PATH = "gs://gcp-public-data--broad-references/hg38/v0/Homo_sapiens_assembly38.fasta.fai"
@@ -92,7 +93,8 @@ def main():
         use_illumina_expansion_hunter=args.use_illumina_expansion_hunter,
         run_reviewer=args.run_reviewer)
     bp.run()
-        
+
+
 def create_expansion_hunter_steps(bp, *, reference_fasta, input_bam, input_bai, variant_catalog_file_paths, output_dir, output_prefix, reference_fasta_fai=None, male_or_female="female",
                                   use_streaming_mode=False, loci_to_exclude=None, min_locus_coverage=None, use_illumina_expansion_hunter=False, run_reviewer=False):
 
@@ -247,6 +249,143 @@ def create_expansion_hunter_steps(bp, *, reference_fasta, input_bam, input_bai, 
     s2.output(f"{output_prefix}.{len(step1_output_paths)}_json_files.bed.gz.tbi")
 
     return s2
+
+VALID_DEV_ANALYSIS_MODES = ("seeking", "streaming", "low-mem-streaming", "fast-low-mem-streaming")
+
+def create_expansion_hunter_dev_steps(bp, *, reference_fasta, input_bam, input_bai, variant_catalog_file_paths, output_dir, output_prefix, reference_fasta_fai=None, male_or_female="female",
+                                      analysis_mode="low-mem-streaming", loci_to_exclude=None, min_locus_coverage=None):
+
+    if analysis_mode not in VALID_DEV_ANALYSIS_MODES:
+        raise ValueError(f"analysis_mode must be one of {', '.join(VALID_DEV_ANALYSIS_MODES)} rather than '{analysis_mode}'")
+
+    tool_exec = "ExpansionHunter"
+    cache_mates_arg = "--cache-mates "
+    min_locus_coverage_arg = f"--min-locus-coverage {min_locus_coverage}" if min_locus_coverage is not None else ""
+
+    if loci_to_exclude:
+        for loci_to_exclude_file_path in loci_to_exclude:
+            with open(loci_to_exclude_file_path, "rt") as f:
+                for line in f:
+                    loci_to_exclude.append(line.strip())
+        print(f"Parsed {len(loci_to_exclude)} locus ids to exclude:", ", ".join(loci_to_exclude[:5]),
+              "..." if len(loci_to_exclude) > 5 else "")
+
+    step1s = []
+    step1_output_paths = []
+
+    hfs_ls_results = hfs.ls(input_bam)
+    if len(hfs_ls_results) == 0:
+        raise ValueError(f"No files found matching {input_bam}")
+    input_bam_file_stats = hfs_ls_results[0]
+
+    for catalog_i, variant_catalog_path in enumerate(variant_catalog_file_paths):
+        if analysis_mode != "streaming":
+            s1 = bp.new_step(
+                f"Run EHv5 #{catalog_i} on {os.path.basename(input_bam)} ({os.path.basename(variant_catalog_path)})",
+                arg_suffix=f"run-expansion-hunter-step",
+                step_number=1,
+                image=DOCKER_IMAGE_DEV,
+                cpu=2,
+                localize_by=Localize.COPY,
+                storage=f"{int(input_bam_file_stats.size/10**9) + 25}Gi",
+                output_dir=output_dir)
+        else:
+            s1 = bp.new_step(
+                f"Run EHv5 #{catalog_i} on {os.path.basename(input_bam)} ({os.path.basename(variant_catalog_path)})",
+                arg_suffix=f"run-expansion-hunter-step",
+                step_number=1,
+                image=DOCKER_IMAGE_DEV,
+                cpu=16,
+                memory="highmem",
+                #custom_machine_type="n1-highmem-32",
+                #custom_machine_is_preemptible=True,
+                storage=f"{int(input_bam_file_stats.size/10**9) + 25}Gi",
+                output_dir=output_dir)
+
+        step1s.append(s1)
+
+        local_fasta = s1.input(reference_fasta)
+        if reference_fasta_fai:
+            s1.input(reference_fasta_fai)
+
+        local_bam = s1.input(input_bam)
+        if input_bai:
+            s1.input(input_bai)
+
+        s1.command("set -ex")
+
+        local_variant_catalog = s1.input(variant_catalog_path)
+        if loci_to_exclude:
+            local_variant_catalog_path = f"filtered_{local_variant_catalog.filename}"
+
+            # add command to filter out excluded loci from variant catalog
+            jq_command = f"cat {local_variant_catalog} | "
+            jq_command += "jq '.[] | " + " | ".join([f'select(.LocusId != "{i}")' for i in loci_to_exclude]) + "' | "
+            jq_command += "jq -s '.' "  # reformat output into proper json
+            jq_command += f" > {local_variant_catalog_path}"
+            s1.command(jq_command)
+        else:
+            local_variant_catalog_path = str(local_variant_catalog)
+
+        output_prefix = re.sub(".json$", "", local_variant_catalog.filename)
+        s1.command(f"echo Genotyping $(cat {local_variant_catalog_path} | grep LocusId | wc -l) loci")
+
+        if analysis_mode != "streaming":
+            s1.command(f"""/usr/bin/time --verbose {tool_exec} {cache_mates_arg} {min_locus_coverage_arg} \
+                    --reference {local_fasta} \
+                    --analysis-mode {analysis_mode} \
+                    --sort-catalog-by position \
+                    --reads {local_bam} \
+                    --sex {male_or_female} \
+                    --variant-catalog {local_variant_catalog_path} \
+                    --output-prefix {output_prefix}""")
+        else:
+            s1.command(f"""/usr/bin/time --verbose {tool_exec} {min_locus_coverage_arg} \
+                    --reference {local_fasta} \
+                    --reads {local_bam} \
+                    --sex {male_or_female} \
+                    --variant-catalog {local_variant_catalog_path} \
+                    --analysis-mode streaming \
+                    --threads 16 \
+                    --output-prefix {output_prefix}""")
+
+        s1.command("ls -lhrt")
+
+        s1.output(f"{output_prefix}.json", output_dir=os.path.join(output_dir, f"json"))
+
+        step1_output_paths.append(os.path.join(output_dir, f"json", f"{output_prefix}.json"))
+
+    # step2: combine json files
+    s2 = bp.new_step(name=f"Combine EHv5 outputs for {os.path.basename(input_bam)}",
+                     step_number=2,
+                     arg_suffix=f"combine-expansion-hunter-step",
+                     image=DOCKER_IMAGE_DEV,
+                     cpu=1,
+                     memory="highmem",
+                     storage="20Gi",
+                     output_dir=output_dir)
+
+    for step1 in step1s:
+        s2.depends_on(step1)
+
+    s2.command("mkdir /io/run_dir; cd /io/run_dir")
+    for json_path in step1_output_paths:
+        local_path = s2.input(json_path)
+        s2.command(f"ln -s {local_path}")
+
+    s2.command("set -x")
+    s2.command(f"python3.9 -m str_analysis.combine_str_json_to_tsv --include-extra-expansion-hunter-fields "
+               f"--output-prefix {output_prefix}")
+    s2.command(f"bgzip {output_prefix}.{len(step1_output_paths)}_json_files.bed")
+    s2.command(f"tabix {output_prefix}.{len(step1_output_paths)}_json_files.bed.gz")
+    s2.command("ls -lhrt")
+    s2.output(f"{output_prefix}.{len(step1_output_paths)}_json_files.variants.tsv.gz")
+    s2.output(f"{output_prefix}.{len(step1_output_paths)}_json_files.alleles.tsv.gz")
+    s2.output(f"{output_prefix}.{len(step1_output_paths)}_json_files.bed.gz")
+    s2.output(f"{output_prefix}.{len(step1_output_paths)}_json_files.bed.gz.tbi")
+
+    return s2
+
 
 if __name__ == "__main__":
     main()
