@@ -43,11 +43,12 @@ def parse_args():
     p.add_argument("--all-hg38-repeats-bed", default="./ref/other/repeat_specs_GRCh38_without_mismatches.sorted.trimmed.at_least_9bp.bed.gz",
                    help="Path of bed file containing all repeats in the reference genome generated using a tool like "
                         "TandemRepeatFinder")
-    p.add_argument("--only", choices=["eh", "gangstr", "hipstr", "popstr", "trgt", "straglr", "longtr"], action="append",
+    p.add_argument("--only", choices=["eh", "gangstr", "hipstr", "constrain", "popstr", "trgt", "straglr", "longtr"], action="append",
                    help="Only generate catalogs for the specified tool(s)")
     p.add_argument("--skip-eh", action="store_true", help="Skip generating an ExpansionHunter catalog")
     p.add_argument("--skip-gangstr", action="store_true", help="Skip generating a GangSTR catalog")
     p.add_argument("--skip-hipstr", action="store_true", help="Skip generating a HipSTR catalog")
+    p.add_argument("--skip-constrain", action="store_true", help="Skip generating a ConSTRain catalog")
     p.add_argument("--skip-popstr", action="store_true", help="Skip generating a popSTR catalog")
     p.add_argument("--skip-trgt", action="store_true", help="Skip generating a TRGT catalog")
     p.add_argument("--skip-straglr", action="store_true", help="Skip generating a Straglr catalog")
@@ -326,6 +327,13 @@ def write_gangstr_hipstr_or_longtr_repeat_specs(locus_set, output_path_prefix, t
 
     print(f"Wrote {len(batches):,d} {tool} repeat spec bed files to {output_path_prefix}*.bed")
 
+def write_constrain_catalog(locus_set, output_path):
+    with open(os.path.expanduser(output_path), "wt") as f:
+        for chrom, start_0based, end_1based, motif in sorted(locus_set):
+            f.write("\t".join(map(str, [chrom, start_0based, end_1based, len(motif), motif])) + "\n")
+
+    print(f"Wrote {len(locus_set):,d} loci to {output_path}")
+
 
 def write_trgt_catalog(locus_set, output_path):
     with open(os.path.expanduser(output_path), "wt") as f:
@@ -447,6 +455,9 @@ def main():
             write_gangstr_hipstr_or_longtr_repeat_specs(locus_set,
                  os.path.join(output_dir, f"hipstr/{output_filename_prefix}{label}_loci.HipSTR"),
                  tool="hipstr", loci_per_run=args.gangstr_loci_per_run)
+
+        if not args.skip_constrain and (not args.only or "constrain" in args.only):
+            write_constrain_catalog(locus_set, os.path.join(output_dir, f"constrain/{output_filename_prefix}{label}_loci.constrain_catalog.bed"))
 
         if not args.skip_popstr and (not args.only or "popstr" in args.only):
             if fasta_obj is None:
