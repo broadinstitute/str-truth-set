@@ -63,4 +63,6 @@ ENV PATH=/google-cloud-sdk/bin:$PATH
 ADD "https://www.random.org/cgi-bin/randbyte?nbytes=10&format=h" skipcache
 RUN python3 -m pip install --no-cache-dir git+https://github.com/broadinstitute/str-analysis
 
+COPY convert_constrain_vcf_to_expansion_hunter_json.py /convert_constrain_vcf_to_expansion_hunter_json.py
+
 ENTRYPOINT ["/bin/bash"]
