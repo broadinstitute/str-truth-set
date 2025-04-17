@@ -216,9 +216,9 @@ def generate_all_plots(df, args):
     if max_plots is None:
         max_plots = 10**9
 
-    for tool in ["ExpansionHunter", "ExpansionHunter-dev", "GangSTR", "HipSTR"] if not args.tool else [args.tool]:
+    for tool in ["ExpansionHunter", "ExpansionHunter-dev", "GangSTR", "HipSTR", "constrain"] if not args.tool else [args.tool]:
         for q_threshold in [0, 0.1, 0.5, 0.9] if args.q_threshold is None else [args.q_threshold]:
-            if q_threshold > 0 and not args.only_print_total_number_of_plots:
+            if q_threshold > 0 and not args.only_print_total_number_of_plots and tool != "constrain":
                 df2 = df.copy()
                 q_column = f"Q: Allele: {tool}" if tool in ("ExpansionHunter", "ExpansionHunter-dev") else f"Q: {tool}"
                 df2.loc[df2[q_column] < q_threshold, f"DiffRepeats: Allele: {tool} - Truth (bin)"] = FILTERED_CALL_LABEL
@@ -475,7 +475,7 @@ def main():
 
     g = p.add_argument_group("Filters")
     g.add_argument("--tool", choices={
-        "ExpansionHunter", "ExpansionHunter-dev", "GangSTR", "HipSTR", "TRGT", "LongTR", "NewTruthSet"},
+        "ExpansionHunter", "ExpansionHunter-dev", "GangSTR", "HipSTR", "constrain", "TRGT", "LongTR", "NewTruthSet"},
         help="Plot only this tool")
     g.add_argument("--q-threshold", type=float, help="Plot only this Q threshold")
     g.add_argument("--coverage", help="Plot only this coverage (example: \"20x\" or \"exome\")")
@@ -530,7 +530,7 @@ def main():
 
     print("Computing additional columns...")
     df.loc[:, "DiffFromRefRepeats: Allele: Truth (bin)"] = df.apply(bin_num_repeats_wrapper(bin_size=2), axis=1)
-    for tool in ([args.tool] or ("ExpansionHunter", "ExpansionHunter-dev", "GangSTR", "HipSTR", "TRGT", "LongTR")):
+    for tool in ([args.tool] or ("ExpansionHunter", "ExpansionHunter-dev", "GangSTR", "HipSTR", "constrain", "TRGT", "LongTR")):
         define_hue_column(df, tool)
 
     df = df.sort_values("DiffFromRefRepeats: Allele: Truth")
