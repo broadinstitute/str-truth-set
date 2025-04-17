@@ -419,6 +419,7 @@ def main():
     if not args.skip_eh and (not args.only or "eh" in args.only): subdirs_to_create.append("expansion_hunter")
     if not args.skip_gangstr and (not args.only or "gangstr" in args.only): subdirs_to_create.append("gangstr")
     if not args.skip_hipstr and (not args.only or "hipstr" in args.only):   subdirs_to_create.append("hipstr")
+    if not args.skip_constrain and (not args.only or "constrain" in args.only): subdirs_to_create.append("constrain")
     if not args.skip_popstr and (not args.only or "popstr" in args.only):   subdirs_to_create.append("popstr")
     if not args.skip_trgt and (not args.only or "trgt" in args.only):   subdirs_to_create.append("trgt")
     if not args.skip_straglr and (not args.only or "straglr" in args.only):   subdirs_to_create.append("straglr")

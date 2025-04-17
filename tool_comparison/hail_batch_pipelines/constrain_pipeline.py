@@ -127,6 +127,8 @@ def create_constrain_step(bp, *, reference_fasta, input_bam, input_bai, constrai
                      storage="200Gi",
                      output_dir=output_dir)
     s1.command("set -ex")
+    local_karyotype_file = s1.input(f"https://raw.githubusercontent.com/acg-team/ConSTRain/refs/heads/main/resources/h_sapiens/h_sapiens_{male_or_female}.json")
+
     local_fasta = s1.input(reference_fasta, localize_by=Localize.COPY)
     if reference_fasta_fai:
         s1.input(reference_fasta_fai, localize_by=Localize.COPY)
@@ -137,8 +139,7 @@ def create_constrain_step(bp, *, reference_fasta, input_bam, input_bai, constrai
         s1.input(input_bai, localize_by=Localize.COPY)
     local_constrain_catalog_bed = s1.input(constrain_catalog_bed_path)
     s1.command("df -kh")
-    karyotype = "XX" if male_or_female == "female" else "XY"
-    s1.command(f"echo Genotyping $(cat {local_constrain_catalog_bed} | wc -l) loci in {local_bam.filename}  karyotype={karyotype}")
+    s1.command(f"echo Genotyping $(cat {local_constrain_catalog_bed} | wc -l) loci in {local_bam.filename}")
 
     """
     Usage: constrain alignment [OPTIONS] --alignment <ALIGNMENT> --karyotype <KARYOTYPE> --repeats <REPEATS>
@@ -173,7 +174,7 @@ def create_constrain_step(bp, *, reference_fasta, input_bam, input_bai, constrai
     """                  
     s1.command(f"""/usr/bin/time --verbose constrain alignment \
                                      --alignment {local_bam} \
-                                     --karyotype {karyotype} \
+                                     --karyotype {local_karyotype_file} \
                                      --reference {local_fasta} \
                                      --repeats {local_constrain_catalog_bed} \
                                      --threads {cpu}                       
