@@ -32,7 +32,7 @@ import re
 
 from step_pipeline import pipeline, Backend, Localize, Delocalize
 
-DOCKER_IMAGE = "weisburd/constrain@sha256:3afa635017241eed27f5cde15bc8114323c17d3c86cfde2951154c62919688d2"
+DOCKER_IMAGE = "weisburd/constrain@sha256:e07ecce4b8a26aa851d61b16ff0d04736b92a68dd144e946fdcc08a522344324"
 
 REFERENCE_FASTA_PATH = "gs://gcp-public-data--broad-references/hg38/v0/Homo_sapiens_assembly38.fasta"
 REFERENCE_FASTA_FAI_PATH = "gs://gcp-public-data--broad-references/hg38/v0/Homo_sapiens_assembly38.fasta.fai"
@@ -177,14 +177,13 @@ def create_constrain_step(bp, *, reference_fasta, input_bam, input_bai, constrai
                                      --karyotype {local_karyotype_file} \
                                      --reference {local_fasta} \
                                      --repeats {local_constrain_catalog_bed} \
-                                     --threads {cpu}                       
+                                     --threads {cpu} | gzip -c - > {output_prefix}.vcf.gz                 
     """)
     s1.command("ls -lhrt")
 
-    s1.command(f"python3 -m str_analysis.convert_constrain_vcf_to_expansion_hunter_json {output_prefix}.vcf.gz")
+    s1.command(f"python3 /convert_constrain_vcf_to_expansion_hunter_json.py {output_prefix}.vcf.gz")
     
     s1.output(f"{output_prefix}.vcf.gz")
-    s1.output(f"{output_prefix}.spanning.bam")
     s1.output(f"{output_prefix}.json")
 
     s1_output_json_paths.append(os.path.join(output_dir, f"{output_prefix}.json"))
@@ -207,8 +206,7 @@ def create_constrain_step(bp, *, reference_fasta, input_bam, input_bai, constrai
         s2.command(f"ln -s {local_path}")
 
     s2.command("set -x")
-    s2.command(f"python3 -m str_analysis.combine_str_json_to_tsv --include-extra-constrain-fields "
-               f"--output-prefix {output_prefix}")
+    s2.command(f"python3 -m str_analysis.combine_str_json_to_tsv --output-prefix {output_prefix}")
 
     s2.command(f"mv {output_prefix}.{len(s1_output_json_paths)}_json_files.bed {output_prefix}.bed")
     s2.command(f"mv {output_prefix}.{len(s1_output_json_paths)}_json_files.variants.tsv.gz {output_prefix}.variants.tsv.gz")

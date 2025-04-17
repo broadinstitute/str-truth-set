@@ -57,7 +57,7 @@ def parse_args():
     p.add_argument("--verbose", action="store_true",
                    help="Whether to print additional info about input and output columns.")
     p.add_argument("--tool", choices={
-        "ExpansionHunter", "ExpansionHunter-dev", "GangSTR", "HipSTR", "TRGT", "LongTR", "NewTruthSet"}, required=True,
+        "ExpansionHunter", "ExpansionHunter-dev", "GangSTR", "HipSTR", "constrain", "TRGT", "LongTR", "NewTruthSet"}, required=True,
         help="Which tool's results are in the input tsv file")
     p.add_argument("--filter-to-regions", action="append", default=[],
                    help="Optional bed file(s) of regions of interest. Rows in the input table that aren't contained in "
@@ -120,6 +120,8 @@ def main():
         tool_df_columns_to_keep += ["Q"]
     elif args.tool == "HipSTR":
         tool_df_columns_to_keep += ["Q", "DP", "AB", "FS", "DFLANKINDEL", "DSTUTTER"]
+    elif args.tool == "constrain":
+        tool_df_columns_to_keep += []
     elif args.tool == "LongTR":
         tool_df_columns_to_keep += ["Q", "DP", "DFLANKINDEL"]
     elif args.tool == "TRGT":
