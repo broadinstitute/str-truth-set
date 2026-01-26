@@ -11,7 +11,7 @@ CHM1_CHM13_CRAI_PATH = "gs://broad-public-datasets/CHM1_CHM13_WGS2/CHM1_CHM13_WG
 
 CHM1_CHM13_CRAM_COVERAGE = 40
 
-DOCKER_IMAGE = "weisburd/gatk@sha256:433406c13c62fb9088bb6cfa842278ff7b6980f540ab8390d224cae20d0f3742"
+DOCKER_IMAGE = "us-central1-docker.pkg.dev/cmg-analysis/docker-repo/gatk@sha256:92e0c735b05d2f179acbc08be70f05d526f8f4ff3617d0e6d03ca7daa0867891"
 
 
 def main():

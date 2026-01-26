@@ -9,7 +9,7 @@ REFERENCE_FASTA_FAI_PATH = "gs://gcp-public-data--broad-references/hg38/v0/Homo_
 CHM1_CHM13_WGS_CRAM_PATH = "gs://broad-public-datasets/CHM1_CHM13_WGS2/CHM1_CHM13_WGS2.cram"
 CHM1_CHM13_WES_CRAM_PATH = "gs://broad-public-datasets/CHM1_CHM13_WES/CHMI_CHMI3_Nex1.cram"
 
-DOCKER_IMAGE = "docker.io/weisburd/gatk:4.3.0.0"
+DOCKER_IMAGE = "us-central1-docker.pkg.dev/cmg-analysis/docker-repo/gatk@sha256:92e0c735b05d2f179acbc08be70f05d526f8f4ff3617d0e6d03ca7daa0867891"
 
 
 def main():
