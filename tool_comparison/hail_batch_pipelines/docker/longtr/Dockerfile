@@ -10,6 +10,7 @@ RUN apt update && apt-get install --no-install-recommends -y \
     libcurl4-openssl-dev \
     libbz2-dev \
     liblzma-dev \
+    libdeflate-dev \
     zlib1g-dev \
     gcc \
     g++ \
