@@ -57,9 +57,10 @@ RUN git clone https://github.com/bw2/ExpansionHunter.git \
     && cp /ExpansionHunter/build/install/bin/ExpansionHunter /bin/ExpansionHunter \
     && rm -rf ExpansionHunter
 
-# Also install the original, unmodified version of ExpansionHunter
-RUN git clone https://github.com/Illumina/ExpansionHunter.git IlluminaExpansionHunter \
+# Also install the original version of ExpansionHunter (with build fixed)
+RUN git clone https://github.com/bw2/ExpansionHunter.git IlluminaExpansionHunter \
     && cd IlluminaExpansionHunter \
+    && git checkout f4b37bf \
     && mkdir build \
     && cd build \
     && cmake .. \
@@ -70,16 +71,16 @@ RUN git clone https://github.com/Illumina/ExpansionHunter.git IlluminaExpansionH
     && rm -rf IlluminaExpansionHunter
 
 # install REViewer
-RUN git clone https://github.com/bw2/REViewer \
-    && cd REViewer  \
-    && mkdir build \
-    && cd build \
-    && cmake .. \
-    && make \
-    && make install \
-    && cd / \
-    && cp /REViewer/build/install/bin/REViewer /bin/REViewer \
-    && rm -rf REViewer
+#RUN git clone https://github.com/bw2/REViewer \
+#    && cd REViewer  \
+#    && mkdir build \
+#    && cd build \
+#    && cmake .. \
+#    && make \
+#    && make install \
+#    && cd / \
+#    && cp /REViewer/build/install/bin/REViewer /bin/REViewer \
+#    && rm -rf REViewer
 
 # install gcloud
 ENV GCLOUD_SDK_VERISON="481.0.0"

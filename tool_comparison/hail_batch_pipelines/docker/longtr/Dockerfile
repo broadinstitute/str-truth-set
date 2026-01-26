@@ -45,14 +45,13 @@ RUN wget -q https://github.com/samtools/samtools/releases/download/${SAMTOOLS_VE
     && make install \
     && make clean
 
-RUN python3 -m pip install --no-cache-dir --upgrade cmake pip
-
 ENV GCLOUD_SDK_VERISON="481.0.0"
 RUN wget https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-${GCLOUD_SDK_VERISON}-linux-x86_64.tar.gz \
     && tar xzf google-cloud-sdk-${GCLOUD_SDK_VERISON}-linux-x86_64.tar.gz \
     && /google-cloud-sdk/install.sh -q \
     && /google-cloud-sdk/bin/gcloud components update --quiet
 
+RUN python3 -m pip install --no-cache-dir --upgrade "cmake<4" pip
 RUN git clone https://github.com/gymrek-lab/LongTR.git \
     && cd LongTR \
     && sed -i 's/git@github.com:/https:\/\/github.com\//' Makefile \

@@ -51,11 +51,17 @@ RUN wget https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud
     && /google-cloud-sdk/install.sh -q \
     && /google-cloud-sdk/bin/gcloud components update --quiet
 
-ENV TRGT_VERSION="3.0.0"
+ENV TRGT_VERSION="5.0.0"
 RUN wget -q https://github.com/PacificBiosciences/trgt/releases/download/v${TRGT_VERSION}/trgt-v${TRGT_VERSION}-x86_64-unknown-linux-gnu.tar.gz \
     && tar xzf trgt-v${TRGT_VERSION}-x86_64-unknown-linux-gnu.tar.gz \
     && chmod 777 trgt-v${TRGT_VERSION}-x86_64-unknown-linux-gnu/trgt \
     && mv trgt-v${TRGT_VERSION}-x86_64-unknown-linux-gnu/trgt /usr/bin/trgt
+
+ENV TRGT_LPS_VERSION="0.10.0"
+RUN wget -q https://github.com/PacificBiosciences/trgt-lps/releases/download/${TRGT_LPS_VERSION}/trgt-lps-v${TRGT_LPS_VERSION}.gz \
+    && gunzip trgt-lps-v${TRGT_LPS_VERSION}.gz \
+    && chmod 777 trgt-lps-v${TRGT_LPS_VERSION} \
+    && mv trgt-lps-v${TRGT_LPS_VERSION} /usr/bin/trgt-lps
 
 
 ENV PATH=/google-cloud-sdk/bin:$PATH
