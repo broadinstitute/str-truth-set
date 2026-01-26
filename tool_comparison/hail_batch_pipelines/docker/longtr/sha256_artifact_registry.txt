@@ -1,0 +1,1 @@
+us-central1-docker.pkg.dev/cmg-analysis/docker-repo/longtr@sha256:b4039c988f9a57f9918c91c4c5336e253d7fae00dd870291953e24b46b61e931
