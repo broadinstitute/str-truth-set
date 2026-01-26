@@ -32,6 +32,15 @@ RUN wget https://github.com/samtools/htslib/releases/download/${SAMTOOLS_VERSION
 	&& make install \
 	&& make clean
 
+# install gcloud
+ENV GCLOUD_SDK_VERISON="481.0.0"
+RUN wget https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-${GCLOUD_SDK_VERISON}-linux-x86_64.tar.gz \
+    && tar xzf google-cloud-sdk-${GCLOUD_SDK_VERISON}-linux-x86_64.tar.gz \
+    && /google-cloud-sdk/install.sh -q \
+    && /google-cloud-sdk/bin/gcloud components update --quiet
+
+ENV PATH=/google-cloud-sdk/bin:$PATH
+
 ADD "https://www.random.org/cgi-bin/randbyte?nbytes=10&format=h" skipcache
 RUN python3 -m pip install --no-cache-dir git+https://github.com/broadinstitute/str-analysis
 
