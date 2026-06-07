@@ -7,8 +7,8 @@ from step_pipeline import pipeline, Backend, Localize, Delocalize
 
 DOCKER_IMAGE = "weisburd/str-analysis@sha256:6c4577678cc9dc43dffe51ae52a5dc6d7707122fdc8e504847e39afb104cbf82"
 
-REFERENCE_FASTA_PATH = "gs://gcp-public-data--broad-references/hg38/v0/Homo_sapiens_assembly38.fasta"
-REFERENCE_FASTA_FAI_PATH = "gs://gcp-public-data--broad-references/hg38/v0/Homo_sapiens_assembly38.fasta.fai"
+REFERENCE_FASTA_PATH = "gs://str-truth-set/hg38/ref/hg38.fa"
+REFERENCE_FASTA_FAI_PATH = "gs://str-truth-set/hg38/ref/hg38.fa.fai"
 
 CHM1_CHM13_BAM_PATH = "gs://bw2-delete-after-30-days/CHM1_CHM13_WGS2.downsampled_to_30x.bam"
 CHM1_CHM13_BAI_PATH = "gs://bw2-delete-after-30-days/CHM1_CHM13_WGS2.downsampled_to_30x.bam.bai"

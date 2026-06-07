@@ -8,12 +8,11 @@ from step_pipeline import pipeline, Backend, Localize, Delocalize
 DOCKER_IMAGE = "us-central1-docker.pkg.dev/cmg-analysis/docker-repo/expansion-hunter@sha256:8d9618dd4adf6ceeaf67a219719e3dbce0930915d27cd4ce9f39990b22667cba"
 DOCKER_IMAGE_DEV = "weisburd/expansion-hunter-dev@sha256:4baa218fdb7bc76af97d6628d13718ff4ad22290d1cc4ffeb2f8e3ea3c5a13b3"
 
-REFERENCE_FASTA_PATH = "gs://gcp-public-data--broad-references/hg38/v0/Homo_sapiens_assembly38.fasta"
-REFERENCE_FASTA_FAI_PATH = "gs://gcp-public-data--broad-references/hg38/v0/Homo_sapiens_assembly38.fasta.fai"
+REFERENCE_FASTA_PATH = "gs://str-truth-set/hg38/ref/hg38.fa"
+REFERENCE_FASTA_FAI_PATH = "gs://str-truth-set/hg38/ref/hg38.fa.fai"
 
 CHM1_CHM13_CRAM_PATH = "gs://broad-public-datasets/CHM1_CHM13_WGS2/CHM1_CHM13_WGS2.cram"
 CHM1_CHM13_CRAI_PATH = "gs://broad-public-datasets/CHM1_CHM13_WGS2/CHM1_CHM13_WGS2.cram.crai"
-
 VARIANT_CATALOG_POSITIVE_LOCI = "gs://str-truth-set/hg38/variant_catalogs/expansion_hunter/positive_loci.EHv5.*_of_293.json"
 VARIANT_CATALOG_NEGATIVE_LOCI = "gs://str-truth-set/hg38/variant_catalogs/expansion_hunter/negative_loci.EHv5.*_of_291.json"
 
@@ -37,8 +36,8 @@ def main():
         "ExpansionHunter to exit with the error message 'Flanks can contain at most 5 characters N but found x Ns.'")
     parser.add_argument("--reference-fasta", default=REFERENCE_FASTA_PATH)
     parser.add_argument("--reference-fasta-fai", default=REFERENCE_FASTA_FAI_PATH)
-    parser.add_argument("--use-streaming-mode", action="store_true", help="Run ExpansionHunter with "
-        "--analysis-mode streaming. This uses ~100Gb of RAM, but can process all loci at once.")
+    parser.add_argument("--analysis-mode", choices=["seeking", "streaming", "low-mem-streaming", "optimized-streaming"],
+                        default="optimized-streaming", help="Run ExpansionHunter with this --analysis-mode.")
     parser.add_argument("--input-bam", default=CHM1_CHM13_CRAM_PATH)
     parser.add_argument("--input-bai", default=CHM1_CHM13_CRAI_PATH)
     parser.add_argument("--min-locus-coverage", type=int, help="Sets ExpansionHunter's --min-locus-coverage arg")
@@ -64,8 +63,10 @@ def main():
         parser.error("Must specify either --positive-loci or --negative-loci")
 
     if args.use_illumina_expansion_hunter:
+        tool_exec = "IlluminaExpansionHunter"
         output_dir = os.path.join(args.output_dir, tool_exec, positive_or_negative_loci)
     else:
+        tool_exec = "ExpansionHunter"
         output_dir = os.path.join(args.output_dir, positive_or_negative_loci)
 
     if args.n:
@@ -87,7 +88,7 @@ def main():
         output_dir=output_dir,
         output_prefix=f"combined.{positive_or_negative_loci}",
         reference_fasta_fai=args.reference_fasta_fai,
-        use_streaming_mode=args.use_streaming_mode, 
+        analysis_mode=args.analysis_mode,
         loci_to_exclude=args.loci_to_exclude,
         min_locus_coverage=args.min_locus_coverage,
         use_illumina_expansion_hunter=args.use_illumina_expansion_hunter,
@@ -96,14 +97,12 @@ def main():
 
 
 def create_expansion_hunter_steps(bp, *, reference_fasta, input_bam, input_bai, variant_catalog_file_paths, output_dir, output_prefix, reference_fasta_fai=None, male_or_female="female",
-                                  use_streaming_mode=False, loci_to_exclude=None, min_locus_coverage=None, use_illumina_expansion_hunter=False, run_reviewer=False):
+                                  analysis_mode="seeking", loci_to_exclude=None, min_locus_coverage=None, use_illumina_expansion_hunter=False, run_reviewer=False):
 
     if use_illumina_expansion_hunter:
         tool_exec = "IlluminaExpansionHunter"
-        cache_mates_arg = ""
     else:
         tool_exec = "ExpansionHunter"
-        cache_mates_arg = "--cache-mates "
 
     min_locus_coverage_arg = ""
     if min_locus_coverage is not None:
@@ -126,28 +125,16 @@ def create_expansion_hunter_steps(bp, *, reference_fasta, input_bam, input_bai, 
     input_bam_file_stats = hfs_ls_results[0]
 
     for catalog_i, variant_catalog_path in enumerate(variant_catalog_file_paths):
-        if not use_streaming_mode:
-            s1 = bp.new_step(
-                f"Run EHv5 #{catalog_i} on {os.path.basename(input_bam)} ({os.path.basename(variant_catalog_path)})",
-                arg_suffix=f"run-expansion-hunter-step",
-                step_number=1,
-                image=DOCKER_IMAGE,
-                cpu=2,
-                localize_by=Localize.COPY,
-                storage=f"{int(input_bam_file_stats.size/10**9) + 25}Gi",
-                output_dir=output_dir)
-        else:
-            s1 = bp.new_step(
-                f"Run EHv5 #{catalog_i} on {os.path.basename(input_bam)} ({os.path.basename(variant_catalog_path)})",
-                arg_suffix=f"run-expansion-hunter-step",
-                step_number=1,
-                image=DOCKER_IMAGE,
-                cpu=16,
-                memory="highmem",
-                #custom_machine_type="n1-highmem-32",
-                #custom_machine_is_preemptible=True,
-                storage=f"{int(input_bam_file_stats.size/10**9) + 25}Gi",
-                output_dir=output_dir)
+        s1 = bp.new_step(
+            f"Run EHv5:{analysis_mode} #{catalog_i} on {os.path.basename(input_bam)} ({os.path.basename(variant_catalog_path)})",
+            arg_suffix=f"run-expansion-hunter-step",
+            step_number=1,
+            image=DOCKER_IMAGE,
+            cpu=2 if analysis_mode != "streaming" else 16,
+            memory="standard" if analysis_mode != "streaming" else "highmem",
+            localize_by=Localize.GSUTIL_COPY,
+            storage=f"{int(input_bam_file_stats.size/10**9) + 25}Gi",
+            output_dir=output_dir)
 
         step1s.append(s1)
 
@@ -177,22 +164,18 @@ def create_expansion_hunter_steps(bp, *, reference_fasta, input_bam, input_bai, 
         output_prefix = re.sub(".json$", "", local_variant_catalog.filename)
         s1.command(f"echo Genotyping $(cat {local_variant_catalog_path} | grep LocusId | wc -l) loci")
 
-        if not use_streaming_mode:
-            s1.command(f"""/usr/bin/time --verbose {tool_exec} {cache_mates_arg} {min_locus_coverage_arg} \
-                --reference {local_fasta} \
-                --reads {local_bam} \
-                --sex {male_or_female} \
-                --variant-catalog {local_variant_catalog_path} \
-                --output-prefix {output_prefix}""")
-        else:
-            s1.command(f"""/usr/bin/time --verbose {tool_exec} {min_locus_coverage_arg} \
-                --reference {local_fasta} \
-                --reads {local_bam} \
-                --sex {male_or_female} \
-                --variant-catalog {local_variant_catalog_path} \
-                --analysis-mode streaming \
-                --threads 16 \
-                --output-prefix {output_prefix}""")
+
+        extra_args = ""
+        if analysis_mode == "seeking": extra_args += "--cache-mates "
+        if analysis_mode == "streaming": extra_args += "--threads 16 "
+
+        s1.command(f"""/usr/bin/time --verbose {tool_exec} {extra_args} {min_locus_coverage_arg} \
+            --reference {local_fasta} \
+            --reads {local_bam} \
+            --analysis-mode {analysis_mode} \
+            --sex {male_or_female} \
+            --variant-catalog {local_variant_catalog_path} \
+            --output-prefix {output_prefix}""")
 
         s1.command("ls -lhrt")
 
@@ -227,6 +210,7 @@ def create_expansion_hunter_steps(bp, *, reference_fasta, input_bam, input_bai, 
                      cpu=1,
                      memory="highmem",
                      storage="20Gi",
+                     localize_by=Localize.GSUTIL_COPY,
                      output_dir=output_dir)
 
     for step1 in step1s:
@@ -286,7 +270,7 @@ def create_expansion_hunter_dev_steps(bp, *, reference_fasta, input_bam, input_b
                 step_number=1,
                 image=DOCKER_IMAGE_DEV,
                 cpu=2,
-                localize_by=Localize.COPY,
+                localize_by=Localize.GSUTIL_COPY,
                 storage=f"{int(input_bam_file_stats.size/10**9) + 25}Gi",
                 output_dir=output_dir)
         else:
@@ -299,6 +283,7 @@ def create_expansion_hunter_dev_steps(bp, *, reference_fasta, input_bam, input_b
                 memory="highmem",
                 #custom_machine_type="n1-highmem-32",
                 #custom_machine_is_preemptible=True,
+                localize_by=Localize.GSUTIL_COPY,
                 storage=f"{int(input_bam_file_stats.size/10**9) + 25}Gi",
                 output_dir=output_dir)
 
@@ -363,6 +348,7 @@ def create_expansion_hunter_dev_steps(bp, *, reference_fasta, input_bam, input_b
                      cpu=1,
                      memory="highmem",
                      storage="20Gi",
+                     localize_by=Localize.GSUTIL_COPY,
                      output_dir=output_dir)
 
     for step1 in step1s:

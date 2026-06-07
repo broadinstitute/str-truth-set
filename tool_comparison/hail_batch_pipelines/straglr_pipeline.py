@@ -31,8 +31,8 @@ from step_pipeline import pipeline, Backend, Localize, Delocalize
 
 DOCKER_IMAGE = "weisburd/straglr@sha256:7339c700f0294cc2a641b01a6f8d7cd984f4e0bb68d0a981b7c0911498fb709b"
 
-REFERENCE_FASTA_PATH = "gs://gcp-public-data--broad-references/hg38/v0/Homo_sapiens_assembly38.fasta"
-REFERENCE_FASTA_FAI_PATH = "gs://gcp-public-data--broad-references/hg38/v0/Homo_sapiens_assembly38.fasta.fai"
+REFERENCE_FASTA_PATH = "gs://str-truth-set/hg38/ref/hg38.fa"
+REFERENCE_FASTA_FAI_PATH = "gs://str-truth-set/hg38/ref/hg38.fa.fai"
 
 CHM1_CHM13_CRAM_PATH = "gs://broad-public-datasets/CHM1_CHM13_WGS2/CHM1_CHM13_WGS2.cram"
 CHM1_CHM13_CRAI_PATH = "gs://broad-public-datasets/CHM1_CHM13_WGS2/CHM1_CHM13_WGS2.cram.crai"

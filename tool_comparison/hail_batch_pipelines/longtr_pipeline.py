@@ -64,8 +64,8 @@ from step_pipeline import pipeline, Backend, Localize, Delocalize
 
 DOCKER_IMAGE = "us-central1-docker.pkg.dev/cmg-analysis/docker-repo/longtr@sha256:b4039c988f9a57f9918c91c4c5336e253d7fae00dd870291953e24b46b61e931"
 
-REFERENCE_FASTA_PATH = "gs://gcp-public-data--broad-references/hg38/v0/Homo_sapiens_assembly38.fasta"
-REFERENCE_FASTA_FAI_PATH = "gs://gcp-public-data--broad-references/hg38/v0/Homo_sapiens_assembly38.fasta.fai"
+REFERENCE_FASTA_PATH = "gs://str-truth-set/hg38/ref/hg38.fa"
+REFERENCE_FASTA_FAI_PATH = "gs://str-truth-set/hg38/ref/hg38.fa.fai"
 
 CHM1_CHM13_CRAM_PATH = "gs://broad-public-datasets/CHM1_CHM13_WGS2/CHM1_CHM13_WGS2.cram"
 CHM1_CHM13_CRAI_PATH = "gs://broad-public-datasets/CHM1_CHM13_WGS2/CHM1_CHM13_WGS2.cram.crai"

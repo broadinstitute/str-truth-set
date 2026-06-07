@@ -5,10 +5,10 @@ import re
 
 from step_pipeline import pipeline, Backend, Localize, Delocalize
 
-DOCKER_IMAGE = "us-central1-docker.pkg.dev/cmg-analysis/docker-repo/hipstr@sha256:01ae9ab594c52ff1b04c5d3d159cda0862c5cbc8db60bc0aa2ea8bf6dcf66d35"
+DOCKER_IMAGE = "us-central1-docker.pkg.dev/cmg-analysis/docker-repo/hipstr@sha256:ad19dac0986787a62d6606c720f2142bac8abdb517b70f009be147c15673d8a8"
 
-REFERENCE_FASTA_PATH = "gs://gcp-public-data--broad-references/hg38/v0/Homo_sapiens_assembly38.fasta"
-REFERENCE_FASTA_FAI_PATH = "gs://gcp-public-data--broad-references/hg38/v0/Homo_sapiens_assembly38.fasta.fai"
+REFERENCE_FASTA_PATH = "gs://str-truth-set/hg38/ref/hg38.fa"
+REFERENCE_FASTA_FAI_PATH = "gs://str-truth-set/hg38/ref/hg38.fa.fai"
 
 CHM1_CHM13_CRAM_PATH = "gs://broad-public-datasets/CHM1_CHM13_WGS2/CHM1_CHM13_WGS2.cram"
 CHM1_CHM13_CRAI_PATH = "gs://broad-public-datasets/CHM1_CHM13_WGS2/CHM1_CHM13_WGS2.cram.crai"
@@ -90,7 +90,7 @@ def create_hipstr_steps(bp, *, reference_fasta, input_bam, input_bai, regions_be
                          step_number=1,
                          image=DOCKER_IMAGE,
                          cpu=1,
-                         localize_by=Localize.COPY,
+                         localize_by=Localize.GSUTIL_COPY,
                          storage=f"{int(input_bam_file_stats.size/10**9) + 25}Gi",
                          output_dir=output_dir)
         step1s.append(s1)
@@ -147,7 +147,7 @@ def create_hipstr_steps(bp, *, reference_fasta, input_bam, input_bai, regions_be
 
     s2.command("mkdir /io/run_dir; cd /io/run_dir")
     for json_path in step1_output_paths:
-        local_path = s2.input(json_path, localize_by=Localize.COPY)
+        local_path = s2.input(json_path, localize_by=Localize.GSUTIL_COPY)
         s2.command(f"ln -s {local_path}")
 
     s2.command("set -x")
