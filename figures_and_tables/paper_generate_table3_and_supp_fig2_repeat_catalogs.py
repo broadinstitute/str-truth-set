@@ -204,7 +204,7 @@ def generate_html_table(df, args):
             "HipSTR catalog",
             df.loc["HipSTR catalog", "catalog_size"],
             df.loc["HipSTR catalog", "homopolymer_loci_in_catalogs"]/df.loc["HipSTR catalog", "catalog_size"],
-            df.loc["HipSTR catalog", "min_motif_size"] + "-" + df.loc["Illumina catalog", "max_motif_size"] + "bp",
+            df.loc["HipSTR catalog", "min_motif_size"] + "-" + df.loc["HipSTR catalog", "max_motif_size"] + "bp",
             f"Running TRF on hg38 using default params:<br />mismatch penalty = 7, indel penalty = 7",
             df.loc["HipSTR catalog", "num_loci_missed_by_catalog"],
             df.loc["HipSTR catalog", "fraction_missed_by_catalog"],

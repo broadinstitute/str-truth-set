@@ -39,12 +39,12 @@ def main():
     if args.positive_loci:
         positive_or_negative_loci = "positive_loci"
         repeat_spec_file_paths = [x.path for x in hfs.ls(REPEAT_SPECS_POSITIVE_LOCI)]        
-        if len(repeat_spec_file_stats_list) == 0:
+        if len(repeat_spec_file_paths) == 0:
             raise ValueError(f"No files found matching {REPEAT_SPECS_POSITIVE_LOCI}")
     elif args.negative_loci:
         positive_or_negative_loci = "negative_loci"
         repeat_spec_file_paths = [x.path for x in hfs.ls(REPEAT_SPECS_NEGATIVE_LOCI)]        
-        if len(repeat_spec_file_stats_list) == 0:
+        if len(repeat_spec_file_paths) == 0:
             raise ValueError(f"No files found matching {REPEAT_SPECS_NEGATIVE_LOCI}")
     elif args.repeat_specs:
         positive_or_negative_loci = os.path.basename(args.repeat_specs).replace(".bed", "").replace(".gz", "")

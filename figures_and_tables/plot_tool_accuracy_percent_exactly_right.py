@@ -223,7 +223,6 @@ def main():
     if args.coverage:
         filter_description.append(args.coverage)
         image_name += f".{args.coverage}"
-        df[df["Coverage"] == args.coverage]
 
     if args.only_pure_repeats:
         df = df[df["IsPureRepeat"]]
@@ -235,7 +234,7 @@ def main():
         image_name += f".{args.min_motif_size}bp_to_{args.max_motif_size}bp_motifs"
 
         if args.min_motif_size:
-            df = df[2 <= df["MotifSize"]]
+            df = df[args.min_motif_size <= df["MotifSize"]]
         if args.max_motif_size:
             df = df[df["MotifSize"] <= args.max_motif_size]
 

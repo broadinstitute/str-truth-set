@@ -93,10 +93,9 @@ def save_variants_that_passed_validation(args, alleles_before_validation, counte
                 counters["variants had a different position after hg38 => T2T => hg38"] += 1
                 continue
 
-            if args.failed_validation_output_prefix:
-                # record all alleles that passed validation
-                for alt_allele in alt_alleles:
-                    alleles_passed_validation.add((chrom, pos, ref, alt_allele))
+            # record all alleles that passed validation
+            for alt_allele in alt_alleles:
+                alleles_passed_validation.add((chrom, pos, ref, alt_allele))
 
             counters["variants passed"] += 1
             fo.write("\t".join(fields))

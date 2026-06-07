@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # Optional command-line args:
-#   --only-high-confidence-variants: only include variants that are within SynDip high confidence regions
+#   --only-high-confidence-regions: only include variants that are within SynDip high confidence regions
 #   --include-homopolymers: include homopolymer variants in the truth set
 #   --only-pure-repeats: only include STRs that don't contain interruptions
 #   --always-extend-locus-coordinates-to-include-interruptions This option is mutually-exclusive with

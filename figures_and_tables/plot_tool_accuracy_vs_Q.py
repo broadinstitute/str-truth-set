@@ -24,9 +24,6 @@ def plot(df, width, height, figure_title=None, only_expansion_hunter=False):
 
     # generate table
     rows = []
-    curves_to_plot = ["ExpansionHunter: Q from CIs", "ExpansionHunter: Q from read counts"]
-    if not only_expansion_hunter:
-        curves_to_plot += ["GangSTR", "HipSTR"]
 
     for tool in "ExpansionHunter: Q from CIs", "ExpansionHunter: Q from read counts": #, "GangSTR", "HipSTR":
         df_exactly_right = df[df[f"DiffRepeats: Allele: {tool} - Truth"] == 0]

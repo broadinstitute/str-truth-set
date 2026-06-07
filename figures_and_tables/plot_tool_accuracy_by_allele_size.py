@@ -530,7 +530,7 @@ def main():
 
     print("Computing additional columns...")
     df.loc[:, "DiffFromRefRepeats: Allele: Truth (bin)"] = df.apply(bin_num_repeats_wrapper(bin_size=2), axis=1)
-    for tool in ([args.tool] or ("ExpansionHunter", "ExpansionHunter-dev", "GangSTR", "HipSTR", "constrain", "TRGT", "LongTR")):
+    for tool in ([args.tool] if args.tool else ("ExpansionHunter", "ExpansionHunter-dev", "GangSTR", "HipSTR", "constrain", "TRGT", "LongTR")):
         define_hue_column(df, tool)
 
     df = df.sort_values("DiffFromRefRepeats: Allele: Truth")

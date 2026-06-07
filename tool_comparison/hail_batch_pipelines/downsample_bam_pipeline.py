@@ -31,7 +31,7 @@ def main():
     bp.set_name(f"Downsample: " + (os.path.basename(args.input_bam_or_cram[0]) if len(args.input_bam_or_cram) == 1 else f"{len(args.input_bam_or_cram)} files"))
 
     if not args.target_coverage:
-        target_coverage = [30]
+        args.target_coverage = [30]
     else:
         for i, target_coverage in enumerate(args.target_coverage):
             try:
