@@ -11,6 +11,7 @@ RUN apt update && apt-get install --no-install-recommends -y \
     libbz2-dev \
     liblzma-dev \
     zlib1g-dev \
+    libdeflate-dev \
     gcc \
     g++ \
     autoconf \
