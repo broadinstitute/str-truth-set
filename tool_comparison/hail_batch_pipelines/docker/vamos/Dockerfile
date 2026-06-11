@@ -43,7 +43,9 @@ RUN wget -q https://github.com/samtools/samtools/releases/download/${SAMTOOLS_VE
     && make install \
     && make clean
 
-RUN python3 -m pip install --no-cache-dir --upgrade cmake pip
+# pin cmake < 4: vamos vendors parasail-2.6.2, whose CMakeLists declares cmake_minimum_required < 3.5, which
+# CMake >= 4 refuses to configure ("Compatibility with CMake < 3.5 has been removed")
+RUN python3 -m pip install --no-cache-dir --upgrade pip "cmake<4"
 
 RUN apt update && apt-get install --no-install-recommends -y \
 	libboost-all-dev
