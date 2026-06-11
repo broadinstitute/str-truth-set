@@ -97,7 +97,7 @@ def main():
 
 
 def create_expansion_hunter_steps(bp, *, reference_fasta, input_bam, input_bai, variant_catalog_file_paths, output_dir, output_prefix, reference_fasta_fai=None, male_or_female="female",
-                                  analysis_mode="seeking", improved_genotyping=False, loci_to_exclude=None, min_locus_coverage=None, use_illumina_expansion_hunter=False, run_reviewer=False):
+                                  analysis_mode="seeking", loci_to_exclude=None, min_locus_coverage=None, use_illumina_expansion_hunter=False, run_reviewer=False):
 
     if use_illumina_expansion_hunter:
         tool_exec = "IlluminaExpansionHunter"
@@ -176,9 +176,11 @@ def create_expansion_hunter_steps(bp, *, reference_fasta, input_bam, input_bai, 
 
 
         extra_args = ""
-        if analysis_mode == "seeking": extra_args += "--cache-mates "
+        # --cache-mates is a bw2-fork-only flag; the stock Illumina build rejects it
+        if analysis_mode == "seeking" and not use_illumina_expansion_hunter: extra_args += "--cache-mates "
         if analysis_mode == "streaming": extra_args += "--threads 16 "
-        if improved_genotyping: extra_args += "--improved-genotyping "
+        # optimized-streaming is a bw2-fork-only mode that supports improved genotyping
+        if analysis_mode == "optimized-streaming": extra_args += "--improved-genotyping "
 
         s1.command(f"""/usr/bin/time --verbose {tool_exec} {extra_args} {min_locus_coverage_arg} \
             --reference {local_fasta} \
