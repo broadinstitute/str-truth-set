@@ -48,8 +48,10 @@ RUN python3 -m pip install --no-cache-dir --upgrade cmake pip
 RUN apt update && apt-get install --no-install-recommends -y \
 	libboost-all-dev
 
-RUN git clone https://github.com/ChaissonLab/vamos.git \
-	&& cd vamos*/src/ \
+RUN git clone https://github.com/bw2/vamos.git \
+	&& cd vamos \
+	&& git checkout 5c4a069847fbe6ca6067de1bff6098c9403db9ec \
+	&& cd src/ \
 	&& make \
 	&& cp vamos /usr/bin/
 
