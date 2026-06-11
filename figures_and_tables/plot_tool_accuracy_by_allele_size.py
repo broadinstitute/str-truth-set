@@ -15,6 +15,14 @@ sns.set_context(font_scale=1.1, rc={
 
 GREEN_COLOR = "#50AA44"
 
+# ExpansionHunter v5 variants, which carry a per-allele "Q: Allele: {tool}" quality column (other tools use "Q: {tool}").
+EH_TOOLS = ("IlluminaExpansionHunter", "ExpansionHunter", "EHv5", "EHv5-bw2-optimized")
+
+# Tools plotted by default when --tool is not given; each is included only if its
+# "DiffRepeats: Allele: {tool} - Truth" column is present in the input table.
+DEFAULT_TOOLS = ["IlluminaExpansionHunter", "ExpansionHunter", "EHv5", "EHv5-bw2-optimized", "GangSTR", "HipSTR",
+                 "constrain", "TRGT", "LongTR", "inquiSTR"]
+
 # Per-allele repeat purity column (fraction of the truth allele's bases that match a perfect repeat of the motif) and
 # the bins used to stratify the accuracy plots by purity.
 PURITY_COLUMN = "RepeatPurity: Allele: Truth"
@@ -221,9 +229,8 @@ def hue_sorter(value):
         return int(float(value.split(" ")[0]))
 
 
-def generate_all_plots(df, args):
+def generate_all_plots(df, args, plot_counter=0):
     arg_string = " ".join(sys.argv)
-    plot_counter = 0
 
     start_with_plot_i = args.start_with_plot_i
     if start_with_plot_i is None or start_with_plot_i < 0:
@@ -233,11 +240,15 @@ def generate_all_plots(df, args):
     if max_plots is None:
         max_plots = 10**9
 
-    for tool in ["IlluminaExpansionHunter", "ExpansionHunter", "GangSTR", "HipSTR", "constrain"] if not args.tool else [args.tool]:
+    # only plot tools whose per-allele diff column is present, so a default (no --tool) run doesn't KeyError on a
+    # table that lacks some tools' columns
+    tools_to_plot = [args.tool] if args.tool else [
+        t for t in DEFAULT_TOOLS if f"DiffRepeats: Allele: {t} - Truth (bin)" in df.columns]
+    for tool in tools_to_plot:
         for q_threshold in [0, 0.1, 0.5, 0.9] if args.q_threshold is None else [args.q_threshold]:
             if q_threshold > 0 and not args.only_print_total_number_of_plots and tool != "constrain":
                 df2 = df.copy()
-                q_column = f"Q: Allele: {tool}" if tool in ("IlluminaExpansionHunter", "ExpansionHunter") else f"Q: {tool}"
+                q_column = f"Q: Allele: {tool}" if tool in EH_TOOLS else f"Q: {tool}"
                 df2.loc[df2[q_column] < q_threshold, f"DiffRepeats: Allele: {tool} - Truth (bin)"] = FILTERED_CALL_LABEL
             else:
                 df2 = df
@@ -478,10 +489,12 @@ def generate_all_plots(df, args):
                                     plot_counter += 1
                                     if plot_counter >= start_with_plot_i + max_plots:
                                         print(f"Exiting after generating {plot_counter-start_with_plot_i} plot(s)")
-                                        return
+                                        return plot_counter
 
     if args.only_print_total_number_of_plots:
         print(f"Total: {plot_counter:,d} plots")
+
+    return plot_counter
 
 
 
@@ -501,8 +514,8 @@ def main():
 
     g = p.add_argument_group("Filters")
     g.add_argument("--tool", choices={
-        "IlluminaExpansionHunter", "ExpansionHunter", "GangSTR", "HipSTR", "constrain", "TRGT", "LongTR", "inquiSTR",
-        "NewTruthSet"},
+        "IlluminaExpansionHunter", "ExpansionHunter", "EHv5", "EHv5-bw2-optimized", "GangSTR", "HipSTR", "constrain",
+        "TRGT", "LongTR", "inquiSTR", "vamos", "NewTruthSet"},
         help="Plot only this tool")
     g.add_argument("--q-threshold", type=float, help="Plot only this Q threshold")
     g.add_argument("--coverage", help="Plot only this coverage (example: \"20x\" or \"exome\")")
@@ -557,7 +570,11 @@ def main():
 
     print("Computing additional columns...")
     df.loc[:, "DiffFromRefRepeats: Allele: Truth (bin)"] = df.apply(bin_num_repeats_wrapper(bin_size=2), axis=1)
-    for tool in ([args.tool] if args.tool else ("IlluminaExpansionHunter", "ExpansionHunter", "GangSTR", "HipSTR", "constrain", "TRGT", "LongTR")):
+    # only process tools whose per-allele diff column is present (a default no-tool run on a table missing some
+    # tools' columns would otherwise KeyError)
+    tools_to_process = [args.tool] if args.tool else [
+        t for t in DEFAULT_TOOLS if f"DiffRepeats: Allele: {t} - Truth" in df.columns]
+    for tool in tools_to_process:
         define_hue_column(df, tool)
 
     df = df.sort_values("DiffFromRefRepeats: Allele: Truth")
@@ -571,14 +588,21 @@ def main():
 
     print(f"Generating {str(args.n) + ' ' if args.n else ''}plots",
           f"starting with plot #{args.start_with_plot_i}" if args.start_with_plot_i else "")
+    # thread plot_counter across purity bins so --start-with-plot-i / -n shard over all bins combined (one global plot
+    # index), rather than restarting the count for every bin
+    start_i = args.start_with_plot_i if args.start_with_plot_i and args.start_with_plot_i > 0 else 0
+    plot_limit = start_i + (args.n if args.n is not None else 10**9)
+    plot_counter = 0
     for purity_name, purity_low, purity_high in purity_bins:
+        if plot_counter >= plot_limit:
+            break
         args.purity_name = purity_name
         if purity_low is None:
             df_purity = df
         else:
             df_purity = df[(df[PURITY_COLUMN] >= purity_low) & (df[PURITY_COLUMN] < purity_high)]
         print(f"Purity bin '{purity_name}': {len(df_purity):,d} of {len(df):,d} allele rows")
-        generate_all_plots(df_purity, args)
+        plot_counter = generate_all_plots(df_purity, args, plot_counter=plot_counter)
 
     print(f"Done")
 

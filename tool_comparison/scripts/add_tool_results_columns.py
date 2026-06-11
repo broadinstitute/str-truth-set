@@ -57,8 +57,8 @@ def parse_args():
     p.add_argument("--verbose", action="store_true",
                    help="Whether to print additional info about input and output columns.")
     p.add_argument("--tool", choices={
-        "IlluminaExpansionHunter", "ExpansionHunter", "GangSTR", "HipSTR", "constrain", "TRGT", "LongTR", "inquiSTR",
-        "NewTruthSet"}, required=True,
+        "IlluminaExpansionHunter", "ExpansionHunter", "EHv5", "EHv5-bw2-optimized", "GangSTR", "HipSTR", "constrain",
+        "TRGT", "LongTR", "inquiSTR", "vamos", "NewTruthSet"}, required=True,
         help="Which tool's results are in the input tsv file")
     p.add_argument("--filter-to-regions", action="append", default=[],
                    help="Optional bed file(s) of regions of interest. Rows in the input table that aren't contained in "
@@ -113,7 +113,7 @@ def main():
     args = parse_args()
 
     tool_df_columns_to_keep = list(TOOL_DF_COLUMNS_TO_KEEP)
-    if args.tool == "IlluminaExpansionHunter" or args.tool == "ExpansionHunter":
+    if args.tool in ("IlluminaExpansionHunter", "ExpansionHunter", "EHv5", "EHv5-bw2-optimized"):
         tool_df_columns_to_keep += EH_AND_GANGSTR_COLUMNS
         tool_df_columns_to_keep += ["Q: Allele 1", "Q: Allele 2", "NumAllelesSupportedTotal"]
     elif args.tool == "GangSTR":
@@ -128,6 +128,8 @@ def main():
     elif args.tool == "TRGT":
         tool_df_columns_to_keep += []
     elif args.tool == "inquiSTR":
+        tool_df_columns_to_keep += []
+    elif args.tool == "vamos":
         tool_df_columns_to_keep += []
     elif args.tool == "NewTruthSet":
         for key in [
