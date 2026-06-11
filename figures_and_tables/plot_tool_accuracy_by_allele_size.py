@@ -20,7 +20,8 @@ GREEN_COLOR = "#50AA44"
 PURITY_COLUMN = "RepeatPurity: Allele: Truth"
 PURITY_BINS = [
     ("all", None, None),
-    ("below_0.70", 0.0, 0.70),
+    ("below_0.65", 0.0, 0.65),
+    ("0.65_to_0.70", 0.65, 0.70),
     ("0.70_to_0.75", 0.70, 0.75),
     ("0.75_to_0.80", 0.75, 0.80),
     ("0.80_to_0.85", 0.80, 0.85),
