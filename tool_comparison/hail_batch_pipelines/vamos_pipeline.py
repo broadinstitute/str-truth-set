@@ -62,7 +62,7 @@ def main():
 
 
 def create_vamos_step(bp, *, reference_fasta, input_bam, input_bai, expansion_hunter_catalog_paths, output_dir,
-                      output_prefix, reference_fasta_fai=None, male_or_female="female", cpu=16):
+                      output_prefix, reference_fasta_fai=None, cpu=16):
     if len(expansion_hunter_catalog_paths) > 1:
         raise ValueError("Only one ExpansionHunter catalog file is currently supported")
     if len(expansion_hunter_catalog_paths) == 0:
@@ -80,10 +80,11 @@ def create_vamos_step(bp, *, reference_fasta, input_bam, input_bai, expansion_hu
                      output_dir=output_dir)
     s1.command("set -ex")
 
-    # the vamos image doesn't bundle str-analysis, so install it (with its dependencies) from the main branch before
-    # running the catalog and vcf converters
+    # the vamos image doesn't bundle str-analysis, so install it (with its dependencies) before running the catalog
+    # and vcf converters. Pin to a commit (not @main) so the converter output stays reproducible across runs; ideally
+    # bake a pinned str-analysis into the vamos image as docker_with_inquistr does and drop this runtime install.
     s1.command("python3 -m pip install --no-cache-dir "
-               "'git+https://github.com/broadinstitute/str-analysis@main'")
+               "'git+https://github.com/broadinstitute/str-analysis@62608ee5b68dec6e66b55a07b3e00389d7d0e31c'")
 
     local_bam = s1.input(input_bam, localize_by=Localize.COPY)
     if input_bai:
@@ -146,7 +147,7 @@ def create_vamos_step(bp, *, reference_fasta, input_bam, input_bai, expansion_hu
     s2.depends_on(s1)
 
     s2.command("python3 -m pip install --no-cache-dir "
-               "'git+https://github.com/broadinstitute/str-analysis@main'")
+               "'git+https://github.com/broadinstitute/str-analysis@62608ee5b68dec6e66b55a07b3e00389d7d0e31c'")
 
     s2.command("set -ex")
     s2.command("mkdir /io/run_dir; cd /io/run_dir")

@@ -17,9 +17,10 @@ bc = BatchClient(billing_project=billing_project)
 
 output_rows = []
 loci_with_expansion_hunter_errors = []
-# ExpansionHunter-family tools whose batches this script scrapes for locus-spec errors. Must stay in sync
-# with the labels emitted by expansion_hunter_pipeline.py.
-EXPANSION_HUNTER_TOOL_NAMES = ("ExpansionHunter", "EHv5", "EHv5-bw2-optimized", "IlluminaEHv5")
+# ExpansionHunter-family tools whose batches this script scrapes for locus-spec errors. These are the tool_exec
+# labels expansion_hunter_pipeline.py puts in the "STR Truth Set: {tool_exec}: ..." batch name (see its set_name
+# call); it only ever emits "ExpansionHunter" or "IlluminaExpansionHunter", so those are the only labels to match.
+EXPANSION_HUNTER_TOOL_NAMES = ("ExpansionHunter", "IlluminaExpansionHunter")
 number_of_data_groups = 8
 current_data_group_number = collections.defaultdict(int)
 
