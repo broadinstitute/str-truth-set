@@ -138,8 +138,11 @@ def create_expansion_hunter_steps(bp, *, reference_fasta, input_bam, input_bai, 
             arg_suffix=f"run-expansion-hunter-step",
             step_number=1,
             image=DOCKER_IMAGE,
-            cpu=2 if analysis_mode != "streaming" else 16,
-            memory="standard" if analysis_mode != "streaming" else "highmem",
+            cpu=2 if "streaming" not in analysis_mode else 16,
+            # seeking stays standard; the bw2-fork streaming modes (low-mem-streaming, optimized-streaming) are
+            # memory-light so use lowmem; only the official IlluminaEHv5 build (analysis_mode == "streaming") needs
+            # highmem now that it runs on the single unsharded catalog
+            memory="standard" if "streaming" not in analysis_mode else "lowmem" if analysis_mode != "streaming" else "highmem",
             localize_by=Localize.GSUTIL_COPY,
             storage=f"{int(input_bam_file_stats.size/10**9) + 25}Gi",
             output_dir=output_dir)
@@ -178,7 +181,7 @@ def create_expansion_hunter_steps(bp, *, reference_fasta, input_bam, input_bai, 
         extra_args = ""
         # --cache-mates is a bw2-fork-only flag; the stock Illumina build rejects it
         if analysis_mode == "seeking" and not use_illumina_expansion_hunter: extra_args += "--cache-mates "
-        if analysis_mode == "streaming": extra_args += "--threads 16 "
+        if "streaming" in analysis_mode: extra_args += "--threads 16 "
         # optimized-streaming is a bw2-fork-only mode that supports improved genotyping
         if analysis_mode == "optimized-streaming": extra_args += "--improved-genotyping "
 
