@@ -73,7 +73,7 @@ def main():
 
 
 def create_inquistr_steps(bp, *, reference_fasta, input_bam, input_bai, inquistr_catalog_bed_paths, output_dir,
-                          output_prefix, reference_fasta_fai=None, male_or_female="female", cpu=16,
+                          output_prefix, reference_fasta_fai=None, male_or_female="female", cpu=16, unphased=True,
                           str_analysis_branch=STR_ANALYSIS_BRANCH):
     if len(inquistr_catalog_bed_paths) > 1:
         raise ValueError("Only one inquiSTR catalog bed file is currently supported")
@@ -118,10 +118,14 @@ def create_inquistr_steps(bp, *, reference_fasta, input_bam, input_bai, inquistr
     s1.command(f"echo Genotyping $(wc -l < {inquistr_region_bed}) loci in {local_bam.filename}")
 
     haploid_arg = "--haploid chrX,chrY" if male_or_female == "male" else ""
+    # The truth-set bams are not haplotagged (no HP tags), so inquiSTR is run in --unphased mode, which splits the
+    # reads at each locus into two size-based alleles instead of using read haplotype assignments.
+    unphased_arg = "--unphased" if unphased else ""
     s1.command(f"""/usr/bin/time --verbose inquiSTR call {local_bam} \
                                      -R {inquistr_region_bed} \
                                      --reference {local_fasta} \
                                      --threads {cpu} \
+                                     {unphased_arg} \
                                      {haploid_arg} \
                                      > {output_prefix}.inq
     """)
