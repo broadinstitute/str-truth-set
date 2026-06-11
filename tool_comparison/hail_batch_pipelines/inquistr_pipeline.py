@@ -30,7 +30,7 @@ REFERENCE_FASTA_FAI_PATH = "gs://str-truth-set/hg38/ref/hg38.fa.fai"
 CHM1_CHM13_BAM_PATH = "gs://bw2-delete-after-60-days/long-reads/CHM1_CHM13.subreads.bam"
 CHM1_CHM13_BAI_PATH = "gs://bw2-delete-after-60-days/long-reads/CHM1_CHM13.subreads.bam.bai"
 
-POSITIVE_LOCI_BED = "gs://str-truth-set/hg38/variant_catalogs/positive_loci.bed.gz"
+POSITIVE_LOCI_BED = "gs://str-truth-set/hg38/positive_loci.bed.gz"
 
 OUTPUT_BASE_DIR = "gs://str-truth-set/hg38/tool_results/inquistr"
 

@@ -67,7 +67,7 @@ for b in bc.list_batches(limit=4, last_batch_id=7292217):
                 #job_input_log_lines = job_log["input"].split("\n")
                 print(" "*4, "Job " + str(job_info["job_id"]) + ":", job_info["name"], " ---", job_info["state"])
 
-                if tool_name == "ExpansionHunter":
+                if tool_name in ("ExpansionHunter", "EHv5", "EHv5-bw2-optimized", "IlluminaExpansionHunter", "IlluminaEHv5"):
                     for match in re.finditer("Error on locus spec ([^:]+):.*", job_log["main"]):
                         print(" "*8, match.group(0))
                         loci_with_expansion_hunter_errors.append({

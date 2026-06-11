@@ -97,10 +97,14 @@ def main():
 
 
 def create_expansion_hunter_steps(bp, *, reference_fasta, input_bam, input_bai, variant_catalog_file_paths, output_dir, output_prefix, reference_fasta_fai=None, male_or_female="female",
-                                  analysis_mode="seeking", loci_to_exclude=None, min_locus_coverage=None, use_illumina_expansion_hunter=False, run_reviewer=False):
+                                  analysis_mode="seeking", improved_genotyping=False, loci_to_exclude=None, min_locus_coverage=None, use_illumina_expansion_hunter=False, run_reviewer=False):
 
     if use_illumina_expansion_hunter:
         tool_exec = "IlluminaExpansionHunter"
+        # the official Illumina ExpansionHunter build only supports seeking/streaming; optimized-streaming and
+        # low-mem-streaming are bw2-fork-only modes, so clamp to streaming to avoid a CLI error
+        if analysis_mode not in ("seeking", "streaming"):
+            analysis_mode = "streaming"
     else:
         tool_exec = "ExpansionHunter"
 
@@ -109,10 +113,14 @@ def create_expansion_hunter_steps(bp, *, reference_fasta, input_bam, input_bai, 
         min_locus_coverage_arg = f"--min-locus-coverage {min_locus_coverage}"
 
     if loci_to_exclude:
+        # loci_to_exclude is a list of file paths; read the locus ids out of each into a separate list (mutating the
+        # list being iterated would loop forever and then try to open() a locus id as a file)
+        locus_ids_to_exclude = []
         for loci_to_exclude_file_path in loci_to_exclude:
             with open(loci_to_exclude_file_path, "rt") as f:
                 for line in f:
-                    loci_to_exclude.append(line.strip())
+                    locus_ids_to_exclude.append(line.strip())
+        loci_to_exclude = locus_ids_to_exclude
         print(f"Parsed {len(loci_to_exclude)} locus ids to exclude:", ", ".join(loci_to_exclude[:5]),
               "..." if len(loci_to_exclude) > 5 else "")
 
@@ -161,13 +169,16 @@ def create_expansion_hunter_steps(bp, *, reference_fasta, input_bam, input_bai, 
         else:
             local_variant_catalog_path = str(local_variant_catalog)
 
-        output_prefix = re.sub(".json$", "", local_variant_catalog.filename)
+        # per-catalog-chunk output prefix; kept distinct from the function's output_prefix arg, which names the
+        # combined step-2 outputs below
+        chunk_prefix = re.sub(".json$", "", local_variant_catalog.filename)
         s1.command(f"echo Genotyping $(cat {local_variant_catalog_path} | grep LocusId | wc -l) loci")
 
 
         extra_args = ""
         if analysis_mode == "seeking": extra_args += "--cache-mates "
         if analysis_mode == "streaming": extra_args += "--threads 16 "
+        if improved_genotyping: extra_args += "--improved-genotyping "
 
         s1.command(f"""/usr/bin/time --verbose {tool_exec} {extra_args} {min_locus_coverage_arg} \
             --reference {local_fasta} \
@@ -175,28 +186,28 @@ def create_expansion_hunter_steps(bp, *, reference_fasta, input_bam, input_bai, 
             --analysis-mode {analysis_mode} \
             --sex {male_or_female} \
             --variant-catalog {local_variant_catalog_path} \
-            --output-prefix {output_prefix}""")
+            --output-prefix {chunk_prefix}""")
 
         s1.command("ls -lhrt")
 
-        s1.output(f"{output_prefix}.json", output_dir=os.path.join(output_dir, f"json"))
+        s1.output(f"{chunk_prefix}.json", output_dir=os.path.join(output_dir, f"json"))
 
-        step1_output_paths.append(os.path.join(output_dir, f"json", f"{output_prefix}.json"))
+        step1_output_paths.append(os.path.join(output_dir, f"json", f"{chunk_prefix}.json"))
 
         if run_reviewer:
             reviewer_remote_output_dir = os.path.join(output_dir, f"svg")
             reviewer_output_prefix = re.sub("(.bam|.cram)$", "", local_bam.filename)
-            s1.command(f"samtools sort {output_prefix}_realigned.bam -o {output_prefix}_realigned.sorted.bam")
-            s1.command(f"samtools index {output_prefix}_realigned.sorted.bam")
+            s1.command(f"samtools sort {chunk_prefix}_realigned.bam -o {chunk_prefix}_realigned.sorted.bam")
+            s1.command(f"samtools index {chunk_prefix}_realigned.sorted.bam")
             s1.command(f"""/usr/bin/time --verbose REViewer \
                 --reference {local_fasta}  \
                 --catalog {local_variant_catalog_path} \
-                --reads {output_prefix}_realigned.sorted.bam \
-                --vcf {output_prefix}.vcf \
+                --reads {chunk_prefix}_realigned.sorted.bam \
+                --vcf {chunk_prefix}.vcf \
                 --output-prefix {reviewer_output_prefix}
             """)
 
-            done_file = f"done_generating_reviewer_images_for_{output_prefix}"
+            done_file = f"done_generating_reviewer_images_for_{chunk_prefix}"
             s1.command(f"touch {done_file}")
 
             s1.output("*.svg", output_dir=reviewer_remote_output_dir, delocalize_by=Delocalize.GSUTIL_COPY)
@@ -247,10 +258,14 @@ def create_expansion_hunter_dev_steps(bp, *, reference_fasta, input_bam, input_b
     min_locus_coverage_arg = f"--min-locus-coverage {min_locus_coverage}" if min_locus_coverage is not None else ""
 
     if loci_to_exclude:
+        # loci_to_exclude is a list of file paths; read the locus ids out of each into a separate list (mutating the
+        # list being iterated would loop forever and then try to open() a locus id as a file)
+        locus_ids_to_exclude = []
         for loci_to_exclude_file_path in loci_to_exclude:
             with open(loci_to_exclude_file_path, "rt") as f:
                 for line in f:
-                    loci_to_exclude.append(line.strip())
+                    locus_ids_to_exclude.append(line.strip())
+        loci_to_exclude = locus_ids_to_exclude
         print(f"Parsed {len(loci_to_exclude)} locus ids to exclude:", ", ".join(loci_to_exclude[:5]),
               "..." if len(loci_to_exclude) > 5 else "")
 
@@ -312,7 +327,9 @@ def create_expansion_hunter_dev_steps(bp, *, reference_fasta, input_bam, input_b
         else:
             local_variant_catalog_path = str(local_variant_catalog)
 
-        output_prefix = re.sub(".json$", "", local_variant_catalog.filename)
+        # per-catalog-chunk output prefix; kept distinct from the function's output_prefix arg, which names the
+        # combined step-2 outputs below
+        chunk_prefix = re.sub(".json$", "", local_variant_catalog.filename)
         s1.command(f"echo Genotyping $(cat {local_variant_catalog_path} | grep LocusId | wc -l) loci")
 
         if analysis_mode != "streaming":
@@ -323,7 +340,7 @@ def create_expansion_hunter_dev_steps(bp, *, reference_fasta, input_bam, input_b
                     --reads {local_bam} \
                     --sex {male_or_female} \
                     --variant-catalog {local_variant_catalog_path} \
-                    --output-prefix {output_prefix}""")
+                    --output-prefix {chunk_prefix}""")
         else:
             s1.command(f"""/usr/bin/time --verbose {tool_exec} {min_locus_coverage_arg} \
                     --reference {local_fasta} \
@@ -332,13 +349,13 @@ def create_expansion_hunter_dev_steps(bp, *, reference_fasta, input_bam, input_b
                     --variant-catalog {local_variant_catalog_path} \
                     --analysis-mode streaming \
                     --threads 16 \
-                    --output-prefix {output_prefix}""")
+                    --output-prefix {chunk_prefix}""")
 
         s1.command("ls -lhrt")
 
-        s1.output(f"{output_prefix}.json", output_dir=os.path.join(output_dir, f"json"))
+        s1.output(f"{chunk_prefix}.json", output_dir=os.path.join(output_dir, f"json"))
 
-        step1_output_paths.append(os.path.join(output_dir, f"json", f"{output_prefix}.json"))
+        step1_output_paths.append(os.path.join(output_dir, f"json", f"{chunk_prefix}.json"))
 
     # step2: combine json files
     s2 = bp.new_step(name=f"Combine EHv5 outputs for {os.path.basename(input_bam)}",

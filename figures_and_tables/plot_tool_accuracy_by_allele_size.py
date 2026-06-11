@@ -16,12 +16,12 @@ sns.set_context(font_scale=1.1, rc={
 GREEN_COLOR = "#50AA44"
 
 # ExpansionHunter v5 variants, which carry a per-allele "Q: Allele: {tool}" quality column (other tools use "Q: {tool}").
-EH_TOOLS = ("IlluminaExpansionHunter", "ExpansionHunter", "EHv5", "EHv5-bw2-optimized")
+EH_TOOLS = ("IlluminaExpansionHunter", "IlluminaEHv5", "ExpansionHunter", "EHv5", "EHv5-bw2-optimized")
 
 # Tools plotted by default when --tool is not given; each is included only if its
 # "DiffRepeats: Allele: {tool} - Truth" column is present in the input table.
-DEFAULT_TOOLS = ["IlluminaExpansionHunter", "ExpansionHunter", "EHv5", "EHv5-bw2-optimized", "GangSTR", "HipSTR",
-                 "constrain", "TRGT", "LongTR", "inquiSTR"]
+DEFAULT_TOOLS = ["IlluminaExpansionHunter", "IlluminaEHv5", "ExpansionHunter", "EHv5", "EHv5-bw2-optimized", "GangSTR",
+                 "HipSTR", "constrain", "TRGT", "LongTR", "inquiSTR"]
 
 # Per-allele repeat purity column (fraction of the truth allele's bases that match a perfect repeat of the motif) and
 # the bins used to stratify the accuracy plots by purity.
@@ -241,9 +241,14 @@ def generate_all_plots(df, args, plot_counter=0):
         max_plots = 10**9
 
     # only plot tools whose per-allele diff column is present, so a default (no --tool) run doesn't KeyError on a
-    # table that lacks some tools' columns
-    tools_to_plot = [args.tool] if args.tool else [
-        t for t in DEFAULT_TOOLS if f"DiffRepeats: Allele: {t} - Truth (bin)" in df.columns]
+    # table that lacks some tools' columns (the --only-print path runs on an empty df and never touches the columns,
+    # so it counts the full default list)
+    if args.tool:
+        tools_to_plot = [args.tool]
+    elif args.only_print_total_number_of_plots:
+        tools_to_plot = DEFAULT_TOOLS
+    else:
+        tools_to_plot = [t for t in DEFAULT_TOOLS if f"DiffRepeats: Allele: {t} - Truth (bin)" in df.columns]
     for tool in tools_to_plot:
         for q_threshold in [0, 0.1, 0.5, 0.9] if args.q_threshold is None else [args.q_threshold]:
             if q_threshold > 0 and not args.only_print_total_number_of_plots and tool != "constrain":
@@ -514,8 +519,8 @@ def main():
 
     g = p.add_argument_group("Filters")
     g.add_argument("--tool", choices={
-        "IlluminaExpansionHunter", "ExpansionHunter", "EHv5", "EHv5-bw2-optimized", "GangSTR", "HipSTR", "constrain",
-        "TRGT", "LongTR", "inquiSTR", "vamos", "NewTruthSet"},
+        "IlluminaExpansionHunter", "IlluminaEHv5", "ExpansionHunter", "EHv5", "EHv5-bw2-optimized", "GangSTR", "HipSTR",
+        "constrain", "TRGT", "LongTR", "inquiSTR", "vamos", "NewTruthSet"},
         help="Plot only this tool")
     g.add_argument("--q-threshold", type=float, help="Plot only this Q threshold")
     g.add_argument("--coverage", help="Plot only this coverage (example: \"20x\" or \"exome\")")
