@@ -15,7 +15,7 @@ import re
 
 from step_pipeline import pipeline, Backend, Localize
 
-DOCKER_IMAGE = "weisburd/vamos@sha256:05bac98f8da9587ca00207d10eb619ee51a4864c3716ed9de3739d92a315b629"
+DOCKER_IMAGE = "weisburd/vamos@sha256:0cc901f8cf3f8242ab732d9879853d9a58a246775f974c1bc663aacfacd5251b"
 
 REFERENCE_FASTA_PATH = "gs://str-truth-set/hg38/ref/hg38.fa"
 REFERENCE_FASTA_FAI_PATH = "gs://str-truth-set/hg38/ref/hg38.fa.fai"
