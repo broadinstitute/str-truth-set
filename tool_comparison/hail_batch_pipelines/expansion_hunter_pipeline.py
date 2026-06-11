@@ -5,7 +5,7 @@ import re
 
 from step_pipeline import pipeline, Backend, Localize, Delocalize
 
-DOCKER_IMAGE = "weisburd/str-analysis-with-expansion-hunter@sha256:b1c2a3ab316a70b561fdb7d9215fb51c26a49d6e220b0c94bd70b7c4009de3a6"
+DOCKER_IMAGE = "weisburd/str-analysis-with-expansion-hunter@sha256:caa2d623846ecbe1aabb645640c02d6f2ab2f82003f2708e21908cbd98f61f7f"
 DOCKER_IMAGE_DEV = "weisburd/expansion-hunter-dev@sha256:4baa218fdb7bc76af97d6628d13718ff4ad22290d1cc4ffeb2f8e3ea3c5a13b3"
 
 REFERENCE_FASTA_PATH = "gs://str-truth-set/hg38/ref/hg38.fa"
