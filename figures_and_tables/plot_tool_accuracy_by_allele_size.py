@@ -436,6 +436,15 @@ def generate_all_plots(df, args, plot_counter=0):
                                         plt.savefig(output_path, dpi=300)
                                         print(f"Saved {output_path}")
                                         plt.close()
+
+                                        # a placeholder image still consumes a plot index, so advance the counter
+                                        # here too (the --only-print path counts it at the top of the loop); otherwise
+                                        # real runs and the count path disagree and parallel --start-with-plot-i shards
+                                        # overlap.
+                                        plot_counter += 1
+                                        if plot_counter >= start_with_plot_i + max_plots:
+                                            print(f"Exiting after generating {plot_counter-start_with_plot_i} plot(s)")
+                                            return plot_counter
                                         continue
 
                                     print(f"Generating plot #{plot_counter}")
@@ -501,6 +510,26 @@ def generate_all_plots(df, args, plot_counter=0):
 
     return plot_counter
 
+
+def count_plots_per_purity_bin(q_threshold=None):
+    """Number of plots generate_all_plots emits for a single purity bin.
+
+    Counts every (tool x q-threshold x coverage x motif-size x genotype x ...) combination over all DEFAULT_TOOLS,
+    matching the --only-print-total-number-of-plots logic. figures_pipeline.py uses this (x len(PURITY_BINS)) to size
+    its shard range so the range scales with DEFAULT_TOOLS instead of a hard-coded literal. Pass the same q_threshold
+    the real run uses so the counts match (q_threshold=None counts the default [0, 0.1, 0.5, 0.9] set).
+
+    Args:
+        q_threshold (float): the --q-threshold value the real run uses, or None for the default set.
+
+    Returns:
+        int: plots per purity bin (an upper bound, since the real run skips tools absent from the input table).
+    """
+    args = argparse.Namespace(
+        start_with_plot_i=None, n=None, tool=None, q_threshold=q_threshold, coverage=None,
+        min_motif_size=None, max_motif_size=None, genotype=None, hide_no_call_loci=False,
+        only_print_total_number_of_plots=True, purity_name="all")
+    return generate_all_plots(pd.DataFrame(), args)
 
 
 def main():

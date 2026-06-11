@@ -1,9 +1,12 @@
 import os
 
 from step_pipeline import pipeline, Backend, Localize, Delocalize
-from plot_tool_accuracy_by_allele_size import PURITY_BINS
+from plot_tool_accuracy_by_allele_size import PURITY_BINS, count_plots_per_purity_bin
 
 DOCKER_IMAGE = "docker.io/weisburd/truth-set-figures@sha256:e65b59b683dcb3b63b2d6ec8b4aa815fbf28282457bf7d103097892703c358be"
+
+# the current pipeline does not stratify accuracy-by-allele-size plots by Q (no tool's Q column is used for plotting)
+ACCURACY_BY_ALLELE_SIZE_Q_THRESHOLD = 0
 
 
 def main():
@@ -19,10 +22,13 @@ def main():
     parser.add_argument("--input-table", default="gs://str-truth-set/hg38/combined.results.alleles.tsv.gz")
     args = bp.parse_known_args()
 
-    # generate tool accuracy by allele size. plot_tool_accuracy_by_allele_size.py now regenerates the full plot
-    # set once per repeat-purity bin, so the shard range must cover len(PURITY_BINS) x the pre-purity plot count
-    # (shards past the real total just produce empty jobs, matching the prior over-estimate behavior).
-    for i in range(0, 12_600 * len(PURITY_BINS), args.batch_size):
+    # generate tool accuracy by allele size. plot_tool_accuracy_by_allele_size.py regenerates the full plot set once
+    # per repeat-purity bin, so the shard range covers len(PURITY_BINS) x the per-bin plot count. Compute that count
+    # from the plot script (it scales with DEFAULT_TOOLS and the Q setting) rather than a hard-coded literal, so the
+    # range never truncates when tools are added; shards past the real total just produce empty jobs (the per-bin
+    # count is an upper bound, since the real run skips tools absent from the input table).
+    plots_per_purity_bin = count_plots_per_purity_bin(q_threshold=ACCURACY_BY_ALLELE_SIZE_Q_THRESHOLD)
+    for i in range(0, plots_per_purity_bin * len(PURITY_BINS), args.batch_size):
         if args.n is not None and i >= args.n:
             break
 
@@ -32,6 +38,7 @@ def main():
         local_truth_set_tsv = s1.input(args.input_table, localize_by=Localize.COPY)
         s1.command("set -ex")
         s1.command(f"python3 plot_tool_accuracy_by_allele_size.py --image-type svg --output-dir . --show-title "
+                   f"--q-threshold {ACCURACY_BY_ALLELE_SIZE_Q_THRESHOLD} "
                    f"--start-with-plot-i {i} -n {args.batch_size} {local_truth_set_tsv}")
         s1.output(f"*.svg", delocalize_by=Delocalize.GSUTIL_COPY)
 

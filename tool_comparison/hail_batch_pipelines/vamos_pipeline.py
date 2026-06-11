@@ -90,21 +90,37 @@ def create_vamos_step(bp, *, reference_fasta, input_bam, input_bai, expansion_hu
         s1.input(input_bai, localize_by=Localize.COPY)
     local_eh_catalog = s1.input(expansion_hunter_catalog_path)
 
+    # vamos has no reference option and decodes alignments via htslib, so reference-compressed CRAM input must be
+    # decoded against the reference first. For CRAM input, localize the reference FASTA and convert to BAM with
+    # samtools (bundled in the vamos image); BAM input is used as-is.
+    if input_bam.endswith(".cram"):
+        local_fasta = s1.input(reference_fasta, localize_by=Localize.COPY)
+        if reference_fasta_fai:
+            s1.input(reference_fasta_fai, localize_by=Localize.COPY)
+        else:
+            s1.input(f"{reference_fasta}.fai", localize_by=Localize.COPY)
+        s1.command(f"samtools view -@ {cpu} -b -T {local_fasta} -o {output_prefix}.input.bam {local_bam}")
+        s1.command(f"samtools index -@ {cpu} {output_prefix}.input.bam")
+        vamos_input_bam = f"{output_prefix}.input.bam"
+    else:
+        vamos_input_bam = local_bam
+
     s1.command("df -kh")
 
     # build the vamos catalog (chrom, start, end, motifs, ...) from the single-motif truth set ExpansionHunter catalog.
     # vamos aborts (exit 1) on unsorted or overlapping loci, so sort by position and greedily drop any locus that
-    # overlaps the previously kept one.
+    # overlaps the previously kept one. The catalog uses 1-based fully-closed start/end (start=start_0based+1,
+    # end=end_1based), so two loci overlap when the next start is <= the previous end (prev_end >= $2, not > $2).
     s1.command(f"python3 -m str_analysis.convert_expansion_hunter_catalog_to_vamos_catalog "
                f"-o {output_prefix}.vamos_catalog.unsorted.tsv {local_eh_catalog}")
     s1.command(f"sort -k1,1 -k2,2n {output_prefix}.vamos_catalog.unsorted.tsv | "
                f"""awk 'BEGIN{{OFS="\\t"; prev_chrom=""; prev_end=0}} """
-               f"""{{ if ($1==prev_chrom && prev_end>$2) next; print; prev_chrom=$1; prev_end=$3 }}' """
+               f"""{{ if ($1==prev_chrom && prev_end>=$2) next; print; prev_chrom=$1; prev_end=$3 }}' """
                f"> {vamos_catalog}")
     s1.command(f"echo Genotyping $(wc -l < {vamos_catalog}) loci in {local_bam.filename}")
 
     # Example: vamos --read -b ../example/demo.aln.bam -r vamos.effMotifs-0.1.GRCh38.tsv -s NA24385_CCS_h1 -o reads.vcf -t 8
-    s1.command(f"/usr/bin/time --verbose vamos --read -b {local_bam} -r {vamos_catalog} "
+    s1.command(f"/usr/bin/time --verbose vamos --read -b {vamos_input_bam} -r {vamos_catalog} "
                f"-s {output_prefix} -o {output_prefix}.vcf -t {cpu}")
     s1.command(f"bgzip {output_prefix}.vcf")
     s1.command("ls -lhrt")
