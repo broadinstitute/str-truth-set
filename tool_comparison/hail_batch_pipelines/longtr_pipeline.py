@@ -62,7 +62,7 @@ import re
 
 from step_pipeline import pipeline, Backend, Localize, Delocalize
 
-DOCKER_IMAGE = "us-central1-docker.pkg.dev/cmg-analysis/docker-repo/longtr@sha256:b4039c988f9a57f9918c91c4c5336e253d7fae00dd870291953e24b46b61e931"
+DOCKER_IMAGE = "us-central1-docker.pkg.dev/cmg-analysis/docker-repo/str-analysis-with-longtr@sha256:0aa8f9eac56b4b52ce0ee190b86f8d1047a1a8b6f99c7057483638e0d8b63617"
 
 REFERENCE_FASTA_PATH = "gs://str-truth-set/hg38/ref/hg38.fa"
 REFERENCE_FASTA_FAI_PATH = "gs://str-truth-set/hg38/ref/hg38.fa.fai"

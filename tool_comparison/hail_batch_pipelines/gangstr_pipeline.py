@@ -5,7 +5,7 @@ import re
 
 from step_pipeline import pipeline, Backend, Localize, Delocalize
 
-DOCKER_IMAGE = "weisburd/gangstr@sha256:8c4e1e9153fd3a53e18844404989ccd31ed2ccd8a78002679f79b77c622f6c7d"
+DOCKER_IMAGE = "us-central1-docker.pkg.dev/cmg-analysis/docker-repo/str-analysis-with-gangstr@sha256:bfd4698241a1040b3cb7f06aefe2fa1aae01fc4e98ba7791f5c7d7f6d78cce1c"
 
 REFERENCE_FASTA_PATH = "gs://str-truth-set/hg38/ref/hg38.fa"
 REFERENCE_FASTA_FAI_PATH = "gs://str-truth-set/hg38/ref/hg38.fa.fai"

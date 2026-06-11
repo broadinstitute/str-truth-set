@@ -57,7 +57,8 @@ def parse_args():
     p.add_argument("--verbose", action="store_true",
                    help="Whether to print additional info about input and output columns.")
     p.add_argument("--tool", choices={
-        "IlluminaExpansionHunter", "ExpansionHunter", "GangSTR", "HipSTR", "constrain", "TRGT", "LongTR", "NewTruthSet"}, required=True,
+        "IlluminaExpansionHunter", "ExpansionHunter", "GangSTR", "HipSTR", "constrain", "TRGT", "LongTR", "inquiSTR",
+        "NewTruthSet"}, required=True,
         help="Which tool's results are in the input tsv file")
     p.add_argument("--filter-to-regions", action="append", default=[],
                    help="Optional bed file(s) of regions of interest. Rows in the input table that aren't contained in "
@@ -125,6 +126,8 @@ def main():
     elif args.tool == "LongTR":
         tool_df_columns_to_keep += ["Q", "DP", "DFLANKINDEL"]
     elif args.tool == "TRGT":
+        tool_df_columns_to_keep += []
+    elif args.tool == "inquiSTR":
         tool_df_columns_to_keep += []
     elif args.tool == "NewTruthSet":
         for key in [
@@ -246,6 +249,13 @@ def main():
         how="left",
         on=MERGE_KEY_COLUMNS,
         suffixes=(f": Truth", f": {args.tool}"))
+
+    # FractionPureRepeats columns only exist in the truth set, so the merge above doesn't add a ": Truth" suffix to
+    # them. Rename them here so that write_alleles_table() melts them into "FractionPureRepeats: Allele: Truth".
+    df_merged.rename(columns={
+        "FractionPureRepeats: Allele 1": "FractionPureRepeats: Allele 1: Truth",
+        "FractionPureRepeats: Allele 2": "FractionPureRepeats: Allele 2: Truth",
+    }, inplace=True)
 
     if len(df_merged) > len(truth_set_df):
         raise ValueError(f"Merged table has {len(df_merged) - len(truth_set_df):,d} more rows than the truth set, which has {len(truth_set_df)} rows after merging on {MERGE_KEY_COLUMNS}.")

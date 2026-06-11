@@ -15,6 +15,20 @@ sns.set_context(font_scale=1.1, rc={
 
 GREEN_COLOR = "#50AA44"
 
+# Per-allele repeat purity column (fraction of the truth allele's bases that are part of a perfect repeat) and the
+# bins used to stratify the accuracy plots by purity.
+PURITY_COLUMN = "FractionPureRepeats: Allele: Truth"
+PURITY_BINS = [
+    ("all", None, None),
+    ("below_0.70", 0.0, 0.70),
+    ("0.70_to_0.75", 0.70, 0.75),
+    ("0.75_to_0.80", 0.75, 0.80),
+    ("0.80_to_0.85", 0.80, 0.85),
+    ("0.85_to_0.90", 0.85, 0.90),
+    ("0.90_to_0.95", 0.90, 0.95),
+    ("0.95_to_1.00", 0.95, 1.0001),
+]
+
 NO_CALL_LABEL = "No Call"
 FILTERED_CALL_LABEL = "Filtered"
 HOM_REF_LABEL = "Called Hom Ref"
@@ -172,7 +186,9 @@ def plot_accuracy_by_allele_size(
             # add n=.. above each bar
             n_lookup = dict(df.groupby(x_column).count().LocusId)
             for j, (xtick, text) in enumerate(zip(axes[i].get_xticks(), axes[i].get_xticklabels())):
-                ax.text(xtick, 1.018, f"{n_lookup[text.get_text()]:,d}", ha="left", va="bottom", color="#777777", fontsize=12, rotation=45)
+                n_for_bin = n_lookup.get(text.get_text())
+                if n_for_bin:
+                    ax.text(xtick, 1.018, f"{n_for_bin:,d}", ha="left", va="bottom", color="#777777", fontsize=12, rotation=45)
             ax.text(0, 1.15, "Alleles Per Bin", ha="left", va="bottom", color="#777777", fontsize=12, transform=ax.transAxes)
 
     if tool_name:
@@ -352,6 +368,11 @@ def generate_all_plots(df, args):
 
                                     output_image_filename += f".{coverage}"
 
+                                    purity_name = getattr(args, "purity_name", "all")
+                                    if purity_name and purity_name != "all":
+                                        filter_description.append(f"purity {purity_name.replace('_', ' ')}")
+                                        output_image_filename += f".purity_{purity_name}"
+
                                     if only_loci_with_calls_by_this_tool:
                                         filter_description.append(f"exclude no-call loci")
                                         output_image_filename += f".exclude_no_call_loci"
@@ -475,7 +496,8 @@ def main():
 
     g = p.add_argument_group("Filters")
     g.add_argument("--tool", choices={
-        "IlluminaExpansionHunter", "ExpansionHunter", "GangSTR", "HipSTR", "constrain", "TRGT", "LongTR", "NewTruthSet"},
+        "IlluminaExpansionHunter", "ExpansionHunter", "GangSTR", "HipSTR", "constrain", "TRGT", "LongTR", "inquiSTR",
+        "NewTruthSet"},
         help="Plot only this tool")
     g.add_argument("--q-threshold", type=float, help="Plot only this Q threshold")
     g.add_argument("--coverage", help="Plot only this coverage (example: \"20x\" or \"exome\")")
@@ -535,9 +557,23 @@ def main():
 
     df = df.sort_values("DiffFromRefRepeats: Allele: Truth")
 
+    if PURITY_COLUMN in df.columns:
+        df.loc[:, PURITY_COLUMN] = pd.to_numeric(df[PURITY_COLUMN], errors="coerce")
+        purity_bins = PURITY_BINS
+    else:
+        print(f"WARNING: '{PURITY_COLUMN}' column not found in input file. Skipping purity stratification...")
+        purity_bins = [("all", None, None)]
+
     print(f"Generating {str(args.n) + ' ' if args.n else ''}plots",
           f"starting with plot #{args.start_with_plot_i}" if args.start_with_plot_i else "")
-    generate_all_plots(df, args)
+    for purity_name, purity_low, purity_high in purity_bins:
+        args.purity_name = purity_name
+        if purity_low is None:
+            df_purity = df
+        else:
+            df_purity = df[(df[PURITY_COLUMN] >= purity_low) & (df[PURITY_COLUMN] < purity_high)]
+        print(f"Purity bin '{purity_name}': {len(df_purity):,d} of {len(df):,d} allele rows")
+        generate_all_plots(df_purity, args)
 
     print(f"Done")
 

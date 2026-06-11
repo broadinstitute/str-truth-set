@@ -5,7 +5,7 @@ import re
 
 from step_pipeline import pipeline, Backend, Localize, Delocalize
 
-DOCKER_IMAGE = "us-central1-docker.pkg.dev/cmg-analysis/docker-repo/expansion-hunter@sha256:8d9618dd4adf6ceeaf67a219719e3dbce0930915d27cd4ce9f39990b22667cba"
+DOCKER_IMAGE = "us-central1-docker.pkg.dev/cmg-analysis/docker-repo/str-analysis-with-expansion-hunter@sha256:f5b70a1cc8691053c9774711886721f021194987f7357a80d80d559797711882"
 DOCKER_IMAGE_DEV = "weisburd/expansion-hunter-dev@sha256:4baa218fdb7bc76af97d6628d13718ff4ad22290d1cc4ffeb2f8e3ea3c5a13b3"
 
 REFERENCE_FASTA_PATH = "gs://str-truth-set/hg38/ref/hg38.fa"

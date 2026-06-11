@@ -3,6 +3,7 @@
 """
 
 import argparse
+import collections
 import os
 import pandas as pd
 
@@ -44,6 +45,9 @@ def parse_args():
     p = argparse.ArgumentParser()
     p.add_argument("-n", help="Process only the 1st N rows of the truth set TSV. Useful for testing.", type=int)
     p.add_argument("--output-dir", default="./tool_comparison/results/", help="Output directory")
+    p.add_argument("--alleles-tsv", help="Optional path of the truth set annotated alleles tsv. If specified, the "
+                   "per-allele FractionPureRepeats values are added to the for_comparison table as "
+                   "'FractionPureRepeats: Allele 1' and 'FractionPureRepeats: Allele 2' columns.")
     p.add_argument("truth_set_variants_tsv", help="Path of the truth set variants tsv")
     p.add_argument("negative_loci_tsv", nargs="?", help="Path of negative loci tsv")
 
@@ -52,11 +56,58 @@ def parse_args():
     if not os.path.isdir(args.output_dir):
         p.error(f"{args.output_dir} doesn't exist")
 
-    for path in args.truth_set_variants_tsv, args.negative_loci_tsv:
+    for path in args.truth_set_variants_tsv, args.negative_loci_tsv, args.alleles_tsv:
         if path and not os.path.isfile(path):
             p.error(f"{path} not found")
 
     return args
+
+
+def add_allele_purity_columns(df, alleles_tsv_path):
+    """Join the per-allele FractionPureRepeats values from the truth set alleles tsv onto the variants dataframe.
+
+    The short allele (NumRepeatsShortAllele) becomes Allele 1 and the long allele (NumRepeatsLongAllele) becomes
+    Allele 2, matching the allele ordering used by add_extra_columns().
+    """
+    alleles_df = pd.read_table(alleles_tsv_path, low_memory=False, dtype={"Chrom": str})
+    alleles_df.loc[:, "LocusId"] = alleles_df["LocusId"].str.replace("^chr", "", regex=True)
+
+    # Map each LocusId to its list of (num_repeats, purity) allele records (in file order). A list rather than a dict
+    # keyed by (LocusId, num_repeats) so that a multiallelic locus with two same-repeat-count alleles that have
+    # different purity values keeps both values instead of one overwriting the other.
+    purity_records_by_locus = collections.defaultdict(list)
+    for locus_id, num_repeats, purity in zip(
+            alleles_df["LocusId"], alleles_df["NumRepeats"], alleles_df["FractionPureRepeats"]):
+        if pd.isna(num_repeats):
+            continue
+        purity_records_by_locus[locus_id].append((int(round(float(num_repeats))), purity))
+
+    def match_index(records, num_repeats, skip_index=None):
+        # Return the index of the first allele record matching num_repeats (other than skip_index), or None.
+        # NumRepeatsLongAllele is NaN for hemizygous loci (e.g. chrX/chrY in male samples).
+        if pd.isna(num_repeats):
+            return None
+        num_repeats = int(round(float(num_repeats)))
+        for i, (record_num_repeats, _) in enumerate(records):
+            if i != skip_index and record_num_repeats == num_repeats:
+                return i
+        return None
+
+    allele1_purity = []
+    allele2_purity = []
+    for locus_id, num_repeats_short, num_repeats_long in zip(
+            df["LocusId"], df["NumRepeatsShortAllele"], df["NumRepeatsLongAllele"]):
+        records = purity_records_by_locus.get(locus_id, [])
+        index1 = match_index(records, num_repeats_short)
+        # prefer a distinct record for allele 2 (multiallelic loci), but fall back to allele 1's record for a
+        # homozygous locus, which has a single allele record shared by both genotype alleles
+        index2 = match_index(records, num_repeats_long, skip_index=index1)
+        if index2 is None and index1 is not None and match_index([records[index1]], num_repeats_long) is not None:
+            index2 = index1
+        allele1_purity.append(records[index1][1] if index1 is not None else None)
+        allele2_purity.append(records[index2][1] if index2 is not None else None)
+    df.loc[:, "FractionPureRepeats: Allele 1"] = allele1_purity
+    df.loc[:, "FractionPureRepeats: Allele 2"] = allele2_purity
 
 
 def trim_end_column(df):
@@ -129,8 +180,13 @@ def main():
     truth_set_variants_df.loc[:, "LocusId"] = truth_set_variants_df["LocusId"].str.replace("^chr", "", regex=True)
     trim_end_column(truth_set_variants_df)
 
+    truth_set_tsv_header = list(TSV_HEADER)
+    if args.alleles_tsv:
+        add_allele_purity_columns(truth_set_variants_df, args.alleles_tsv)
+        truth_set_tsv_header += ["FractionPureRepeats: Allele 1", "FractionPureRepeats: Allele 2"]
+
     output_path = os.path.basename(args.truth_set_variants_tsv).replace(".tsv", ".for_comparison.tsv")
-    write_to_tsv(truth_set_variants_df, os.path.join(args.output_dir, output_path))
+    write_to_tsv(truth_set_variants_df, os.path.join(args.output_dir, output_path), tsv_header=truth_set_tsv_header)
 
     # process negative loci
     if args.negative_loci_tsv:
@@ -167,9 +223,11 @@ def main():
         write_to_tsv(negative_loci_df, os.path.join(args.output_dir, output_path))
 
 
-def write_to_tsv(df, output_path):
+def write_to_tsv(df, output_path, tsv_header=None):
     add_extra_columns(df)
-    df = df[TSV_HEADER]
+    # reindex (rather than df[...]) so that columns absent from the negative-loci table (e.g. the various Overlaps* and
+    # gene-region annotations) are filled with NaN instead of raising a KeyError
+    df = df.reindex(columns=tsv_header if tsv_header is not None else TSV_HEADER)
     print(f"Output columns for {output_path}:")
     for column in sorted(df.columns):
         is_nan_count = sum(pd.isna(df[column]))
