@@ -76,20 +76,11 @@ def add_allele_purity_columns(df, alleles_tsv_path):
     # keyed by (LocusId, num_repeats) so that a multiallelic locus with two same-repeat-count alleles that have
     # different purity values keeps both values instead of one overwriting the other.
     purity_records_by_locus = collections.defaultdict(list)
-    # The alleles tsv only has rows for variant (non-reference) alleles, so the reference allele of a het ref/non-ref
-    # genotype has no record above. FractionPureRepeatsRef carries the reference allele's purity (the same value on
-    # every allele row of the locus), so map each LocusId to it for use as a reference-allele fallback below.
-    ref_purity_by_locus = {}
-    has_ref_purity_column = "FractionPureRepeatsRef" in alleles_df.columns
-    for row in alleles_df.itertuples(index=False):
-        locus_id = getattr(row, "LocusId")
-        num_repeats = getattr(row, "NumRepeats")
-        if not pd.isna(num_repeats):
-            purity_records_by_locus[locus_id].append((int(round(float(num_repeats))), getattr(row, "FractionPureRepeats")))
-        if has_ref_purity_column and locus_id not in ref_purity_by_locus:
-            ref_purity = getattr(row, "FractionPureRepeatsRef")
-            if not pd.isna(ref_purity):
-                ref_purity_by_locus[locus_id] = ref_purity
+    for locus_id, num_repeats, purity in zip(
+            alleles_df["LocusId"], alleles_df["NumRepeats"], alleles_df["FractionPureRepeats"]):
+        if pd.isna(num_repeats):
+            continue
+        purity_records_by_locus[locus_id].append((int(round(float(num_repeats))), purity))
 
     def match_index(records, num_repeats, skip_index=None):
         # Return the index of the first allele record matching num_repeats (other than skip_index), or None.
@@ -102,19 +93,10 @@ def add_allele_purity_columns(df, alleles_tsv_path):
                 return i
         return None
 
-    def allele_purity(records, index, locus_id, num_repeats, num_repeats_in_reference):
-        if index is not None:
-            return records[index][1]
-        # no variant-allele record matched: if this is the reference allele, use the reference allele's purity
-        if not pd.isna(num_repeats) and not pd.isna(num_repeats_in_reference) \
-                and int(round(float(num_repeats))) == int(round(float(num_repeats_in_reference))):
-            return ref_purity_by_locus.get(locus_id)
-        return None
-
     allele1_purity = []
     allele2_purity = []
-    for locus_id, num_repeats_short, num_repeats_long, num_repeats_in_reference in zip(
-            df["LocusId"], df["NumRepeatsShortAllele"], df["NumRepeatsLongAllele"], df["NumRepeatsInReference"]):
+    for locus_id, num_repeats_short, num_repeats_long in zip(
+            df["LocusId"], df["NumRepeatsShortAllele"], df["NumRepeatsLongAllele"]):
         records = purity_records_by_locus.get(locus_id, [])
         index1 = match_index(records, num_repeats_short)
         # prefer a distinct record for allele 2 (multiallelic loci), but fall back to allele 1's record for a
@@ -122,8 +104,8 @@ def add_allele_purity_columns(df, alleles_tsv_path):
         index2 = match_index(records, num_repeats_long, skip_index=index1)
         if index2 is None and index1 is not None and match_index([records[index1]], num_repeats_long) is not None:
             index2 = index1
-        allele1_purity.append(allele_purity(records, index1, locus_id, num_repeats_short, num_repeats_in_reference))
-        allele2_purity.append(allele_purity(records, index2, locus_id, num_repeats_long, num_repeats_in_reference))
+        allele1_purity.append(records[index1][1] if index1 is not None else None)
+        allele2_purity.append(records[index2][1] if index2 is not None else None)
     df.loc[:, "FractionPureRepeats: Allele 1"] = allele1_purity
     df.loc[:, "FractionPureRepeats: Allele 2"] = allele2_purity
 
