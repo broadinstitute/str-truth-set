@@ -3,7 +3,6 @@
 """
 
 import argparse
-import collections
 import os
 import pandas as pd
 
@@ -45,9 +44,6 @@ def parse_args():
     p = argparse.ArgumentParser()
     p.add_argument("-n", help="Process only the 1st N rows of the truth set TSV. Useful for testing.", type=int)
     p.add_argument("--output-dir", default="./tool_comparison/results/", help="Output directory")
-    p.add_argument("--alleles-tsv", help="Optional path of the truth set annotated alleles tsv. If specified, the "
-                   "per-allele FractionPureRepeats values are added to the for_comparison table as "
-                   "'FractionPureRepeats: Allele 1' and 'FractionPureRepeats: Allele 2' columns.")
     p.add_argument("truth_set_variants_tsv", help="Path of the truth set variants tsv")
     p.add_argument("negative_loci_tsv", nargs="?", help="Path of negative loci tsv")
 
@@ -56,58 +52,61 @@ def parse_args():
     if not os.path.isdir(args.output_dir):
         p.error(f"{args.output_dir} doesn't exist")
 
-    for path in args.truth_set_variants_tsv, args.negative_loci_tsv, args.alleles_tsv:
+    for path in args.truth_set_variants_tsv, args.negative_loci_tsv:
         if path and not os.path.isfile(path):
             p.error(f"{path} not found")
 
     return args
 
 
-def add_allele_purity_columns(df, alleles_tsv_path):
-    """Join the per-allele FractionPureRepeats values from the truth set alleles tsv onto the variants dataframe.
+def normalize_v2_genotype_format(df):
+    """Convert a tandem_repeat_genotypes tsv (from str_analysis.filter_vcf_to_tandem_repeats genotype) in place so its
+    columns match the truth set variants schema expected by the rest of this script.
 
-    The short allele (NumRepeatsShortAllele) becomes Allele 1 and the long allele (NumRepeatsLongAllele) becomes
-    Allele 2, matching the allele ordering used by add_extra_columns().
+    The genotype tsv is a per-locus diploid genotype table with 0-based Start0Based / End coordinates, a Zygosity
+    column (HOM/HET/HEMI), and per-allele repeat purity in RepeatPurityShortAllele / RepeatPurityLongAllele. This
+    renames those to the truth set column names, derives the HET/HOM/HEMI/MULTI classification relative to the
+    reference allele, and keeps only variant (non-reference) loci. The short allele (NumRepeatsShortAllele) becomes
+    Allele 1 and the long allele becomes Allele 2, matching the allele ordering used by add_extra_columns().
     """
-    alleles_df = pd.read_table(alleles_tsv_path, low_memory=False, dtype={"Chrom": str})
-    alleles_df.loc[:, "LocusId"] = alleles_df["LocusId"].str.replace("^chr", "", regex=True)
+    df.rename(columns={
+        "End": "End1Based",
+        "RepeatSizeShortAlleleBp": "RepeatSizeShortAllele (bp)",
+        "RepeatSizeLongAlleleBp": "RepeatSizeLongAllele (bp)",
+        "RepeatPurityShortAllele": "RepeatPurity: Allele 1",
+        "RepeatPurityLongAllele": "RepeatPurity: Allele 2",
+    }, inplace=True)
+    df.loc[:, "Start1Based"] = df["Start0Based"] + 1
 
-    # Map each LocusId to its list of (num_repeats, purity) allele records (in file order). A list rather than a dict
-    # keyed by (LocusId, num_repeats) so that a multiallelic locus with two same-repeat-count alleles that have
-    # different purity values keeps both values instead of one overwriting the other.
-    purity_records_by_locus = collections.defaultdict(list)
-    for locus_id, num_repeats, purity in zip(
-            alleles_df["LocusId"], alleles_df["NumRepeats"], alleles_df["FractionPureRepeats"]):
-        if pd.isna(num_repeats):
-            continue
-        purity_records_by_locus[locus_id].append((int(round(float(num_repeats))), purity))
+    # keep only variant loci: drop loci where both alleles equal the reference repeat count (hom-ref / non-variant)
+    df.drop(df.index[
+        (df["NumRepeatsShortAllele"] == df["NumRepeatsInReference"]) &
+        (df["NumRepeatsLongAllele"] == df["NumRepeatsInReference"])
+    ], inplace=True)
 
-    def match_index(records, num_repeats, skip_index=None):
-        # Return the index of the first allele record matching num_repeats (other than skip_index), or None.
-        # NumRepeatsLongAllele is NaN for hemizygous loci (e.g. chrX/chrY in male samples).
-        if pd.isna(num_repeats):
-            return None
-        num_repeats = int(round(float(num_repeats)))
-        for i, (record_num_repeats, _) in enumerate(records):
-            if i != skip_index and record_num_repeats == num_repeats:
-                return i
-        return None
+    # classify each variant relative to the reference allele, matching the truth set's HET/HOM/HEMI/MULTI semantics:
+    #   HEMI  - only one allele present (e.g. chrX/chrY in a male sample)
+    #   HOM   - both alleles are the same non-reference allele
+    #   HET   - one allele equals the reference (ref/alt)
+    #   MULTI - both alleles differ from the reference and from each other (two alt alleles)
+    classification = [
+        "HEMI" if zyg == "HEMI" else
+        "HOM" if zyg == "HOM" else
+        "HET" if (s == ref or l == ref) else
+        "MULTI"
+        for zyg, s, l, ref in zip(
+            df["Zygosity"], df["NumRepeatsShortAllele"], df["NumRepeatsLongAllele"], df["NumRepeatsInReference"])
+    ]
+    df.loc[:, "HET_or_HOM_or_HEMI_or_MULTI"] = classification
+    df.loc[:, "IsMultiallelic"] = [c == "MULTI" for c in classification]
 
-    allele1_purity = []
-    allele2_purity = []
-    for locus_id, num_repeats_short, num_repeats_long in zip(
-            df["LocusId"], df["NumRepeatsShortAllele"], df["NumRepeatsLongAllele"]):
-        records = purity_records_by_locus.get(locus_id, [])
-        index1 = match_index(records, num_repeats_short)
-        # prefer a distinct record for allele 2 (multiallelic loci), but fall back to allele 1's record for a
-        # homozygous locus, which has a single allele record shared by both genotype alleles
-        index2 = match_index(records, num_repeats_long, skip_index=index1)
-        if index2 is None and index1 is not None and match_index([records[index1]], num_repeats_long) is not None:
-            index2 = index1
-        allele1_purity.append(records[index1][1] if index1 is not None else None)
-        allele2_purity.append(records[index2][1] if index2 is not None else None)
-    df.loc[:, "FractionPureRepeats: Allele 1"] = allele1_purity
-    df.loc[:, "FractionPureRepeats: Allele 2"] = allele2_purity
+    # the genotype step doesn't emit these annotation columns; set the values the truth set guarantees for
+    # catalog-defined loci so the downstream genotype-subset filter works (the plot also tolerates them being absent)
+    df.loc[:, "IsFoundInReference"] = True
+    df.loc[:, "SummaryString"] = ("RU" + df["MotifSize"].astype(str) + ":" + df["Motif"] + ":" +
+                                  df["HET_or_HOM_or_HEMI_or_MULTI"] + ":" +
+                                  df["NumRepeatsShortAllele"].astype(str) + "/" +
+                                  df["NumRepeatsLongAllele"].astype(str))
 
 
 def trim_end_column(df):
@@ -166,6 +165,11 @@ def main():
     # process truth set loci
     truth_set_variants_df = pd.read_table(args.truth_set_variants_tsv, low_memory=False, nrows=args.n, dtype={"Chrom": str})
 
+    # the tandem_repeat_genotypes tsv (from filter_vcf_to_tandem_repeats genotype) needs its columns renamed/derived
+    # to match the truth set variants schema before the rest of this function can process it
+    if "Zygosity" in truth_set_variants_df.columns and "RepeatPurityShortAllele" in truth_set_variants_df.columns:
+        normalize_v2_genotype_format(truth_set_variants_df)
+
     IS_TRUTH_SET_V2_FORMAT = "HET_or_HOM_or_MULTI" not in truth_set_variants_df.columns and "HET_or_HOM_or_HEMI_or_MULTI" in truth_set_variants_df.columns
     if IS_TRUTH_SET_V2_FORMAT:
         # update format to match the updated HPRC truth set format
@@ -181,9 +185,9 @@ def main():
     trim_end_column(truth_set_variants_df)
 
     truth_set_tsv_header = list(TSV_HEADER)
-    if args.alleles_tsv:
-        add_allele_purity_columns(truth_set_variants_df, args.alleles_tsv)
-        truth_set_tsv_header += ["FractionPureRepeats: Allele 1", "FractionPureRepeats: Allele 2"]
+    # per-allele repeat purity (from the v2 genotype tsv) is used by the purity-stratified accuracy plots
+    if "RepeatPurity: Allele 1" in truth_set_variants_df.columns:
+        truth_set_tsv_header += ["RepeatPurity: Allele 1", "RepeatPurity: Allele 2"]
 
     output_path = os.path.basename(args.truth_set_variants_tsv).replace(".tsv", ".for_comparison.tsv")
     write_to_tsv(truth_set_variants_df, os.path.join(args.output_dir, output_path), tsv_header=truth_set_tsv_header)

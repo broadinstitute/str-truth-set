@@ -250,11 +250,11 @@ def main():
         on=MERGE_KEY_COLUMNS,
         suffixes=(f": Truth", f": {args.tool}"))
 
-    # FractionPureRepeats columns only exist in the truth set, so the merge above doesn't add a ": Truth" suffix to
-    # them. Rename them here so that write_alleles_table() melts them into "FractionPureRepeats: Allele: Truth".
+    # RepeatPurity columns only exist in the truth set, so the merge above doesn't add a ": Truth" suffix to them.
+    # Rename them here so that write_alleles_table() melts them into "RepeatPurity: Allele: Truth".
     df_merged.rename(columns={
-        "FractionPureRepeats: Allele 1": "FractionPureRepeats: Allele 1: Truth",
-        "FractionPureRepeats: Allele 2": "FractionPureRepeats: Allele 2: Truth",
+        "RepeatPurity: Allele 1": "RepeatPurity: Allele 1: Truth",
+        "RepeatPurity: Allele 2": "RepeatPurity: Allele 2: Truth",
     }, inplace=True)
 
     if len(df_merged) > len(truth_set_df):

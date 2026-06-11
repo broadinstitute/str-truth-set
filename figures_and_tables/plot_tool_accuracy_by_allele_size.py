@@ -15,9 +15,9 @@ sns.set_context(font_scale=1.1, rc={
 
 GREEN_COLOR = "#50AA44"
 
-# Per-allele repeat purity column (fraction of the truth allele's bases that are part of a perfect repeat) and the
-# bins used to stratify the accuracy plots by purity.
-PURITY_COLUMN = "FractionPureRepeats: Allele: Truth"
+# Per-allele repeat purity column (fraction of the truth allele's bases that match a perfect repeat of the motif) and
+# the bins used to stratify the accuracy plots by purity.
+PURITY_COLUMN = "RepeatPurity: Allele: Truth"
 PURITY_BINS = [
     ("all", None, None),
     ("below_0.70", 0.0, 0.70),
@@ -248,7 +248,11 @@ def generate_all_plots(df, args):
                     df3 = df2
 
                 if coverage == "exome" and not args.only_print_total_number_of_plots:
-                    df3 = df3[~df3["GeneRegionFromGencode_V42"].isin({"intergenic", "intron", "promoter"})]
+                    if "GeneRegionFromGencode_V42" in df3.columns:
+                        df3 = df3[~df3["GeneRegionFromGencode_V42"].isin({"intergenic", "intron", "promoter"})]
+                    else:
+                        print("WARNING: GeneRegionFromGencode_V42 column not found in input file. Skipping the exome "
+                              "gene-region filter...")
 
                 for motif_size in ["all_motifs", "2bp", "3-6bp", "7-24bp", "25+bp"] if args.min_motif_size is None and args.max_motif_size is None else [f"{args.min_motif_size}-{args.max_motif_size}bp"]:
                     if not args.only_print_total_number_of_plots:
