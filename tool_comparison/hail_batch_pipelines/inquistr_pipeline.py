@@ -93,7 +93,7 @@ def create_inquistr_steps(bp, *, reference_fasta, input_bam, input_bai, inquistr
     if str_analysis_branch:
         # refresh the str-analysis package so the inquiSTR -> ExpansionHunter json converter is available before the
         # docker image is rebuilt to include it
-        s1.command(f"python3 -m pip install --upgrade --no-deps "
+        s1.command(f"python3 -m pip install --force-reinstall --no-deps "
                    f"'git+https://github.com/broadinstitute/str-analysis@{str_analysis_branch}'")
 
     local_fasta = s1.input(reference_fasta, localize_by=Localize.COPY)
@@ -151,7 +151,7 @@ def create_inquistr_steps(bp, *, reference_fasta, input_bam, input_bai, inquistr
     s2.depends_on(s1)
 
     if str_analysis_branch:
-        s2.command(f"python3 -m pip install --upgrade --no-deps "
+        s2.command(f"python3 -m pip install --force-reinstall --no-deps "
                    f"'git+https://github.com/broadinstitute/str-analysis@{str_analysis_branch}'")
 
     s2.command("set -ex")
