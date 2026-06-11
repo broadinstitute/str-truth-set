@@ -497,7 +497,7 @@ def generate_all_plots(df, args, plot_counter=0):
                                         return plot_counter
 
     if args.only_print_total_number_of_plots:
-        print(f"Total: {plot_counter:,d} plots")
+        print(f"Plots per purity bin: {plot_counter:,d}")
 
     return plot_counter
 
@@ -541,8 +541,13 @@ def main():
         print(f"{arg}: {getattr(args, arg)}")
 
     if args.only_print_total_number_of_plots:
+        # an actual run regenerates the full plot set once per purity bin (see the purity loop below), so the
+        # real total is the per-bin count x len(PURITY_BINS). The empty df can't reveal whether the input has a
+        # purity column, so this assumes purity stratification is on (the v2 default).
         df = pd.DataFrame()
-        generate_all_plots(df, args)
+        plots_per_purity_bin = generate_all_plots(df, args)
+        print(f"Total: {plots_per_purity_bin * len(PURITY_BINS):,d} plots "
+              f"({plots_per_purity_bin:,d} per purity bin x {len(PURITY_BINS)} purity bins)")
         return
 
     print(f"Loading {args.combined_tool_results_tsv}")

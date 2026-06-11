@@ -1,6 +1,7 @@
 import os
 
 from step_pipeline import pipeline, Backend, Localize, Delocalize
+from plot_tool_accuracy_by_allele_size import PURITY_BINS
 
 DOCKER_IMAGE = "docker.io/weisburd/truth-set-figures@sha256:e65b59b683dcb3b63b2d6ec8b4aa815fbf28282457bf7d103097892703c358be"
 
@@ -18,8 +19,10 @@ def main():
     parser.add_argument("--input-table", default="gs://str-truth-set/hg38/combined.results.alleles.tsv.gz")
     args = bp.parse_known_args()
 
-    # generate tool accuracy by allele size
-    for i in range(0, 12_600, args.batch_size):
+    # generate tool accuracy by allele size. plot_tool_accuracy_by_allele_size.py now regenerates the full plot
+    # set once per repeat-purity bin, so the shard range must cover len(PURITY_BINS) x the pre-purity plot count
+    # (shards past the real total just produce empty jobs, matching the prior over-estimate behavior).
+    for i in range(0, 12_600 * len(PURITY_BINS), args.batch_size):
         if args.n is not None and i >= args.n:
             break
 

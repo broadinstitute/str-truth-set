@@ -13,6 +13,9 @@ bc = BatchClient(billing_project=billing_project)
 
 output_rows = []
 loci_with_expansion_hunter_errors = []
+# ExpansionHunter-family tools whose batches this script scrapes for locus-spec errors. Must stay in sync
+# with the labels emitted by expansion_hunter_pipeline.py.
+EXPANSION_HUNTER_TOOL_NAMES = ("ExpansionHunter", "EHv5", "EHv5-bw2-optimized", "IlluminaEHv5")
 number_of_data_groups = 8
 current_data_group_number = collections.defaultdict(int)
 
@@ -21,16 +24,13 @@ for b in bc.list_batches(limit=4, last_batch_id=7292217):
 
     batch_name = b.attributes["name"]
 
-    if not batch_name.startswith("STR Truth Set: ExpansionHunter"):
+    batch_name_fields = batch_name.split(": ")
+    if len(batch_name_fields) != 4 or batch_name_fields[0] != "STR Truth Set" \
+            or batch_name_fields[1] not in EXPANSION_HUNTER_TOOL_NAMES:
         print("Skipping batch:", batch_name, b.attributes)
         continue
 
     print("Processing batch:", batch_name)
-
-    batch_name_fields = batch_name.split(": ")
-    if len(batch_name_fields) != 4:
-        print("WARNING: Unexpected batch name: ", batch_name, "Skipping...")
-        continue
 
     print("="*30)
     tool_name = batch_name_fields[1]
@@ -67,7 +67,7 @@ for b in bc.list_batches(limit=4, last_batch_id=7292217):
                 #job_input_log_lines = job_log["input"].split("\n")
                 print(" "*4, "Job " + str(job_info["job_id"]) + ":", job_info["name"], " ---", job_info["state"])
 
-                if tool_name in ("ExpansionHunter", "EHv5", "EHv5-bw2-optimized", "IlluminaEHv5"):
+                if tool_name in EXPANSION_HUNTER_TOOL_NAMES:
                     for match in re.finditer("Error on locus spec ([^:]+):.*", job_log["main"]):
                         print(" "*8, match.group(0))
                         loci_with_expansion_hunter_errors.append({

@@ -18,11 +18,9 @@ import re
 
 from step_pipeline import pipeline, Backend, Localize
 
-DOCKER_IMAGE = "weisburd/str-analysis-with-inquistr@sha256:397f7dd18077568b75d2ef49d4e1269151af2b4fef030ecafb852618094b6d39"
-
-# Branch of broadinstitute/str-analysis that contains convert_inquistr_calls_to_expansion_hunter_json.py. The inquiSTR
-# docker image is refreshed from this branch at the start of the run step until the image is rebuilt to include it.
-STR_ANALYSIS_BRANCH = "inquistr-integration"
+# Bakes in str-analysis pinned in docker_with_inquistr/Dockerfile (includes the inquiSTR -> ExpansionHunter json
+# converter), so no str-analysis is installed at runtime. Rebuild that image and update this digest when str-analysis changes.
+DOCKER_IMAGE = "weisburd/str-analysis-with-inquistr@sha256:7aa72cfb8388b1e4e57c75e75a07fd23601d4687bdb2699b439e59dafe55cc7b"
 
 REFERENCE_FASTA_PATH = "gs://str-truth-set/hg38/ref/hg38.fa"
 REFERENCE_FASTA_FAI_PATH = "gs://str-truth-set/hg38/ref/hg38.fa.fai"
@@ -73,8 +71,7 @@ def main():
 
 
 def create_inquistr_steps(bp, *, reference_fasta, input_bam, input_bai, inquistr_catalog_bed_paths, output_dir,
-                          output_prefix, reference_fasta_fai=None, male_or_female="female", cpu=16, unphased=True,
-                          str_analysis_branch=STR_ANALYSIS_BRANCH):
+                          output_prefix, reference_fasta_fai=None, male_or_female="female", cpu=16, unphased=True):
     if len(inquistr_catalog_bed_paths) > 1:
         raise ValueError("Only one inquiSTR catalog bed file is currently supported")
     if len(inquistr_catalog_bed_paths) == 0:
@@ -89,12 +86,6 @@ def create_inquistr_steps(bp, *, reference_fasta, input_bam, input_bai, inquistr
                      storage="200Gi",
                      output_dir=output_dir)
     s1.command("set -ex")
-
-    if str_analysis_branch:
-        # refresh the str-analysis package so the inquiSTR -> ExpansionHunter json converter is available before the
-        # docker image is rebuilt to include it
-        s1.command(f"python3 -m pip install --force-reinstall --no-deps "
-                   f"'git+https://github.com/broadinstitute/str-analysis@{str_analysis_branch}'")
 
     local_fasta = s1.input(reference_fasta, localize_by=Localize.COPY)
     if reference_fasta_fai:
@@ -149,10 +140,6 @@ def create_inquistr_steps(bp, *, reference_fasta, input_bam, input_bai, inquistr
                      output_dir=output_dir)
 
     s2.depends_on(s1)
-
-    if str_analysis_branch:
-        s2.command(f"python3 -m pip install --force-reinstall --no-deps "
-                   f"'git+https://github.com/broadinstitute/str-analysis@{str_analysis_branch}'")
 
     s2.command("set -ex")
     s2.command("mkdir /io/run_dir; cd /io/run_dir")
