@@ -16,11 +16,11 @@ sns.set_context(font_scale=1.1, rc={
 GREEN_COLOR = "#50AA44"
 
 # ExpansionHunter v5 variants, which carry a per-allele "Q: Allele: {tool}" quality column (other tools use "Q: {tool}").
-EH_TOOLS = ("IlluminaExpansionHunter", "IlluminaEHv5", "ExpansionHunter", "EHv5", "EHv5-bw2-optimized")
+EH_TOOLS = ("IlluminaEHv5", "ExpansionHunter", "EHv5", "EHv5-bw2-optimized")
 
 # Tools plotted by default when --tool is not given; each is included only if its
 # "DiffRepeats: Allele: {tool} - Truth" column is present in the input table.
-DEFAULT_TOOLS = ["IlluminaExpansionHunter", "IlluminaEHv5", "ExpansionHunter", "EHv5", "EHv5-bw2-optimized", "GangSTR",
+DEFAULT_TOOLS = ["IlluminaEHv5", "ExpansionHunter", "EHv5", "EHv5-bw2-optimized", "GangSTR",
                  "HipSTR", "constrain", "TRGT", "LongTR", "inquiSTR"]
 
 # Per-allele repeat purity column (fraction of the truth allele's bases that match a perfect repeat of the motif) and
@@ -519,7 +519,7 @@ def main():
 
     g = p.add_argument_group("Filters")
     g.add_argument("--tool", choices={
-        "IlluminaExpansionHunter", "IlluminaEHv5", "ExpansionHunter", "EHv5", "EHv5-bw2-optimized", "GangSTR", "HipSTR",
+        "IlluminaEHv5", "ExpansionHunter", "EHv5", "EHv5-bw2-optimized", "GangSTR", "HipSTR",
         "constrain", "TRGT", "LongTR", "inquiSTR", "vamos", "NewTruthSet"},
         help="Plot only this tool")
     g.add_argument("--q-threshold", type=float, help="Plot only this Q threshold")
