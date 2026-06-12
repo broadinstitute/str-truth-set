@@ -1,0 +1,1 @@
+us-central1-docker.pkg.dev/cmg-analysis/docker-repo/str-analysis-with-trgt-v3@sha256:7fc924b2318579c64f37d95a222bd8b00a8c0d0a291f2f844dd223b36b6a8b88

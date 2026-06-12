@@ -18,7 +18,7 @@ def _count_catalog_loci(catalog_path):
     with hfs.open(catalog_path, "rb") as f:
         return f.read().count(b'"LocusId"')
 
-DOCKER_IMAGE = "weisburd/str-analysis-with-expansion-hunter@sha256:6cce58e3a409ef827d6c41e68e69fca41a2a33cf72760ee123b8ef1a29a5a349"
+DOCKER_IMAGE = "weisburd/str-analysis-with-expansion-hunter@sha256:35b95d97270d420970325c815310b26d57eae6bddfede6656527887876a6fdcb"
 DOCKER_IMAGE_DEV = "weisburd/expansion-hunter-dev@sha256:4baa218fdb7bc76af97d6628d13718ff4ad22290d1cc4ffeb2f8e3ea3c5a13b3"
 
 REFERENCE_FASTA_PATH = "gs://str-truth-set/hg38/ref/hg38.fa"
@@ -110,7 +110,8 @@ def main():
 
 
 def create_expansion_hunter_steps(bp, *, reference_fasta, input_bam, input_bai, variant_catalog_file_paths, output_dir, output_prefix, reference_fasta_fai=None, male_or_female="female",
-                                  analysis_mode="seeking", loci_to_exclude=None, min_locus_coverage=None, use_illumina_expansion_hunter=False, run_reviewer=False, num_shards=1):
+                                  analysis_mode="seeking", loci_to_exclude=None, min_locus_coverage=None, use_illumina_expansion_hunter=False, run_reviewer=False, num_shards=1,
+                                  catalog_prefilter_step=None):
 
     if use_illumina_expansion_hunter:
         tool_exec = "IlluminaExpansionHunter"
@@ -184,6 +185,11 @@ def create_expansion_hunter_steps(bp, *, reference_fasta, input_bam, input_bai, 
             output_dir=output_dir)
 
         step1s.append(s1)
+
+        # IlluminaEHv5 reads a catalog produced by an upstream prefilter step (drops loci with N-rich flanks), so the
+        # genotyping job must wait for that step to write the filtered catalog.
+        if catalog_prefilter_step is not None:
+            s1.depends_on(catalog_prefilter_step)
 
         local_fasta = s1.input(reference_fasta)
         if reference_fasta_fai:

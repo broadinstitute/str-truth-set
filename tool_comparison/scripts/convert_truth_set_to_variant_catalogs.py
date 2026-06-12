@@ -306,8 +306,13 @@ def write_gangstr_hipstr_or_longtr_repeat_specs(locus_set, output_path_prefix, t
                 if tool == "gangstr":
                     output_fields = [chrom, start_0based + 1, end_1based, len(motif), motif]
                 elif tool == "longtr":
+                    # LongTR's region bed expects the repeat motif *sequence* in column 4
+                    # (chrom, start_1based, end, motif, name), matching
+                    # str_analysis.convert_expansion_hunter_catalog_to_longtr_format. The HipSTR-style
+                    # period/num-copies bed makes LongTR reject the file with
+                    # "Region has a MOTIF with invalid character".
                     output_fields = [
-                        chrom, start_0based + 1, end_1based, len(motif), int((end_1based - start_0based)/len(motif)),
+                        chrom, start_0based + 1, end_1based, motif,
                         f"{chrom}-{start_0based}-{end_1based}-{motif}"
                     ]
                 elif tool == "hipstr":

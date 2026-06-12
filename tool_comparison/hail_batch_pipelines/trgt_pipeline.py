@@ -32,7 +32,10 @@ import re
 
 from step_pipeline import pipeline, Backend, Localize, Delocalize
 
+# TRGT v5.0.0 image (the default used by create_trgt_step)
 DOCKER_IMAGE = "us-central1-docker.pkg.dev/cmg-analysis/docker-repo/str-analysis-with-trgt@sha256:f3c98cb950538de23c55e1053f6c2f1a0f354dc32b71a887b40491a28d86478a"
+# TRGT v3.0.0 image (built from docker/trgt_v3)
+TRGT_V3_DOCKER_IMAGE = "us-central1-docker.pkg.dev/cmg-analysis/docker-repo/str-analysis-with-trgt-v3@sha256:7fc924b2318579c64f37d95a222bd8b00a8c0d0a291f2f844dd223b36b6a8b88"
 
 REFERENCE_FASTA_PATH = "gs://str-truth-set/hg38/ref/hg38.fa"
 REFERENCE_FASTA_FAI_PATH = "gs://str-truth-set/hg38/ref/hg38.fa.fai"
@@ -110,7 +113,8 @@ def main():
 
 
 def create_trgt_step(bp, *, reference_fasta, input_bam, input_bai, trgt_catalog_bed_paths, output_dir, output_prefix,
-                     reference_fasta_fai=None, male_or_female="female", parse_reference_region_from_locus_id=False, cpu=16):
+                     reference_fasta_fai=None, male_or_female="female", parse_reference_region_from_locus_id=False, cpu=16,
+                     docker_image=DOCKER_IMAGE):
     if len(trgt_catalog_bed_paths) > 1:
         raise ValueError("Only one TRGT catalog bed file is currently supported")
     if len(trgt_catalog_bed_paths) == 0:
@@ -122,7 +126,7 @@ def create_trgt_step(bp, *, reference_fasta, input_bam, input_bai, trgt_catalog_
     s1 = bp.new_step(f"Run TRGT on {os.path.basename(input_bam)}  {os.path.basename(trgt_catalog_bed_path)}",
                      arg_suffix=f"run-trgt-step",
                      step_number=1,
-                     image=DOCKER_IMAGE,
+                     image=docker_image,
                      cpu=cpu,
                      storage="200Gi",
                      output_dir=output_dir)
@@ -151,6 +155,7 @@ def create_trgt_step(bp, *, reference_fasta, input_bam, input_bai, trgt_catalog_
 
     parse_reference_region_from_locus_id_arg = "--parse-reference-region-from-locus-id" if parse_reference_region_from_locus_id else ""
     s1.command(f"python3 -m str_analysis.convert_trgt_vcf_to_expansion_hunter_json --discard-hom-ref "
+               f"--parse-genotype-from-AL-field "
                f"{parse_reference_region_from_locus_id_arg} {output_prefix}.vcf.gz")
     
     s1.output(f"{output_prefix}.vcf.gz")
@@ -160,10 +165,10 @@ def create_trgt_step(bp, *, reference_fasta, input_bam, input_bai, trgt_catalog_
     s1_output_json_paths.append(os.path.join(output_dir, f"{output_prefix}.json"))
     
     # step2: combine json file
-    s2 = bp.new_step(name=f"Combine TRGT outputs for {os.path.basename(input_bam)}", 
+    s2 = bp.new_step(name=f"Combine TRGT outputs for {os.path.basename(input_bam)}",
                      step_number=2,
                      arg_suffix=f"combine-trgt-step",
-                     image=DOCKER_IMAGE,
+                     image=docker_image,
                      cpu=2,
                      memory="highmem",
                      storage="20Gi",

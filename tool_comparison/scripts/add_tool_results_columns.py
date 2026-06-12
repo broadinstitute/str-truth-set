@@ -58,7 +58,7 @@ def parse_args():
                    help="Whether to print additional info about input and output columns.")
     p.add_argument("--tool", choices={
         "IlluminaEHv5", "ExpansionHunter", "EHv5", "EHv5-bw2-optimized", "GangSTR", "HipSTR",
-        "constrain", "TRGT", "LongTR", "inquiSTR", "vamos", "NewTruthSet"}, required=True,
+        "constrain", "TRGTv3", "TRGTv5", "LongTR", "inquiSTR", "vamos", "NewTruthSet"}, required=True,
         help="Which tool's results are in the input tsv file")
     p.add_argument("--filter-to-regions", action="append", default=[],
                    help="Optional bed file(s) of regions of interest. Rows in the input table that aren't contained in "
@@ -125,7 +125,7 @@ def main():
         tool_df_columns_to_keep += []
     elif args.tool == "LongTR":
         tool_df_columns_to_keep += ["Q", "DP", "DFLANKINDEL"]
-    elif args.tool == "TRGT":
+    elif args.tool in ("TRGTv3", "TRGTv5"):
         tool_df_columns_to_keep += []
     elif args.tool == "inquiSTR":
         tool_df_columns_to_keep += []

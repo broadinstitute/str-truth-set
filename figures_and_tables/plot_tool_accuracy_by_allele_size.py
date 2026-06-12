@@ -21,7 +21,7 @@ EH_TOOLS = ("IlluminaEHv5", "ExpansionHunter", "EHv5", "EHv5-bw2-optimized")
 # Tools plotted by default when --tool is not given; each is included only if its
 # "DiffRepeats: Allele: {tool} - Truth" column is present in the input table.
 DEFAULT_TOOLS = ["IlluminaEHv5", "ExpansionHunter", "EHv5", "EHv5-bw2-optimized", "GangSTR",
-                 "HipSTR", "constrain", "TRGT", "LongTR", "inquiSTR"]
+                 "HipSTR", "constrain", "TRGTv3", "TRGTv5", "LongTR", "inquiSTR"]
 
 # Per-allele repeat purity column (fraction of the truth allele's bases that match a perfect repeat of the motif) and
 # the bins used to stratify the accuracy plots by purity.
@@ -548,7 +548,7 @@ def main():
     g = p.add_argument_group("Filters")
     g.add_argument("--tool", choices={
         "IlluminaEHv5", "ExpansionHunter", "EHv5", "EHv5-bw2-optimized", "GangSTR", "HipSTR",
-        "constrain", "TRGT", "LongTR", "inquiSTR", "vamos", "NewTruthSet"},
+        "constrain", "TRGTv3", "TRGTv5", "LongTR", "inquiSTR", "vamos", "NewTruthSet"},
         help="Plot only this tool")
     g.add_argument("--q-threshold", type=float, help="Plot only this Q threshold")
     g.add_argument("--coverage", help="Plot only this coverage (example: \"20x\" or \"exome\")")
