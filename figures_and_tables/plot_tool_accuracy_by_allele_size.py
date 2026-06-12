@@ -34,6 +34,24 @@ PURITY_BINS = [
     ("0.95_to_1.00", 0.95, 1.0001),
 ]
 
+# Chromosome-class stratification: autosomes (chr1-22), chrX, chrY, plus the unstratified "all".
+CHROM_CLASSES = ["all", "autosomes", "chrX", "chrY"]
+
+
+def chrom_class_of_locus_id(locus_id):
+    """Classify a LocusId (e.g. "1-591733-591751-A" or "chrX-...") as autosomes / chrX / chrY / other."""
+    chrom = str(locus_id).split("-", 1)[0]
+    if chrom.lower().startswith("chr"):
+        chrom = chrom[3:]
+    if chrom == "X":
+        return "chrX"
+    if chrom == "Y":
+        return "chrY"
+    if chrom.isdigit() and 1 <= int(chrom) <= 22:
+        return "autosomes"
+    return "other"
+
+
 NO_CALL_LABEL = "No Call"
 FILTERED_CALL_LABEL = "Filtered"
 HOM_REF_LABEL = "Called Hom Ref"
@@ -370,6 +388,11 @@ def generate_all_plots(df, args, plot_counter=0):
                                     filter_description.append(f"purity {purity_name.replace('_', ' ')}")
                                     output_image_filename += f".purity_{purity_name}"
 
+                                chrom_class_name = getattr(args, "chrom_class_name", "all")
+                                if chrom_class_name and chrom_class_name != "all":
+                                    filter_description.append(chrom_class_name)
+                                    output_image_filename += f".{chrom_class_name}"
+
                                 if only_loci_with_calls_by_this_tool:
                                     filter_description.append(f"exclude no-call loci")
                                     output_image_filename += f".exclude_no_call_loci"
@@ -550,8 +573,9 @@ def main():
         # purity column, so this assumes purity stratification is on (the v2 default).
         df = pd.DataFrame()
         plots_per_purity_bin = generate_all_plots(df, args)
-        print(f"Total: {plots_per_purity_bin * len(PURITY_BINS):,d} plots "
-              f"({plots_per_purity_bin:,d} per purity bin x {len(PURITY_BINS)} purity bins)")
+        print(f"Total: {plots_per_purity_bin * len(PURITY_BINS) * len(CHROM_CLASSES):,d} plots "
+              f"({plots_per_purity_bin:,d} per purity bin x {len(PURITY_BINS)} purity bins x {len(CHROM_CLASSES)} "
+              f"chrom classes)")
         return
 
     print(f"Loading {args.combined_tool_results_tsv}")
@@ -604,19 +628,24 @@ def main():
           f"starting with plot #{args.start_with_plot_i}" if args.start_with_plot_i else "")
     # thread plot_counter across purity bins so --start-with-plot-i / -n shard over all bins combined (one global plot
     # index), rather than restarting the count for every bin
+    df["ChromClass"] = df["LocusId"].apply(chrom_class_of_locus_id)
+
     start_i = args.start_with_plot_i if args.start_with_plot_i and args.start_with_plot_i > 0 else 0
     plot_limit = start_i + (args.n if args.n is not None else 10**9)
     plot_counter = 0
-    for purity_name, purity_low, purity_high in purity_bins:
-        if plot_counter >= plot_limit:
-            break
-        args.purity_name = purity_name
-        if purity_low is None:
-            df_purity = df
-        else:
-            df_purity = df[(df[PURITY_COLUMN] >= purity_low) & (df[PURITY_COLUMN] < purity_high)]
-        print(f"Purity bin '{purity_name}': {len(df_purity):,d} of {len(df):,d} allele rows")
-        plot_counter = generate_all_plots(df_purity, args, plot_counter=plot_counter)
+    for chrom_class in CHROM_CLASSES:
+        args.chrom_class_name = chrom_class
+        df_chrom = df if chrom_class == "all" else df[df["ChromClass"] == chrom_class]
+        for purity_name, purity_low, purity_high in purity_bins:
+            if plot_counter >= plot_limit:
+                break
+            args.purity_name = purity_name
+            if purity_low is None:
+                df_purity = df_chrom
+            else:
+                df_purity = df_chrom[(df_chrom[PURITY_COLUMN] >= purity_low) & (df_chrom[PURITY_COLUMN] < purity_high)]
+            print(f"Chrom '{chrom_class}', purity bin '{purity_name}': {len(df_purity):,d} of {len(df):,d} allele rows")
+            plot_counter = generate_all_plots(df_purity, args, plot_counter=plot_counter)
 
     print(f"Done")
 
