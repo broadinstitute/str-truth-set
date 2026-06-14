@@ -25,7 +25,7 @@ def _count_catalog_loci(catalog_path):
             data = f.read()
     return data.count(b'"LocusId"')
 
-DOCKER_IMAGE = "weisburd/str-analysis-with-expansion-hunter@sha256:35b95d97270d420970325c815310b26d57eae6bddfede6656527887876a6fdcb"
+DOCKER_IMAGE = "weisburd/str-analysis-with-expansion-hunter@sha256:bbf43a8308d9862116dd007581fb87f60ba434793506372192df0e290f92366f"
 DOCKER_IMAGE_DEV = "weisburd/expansion-hunter-dev@sha256:4baa218fdb7bc76af97d6628d13718ff4ad22290d1cc4ffeb2f8e3ea3c5a13b3"
 
 REFERENCE_FASTA_PATH = "gs://str-truth-set/hg38/ref/hg38.fa"
