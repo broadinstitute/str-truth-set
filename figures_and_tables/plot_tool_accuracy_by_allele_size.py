@@ -285,7 +285,7 @@ def generate_all_plots(df, args, plot_counter=0):
                         print("WARNING: GeneRegionFromGencode_V42 column not found in input file. Skipping the exome "
                               "gene-region filter...")
 
-                for motif_size in ["all_motifs", "2bp", "3-6bp", "7-24bp", "25+bp"] if args.min_motif_size is None and args.max_motif_size is None else [f"{args.min_motif_size}-{args.max_motif_size}bp"]:
+                for motif_size in (["all_motifs"] if args.all_motifs_only else ["all_motifs", "2bp", "3-6bp", "7-24bp", "25+bp"]) if args.min_motif_size is None and args.max_motif_size is None else [f"{args.min_motif_size}-{args.max_motif_size}bp"]:
                     if not args.only_print_total_number_of_plots:
                         if motif_size == "all_motifs":
                             df4 = df3[(2 <= df3["MotifSize"]) & (df3["MotifSize"] <= 50)]
@@ -527,7 +527,7 @@ def count_plots_per_purity_bin(q_threshold=None):
     args = argparse.Namespace(
         start_with_plot_i=None, n=None, tool=None, q_threshold=q_threshold, coverage=None,
         min_motif_size=None, max_motif_size=None, genotype=None, hide_no_call_loci=False,
-        only_print_total_number_of_plots=True, purity_name="all")
+        all_motifs_only=False, only_print_total_number_of_plots=True, purity_name="all")
     return generate_all_plots(pd.DataFrame(), args)
 
 
@@ -554,6 +554,9 @@ def main():
     g.add_argument("--coverage", help="Plot only this coverage (example: \"20x\" or \"exome\")")
     g.add_argument("--min-motif-size", type=int, help="Min motif size")
     g.add_argument("--max-motif-size", type=int, help="Max motif size")
+    g.add_argument("--all-motifs-only", action="store_true", help="In default mode (no --min/--max-motif-size), "
+                   "generate only the all_motifs plot and skip the 2bp/3-6bp/7-24bp/25+bp coarse-motif bins (whose "
+                   "filename tokens the v2 tool comparison viewer doesn't use)")
     g.add_argument("--genotype", choices=["all", "HET", "HOM"], help="Plot only this genotype")
     g2 = g.add_mutually_exclusive_group()
     g2.add_argument("--show-no-call-loci", action="store_true", help="Show loci with no call")
@@ -569,12 +572,14 @@ def main():
 
     if args.only_print_total_number_of_plots:
         # an actual run regenerates the full plot set once per purity bin (see the purity loop below), so the
-        # real total is the per-bin count x len(PURITY_BINS). The empty df can't reveal whether the input has a
-        # purity column, so this assumes purity stratification is on (the v2 default).
+        # real total is the per-bin count x num_purity_bins. The empty df can't reveal whether the input has a
+        # purity column, so this assumes purity stratification is on (the v2 default): the unstratified "all" bin
+        # plus the explicit PURITY_BINS.
+        num_purity_bins = len(PURITY_BINS) + 1
         df = pd.DataFrame()
         plots_per_purity_bin = generate_all_plots(df, args)
-        print(f"Total: {plots_per_purity_bin * len(PURITY_BINS) * len(CHROM_CLASSES):,d} plots "
-              f"({plots_per_purity_bin:,d} per purity bin x {len(PURITY_BINS)} purity bins x {len(CHROM_CLASSES)} "
+        print(f"Total: {plots_per_purity_bin * num_purity_bins * len(CHROM_CLASSES):,d} plots "
+              f"({plots_per_purity_bin:,d} per purity bin x {num_purity_bins} purity bins x {len(CHROM_CLASSES)} "
               f"chrom classes)")
         return
 
@@ -619,7 +624,9 @@ def main():
 
     if PURITY_COLUMN in df.columns:
         df.loc[:, PURITY_COLUMN] = pd.to_numeric(df[PURITY_COLUMN], errors="coerce")
-        purity_bins = PURITY_BINS
+        # the unstratified ("all", None, None) bin (no ".purity_*" filename token) is emitted first so the viewer's
+        # default "Purity: all" selection resolves to a file; the explicit PURITY_BINS follow it
+        purity_bins = [("all", None, None)] + PURITY_BINS
     else:
         print(f"WARNING: '{PURITY_COLUMN}' column not found in input file. Skipping purity stratification...")
         purity_bins = [("all", None, None)]
