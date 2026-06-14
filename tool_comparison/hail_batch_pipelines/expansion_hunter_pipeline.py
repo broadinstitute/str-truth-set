@@ -4,6 +4,7 @@ import logging
 import math
 import os
 import re
+import subprocess
 
 from step_pipeline import pipeline, Backend, Localize, Delocalize
 
@@ -13,10 +14,16 @@ def _count_catalog_loci(catalog_path):
     """Return the number of loci in an ExpansionHunter variant-catalog JSON (one "LocusId" key per locus).
 
     Used to split a single catalog into evenly sized index ranges for the bw2-fork --start-with/--n-loci shards.
-    Cached because every EHv5 run for a given sample reuses the same catalog.
+    Reads the whole catalog into memory once -- via `gcloud storage cat` (which retries on transient errors) for
+    gs:// paths, or directly off disk for local paths -- instead of hailtop's streaming reader, which times out on
+    the ~100MB catalogs. Cached because every EHv5 run for a given sample reuses the same catalog.
     """
-    with hfs.open(catalog_path, "rb") as f:
-        return f.read().count(b'"LocusId"')
+    if catalog_path.startswith("gs://"):
+        data = subprocess.run(["gcloud", "storage", "cat", catalog_path], capture_output=True, check=True).stdout
+    else:
+        with open(catalog_path, "rb") as f:
+            data = f.read()
+    return data.count(b'"LocusId"')
 
 DOCKER_IMAGE = "weisburd/str-analysis-with-expansion-hunter@sha256:35b95d97270d420970325c815310b26d57eae6bddfede6656527887876a6fdcb"
 DOCKER_IMAGE_DEV = "weisburd/expansion-hunter-dev@sha256:4baa218fdb7bc76af97d6628d13718ff4ad22290d1cc4ffeb2f8e3ea3c5a13b3"
