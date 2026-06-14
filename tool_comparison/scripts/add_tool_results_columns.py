@@ -205,6 +205,18 @@ def main():
 
     tool_df.loc[:, "LocusSize (bp)"] = tool_df["End1Based"] - tool_df["Start0Based"]
     tool_df.loc[:, "NumRepeatsInReference"] = (tool_df["LocusSize (bp)"]/tool_df["MotifSize"]).astype(int)
+
+    # Haploid calls (male chrX/chrY outside the PAR) have only Allele 1 set and Allele 2 == NaN. The truth set
+    # represents these HEMI loci as a duplicated diploid genotype (short allele == long allele), so mirror that here by
+    # copying Allele 1 into the missing Allele 2. Without this, the NaN Allele 2 RepeatSize would be filled with the
+    # reference size below (making IsRef: Allele 2 spuriously True -> "Called Het Ref") and the per-allele distance
+    # computation would discard the valid Allele 1 comparison (-> "No Call").
+    haploid_mask = tool_df["NumRepeats: Allele 1"].notna() & tool_df["NumRepeats: Allele 2"].isna()
+    for allele_1_column in ("NumRepeats: Allele 1", "CI start: Allele 1", "CI end: Allele 1", "CI size: Allele 1"):
+        allele_2_column = allele_1_column.replace("Allele 1", "Allele 2")
+        if allele_1_column in tool_df.columns and allele_2_column in tool_df.columns:
+            tool_df.loc[haploid_mask, allele_2_column] = tool_df.loc[haploid_mask, allele_1_column]
+
     tool_df.loc[:, "DiffFromRefRepeats: Allele 1"] = tool_df["NumRepeats: Allele 1"] - tool_df["NumRepeatsInReference"]
     tool_df.loc[:, "DiffFromRefRepeats: Allele 2"] = tool_df["NumRepeats: Allele 2"] - tool_df["NumRepeatsInReference"]
     tool_df.loc[:, "DiffFromRefSize (bp): Allele 1"] = tool_df["DiffFromRefRepeats: Allele 1"] * tool_df["MotifSize"]
