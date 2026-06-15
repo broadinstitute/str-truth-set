@@ -59,6 +59,14 @@ HET_REF_LABEL = "Called Het Ref"
 WRONG_DIRECTION_LABEL = "Wrong Direction"
 NO_DIFFERENCE_LABEL = "Same"
 
+# Display labels for the plot title (mirror the viewer's TOOL_LABELS in docs/tool_comparison_viewer.html so the
+# title matches the selected tool). Only tools listed here are renamed; others keep their raw name in the title.
+TITLE_TOOL_LABELS = {
+    "IlluminaEHv5": "Illumina/EHv5",
+    "EHv5": "bw2/EHv5 (low-mem-streaming)",
+    "EHv5-bw2-optimized": "bw2/EHv5 (optimized-streaming)",
+}
+
 def bin_num_repeats_wrapper(bin_size=1):
     """Create a function that converts the integer number of STR repeats to a histogram bin"""
 
@@ -450,7 +458,7 @@ def generate_all_plots(df, args, plot_counter=0):
                                 num_alleles_exactly_right = sum(df_plot[f"DiffRepeats: Allele: {tool} - Truth (bin)"] == "0") + sum(df_plot[f"DiffRepeats: Allele: {tool} - Truth (bin)"] == NO_DIFFERENCE_LABEL)
                                 hue_values = set(df_plot.loc[:, f"DiffRepeats: Allele: {tool} - Truth (bin)"])
 
-                                figure_title_line1 += f"{tool} got {num_alleles_exactly_right:,d} out of {len(df_plot):,d} alleles ({100*num_alleles_exactly_right/len(df_plot):0.1f}%) exactly right for {coverage_label}"
+                                figure_title_line1 += f"{TITLE_TOOL_LABELS.get(tool, tool)} got {num_alleles_exactly_right:,d} out of {len(df_plot):,d} alleles ({100*num_alleles_exactly_right/len(df_plot):0.1f}%) exactly right for {coverage_label}"
                                 figure_title_line2 += f"Showing results for {n_locus_ids:,d} loci (" + ", ".join(filter_description) + f")"
 
                                 print(figure_title_line1)
