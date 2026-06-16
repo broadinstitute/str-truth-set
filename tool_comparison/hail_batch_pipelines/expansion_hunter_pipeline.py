@@ -25,7 +25,7 @@ def _count_catalog_loci(catalog_path):
             data = f.read()
     return data.count(b'"LocusId"')
 
-DOCKER_IMAGE = "weisburd/str-analysis-with-expansion-hunter@sha256:bbf43a8308d9862116dd007581fb87f60ba434793506372192df0e290f92366f"
+DOCKER_IMAGE = "weisburd/str-analysis-with-expansion-hunter@sha256:976ef63e2e9f10fa401171f1f231ebae0af9582aee23e7b56ef7fb946178358e"
 DOCKER_IMAGE_DEV = "weisburd/expansion-hunter-dev@sha256:4baa218fdb7bc76af97d6628d13718ff4ad22290d1cc4ffeb2f8e3ea3c5a13b3"
 
 REFERENCE_FASTA_PATH = "gs://str-truth-set/hg38/ref/hg38.fa"
@@ -234,8 +234,8 @@ def create_expansion_hunter_steps(bp, *, reference_fasta, input_bam, input_bai, 
         if analysis_mode == "seeking" and not use_illumina_expansion_hunter: extra_args += "--cache-mates "
         if analysis_mode == "streaming": extra_args += "--threads 16 "       # IlluminaEHv5 build (cpu=16)
         elif "streaming" in analysis_mode: extra_args += "--threads 1 "       # EHv5-bw2 streaming modes (cpu=1)
-        # optimized-streaming is a bw2-fork-only mode that supports improved genotyping
-        if analysis_mode == "optimized-streaming": extra_args += "--improved-genotyping "
+        # optimized-streaming auto-enables the read-length-saturated genotyping mixing weight in the bw2 fork
+        # (the former --improved-genotyping flag was dropped in bw2/ExpansionHunter@7f82b5f4)
         # bw2-fork locus slice: this shard genotypes loci [start_with, start_with + n_loci) of the sorted catalog
         if start_with is not None: extra_args += f"--start-with {start_with} --n-loci {n_loci} "
 
