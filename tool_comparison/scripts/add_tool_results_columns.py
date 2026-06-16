@@ -58,7 +58,7 @@ def parse_args():
                    help="Whether to print additional info about input and output columns.")
     p.add_argument("--tool", choices={
         "IlluminaEHv5", "ExpansionHunter", "EHv5", "EHv5-bw2-optimized", "GangSTR", "HipSTR",
-        "constrain", "TRGTv3", "TRGTv5", "LongTR", "inquiSTR", "vamos", "NewTruthSet"}, required=True,
+        "constrain", "TRGTv3", "TRGTv5", "LongTR", "inquiSTR", "vamos"}, required=True,
         help="Which tool's results are in the input tsv file")
     p.add_argument("--filter-to-regions", action="append", default=[],
                    help="Optional bed file(s) of regions of interest. Rows in the input table that aren't contained in "
@@ -131,19 +131,6 @@ def main():
         tool_df_columns_to_keep += []
     elif args.tool == "vamos":
         tool_df_columns_to_keep += []
-    elif args.tool == "NewTruthSet":
-        for key in [
-            'Coverage',
-            'Genotype',
-            'GenotypeConfidenceInterval',
-            'CI start: Allele 1',
-            'CI end: Allele 1',
-            'CI size: Allele 1',
-            'CI start: Allele 2',
-            'CI end: Allele 2',
-            'CI size: Allele 2',
-        ]:
-            tool_df_columns_to_keep.remove(key)
     else:
         raise ValueError(f"Unexpected tool: {args.tool}")
     

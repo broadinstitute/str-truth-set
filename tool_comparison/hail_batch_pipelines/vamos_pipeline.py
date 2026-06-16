@@ -20,9 +20,6 @@ DOCKER_IMAGE = "weisburd/vamos@sha256:0cc901f8cf3f8242ab732d9879853d9a58a246775f
 REFERENCE_FASTA_PATH = "gs://str-truth-set/hg38/ref/hg38.fa"
 REFERENCE_FASTA_FAI_PATH = "gs://str-truth-set/hg38/ref/hg38.fa.fai"
 
-CHM1_CHM13_CRAM_PATH = "gs://broad-public-datasets/CHM1_CHM13_WGS2/CHM1_CHM13_WGS2.cram"
-CHM1_CHM13_CRAI_PATH = "gs://broad-public-datasets/CHM1_CHM13_WGS2/CHM1_CHM13_WGS2.cram.crai"
-
 OUTPUT_BASE_DIR = "gs://str-truth-set/hg38/tool_results/vamos"
 
 
@@ -32,8 +29,8 @@ def main():
     parser = bp.get_config_arg_parser()
     parser.add_argument("--reference-fasta", default=REFERENCE_FASTA_PATH)
     parser.add_argument("--reference-fasta-fai", default=REFERENCE_FASTA_FAI_PATH)
-    parser.add_argument("--input-bam", default=CHM1_CHM13_CRAM_PATH)
-    parser.add_argument("--input-bai", default=CHM1_CHM13_CRAI_PATH)
+    parser.add_argument("--input-bam", required=True, help="Path of the long-read BAM/CRAM to genotype")
+    parser.add_argument("--input-bai", required=True, help="Path of the .bai/.crai index for --input-bam")
     parser.add_argument("--expansion-hunter-catalog", required=True,
                         help="Path of the ExpansionHunter catalog JSON to derive the vamos catalog from")
     parser.add_argument("--output-dir", default=OUTPUT_BASE_DIR)
