@@ -79,18 +79,15 @@ def main():
     if len(variant_catalog_file_stats_list) == 0:
         raise ValueError(f"No files found matching {variant_catalog_positive_loci}")
 
-    total_catalogs = len(variant_catalog_file_stats_list)
     if args.n:
-        total_catalogs = min(total_catalogs, args.n * catalogs_per_machine)
+        variant_catalog_file_stats_list = variant_catalog_file_stats_list[:args.n]
 
+    total_catalogs = len(variant_catalog_file_stats_list)
     bp.set_name(f"TR Truth Set: {tool_exec} {cache_mates_arg}: total_cat={total_catalogs:,d}, "
                 f"cat/mac={catalogs_per_machine}, cat/cpu={catalogs_per_cpu}, cpu/mac={cpu_per_machine}, mem={memory}: "
                 f"{bam_path_ending}")
 
     for batch_i in range(0, len(variant_catalog_file_stats_list), catalogs_per_machine):
-        if args.n and batch_i >= args.n:
-            break
-
         current_catalogs = variant_catalog_file_stats_list[batch_i:batch_i + catalogs_per_machine]
         s1 = bp.new_step(
             f"Run EHv5 catalogs #{batch_i}-{batch_i + catalogs_per_machine}", arg_suffix=f"eh", step_number=1,

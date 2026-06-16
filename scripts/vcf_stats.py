@@ -127,7 +127,13 @@ for keyword in "genotype", "variants", "alleles":
             total_key = "TOTAL alleles"
 
         total = counters[total_key]
-        percent = f"{100*value / total:5.1f}%" if total > 0 else ""
+        if total > 0:
+            percent_value = 100 * value / total
+            if percent_value <= args.min_percent:
+                continue
+            percent = f"{percent_value:5.1f}%"
+        else:
+            percent = ""
 
         print(f"{prefix}{value:10,d} out of {total:10,d} ({percent}) {key}")
 

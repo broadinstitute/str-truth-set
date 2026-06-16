@@ -565,6 +565,8 @@ def main():
     g.add_argument("--all-motifs-only", action="store_true", help="In default mode (no --min/--max-motif-size), "
                    "generate only the all_motifs plot and skip the 2bp/3-6bp/7-24bp/25+bp coarse-motif bins (whose "
                    "filename tokens the v2 tool comparison viewer doesn't use)")
+    g.add_argument("--only-pure-repeats", action="store_true",
+                   help="Plot only loci that are pure repeats (IsPureRepeat == True)")
     g.add_argument("--genotype", choices=["all", "HET", "HOM"], help="Plot only this genotype")
     g2 = g.add_mutually_exclusive_group()
     g2.add_argument("--show-no-call-loci", action="store_true", help="Show loci with no call")
@@ -609,6 +611,14 @@ def main():
     else:
         print("WARNING: PositiveOrNegative column not found in input file. Assuming all loci are positive...")
         df["PositiveOrNegative"] = "positive"
+
+    if args.only_pure_repeats:
+        if "IsPureRepeat" in df.columns:
+            before = len(df)
+            df = df[df["IsPureRepeat"]]
+            print(f"Filtered to {len(df):,d} of {before:,d} pure-repeat allele rows")
+        else:
+            print("WARNING: --only-pure-repeats set but IsPureRepeat column not found; skipping pure-repeat filter")
 
     if "Coverage" not in df.columns:
         df["Coverage"] = args.coverage

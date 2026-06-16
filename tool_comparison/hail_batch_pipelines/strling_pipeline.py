@@ -61,7 +61,9 @@ def main():
         logging.info(f"Precached {len(json_paths)} json files")
 
     ### step1: index fasta
-    strling_genome_index_path = os.path.join(args.output_dir, "Homo_sapiens_assembly38.fasta.str")
+    # `strling index <fasta>` writes <fasta>.str, so derive the index name from the actual reference basename
+    # (the default reference is now hg38.fa, not Homo_sapiens_assembly38.fasta).
+    strling_genome_index_path = os.path.join(args.output_dir, f"{os.path.basename(args.reference_fasta)}.str")
     s1 = bp.new_step(f"index reference", arg_suffix="index-reference",
                      image=DOCKER_IMAGE, cpu=1, memory="lowmem", storage="10Gi",
                      localize_by=Localize.HAIL_BATCH_CLOUDFUSE,
@@ -71,7 +73,7 @@ def main():
     s1.command(f"""/usr/bin/time -v strling index {reference_fasta_input}""")
     s1.output(os.path.basename(strling_genome_index_path))
 
-    sample_id = re.sub(".bam$", "", os.path.basename(args.input_bam))
+    sample_id = re.sub("(.bam|.cram)$", "", os.path.basename(args.input_bam))
 
     ### step2: extract
     s2 = bp.new_step(f"extract: {sample_id}", arg_suffix="extract",
@@ -81,7 +83,7 @@ def main():
                      depends_on=s1,
                      output_dir=f"{args.output_dir}")
     reference_fasta_input, _ = s2.inputs(args.reference_fasta, f"{args.reference_fasta}.fai")
-    bam_input, _ = s2.inputs(args.input_bam, f"{args.input_bam}.bai")
+    bam_input, _ = s2.inputs(args.input_bam, args.input_bai)
     strling_genome_index = s2.input(strling_genome_index_path)
 
     s2.command("set -euxo pipefail")

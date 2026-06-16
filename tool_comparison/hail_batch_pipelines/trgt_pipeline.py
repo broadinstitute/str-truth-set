@@ -104,7 +104,7 @@ def main():
             reference_fasta=args.reference_fasta,
             input_bam=args.input_bam,
             input_bai=args.input_bai,
-            trgt_catalog_bed_paths=trgt_catalog_bed_paths,
+            trgt_catalog_bed_paths=[trgt_catalog_bed_path],
             output_dir=output_dir,
             output_prefix=output_prefix,
             reference_fasta_fai=args.reference_fasta_fai,

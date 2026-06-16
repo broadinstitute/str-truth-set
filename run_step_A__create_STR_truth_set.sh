@@ -104,7 +104,6 @@ then
     set -x
     curl --silent -L https://hgdownload.soe.ucsc.edu/goldenPath/hg38/bigZips/latest/hg38.fa.gz \
       | gunzip -c - > "${hg38_fasta_path}"
-    gunzip -c
     samtools faidx "${hg38_fasta_path}"
     gatk CreateSequenceDictionary R=${hg38_fasta_path} O=${hg38_fasta_path}.dict
     set +x

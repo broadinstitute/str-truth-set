@@ -109,15 +109,21 @@ def create_vamos_step(bp, *, reference_fasta, input_bam, input_bai, expansion_hu
     s1.command("df -kh")
 
     # build the vamos catalog (chrom, start, end, motifs, ...) from the single-motif truth set ExpansionHunter catalog.
-    # vamos aborts (exit 1) on unsorted or overlapping loci, so sort by position and greedily drop any locus that
-    # overlaps the previously kept one. The catalog uses 1-based fully-closed start/end (start=start_0based+1,
-    # end=end_1based), so two loci overlap when the next start is <= the previous end (prev_end >= $2, not > $2).
+    # vamos aborts (exit 1) on unsorted or overlapping loci, so it must be fed a position-sorted, non-overlapping set.
+    # The catalog uses 1-based fully-closed start/end (start=start_0based+1, end=end_1based), so two loci overlap when
+    # the next start is <= the previous end. Select a MAXIMAL non-overlapping subset with the classic earliest-end-
+    # first interval-scheduling greedy (sort by end, keep a locus only if its start is past the last kept end): this
+    # drops fewer loci -> fewer vamos-only no-calls than a greedy keyed on start. Then re-sort the kept loci by start,
+    # since vamos requires a position-sorted catalog.
     s1.command(f"python3 -m str_analysis.convert_expansion_hunter_catalog_to_vamos_catalog "
                f"-o {output_prefix}.vamos_catalog.unsorted.tsv {local_eh_catalog}")
-    s1.command(f"sort -k1,1 -k2,2n {output_prefix}.vamos_catalog.unsorted.tsv | "
+    s1.command(f"sort -k1,1 -k3,3n {output_prefix}.vamos_catalog.unsorted.tsv | "
                f"""awk 'BEGIN{{OFS="\\t"; prev_chrom=""; prev_end=0}} """
-               f"""{{ if ($1==prev_chrom && prev_end>=$2) next; print; prev_chrom=$1; prev_end=$3 }}' """
-               f"> {vamos_catalog}")
+               f"""{{ if ($1==prev_chrom && $2<=prev_end) next; print; prev_chrom=$1; prev_end=$3 }}' | """
+               f"sort -k1,1 -k2,2n > {vamos_catalog}")
+    # log how many overlapping loci were dropped so vamos no-calls aren't silently conflated with wrong calls
+    s1.command(f"echo Dropped $(($(wc -l < {output_prefix}.vamos_catalog.unsorted.tsv) - $(wc -l < {vamos_catalog}))) "
+               f"overlapping loci from the vamos catalog")
     s1.command(f"echo Genotyping $(wc -l < {vamos_catalog}) loci in {local_bam.filename}")
 
     # Example: vamos --read -b ../example/demo.aln.bam -r vamos.effMotifs-0.1.GRCh38.tsv -s NA24385_CCS_h1 -o reads.vcf -t 8

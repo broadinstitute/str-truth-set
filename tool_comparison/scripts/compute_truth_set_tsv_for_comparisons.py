@@ -78,6 +78,10 @@ def normalize_v2_genotype_format(df):
     }, inplace=True)
     df.loc[:, "Start1Based"] = df["Start0Based"] + 1
 
+    # drop no-call rows (missing short/long/reference repeat counts) first, so they don't fall through the variant
+    # classification below as MULTI and enter the benchmark as variant truth loci with NaN allele sizes
+    df.dropna(subset=["NumRepeatsShortAllele", "NumRepeatsLongAllele", "NumRepeatsInReference"], inplace=True)
+
     # keep only variant loci: drop loci where both alleles equal the reference repeat count (hom-ref / non-variant)
     df.drop(df.index[
         (df["NumRepeatsShortAllele"] == df["NumRepeatsInReference"]) &
@@ -182,7 +186,12 @@ def main():
     truth_set_variants_df.loc[:, "TruthSetOrNegativeLocus"] = "TruthSet"
     truth_set_variants_df.loc[:, "Start0Based"] = truth_set_variants_df["Start1Based"] - 1
     truth_set_variants_df.loc[:, "LocusId"] = truth_set_variants_df["LocusId"].str.replace("^chr", "", regex=True)
-    trim_end_column(truth_set_variants_df)
+    # The v2 genotype truth set carries exact per-allele base-pair sizes and allows loci that span a non-integer
+    # number of repeats (partial-repeat VNTRs), so truncating End1Based to a motif multiple would make LocusSize (bp)
+    # disagree with the reported allele sizes and the (un-recomputed) LocusId, spuriously marking reference alleles as
+    # non-reference. Only trim for the older v1 truth set, whose loci span an integer number of repeats by construction.
+    if not IS_TRUTH_SET_V2_FORMAT:
+        trim_end_column(truth_set_variants_df)
 
     truth_set_tsv_header = list(TSV_HEADER)
     # per-allele repeat purity (from the v2 genotype tsv) is used by the purity-stratified accuracy plots

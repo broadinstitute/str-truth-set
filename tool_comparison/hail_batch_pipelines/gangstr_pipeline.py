@@ -106,7 +106,9 @@ def create_gangstr_steps(bp, *, reference_fasta, input_bam, input_bai, repeat_sp
         local_repeat_spec = s1.input(repeat_spec_file_path)
         
         input_bam_filename_prefix = re.sub("(.bam|.cram)$", "", os.path.basename(local_bam.filename))
-        output_prefix = re.sub(".bed$", "", local_repeat_spec.filename)
+        # per-shard prefix for the step1 outputs; kept distinct from the function's output_prefix arg, which names
+        # the combined step-2 outputs below (otherwise the loop would clobber it with the last shard's basename).
+        shard_prefix = re.sub(".bed$", "", local_repeat_spec.filename)
         s1.command(f"echo Genotyping $(cat {local_repeat_spec} | wc -l) loci")
         s1.command("set -ex")
         s1.command(f"""/usr/bin/time --verbose GangSTR \
@@ -116,18 +118,18 @@ def create_gangstr_steps(bp, *, reference_fasta, input_bam, input_bai, repeat_sp
             --samp-sex {male_or_female[0].upper()} \
             --regions {local_repeat_spec} \
             --verbose \
-            --out {output_prefix} |& tee {output_prefix}.log""")
+            --out {shard_prefix} |& tee {shard_prefix}.log""")
 
         s1.command("ls -lhrt")
-        s1.command(f"python3.9 -m str_analysis.convert_gangstr_vcf_to_expansion_hunter_json {output_prefix}.vcf")
+        s1.command(f"python3.9 -m str_analysis.convert_gangstr_vcf_to_expansion_hunter_json {shard_prefix}.vcf")
 
-        s1.command(f"gzip {output_prefix}.vcf")
-        s1.command(f"gzip {output_prefix}.log")
-        s1.output(f"{output_prefix}.vcf.gz", output_dir=os.path.join(output_dir, f"vcf"))
-        s1.output(f"{output_prefix}.log.gz", output_dir=os.path.join(output_dir, f"log"))
-        s1.output(f"{output_prefix}.json", output_dir=os.path.join(output_dir, f"json"))
+        s1.command(f"gzip {shard_prefix}.vcf")
+        s1.command(f"gzip {shard_prefix}.log")
+        s1.output(f"{shard_prefix}.vcf.gz", output_dir=os.path.join(output_dir, f"vcf"))
+        s1.output(f"{shard_prefix}.log.gz", output_dir=os.path.join(output_dir, f"log"))
+        s1.output(f"{shard_prefix}.json", output_dir=os.path.join(output_dir, f"json"))
 
-        step1_output_paths.append(os.path.join(output_dir, f"json", f"{output_prefix}.json"))
+        step1_output_paths.append(os.path.join(output_dir, f"json", f"{shard_prefix}.json"))
 
     # step2: combine json files
     s2 = bp.new_step(name=f"Combine GangSTR outputs for {os.path.basename(input_bam)}",

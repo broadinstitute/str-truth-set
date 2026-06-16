@@ -60,10 +60,10 @@ RUN git clone https://github.com/bw2/vamos.git \
 
 # download the original, q10, q20, and q30 motif sets
 RUN cd / \
-	&& curl "https://zenodo.org/record/8357361/files/original_motifs.set148.bed.gz?download=1" > original_motifs.set148.bed.gz \
-    && curl "https://zenodo.org/record/8357361/files/q-0.1_motifs.set148.bed.gz?download=1"  > q-0.1_motifs.set148.bed.gz \
-	&& curl "https://zenodo.org/record/8357361/files/q-0.2_motifs.set148.bed.gz?download=1"  > q-0.2_motifs.set148.bed.gz \
-	&& curl "https://zenodo.org/record/8357361/files/q-0.3_motifs.set148.bed.gz?download=1"  > q-0.3_motifs.set148.bed.gz
+	&& curl -fsSL "https://zenodo.org/record/8357361/files/original_motifs.set148.bed.gz?download=1" > original_motifs.set148.bed.gz \
+    && curl -fsSL "https://zenodo.org/record/8357361/files/q-0.1_motifs.set148.bed.gz?download=1"  > q-0.1_motifs.set148.bed.gz \
+	&& curl -fsSL "https://zenodo.org/record/8357361/files/q-0.2_motifs.set148.bed.gz?download=1"  > q-0.2_motifs.set148.bed.gz \
+	&& curl -fsSL "https://zenodo.org/record/8357361/files/q-0.3_motifs.set148.bed.gz?download=1"  > q-0.3_motifs.set148.bed.gz
 
 
 ENTRYPOINT ["/bin/bash"]

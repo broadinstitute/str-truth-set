@@ -131,7 +131,7 @@ def process_truth_set_row(
         # Look for the entry with the most similarity.
         other_catalog_interval_trees = interval_trees[other_catalog_label]
         overlapping_intervals_from_other_catalog = other_catalog_interval_trees[truth_set_chrom].overlap(truth_set_locus_interval)
-        other_catalog_repeat_unit = None
+        final_other_catalog_repeat_unit = None
         for overlapping_interval_from_other_catalog in overlapping_intervals_from_other_catalog:
             # must overlap by at least 1bp
             if overlapping_interval_from_other_catalog.overlap_size(truth_set_locus_interval) < 1:
@@ -191,6 +191,7 @@ def process_truth_set_row(
                 previous_similarity_rank = similarity_rank
                 final_locus_similarity = locus_similarity
                 final_motif_similarity = motif_similarity
+                final_other_catalog_repeat_unit = other_catalog_repeat_unit
                 if similarity_rank == 0:
                     # can't do any better than this
                     break
@@ -198,7 +199,7 @@ def process_truth_set_row(
         if is_STR_catalog:
             truth_set_df.at[truth_set_row_idx, locus_similarity_column_name] = final_locus_similarity
             truth_set_df.at[truth_set_row_idx, motif_similarity_column_name] = final_motif_similarity
-            truth_set_df.at[truth_set_row_idx, f"Overlaps{other_catalog_label}: RepeatUnit"] = compute_canonical_motif(other_catalog_repeat_unit, include_reverse_complement=True) if other_catalog_repeat_unit else None
+            truth_set_df.at[truth_set_row_idx, f"Overlaps{other_catalog_label}: RepeatUnit"] = compute_canonical_motif(final_other_catalog_repeat_unit, include_reverse_complement=True) if final_other_catalog_repeat_unit else None
             if count_this_locus:
                 counters[f"overlap:{is_STR_catalog}|{other_catalog_label}|{final_locus_similarity}|{final_motif_similarity}"] += 1
             bed_filename = f"STR_{other_catalog_label}_{final_locus_similarity}.bed"

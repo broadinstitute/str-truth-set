@@ -54,5 +54,5 @@ python3 ../figures_and_tables/plot_summary_stats.py --only-plot 7 --image-type p
 
 # supp. figure 2
 cd ..
-python3 paper_generate_table3_and_supp_fig2_repeat_catalogs.py
+python3 figures_and_tables/paper_generate_table3_and_supp_fig2_repeat_catalogs.py
 

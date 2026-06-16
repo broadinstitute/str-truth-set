@@ -4,7 +4,7 @@ as well as the catalog of all pure STRs in the reference genome.
 It then outputs two TSVs:
 
 {prefix}.truth_set_EHdn_comparison_table.tsv - one row for every truth set allele, for evaluation of EHdn accuracy.
-{prefix}.EHdn_results_table.tsv - one row for every EHdn call, along with a new "InTruthSet" column to indicate 
+{prefix}.EHdn_results_table.with_truth_set_concordance.tsv - one row for every EHdn call, along with a new "InTruthSet" column to indicate
     which calls match a truth set allele. This is useful for evaluating false-positive calls.
 """
 

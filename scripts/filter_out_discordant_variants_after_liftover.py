@@ -143,6 +143,7 @@ def main():
         for i, line in enumerate(f):
             if line.startswith("#"):
                 fo.write(line)
+                ff.write(line)
                 continue
 
             fields = line.split("\t")

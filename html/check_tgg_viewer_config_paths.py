@@ -35,7 +35,7 @@ def check_url(url):
         r = requests.get(url, stream=True, verify=False)
         
         if r.status_code == 200:
-            content = next(r.iter_content(10))
+            next(r.iter_content(10), None)
             return True
         
         return False

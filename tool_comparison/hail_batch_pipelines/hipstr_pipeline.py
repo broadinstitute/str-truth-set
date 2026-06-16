@@ -105,7 +105,9 @@ def create_hipstr_steps(bp, *, reference_fasta, input_bam, input_bai, regions_be
 
         local_regions_bed = s1.input(regions_bed_file_path)
         input_bam_filename_prefix = re.sub("(.bam|.cram)$", "", os.path.basename(local_bam.filename))
-        output_prefix = re.sub(".bed(.gz)?$", "", local_regions_bed.filename)
+        # per-shard prefix for the step1 outputs; kept distinct from the function's output_prefix arg, which names
+        # the combined step-2 outputs below (otherwise the loop would clobber it with the last shard's basename).
+        shard_prefix = re.sub(".bed(.gz)?$", "", local_regions_bed.filename)
         s1.command(f"echo Genotyping $(cat {local_regions_bed} | wc -l) loci")
         s1.command("set -ex")
         s1.command(f"""/usr/bin/time --verbose HipSTR \
@@ -117,21 +119,21 @@ def create_hipstr_steps(bp, *, reference_fasta, input_bam, input_bai, regions_be
                 --def-stutter-model \
                 --min-reads 5 \
                 --max-str-len 1000000 \
-                --log {output_prefix}.log \
-                --str-vcf {output_prefix}.vcf.gz \
-                --viz-out {output_prefix}.viz.gz""")
+                --log {shard_prefix}.log \
+                --str-vcf {shard_prefix}.vcf.gz \
+                --viz-out {shard_prefix}.viz.gz""")
 
         s1.command("ls -lhrt")
 
-        s1.command(f"python3.9 -m str_analysis.convert_hipstr_vcf_to_expansion_hunter_json {output_prefix}.vcf.gz")
-        s1.command(f"gzip {output_prefix}.log")
+        s1.command(f"python3.9 -m str_analysis.convert_hipstr_vcf_to_expansion_hunter_json {shard_prefix}.vcf.gz")
+        s1.command(f"gzip {shard_prefix}.log")
 
-        s1.output(f"{output_prefix}.vcf.gz", output_dir=os.path.join(output_dir, f"vcf"))
-        s1.output(f"{output_prefix}.log.gz", output_dir=os.path.join(output_dir, f"log"))
-        s1.output(f"{output_prefix}.viz.gz", output_dir=os.path.join(output_dir, f"viz"))
-        s1.output(f"{output_prefix}.json", output_dir=os.path.join(output_dir, f"json"))
+        s1.output(f"{shard_prefix}.vcf.gz", output_dir=os.path.join(output_dir, f"vcf"))
+        s1.output(f"{shard_prefix}.log.gz", output_dir=os.path.join(output_dir, f"log"))
+        s1.output(f"{shard_prefix}.viz.gz", output_dir=os.path.join(output_dir, f"viz"))
+        s1.output(f"{shard_prefix}.json", output_dir=os.path.join(output_dir, f"json"))
 
-        step1_output_paths.append(os.path.join(output_dir, f"json", f"{output_prefix}.json"))
+        step1_output_paths.append(os.path.join(output_dir, f"json", f"{shard_prefix}.json"))
 
     # step2: combine json files
     s2 = bp.new_step(name=f"Combine HipSTR outputs for {os.path.basename(input_bam)}",

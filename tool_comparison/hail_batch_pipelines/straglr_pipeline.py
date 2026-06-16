@@ -131,10 +131,12 @@ def create_straglr_steps(bp, *, reference_fasta, input_bam, input_bai, straglr_c
 
         local_straglr_catalog_bed = s1.input(straglr_catalog_bed_path)
 
-        output_prefix = re.sub(".bed(.gz)?$", "", local_straglr_catalog_bed.filename)
+        # per-shard prefix for the step1 outputs; kept distinct from the function's output_prefix arg, which names
+        # the combined step-2 outputs below (otherwise the loop would clobber it with the last shard's basename).
+        shard_prefix = re.sub(".bed(.gz)?$", "", local_straglr_catalog_bed.filename)
         s1.command(f"echo Genotyping $(cat {local_straglr_catalog_bed} | wc -l) loci")
         s1.command("set -ex")
-        s1.command(f"""/usr/bin/time --verbose python3 /usr/local/bin/straglr.py {local_bam} {local_fasta} {output_prefix} \
+        s1.command(f"""/usr/bin/time --verbose python3 /usr/local/bin/straglr.py {local_bam} {local_fasta} {shard_prefix} \
                 --loci {local_straglr_catalog_bed} \
                 --min_cluster_size 1 \
                 --sex {male_or_female} \
@@ -142,16 +144,16 @@ def create_straglr_steps(bp, *, reference_fasta, input_bam, input_bai, straglr_c
 
         s1.command("ls -lhrt")
 
-        #s1.command(f"gzip {output_prefix}.tsv")
-        s1.command(f"python3.9 -m str_analysis.convert_straglr_bed_to_expansion_hunter_json {output_prefix}.bed")
+        #s1.command(f"gzip {shard_prefix}.tsv")
+        s1.command(f"python3.9 -m str_analysis.convert_straglr_bed_to_expansion_hunter_json {shard_prefix}.bed")
         s1.command("ls -lhtr")
-        s1.command(f"gzip {output_prefix}.json")
-        s1.command(f"bgzip {output_prefix}.bed")
-        s1.command(f"tabix {output_prefix}.bed.gz")
-        s1.output(f"{output_prefix}.bed.gz")
-        s1.output(f"{output_prefix}.bed.gz.tbi")
-        s1.output(f"{output_prefix}.json.gz")
-        step1_output_paths.append(os.path.join(output_dir, f"{output_prefix}.json.gz"))
+        s1.command(f"gzip {shard_prefix}.json")
+        s1.command(f"bgzip {shard_prefix}.bed")
+        s1.command(f"tabix {shard_prefix}.bed.gz")
+        s1.output(f"{shard_prefix}.bed.gz")
+        s1.output(f"{shard_prefix}.bed.gz.tbi")
+        s1.output(f"{shard_prefix}.json.gz")
+        step1_output_paths.append(os.path.join(output_dir, f"{shard_prefix}.json.gz"))
 
     # step2: combine json files
     s2 = bp.new_step(name=f"Combine straglr outputs for {os.path.basename(input_bam)}",

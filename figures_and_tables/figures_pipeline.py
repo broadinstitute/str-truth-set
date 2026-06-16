@@ -1,7 +1,7 @@
 import os
 
 from step_pipeline import pipeline, Backend, Localize, Delocalize
-from plot_tool_accuracy_by_allele_size import PURITY_BINS, count_plots_per_purity_bin
+from plot_tool_accuracy_by_allele_size import PURITY_BINS, CHROM_CLASSES, count_plots_per_purity_bin
 
 DOCKER_IMAGE = "docker.io/weisburd/truth-set-figures@sha256:e65b59b683dcb3b63b2d6ec8b4aa815fbf28282457bf7d103097892703c358be"
 
@@ -23,12 +23,14 @@ def main():
     args = bp.parse_known_args()
 
     # generate tool accuracy by allele size. plot_tool_accuracy_by_allele_size.py regenerates the full plot set once
-    # per repeat-purity bin, so the shard range covers len(PURITY_BINS) x the per-bin plot count. Compute that count
-    # from the plot script (it scales with DEFAULT_TOOLS and the Q setting) rather than a hard-coded literal, so the
-    # range never truncates when tools are added; shards past the real total just produce empty jobs (the per-bin
-    # count is an upper bound, since the real run skips tools absent from the input table).
+    # per (chrom class, purity bin) combination using a single global plot counter, so the shard range must cover
+    # len(CHROM_CLASSES) x (len(PURITY_BINS) + 1) x the per-bin plot count -- the +1 is the unstratified "all" purity
+    # bin the plot script prepends. Compute the per-bin count from the plot script (it scales with DEFAULT_TOOLS and
+    # the Q setting) rather than a hard-coded literal, so the range never truncates when tools are added; shards past
+    # the real total just produce empty jobs (the per-bin count is an upper bound, since the real run skips tools
+    # absent from the input table).
     plots_per_purity_bin = count_plots_per_purity_bin(q_threshold=ACCURACY_BY_ALLELE_SIZE_Q_THRESHOLD)
-    for i in range(0, plots_per_purity_bin * len(PURITY_BINS), args.batch_size):
+    for i in range(0, plots_per_purity_bin * (len(PURITY_BINS) + 1) * len(CHROM_CLASSES), args.batch_size):
         if args.n is not None and i >= args.n:
             break
 

@@ -212,7 +212,8 @@ def main():
     # reference size below (making IsRef: Allele 2 spuriously True -> "Called Het Ref") and the per-allele distance
     # computation would discard the valid Allele 1 comparison (-> "No Call").
     haploid_mask = tool_df["NumRepeats: Allele 1"].notna() & tool_df["NumRepeats: Allele 2"].isna()
-    for allele_1_column in ("NumRepeats: Allele 1", "CI start: Allele 1", "CI end: Allele 1", "CI size: Allele 1"):
+    for allele_1_column in ("NumRepeats: Allele 1", "RepeatSize (bp): Allele 1",
+                            "CI start: Allele 1", "CI end: Allele 1", "CI size: Allele 1"):
         allele_2_column = allele_1_column.replace("Allele 1", "Allele 2")
         if allele_1_column in tool_df.columns and allele_2_column in tool_df.columns:
             tool_df.loc[haploid_mask, allele_2_column] = tool_df.loc[haploid_mask, allele_1_column]
@@ -221,13 +222,24 @@ def main():
     tool_df.loc[:, "DiffFromRefRepeats: Allele 2"] = tool_df["NumRepeats: Allele 2"] - tool_df["NumRepeatsInReference"]
     tool_df.loc[:, "DiffFromRefSize (bp): Allele 1"] = tool_df["DiffFromRefRepeats: Allele 1"] * tool_df["MotifSize"]
     tool_df.loc[:, "DiffFromRefSize (bp): Allele 2"] = tool_df["DiffFromRefRepeats: Allele 2"] * tool_df["MotifSize"]
-    tool_df["RepeatSize (bp): Allele 1"] =  tool_df["NumRepeats: Allele 1"] * tool_df["MotifSize"]
-    tool_df["RepeatSize (bp): Allele 2"] =  tool_df["NumRepeats: Allele 2"] * tool_df["MotifSize"]
-    tool_df["RepeatSize (bp): Allele 1"] = tool_df["RepeatSize (bp): Allele 1"].fillna(tool_df["NumRepeatsInReference"]*tool_df["MotifSize"])
-    tool_df["RepeatSize (bp): Allele 2"] = tool_df["RepeatSize (bp): Allele 2"].fillna(tool_df["NumRepeatsInReference"]*tool_df["MotifSize"])
+    # Use the tool/truth-set-reported base-pair size when present (it can be a non-integer multiple of the motif for
+    # partial-repeat VNTRs); only derive it from NumRepeats * MotifSize where the reported size is missing, then fall
+    # back to the reference size for fully-missing alleles. Overwriting unconditionally would force every size to an
+    # integer motif multiple and break the IsRef/IsHomRef comparisons below for partial-repeat loci.
+    for allele in ("Allele 1", "Allele 2"):
+        if f"RepeatSize (bp): {allele}" in tool_df.columns:
+            tool_df[f"RepeatSize (bp): {allele}"] = tool_df[f"RepeatSize (bp): {allele}"].fillna(
+                tool_df[f"NumRepeats: {allele}"] * tool_df["MotifSize"])
+        else:
+            tool_df[f"RepeatSize (bp): {allele}"] = tool_df[f"NumRepeats: {allele}"] * tool_df["MotifSize"]
+        tool_df[f"RepeatSize (bp): {allele}"] = tool_df[f"RepeatSize (bp): {allele}"].fillna(
+            tool_df["NumRepeatsInReference"] * tool_df["MotifSize"])
 
-    tool_df.loc[:, "IsRef: Allele 1"] = tool_df["LocusSize (bp)"].astype(int) == tool_df["RepeatSize (bp): Allele 1"].astype(int)
-    tool_df.loc[:, "IsRef: Allele 2"] = tool_df["LocusSize (bp)"].astype(int) == tool_df["RepeatSize (bp): Allele 2"].astype(int)
+    # Compare base-pair sizes without truncating to int: RepeatSize (bp) can be a non-integer multiple of the motif
+    # for partial-repeat VNTRs, and truncating here would both mis-classify those alleles and disagree with the
+    # (non-truncating) IsHomRef comparison below.
+    tool_df.loc[:, "IsRef: Allele 1"] = tool_df["LocusSize (bp)"] == tool_df["RepeatSize (bp): Allele 1"]
+    tool_df.loc[:, "IsRef: Allele 2"] = tool_df["LocusSize (bp)"] == tool_df["RepeatSize (bp): Allele 2"]
     tool_df.loc[:, "IsHomRef"] = (
          tool_df["RepeatSize (bp): Allele 1"] == tool_df["RepeatSize (bp): Allele 2"]
     ) & (
