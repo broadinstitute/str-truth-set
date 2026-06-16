@@ -234,8 +234,6 @@ def create_expansion_hunter_steps(bp, *, reference_fasta, input_bam, input_bai, 
         if analysis_mode == "seeking" and not use_illumina_expansion_hunter: extra_args += "--cache-mates "
         if analysis_mode == "streaming": extra_args += "--threads 16 "       # IlluminaEHv5 build (cpu=16)
         elif "streaming" in analysis_mode: extra_args += "--threads 1 "       # EHv5-bw2 streaming modes (cpu=1)
-        # optimized-streaming auto-enables the read-length-saturated genotyping mixing weight in the bw2 fork
-        # (the former --improved-genotyping flag was dropped in bw2/ExpansionHunter@7f82b5f4)
         # bw2-fork locus slice: this shard genotypes loci [start_with, start_with + n_loci) of the sorted catalog
         if start_with is not None: extra_args += f"--start-with {start_with} --n-loci {n_loci} "
 
