@@ -132,7 +132,7 @@ def main():
 
 
 def create_longtr_steps(bp, *, reference_fasta, input_bam, input_bai, regions_bed_paths, output_dir, output_prefix,
-                        reference_fasta_fai=None, male_or_female="female"):
+                        reference_fasta_fai=None, male_or_female="female", min_mean_qual=None):
     step1s = []
     step1_output_json_paths = []
     hfs_ls_results = hfs.ls(input_bam)
@@ -165,9 +165,13 @@ def create_longtr_steps(bp, *, reference_fasta, input_bam, input_bai, regions_be
         s1.command("mkdir /io/run_dir; cd /io/run_dir")
         s1.command(f"echo Genotyping $(cat {local_regions_bed} | wc -l) loci")
         s1.command("set -ex")
+        # LongTR's default --min-mean-qual is 30, which is fine for high-accuracy long reads (PacBio HiFi) but
+        # filters out essentially all noisier ONT reads, producing an empty VCF. Lower it for those platforms
+        # (passed in by the caller) so ONT reads aren't all discarded.
+        min_mean_qual_arg = f"--min-mean-qual {min_mean_qual} \\\n                " if min_mean_qual is not None else ""
         s1.command(f"""/usr/bin/time --verbose LongTR \
                 --min-reads 2 \
-                --bam-samps {input_bam_filename_prefix} \
+                {min_mean_qual_arg}--bam-samps {input_bam_filename_prefix} \
                 --bam-libs {input_bam_filename_prefix} \
                 --bams {local_bam} \
                 --fasta {local_fasta} \

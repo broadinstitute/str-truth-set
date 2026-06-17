@@ -137,7 +137,12 @@ def main():
     truth_set_df = pd.read_table(args.truth_set_or_negative_loci_tsv)
     print(f"Read {len(truth_set_df):,d} rows from {args.truth_set_or_negative_loci_tsv} with {len(truth_set_df.columns):,d} columns:")
     print(", ".join(truth_set_df.columns))
-    tool_df = pd.read_table(args.tool_results_tsv)
+    try:
+        tool_df = pd.read_table(args.tool_results_tsv)
+    except pd.errors.EmptyDataError:
+        # The tool genotyped nothing (e.g. HipSTR/EH on single-end ultima reads, or LongTR on ONT before
+        # the --min-mean-qual fix), so the combined variants table is empty. Treat it as zero tool calls.
+        tool_df = pd.DataFrame()
     print(f"Read {len(tool_df):,d} rows from {args.tool_results_tsv} with {len(tool_df.columns):,d} columns:")
     print(", ".join(tool_df.columns))
     for bed_file_path in args.filter_to_regions:
@@ -160,97 +165,101 @@ def main():
             print(f"All {len(tool_df):,d} rows from {args.tool_results_tsv} are already in regions "
                   f"from {bed_file_path}")
 
-    tool_df.rename(columns={
-        "RepeatUnit": "Motif",
-        "RepeatUnitLength": "MotifSize",
-        "Repeat Size (bp): Allele 1": "RepeatSize (bp): Allele 1",
-        "Repeat Size (bp): Allele 2": "RepeatSize (bp): Allele 2",
-        "Num Repeats: Allele 1": "NumRepeats: Allele 1",
-        "Num Repeats: Allele 2": "NumRepeats: Allele 2",
-    }, inplace=True)
-
-    if "Locus" in tool_df.columns:
+    if len(tool_df) > 0:
         tool_df.rename(columns={
-            "Locus": "ReferenceRegion",
-            "NumRepeatsShortAllele": "NumRepeats: Allele 1",
-            "NumRepeatsLongAllele": "NumRepeats: Allele 2",
-            "RepeatSizeShortAllele (bp)": "RepeatSize (bp): Allele 1",
-            "RepeatSizeLongAllele (bp)": "RepeatSize (bp): Allele 2",
+            "RepeatUnit": "Motif",
+            "RepeatUnitLength": "MotifSize",
+            "Repeat Size (bp): Allele 1": "RepeatSize (bp): Allele 1",
+            "Repeat Size (bp): Allele 2": "RepeatSize (bp): Allele 2",
+            "Num Repeats: Allele 1": "NumRepeats: Allele 1",
+            "Num Repeats: Allele 2": "NumRepeats: Allele 2",
         }, inplace=True)
 
-    tool_df.loc[:, "ReferenceRegion"] = tool_df["ReferenceRegion"].str.replace("^chr", "", regex=True)
-    tool_df.loc[:, "LocusId"] = tool_df["LocusId"].str.replace("^chr", "", regex=True)
-    def split_reference_region(row):
-        result = re.split("[:-]", row["ReferenceRegion"])
-        if len(result) != 3:
-            raise ValueError(f"Unexpected ReferenceRegion: " + str(row["ReferenceRegion"]))
-        return result
+        if "Locus" in tool_df.columns:
+            tool_df.rename(columns={
+                "Locus": "ReferenceRegion",
+                "NumRepeatsShortAllele": "NumRepeats: Allele 1",
+                "NumRepeatsLongAllele": "NumRepeats: Allele 2",
+                "RepeatSizeShortAllele (bp)": "RepeatSize (bp): Allele 1",
+                "RepeatSizeLongAllele (bp)": "RepeatSize (bp): Allele 2",
+            }, inplace=True)
 
-    tool_df[["Chrom", "Start0Based", "End1Based"]] = tool_df.apply(split_reference_region, axis=1, result_type="expand")
-    tool_df.loc[:, "Start0Based"] = tool_df["Start0Based"].astype(int)
-    tool_df.loc[:, "End1Based"] = tool_df["End1Based"].astype(int)
+        tool_df.loc[:, "ReferenceRegion"] = tool_df["ReferenceRegion"].str.replace("^chr", "", regex=True)
+        tool_df.loc[:, "LocusId"] = tool_df["LocusId"].str.replace("^chr", "", regex=True)
+        def split_reference_region(row):
+            result = re.split("[:-]", row["ReferenceRegion"])
+            if len(result) != 3:
+                raise ValueError(f"Unexpected ReferenceRegion: " + str(row["ReferenceRegion"]))
+            return result
 
-    tool_df.loc[:, "LocusSize (bp)"] = tool_df["End1Based"] - tool_df["Start0Based"]
-    tool_df.loc[:, "NumRepeatsInReference"] = (tool_df["LocusSize (bp)"]/tool_df["MotifSize"]).astype(int)
+        tool_df[["Chrom", "Start0Based", "End1Based"]] = tool_df.apply(split_reference_region, axis=1, result_type="expand")
+        tool_df.loc[:, "Start0Based"] = tool_df["Start0Based"].astype(int)
+        tool_df.loc[:, "End1Based"] = tool_df["End1Based"].astype(int)
 
-    # Haploid calls (male chrX/chrY outside the PAR) have only Allele 1 set and Allele 2 == NaN. The truth set
-    # represents these HEMI loci as a duplicated diploid genotype (short allele == long allele), so mirror that here by
-    # copying Allele 1 into the missing Allele 2. Without this, the NaN Allele 2 RepeatSize would be filled with the
-    # reference size below (making IsRef: Allele 2 spuriously True -> "Called Het Ref") and the per-allele distance
-    # computation would discard the valid Allele 1 comparison (-> "No Call").
-    haploid_mask = tool_df["NumRepeats: Allele 1"].notna() & tool_df["NumRepeats: Allele 2"].isna()
-    for allele_1_column in ("NumRepeats: Allele 1", "RepeatSize (bp): Allele 1",
-                            "CI start: Allele 1", "CI end: Allele 1", "CI size: Allele 1"):
-        allele_2_column = allele_1_column.replace("Allele 1", "Allele 2")
-        if allele_1_column in tool_df.columns and allele_2_column in tool_df.columns:
-            tool_df.loc[haploid_mask, allele_2_column] = tool_df.loc[haploid_mask, allele_1_column]
+        tool_df.loc[:, "LocusSize (bp)"] = tool_df["End1Based"] - tool_df["Start0Based"]
+        tool_df.loc[:, "NumRepeatsInReference"] = (tool_df["LocusSize (bp)"]/tool_df["MotifSize"]).astype(int)
 
-    tool_df.loc[:, "DiffFromRefRepeats: Allele 1"] = tool_df["NumRepeats: Allele 1"] - tool_df["NumRepeatsInReference"]
-    tool_df.loc[:, "DiffFromRefRepeats: Allele 2"] = tool_df["NumRepeats: Allele 2"] - tool_df["NumRepeatsInReference"]
-    tool_df.loc[:, "DiffFromRefSize (bp): Allele 1"] = tool_df["DiffFromRefRepeats: Allele 1"] * tool_df["MotifSize"]
-    tool_df.loc[:, "DiffFromRefSize (bp): Allele 2"] = tool_df["DiffFromRefRepeats: Allele 2"] * tool_df["MotifSize"]
-    # Use the tool/truth-set-reported base-pair size when present (it can be a non-integer multiple of the motif for
-    # partial-repeat VNTRs); only derive it from NumRepeats * MotifSize where the reported size is missing, then fall
-    # back to the reference size for fully-missing alleles. Overwriting unconditionally would force every size to an
-    # integer motif multiple and break the IsRef/IsHomRef comparisons below for partial-repeat loci.
-    for allele in ("Allele 1", "Allele 2"):
-        if f"RepeatSize (bp): {allele}" in tool_df.columns:
+        # Haploid calls (male chrX/chrY outside the PAR) have only Allele 1 set and Allele 2 == NaN. The truth set
+        # represents these HEMI loci as a duplicated diploid genotype (short allele == long allele), so mirror that here by
+        # copying Allele 1 into the missing Allele 2. Without this, the NaN Allele 2 RepeatSize would be filled with the
+        # reference size below (making IsRef: Allele 2 spuriously True -> "Called Het Ref") and the per-allele distance
+        # computation would discard the valid Allele 1 comparison (-> "No Call").
+        haploid_mask = tool_df["NumRepeats: Allele 1"].notna() & tool_df["NumRepeats: Allele 2"].isna()
+        for allele_1_column in ("NumRepeats: Allele 1", "RepeatSize (bp): Allele 1",
+                                "CI start: Allele 1", "CI end: Allele 1", "CI size: Allele 1"):
+            allele_2_column = allele_1_column.replace("Allele 1", "Allele 2")
+            if allele_1_column in tool_df.columns and allele_2_column in tool_df.columns:
+                tool_df.loc[haploid_mask, allele_2_column] = tool_df.loc[haploid_mask, allele_1_column]
+
+        tool_df.loc[:, "DiffFromRefRepeats: Allele 1"] = tool_df["NumRepeats: Allele 1"] - tool_df["NumRepeatsInReference"]
+        tool_df.loc[:, "DiffFromRefRepeats: Allele 2"] = tool_df["NumRepeats: Allele 2"] - tool_df["NumRepeatsInReference"]
+        tool_df.loc[:, "DiffFromRefSize (bp): Allele 1"] = tool_df["DiffFromRefRepeats: Allele 1"] * tool_df["MotifSize"]
+        tool_df.loc[:, "DiffFromRefSize (bp): Allele 2"] = tool_df["DiffFromRefRepeats: Allele 2"] * tool_df["MotifSize"]
+        # Use the tool/truth-set-reported base-pair size when present (it can be a non-integer multiple of the motif for
+        # partial-repeat VNTRs); only derive it from NumRepeats * MotifSize where the reported size is missing, then fall
+        # back to the reference size for fully-missing alleles. Overwriting unconditionally would force every size to an
+        # integer motif multiple and break the IsRef/IsHomRef comparisons below for partial-repeat loci.
+        for allele in ("Allele 1", "Allele 2"):
+            if f"RepeatSize (bp): {allele}" in tool_df.columns:
+                tool_df[f"RepeatSize (bp): {allele}"] = tool_df[f"RepeatSize (bp): {allele}"].fillna(
+                    tool_df[f"NumRepeats: {allele}"] * tool_df["MotifSize"])
+            else:
+                tool_df[f"RepeatSize (bp): {allele}"] = tool_df[f"NumRepeats: {allele}"] * tool_df["MotifSize"]
             tool_df[f"RepeatSize (bp): {allele}"] = tool_df[f"RepeatSize (bp): {allele}"].fillna(
-                tool_df[f"NumRepeats: {allele}"] * tool_df["MotifSize"])
-        else:
-            tool_df[f"RepeatSize (bp): {allele}"] = tool_df[f"NumRepeats: {allele}"] * tool_df["MotifSize"]
-        tool_df[f"RepeatSize (bp): {allele}"] = tool_df[f"RepeatSize (bp): {allele}"].fillna(
-            tool_df["NumRepeatsInReference"] * tool_df["MotifSize"])
+                tool_df["NumRepeatsInReference"] * tool_df["MotifSize"])
 
-    # Compare base-pair sizes without truncating to int: RepeatSize (bp) can be a non-integer multiple of the motif
-    # for partial-repeat VNTRs, and truncating here would both mis-classify those alleles and disagree with the
-    # (non-truncating) IsHomRef comparison below.
-    tool_df.loc[:, "IsRef: Allele 1"] = tool_df["LocusSize (bp)"] == tool_df["RepeatSize (bp): Allele 1"]
-    tool_df.loc[:, "IsRef: Allele 2"] = tool_df["LocusSize (bp)"] == tool_df["RepeatSize (bp): Allele 2"]
-    tool_df.loc[:, "IsHomRef"] = (
-         tool_df["RepeatSize (bp): Allele 1"] == tool_df["RepeatSize (bp): Allele 2"]
-    ) & (
-        tool_df["LocusSize (bp)"] == tool_df["RepeatSize (bp): Allele 1"]
-    )
+        # Compare base-pair sizes without truncating to int: RepeatSize (bp) can be a non-integer multiple of the motif
+        # for partial-repeat VNTRs, and truncating here would both mis-classify those alleles and disagree with the
+        # (non-truncating) IsHomRef comparison below.
+        tool_df.loc[:, "IsRef: Allele 1"] = tool_df["LocusSize (bp)"] == tool_df["RepeatSize (bp): Allele 1"]
+        tool_df.loc[:, "IsRef: Allele 2"] = tool_df["LocusSize (bp)"] == tool_df["RepeatSize (bp): Allele 2"]
+        tool_df.loc[:, "IsHomRef"] = (
+             tool_df["RepeatSize (bp): Allele 1"] == tool_df["RepeatSize (bp): Allele 2"]
+        ) & (
+            tool_df["LocusSize (bp)"] == tool_df["RepeatSize (bp): Allele 1"]
+        )
 
-    if args.verbose:
-        print("="*100)
-        for column in sorted(tool_df.columns):
-            is_nan_count = sum(pd.isna(tool_df[column]))
-            print(f"\t{is_nan_count:7,d} of {len(tool_df):,d} ({100*is_nan_count/len(tool_df):5.1f}%) NaN values in {column}")
+        if args.verbose:
+            print("="*100)
+            for column in sorted(tool_df.columns):
+                is_nan_count = sum(pd.isna(tool_df[column]))
+                print(f"\t{is_nan_count:7,d} of {len(tool_df):,d} ({100*is_nan_count/len(tool_df):5.1f}%) NaN values in {column}")
 
-        print("="*100)
-        print("set(truth_set_df.columns) & set(tool_df.columns)")
-        pprint(sorted(set(truth_set_df.columns) & set(tool_df.columns)))
-        print("="*100)
-        print("set(truth_set_df.columns) - set(tool_df.columns)")
-        pprint(sorted(set(truth_set_df.columns) - set(tool_df.columns)))
-        print("="*100)
-        print("set(tool_df.columns) - set(truth_set_df.columns)")
-        pprint(sorted(set(tool_df.columns) - set(truth_set_df.columns)))
-        print("="*100)
-        print("set(tool_df.columns) - set(columns to keep)")
-        pprint(sorted(set(tool_df.columns) - set(tool_df_columns_to_keep)))
+            print("="*100)
+            print("set(truth_set_df.columns) & set(tool_df.columns)")
+            pprint(sorted(set(truth_set_df.columns) & set(tool_df.columns)))
+            print("="*100)
+            print("set(truth_set_df.columns) - set(tool_df.columns)")
+            pprint(sorted(set(truth_set_df.columns) - set(tool_df.columns)))
+            print("="*100)
+            print("set(tool_df.columns) - set(truth_set_df.columns)")
+            pprint(sorted(set(tool_df.columns) - set(truth_set_df.columns)))
+            print("="*100)
+            print("set(tool_df.columns) - set(columns to keep)")
+            pprint(sorted(set(tool_df.columns) - set(tool_df_columns_to_keep)))
+    else:
+        print(f"{args.tool} produced 0 genotyped loci; marking every truth-set locus as a No Call.")
+        tool_df = pd.DataFrame(columns=tool_df_columns_to_keep)
 
     tool_df = tool_df[tool_df_columns_to_keep]
     for tool_column in set(tool_df.columns) - set(truth_set_df.columns):
