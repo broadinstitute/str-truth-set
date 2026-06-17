@@ -67,6 +67,19 @@ TITLE_TOOL_LABELS = {
     "EHv5-bw2-optimized": "bw2/EHv5 (optimized-streaming)",
 }
 
+# sequencing_data_type key -> human-readable label for the plot title (mirrors DATA_TYPES in
+# docs/tool_comparison_viewer.html). The title appends " data" after the label, so labels omit it to avoid
+# "... data data". Falls back to "genome" when --sequencing-data-type isn't passed (backward compatible).
+SEQUENCING_DATA_TYPE_LABELS = {
+    "illumina": "Illumina Genome",
+    "illumina_exome": "Illumina Exome",
+    "element": "Element",
+    "illumina_rnaseq": "Illumina RNA-seq",
+    "pacbio": "PacBio HiFi",
+    "ONT": "ONT",
+    "pacbio_isoseq": "PacBio Iso-Seq",
+}
+
 def bin_num_repeats_wrapper(bin_size=1):
     """Create a function that converts the integer number of STR repeats to a histogram bin"""
 
@@ -415,7 +428,9 @@ def generate_all_plots(df, args, plot_counter=0):
 
                                 output_image_filename += f".{tool}"
 
-                                coverage_label = f"exome data" if coverage == "exome" else f"{coverage} genome data"
+                                data_type_label = SEQUENCING_DATA_TYPE_LABELS.get(
+                                    getattr(args, "sequencing_data_type", None), "genome")
+                                coverage_label = f"exome data" if coverage == "exome" else f"{coverage} {data_type_label} data"
 
                                 # skip_condition1: HipSTR doesn't support motifs larger than 9bp
                                 skip_condition1 = tool == "HipSTR" and (motif_size not in ("2bp", "3-6bp")
@@ -458,7 +473,7 @@ def generate_all_plots(df, args, plot_counter=0):
                                 num_alleles_exactly_right = sum(df_plot[f"DiffRepeats: Allele: {tool} - Truth (bin)"] == "0") + sum(df_plot[f"DiffRepeats: Allele: {tool} - Truth (bin)"] == NO_DIFFERENCE_LABEL)
                                 hue_values = set(df_plot.loc[:, f"DiffRepeats: Allele: {tool} - Truth (bin)"])
 
-                                figure_title_line1 += f"{TITLE_TOOL_LABELS.get(tool, tool)} got {num_alleles_exactly_right:,d} out of {len(df_plot):,d} alleles ({100*num_alleles_exactly_right/len(df_plot):0.1f}%) exactly right for {coverage_label}"
+                                figure_title_line1 += f"{TITLE_TOOL_LABELS.get(tool, tool)} got {num_alleles_exactly_right:,d} out of {len(df_plot):,d} alleles ({100*num_alleles_exactly_right/len(df_plot):0.1f}%) exactly right in {coverage_label}"
                                 figure_title_line2 += f"Showing results for {n_locus_ids:,d} loci (" + ", ".join(filter_description) + f")"
 
                                 print(figure_title_line1)
@@ -560,6 +575,9 @@ def main():
         help="Plot only this tool")
     g.add_argument("--q-threshold", type=float, help="Plot only this Q threshold")
     g.add_argument("--coverage", help="Plot only this coverage (example: \"20x\" or \"exome\")")
+    p.add_argument("--sequencing-data-type", choices=sorted(SEQUENCING_DATA_TYPE_LABELS),
+                   help="Sequencing data type, used to label the plot title (example: \"illumina\" -> "
+                   "\"Illumina Genome\"). Defaults to \"genome\" in the title when not given.")
     g.add_argument("--min-motif-size", type=int, help="Min motif size")
     g.add_argument("--max-motif-size", type=int, help="Max motif size")
     g.add_argument("--all-motifs-only", action="store_true", help="In default mode (no --min/--max-motif-size), "
