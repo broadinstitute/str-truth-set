@@ -25,7 +25,18 @@ def _count_catalog_loci(catalog_path):
             data = f.read()
     return data.count(b'"LocusId"')
 
-DOCKER_IMAGE = "weisburd/str-analysis-with-expansion-hunter@sha256:3907d127e607a32459b08ba157d322d68476123d6ecb73bfecc5294066884d8b"
+DOCKER_IMAGE = "weisburd/str-analysis-with-expansion-hunter@sha256:81a0fa6bf0f48b1bf0a47b0dea72d0ccdd04f094cc46481a66b5126b8252f95e"
+
+# optimized-streaming / low-mem-streaming genotype per-locus single-threaded, but htslib decompresses the
+# CRAM across up to 12 threads (HtsLowMemStreamingSampleAnalysis.cpp), so for an UNSHARDED run
+# (EHV5_NUM_SHARDS=1) more cores parallelize the dominant full-file decompression scan instead of paying
+# for N redundant single-threaded scans via sharding. Defaults (cpu=1/highmem) preserve the right-sizing
+# used for the sharded HG002/CHM runs; override via env for a multi-threaded unsharded run.
+EHV5_STREAMING_CPU = int(os.environ.get("EHV5_STREAMING_CPU", 1))
+EHV5_STREAMING_MEMORY = os.environ.get("EHV5_STREAMING_MEMORY", "highmem")
+# --threads is decoupled from cpu: optimized-streaming genotyping is single-threaded, so a small thread count
+# (e.g. 2) can overlap htslib CRAM decompression with genotyping on a single cheap core. Defaults to the cpu count.
+EHV5_STREAMING_THREADS = int(os.environ.get("EHV5_STREAMING_THREADS", EHV5_STREAMING_CPU))
 
 REFERENCE_FASTA_PATH = "gs://str-truth-set/hg38/ref/hg38.fa"
 REFERENCE_FASTA_FAI_PATH = "gs://str-truth-set/hg38/ref/hg38.fa.fai"
@@ -184,8 +195,12 @@ def create_expansion_hunter_steps(bp, *, reference_fasta, input_bam, input_bai, 
             # instead of the old 16/lowmem (which paid for 16 cores while using ~1); cpu=1 standard (3.75GB) would
             # OOM at high coverage. --threads only sped up the brief mate-caching. Only the official IlluminaEHv5
             # build (analysis_mode == "streaming") keeps 16/highmem (untested here).
-            cpu=16 if analysis_mode == "streaming" else (1 if "streaming" in analysis_mode else 2),
-            memory="highmem" if "streaming" in analysis_mode else "standard",
+            cpu=(16 if analysis_mode == "streaming"
+                 else EHV5_STREAMING_CPU if "streaming" in analysis_mode
+                 else 2),
+            memory=("highmem" if analysis_mode == "streaming"
+                    else EHV5_STREAMING_MEMORY if "streaming" in analysis_mode
+                    else "standard"),
             localize_by=Localize.GSUTIL_COPY,
             storage=f"{int(input_bam_file_stats.size/10**9) + 25}Gi",
             output_dir=output_dir)
@@ -232,7 +247,15 @@ def create_expansion_hunter_steps(bp, *, reference_fasta, input_bam, input_bai, 
         # --cache-mates is a bw2-fork-only flag; the stock Illumina build rejects it
         if analysis_mode == "seeking" and not use_illumina_expansion_hunter: extra_args += "--cache-mates "
         if analysis_mode == "streaming": extra_args += "--threads 16 "       # IlluminaEHv5 build (cpu=16)
-        elif "streaming" in analysis_mode: extra_args += "--threads 1 "       # EHv5-bw2 streaming modes (cpu=1)
+        elif "streaming" in analysis_mode: extra_args += f"--threads {EHV5_STREAMING_THREADS} "   # EHv5-bw2 streaming modes (threads parallelize htslib CRAM decompression)
+        # bw2-fork (f5d4963+) outputs consensus allele sequences by default; disable to keep the
+        # regenerated truth-set JSON lean. The official Illumina build lacks this flag.
+        if not use_illumina_expansion_hunter: extra_args += "--dont-output-consensus-sequences "
+        # always emit gzipped output (.json.gz / .vcf.gz). -z is a bw2-fork flag the stock Illumina build lacks,
+        # so the output filename is .json.gz only for the bw2 fork; the combine step (step2) globs both forms.
+        compress_output = not use_illumina_expansion_hunter
+        if compress_output: extra_args += "--compress-output-files "
+        json_filename = f"{chunk_prefix}.json.gz" if compress_output else f"{chunk_prefix}.json"
         # bw2-fork locus slice: this shard genotypes loci [start_with, start_with + n_loci) of the sorted catalog
         if start_with is not None: extra_args += f"--start-with {start_with} --n-loci {n_loci} "
 
@@ -246,15 +269,17 @@ def create_expansion_hunter_steps(bp, *, reference_fasta, input_bam, input_bai, 
 
         s1.command("ls -lhrt")
 
-        s1.output(f"{chunk_prefix}.json", output_dir=os.path.join(output_dir, f"json"))
+        s1.output(json_filename, output_dir=os.path.join(output_dir, f"json"))
 
-        step1_output_paths.append(os.path.join(output_dir, f"json", f"{chunk_prefix}.json"))
+        step1_output_paths.append(os.path.join(output_dir, f"json", json_filename))
 
         if run_reviewer:
             reviewer_remote_output_dir = os.path.join(output_dir, f"svg")
             reviewer_output_prefix = re.sub("(.bam|.cram)$", "", local_bam.filename)
             s1.command(f"samtools sort {chunk_prefix}_realigned.bam -o {chunk_prefix}_realigned.sorted.bam")
             s1.command(f"samtools index {chunk_prefix}_realigned.sorted.bam")
+            # with --compress-output-files EH wrote {chunk_prefix}.vcf.gz; REViewer needs the uncompressed vcf
+            if compress_output: s1.command(f"gunzip -k {chunk_prefix}.vcf.gz")
             s1.command(f"""/usr/bin/time --verbose REViewer \
                 --reference {local_fasta}  \
                 --catalog {local_variant_catalog_path} \
