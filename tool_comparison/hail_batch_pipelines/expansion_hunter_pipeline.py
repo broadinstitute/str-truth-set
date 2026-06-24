@@ -25,7 +25,7 @@ def _count_catalog_loci(catalog_path):
             data = f.read()
     return data.count(b'"LocusId"')
 
-DOCKER_IMAGE = "weisburd/str-analysis-with-expansion-hunter@sha256:81a0fa6bf0f48b1bf0a47b0dea72d0ccdd04f094cc46481a66b5126b8252f95e"
+DOCKER_IMAGE = "weisburd/str-analysis-with-expansion-hunter@sha256:8814060ac2b9922a04006e14080b399fc7601ed88e9130d86699f17f9326ad61"
 
 # optimized-streaming / low-mem-streaming genotype per-locus single-threaded, but htslib decompresses the
 # CRAM across up to 12 threads (HtsLowMemStreamingSampleAnalysis.cpp), so for an UNSHARDED run
@@ -202,7 +202,7 @@ def create_expansion_hunter_steps(bp, *, reference_fasta, input_bam, input_bai, 
                     else EHV5_STREAMING_MEMORY if "streaming" in analysis_mode
                     else "standard"),
             localize_by=Localize.GSUTIL_COPY,
-            storage=f"{int(input_bam_file_stats.size/10**9) + 25}Gi",
+            storage=f"{int(input_bam_file_stats.size/10**9) + 14}Gi",
             output_dir=output_dir)
 
         step1s.append(s1)
@@ -251,6 +251,9 @@ def create_expansion_hunter_steps(bp, *, reference_fasta, input_bam, input_bai, 
         # bw2-fork (f5d4963+) outputs consensus allele sequences by default; disable to keep the
         # regenerated truth-set JSON lean. The official Illumina build lacks this flag.
         if not use_illumina_expansion_hunter: extra_args += "--dont-output-consensus-sequences "
+        # record per-locus thread-CPU genotyping time (GenotypingTimeMillis) in the json; bw2-fork streaming modes
+        # only (the flag is not in the stock Illumina build). Makes the json non-deterministic (timing varies per run).
+        if analysis_mode in ("low-mem-streaming", "optimized-streaming"): extra_args += "--output-genotype-timing "
         # always emit gzipped output (.json.gz / .vcf.gz). -z is a bw2-fork flag the stock Illumina build lacks,
         # so the output filename is .json.gz only for the bw2 fork; the combine step (step2) globs both forms.
         compress_output = not use_illumina_expansion_hunter
@@ -295,11 +298,13 @@ def create_expansion_hunter_steps(bp, *, reference_fasta, input_bam, input_bai, 
             s1.output(done_file, output_dir=reviewer_remote_output_dir)
 
     # step2: combine json files
+    # combine_str_json_to_tsv loads the whole genotyping json into pandas; for the 1.6M-locus combined
+    # catalog (161MB json.gz/sample) cpu=1/highmem (6.5GB) OOM-kills, so use cpu=4/highmem (26GB).
     s2 = bp.new_step(name=f"Combine EHv5 outputs for {os.path.basename(input_bam)}",
                      step_number=2,
                      arg_suffix=f"combine-expansion-hunter-step",
                      image=DOCKER_IMAGE,
-                     cpu=1,
+                     cpu=4,
                      memory="highmem",
                      storage="20Gi",
                      localize_by=Localize.GSUTIL_COPY,
