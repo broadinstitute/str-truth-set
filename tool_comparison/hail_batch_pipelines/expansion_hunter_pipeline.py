@@ -25,7 +25,7 @@ def _count_catalog_loci(catalog_path):
             data = f.read()
     return data.count(b'"LocusId"')
 
-DOCKER_IMAGE = "weisburd/str-analysis-with-expansion-hunter@sha256:8814060ac2b9922a04006e14080b399fc7601ed88e9130d86699f17f9326ad61"
+DOCKER_IMAGE = "weisburd/str-analysis-with-expansion-hunter@sha256:af7101e87122dbd26016d496b38807dcd6b2a380da03fad27ac36c9c82ec4f1b"
 
 # optimized-streaming / low-mem-streaming genotype per-locus single-threaded, but htslib decompresses the
 # CRAM across up to 12 threads (HtsLowMemStreamingSampleAnalysis.cpp), so for an UNSHARDED run
@@ -194,11 +194,12 @@ def create_expansion_hunter_steps(bp, *, reference_fasta, input_bam, input_bai, 
             # (measured ~1.1 cores, <=4.3GB RSS at 31x), so cpu=1/highmem (6.5GB > 4.3GB peak) right-sizes them
             # instead of the old 16/lowmem (which paid for 16 cores while using ~1); cpu=1 standard (3.75GB) would
             # OOM at high coverage. --threads only sped up the brief mate-caching. Only the official IlluminaEHv5
-            # build (analysis_mode == "streaming") keeps 16/highmem (untested here).
-            cpu=(16 if analysis_mode == "streaming"
+            # build (use_illumina_expansion_hunter, analysis_mode == "streaming") keeps the hardcoded 16/highmem;
+            # the bw2 fork run with --analysis-mode streaming honors EHV5_STREAMING_* like the other streaming modes.
+            cpu=(16 if analysis_mode == "streaming" and use_illumina_expansion_hunter
                  else EHV5_STREAMING_CPU if "streaming" in analysis_mode
                  else 2),
-            memory=("highmem" if analysis_mode == "streaming"
+            memory=("highmem" if analysis_mode == "streaming" and use_illumina_expansion_hunter
                     else EHV5_STREAMING_MEMORY if "streaming" in analysis_mode
                     else "standard"),
             localize_by=Localize.GSUTIL_COPY,
@@ -246,8 +247,8 @@ def create_expansion_hunter_steps(bp, *, reference_fasta, input_bam, input_bai, 
         extra_args = ""
         # --cache-mates is a bw2-fork-only flag; the stock Illumina build rejects it
         if analysis_mode == "seeking" and not use_illumina_expansion_hunter: extra_args += "--cache-mates "
-        if analysis_mode == "streaming": extra_args += "--threads 16 "       # IlluminaEHv5 build (cpu=16)
-        elif "streaming" in analysis_mode: extra_args += f"--threads {EHV5_STREAMING_THREADS} "   # EHv5-bw2 streaming modes (threads parallelize htslib CRAM decompression)
+        if analysis_mode == "streaming" and use_illumina_expansion_hunter: extra_args += "--threads 16 "       # IlluminaEHv5 build (cpu=16)
+        elif "streaming" in analysis_mode: extra_args += f"--threads {EHV5_STREAMING_THREADS} "   # EHv5-bw2 streaming modes (incl. plain streaming): threads parallelize htslib CRAM decompression
         # bw2-fork (f5d4963+) outputs consensus allele sequences by default; disable to keep the
         # regenerated truth-set JSON lean. The official Illumina build lacks this flag.
         if not use_illumina_expansion_hunter: extra_args += "--dont-output-consensus-sequences "
