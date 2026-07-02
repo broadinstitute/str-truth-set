@@ -61,14 +61,17 @@ def create_ensembletr_steps(bp, *, reference_fasta, eh_json_paths, hipstr_vcf_pa
 
     num_callers = 3 if gangstr_vcf_paths else 2
 
-    # step1: reconstruct the EH VCF, normalize the HipSTR/GangSTR VCFs, run EnsembleTR, convert the consensus to json
+    # step1: reconstruct the EH VCF, normalize the HipSTR/GangSTR VCFs, run EnsembleTR, convert the consensus to json.
+    # cpu=1/standard right-sizes this (measured via /usr/bin/time --verbose below: EnsembleTR itself is
+    # single-threaded, ~10min wall/user time, peak RSS ~125MB on the 1-sample HG002 31x test run) instead of the
+    # 2/highmem (13GB) it was over-provisioned with before that measurement existed.
     s1 = bp.new_step(
         f"Run EnsembleTR ({num_callers} callers) on {sample_id}",
         arg_suffix="run-ensembletr-step",
         step_number=1,
         image=DOCKER_IMAGE,
-        cpu=2,
-        memory="highmem",
+        cpu=1,
+        memory="standard",
         storage="20Gi",
         localize_by=Localize.GSUTIL_COPY,
         output_dir=output_dir)
@@ -125,14 +128,16 @@ def create_ensembletr_steps(bp, *, reference_fasta, eh_json_paths, hipstr_vcf_pa
     s1.output(json_filename, output_dir=os.path.join(output_dir, "json"))
     step1_json_output_path = os.path.join(output_dir, "json", json_filename)
 
-    # step2: combine the single json into the .variants.tsv.gz / .alleles.tsv.gz tables the downstream comparison reads
+    # step2: combine the single json into the .variants.tsv.gz / .alleles.tsv.gz tables the downstream comparison
+    # reads. cpu=2/standard right-sizes this (the 1-sample HG002 31x test run combined a 259MB json of 568,979 loci
+    # in ~2.4min single-threaded pandas work) instead of the 4/highmem (26GB) it was over-provisioned with before.
     s2 = bp.new_step(
         name=f"Combine EnsembleTR output for {sample_id}",
         step_number=2,
         arg_suffix="combine-ensembletr-step",
         image=DOCKER_IMAGE,
-        cpu=4,
-        memory="highmem",
+        cpu=2,
+        memory="standard",
         storage="20Gi",
         localize_by=Localize.GSUTIL_COPY,
         output_dir=output_dir)
