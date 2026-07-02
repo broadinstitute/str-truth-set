@@ -4,10 +4,12 @@ import os
 from step_pipeline import pipeline, Backend, Localize
 
 # str-analysis-with-ensembletr image (built by docker_with_ensembletr/ in broadinstitute/str-analysis via
-# build_docker_images.yml): htslib/samtools/bcftools + gymrek-lab/EnsembleTR + str_analysis (for the
-# convert_expansion_hunter_json_to_vcf / convert_ensembletr_vcf_to_expansion_hunter_json / combine_str_json_to_tsv
-# steps below). Pinned by @sha256 digest (from docker_with_ensembletr/sha256_dockerhub.txt) like the sibling pipelines.
-DOCKER_IMAGE = "weisburd/str-analysis-with-ensembletr@sha256:9c515a93a50c5d4952c74728830bc09583c929b2cca6ce37b456f7b7f88786ca"
+# build_docker_images.yml): htslib/samtools/bcftools + bw2/EnsembleTR (fork of gymrek-lab/EnsembleTR with a fix
+# for a crash on hemizygous male chrX/chrY genotype calls, see docker_with_ensembletr/Dockerfile) + str_analysis
+# (for the convert_expansion_hunter_json_to_vcf / convert_ensembletr_vcf_to_expansion_hunter_json /
+# combine_str_json_to_tsv steps below). Pinned by @sha256 digest (from docker_with_ensembletr/sha256_dockerhub.txt)
+# like the sibling pipelines.
+DOCKER_IMAGE = "weisburd/str-analysis-with-ensembletr@sha256:390a0f3952422060b18fa23165ac28396fbf3a9ca5ccdabcc7258a6a2cce26e5"
 
 REFERENCE_FASTA_PATH = "gs://str-truth-set/hg38/ref/hg38.fa"
 REFERENCE_FASTA_FAI_PATH = "gs://str-truth-set/hg38/ref/hg38.fa.fai"
