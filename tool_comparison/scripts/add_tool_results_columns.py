@@ -58,7 +58,8 @@ def parse_args():
                    help="Whether to print additional info about input and output columns.")
     p.add_argument("--tool", choices={
         "IlluminaEHv5", "ExpansionHunter", "EHv5", "EHv5-bw2-optimized", "GangSTR", "HipSTR",
-        "constrain", "TRGTv3", "TRGTv5", "LongTR", "inquiSTR", "vamos"}, required=True,
+        "constrain", "TRGTv3", "TRGTv5", "LongTR", "inquiSTR", "vamos",
+        "EnsembleTR-EH+HipSTR", "EnsembleTR-EH+HipSTR+GangSTR"}, required=True,
         help="Which tool's results are in the input tsv file")
     p.add_argument("--filter-to-regions", action="append", default=[],
                    help="Optional bed file(s) of regions of interest. Rows in the input table that aren't contained in "
@@ -118,6 +119,11 @@ def main():
         tool_df_columns_to_keep += ["Q: Allele 1", "Q: Allele 2", "NumAllelesSupportedTotal"]
     elif args.tool == "GangSTR":
         tool_df_columns_to_keep += EH_AND_GANGSTR_COLUMNS
+        tool_df_columns_to_keep += ["Q"]
+    elif args.tool in ("EnsembleTR-EH+HipSTR", "EnsembleTR-EH+HipSTR+GangSTR"):
+        # EnsembleTR json (from convert_ensembletr_vcf_to_expansion_hunter_json) carries only the consensus genotype
+        # plus a single per-locus SCORE surfaced as Q by combine_str_json_to_tsv --include-extra-ensembletr-fields; it
+        # has no per-read or per-allele-Q columns, so keep only Q.
         tool_df_columns_to_keep += ["Q"]
     elif args.tool == "HipSTR":
         tool_df_columns_to_keep += ["Q", "DP", "AB", "FS", "DFLANKINDEL", "DSTUTTER"]

@@ -65,6 +65,8 @@ TITLE_TOOL_LABELS = {
     "IlluminaEHv5": "Illumina/EHv5",
     "EHv5": "bw2/EHv5 (low-mem-streaming)",
     "EHv5-bw2-optimized": "bw2/EHv5 (optimized-streaming)",
+    "EnsembleTR-EH+HipSTR": "EnsembleTR (EH+HipSTR)",
+    "EnsembleTR-EH+HipSTR+GangSTR": "EnsembleTR (EH+HipSTR+GangSTR)",
 }
 
 # sequencing_data_type key -> human-readable label for the plot title (mirrors DATA_TYPES in
@@ -571,7 +573,8 @@ def main():
     g = p.add_argument_group("Filters")
     g.add_argument("--tool", choices={
         "IlluminaEHv5", "ExpansionHunter", "EHv5", "EHv5-bw2-optimized", "GangSTR", "HipSTR",
-        "constrain", "TRGTv3", "TRGTv5", "LongTR", "inquiSTR", "vamos"},
+        "constrain", "TRGTv3", "TRGTv5", "LongTR", "inquiSTR", "vamos",
+        "EnsembleTR-EH+HipSTR", "EnsembleTR-EH+HipSTR+GangSTR"},
         help="Plot only this tool")
     g.add_argument("--q-threshold", type=float, help="Plot only this Q threshold")
     g.add_argument("--coverage", help="Plot only this coverage (example: \"20x\" or \"exome\")")
