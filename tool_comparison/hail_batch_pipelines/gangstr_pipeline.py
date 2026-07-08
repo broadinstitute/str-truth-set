@@ -74,8 +74,9 @@ def main():
         male_or_female="female")
     bp.run()
 
-def create_gangstr_steps(bp, *, reference_fasta, input_bam, input_bai, repeat_spec_file_paths, output_dir, output_prefix, 
-                         reference_fasta_fai=None, male_or_female="female"):
+def create_gangstr_steps(bp, *, reference_fasta, input_bam, input_bai, repeat_spec_file_paths, output_dir, output_prefix,
+                         reference_fasta_fai=None, male_or_female="female", catalog_step=None):
+    # catalog_step: optional upstream Step that produces the input catalog; the genotyping step(s) depend on it so they never run before the catalog exists.
     step1s = []
     step1_output_paths = []
 
@@ -94,6 +95,8 @@ def create_gangstr_steps(bp, *, reference_fasta, input_bam, input_bai, repeat_sp
                          storage=f"{int(input_bam_file_stats.size/10**9) + 25}Gi",
                          output_dir=output_dir)
         step1s.append(s1)
+        if catalog_step is not None:
+            s1.depends_on(catalog_step)
 
         local_fasta = s1.input(reference_fasta)
         if reference_fasta_fai:

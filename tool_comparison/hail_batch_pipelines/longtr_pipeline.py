@@ -132,7 +132,8 @@ def main():
 
 
 def create_longtr_steps(bp, *, reference_fasta, input_bam, input_bai, regions_bed_paths, output_dir, output_prefix,
-                        reference_fasta_fai=None, male_or_female="female", min_mean_qual=None):
+                        reference_fasta_fai=None, male_or_female="female", min_mean_qual=None, catalog_step=None):
+    # catalog_step: optional upstream Step that produces the input catalog; the genotyping step(s) depend on it so they never run before the catalog exists.
     step1s = []
     step1_output_json_paths = []
     hfs_ls_results = hfs.ls(input_bam)
@@ -149,6 +150,8 @@ def create_longtr_steps(bp, *, reference_fasta, input_bam, input_bai, regions_be
                          localize_by=Localize.COPY,
                          storage=f"{int(input_bam_file_stats.size/10**9) + 25}Gi")
         step1s.append(s1)
+        if catalog_step is not None:
+            s1.depends_on(catalog_step)
 
         local_fasta = s1.input(reference_fasta)
         if reference_fasta_fai:

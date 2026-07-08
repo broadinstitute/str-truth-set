@@ -17,7 +17,7 @@ REFERENCE_FASTA_FAI_PATH = "gs://str-truth-set/hg38/ref/hg38.fa.fai"
 
 def create_ensembletr_steps(bp, *, reference_fasta, eh_json_paths, hipstr_vcf_paths, variant_catalog_path, output_dir,
                             output_prefix, sample_id, gangstr_vcf_paths=None, reference_fasta_fai=None,
-                            male_or_female="female"):
+                            male_or_female="female", catalog_step=None):
     """Build the steps that merge per-caller genotypes with EnsembleTR and convert the consensus to the truth-set format.
 
     EnsembleTR (https://github.com/gymrek-lab/EnsembleTR) merges the already-computed ExpansionHunter, HipSTR and
@@ -50,6 +50,8 @@ def create_ensembletr_steps(bp, *, reference_fasta, eh_json_paths, hipstr_vcf_pa
         reference_fasta_fai: gs:// path of the reference fasta .fai index (defaults to reference_fasta + ".fai").
         male_or_female: retained for a uniform create_*_steps signature; EnsembleTR has no sex option, and hemizygous
             (male chrX/chrY) calls are made diploid inside convert_expansion_hunter_json_to_vcf.
+        catalog_step: optional upstream Step that produces the input catalog; the genotyping step(s) depend on it so
+            they never run before the catalog exists.
 
     Returns:
         The combine step (step2), whose .variants.tsv.gz output the caller passes to add_tool_comparison_columns_step.
@@ -77,6 +79,9 @@ def create_ensembletr_steps(bp, *, reference_fasta, eh_json_paths, hipstr_vcf_pa
         storage="20Gi",
         localize_by=Localize.GSUTIL_COPY,
         output_dir=output_dir)
+
+    if catalog_step is not None:
+        s1.depends_on(catalog_step)
 
     local_fasta = s1.input(reference_fasta)
     s1.input(reference_fasta_fai)

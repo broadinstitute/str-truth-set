@@ -114,7 +114,8 @@ def main():
 
 def create_trgt_step(bp, *, reference_fasta, input_bam, input_bai, trgt_catalog_bed_paths, output_dir, output_prefix,
                      reference_fasta_fai=None, male_or_female="female", parse_reference_region_from_locus_id=False, cpu=16,
-                     docker_image=DOCKER_IMAGE):
+                     docker_image=DOCKER_IMAGE, catalog_step=None):
+    # catalog_step: optional upstream Step that produces the input catalog; the genotyping step(s) depend on it so they never run before the catalog exists.
     if len(trgt_catalog_bed_paths) > 1:
         raise ValueError("Only one TRGT catalog bed file is currently supported")
     if len(trgt_catalog_bed_paths) == 0:
@@ -130,6 +131,8 @@ def create_trgt_step(bp, *, reference_fasta, input_bam, input_bai, trgt_catalog_
                      cpu=cpu,
                      storage="200Gi",
                      output_dir=output_dir)
+    if catalog_step is not None:
+        s1.depends_on(catalog_step)
     s1.command("set -ex")
     local_fasta = s1.input(reference_fasta, localize_by=Localize.COPY)
     if reference_fasta_fai:

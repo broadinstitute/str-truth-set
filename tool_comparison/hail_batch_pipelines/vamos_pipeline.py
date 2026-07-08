@@ -59,7 +59,9 @@ def main():
 
 
 def create_vamos_step(bp, *, reference_fasta, input_bam, input_bai, expansion_hunter_catalog_paths, output_dir,
-                      output_prefix, reference_fasta_fai=None, cpu=16):
+                      output_prefix, reference_fasta_fai=None, cpu=16, catalog_step=None):
+    # catalog_step: optional upstream Step that produces the input catalog; the genotyping step(s) depend on it so they
+    # never run before the catalog exists.
     if len(expansion_hunter_catalog_paths) > 1:
         raise ValueError("Only one ExpansionHunter catalog file is currently supported")
     if len(expansion_hunter_catalog_paths) == 0:
@@ -75,6 +77,8 @@ def create_vamos_step(bp, *, reference_fasta, input_bam, input_bai, expansion_hu
                      cpu=cpu,
                      storage="200Gi",
                      output_dir=output_dir)
+    if catalog_step is not None:
+        s1.depends_on(catalog_step)
     s1.command("set -ex")
 
     # the vamos image doesn't bundle str-analysis, so install it (with its dependencies) before running the catalog

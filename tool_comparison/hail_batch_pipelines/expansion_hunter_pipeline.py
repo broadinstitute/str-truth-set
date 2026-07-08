@@ -128,7 +128,15 @@ def main():
 
 def create_expansion_hunter_steps(bp, *, reference_fasta, input_bam, input_bai, variant_catalog_file_paths, output_dir, output_prefix, reference_fasta_fai=None, male_or_female="female",
                                   analysis_mode="seeking", loci_to_exclude=None, min_locus_coverage=None, use_illumina_expansion_hunter=False, run_reviewer=False, num_shards=1,
-                                  catalog_prefilter_step=None):
+                                  catalog_prefilter_step=None, streaming_cpu=None, streaming_threads=None, streaming_memory=None):
+
+    # cpu/threads/memory for the bw2-fork streaming modes (low-mem-streaming, optimized-streaming). Default to the
+    # EHV5_STREAMING_* module constants unless the caller passes explicit values -- e.g. an unsharded run passes
+    # cpu=2/threads=4/highmem so the extra threads parallelize the htslib CRAM decompression scan (the dominant cost
+    # when the whole catalog is genotyped in one job). Ignored for the official IlluminaEHv5 build (hardcoded 16/highmem).
+    streaming_cpu = streaming_cpu if streaming_cpu is not None else EHV5_STREAMING_CPU
+    streaming_threads = streaming_threads if streaming_threads is not None else EHV5_STREAMING_THREADS
+    streaming_memory = streaming_memory if streaming_memory is not None else EHV5_STREAMING_MEMORY
 
     if use_illumina_expansion_hunter:
         tool_exec = "IlluminaExpansionHunter"
@@ -197,10 +205,10 @@ def create_expansion_hunter_steps(bp, *, reference_fasta, input_bam, input_bai, 
             # build (use_illumina_expansion_hunter, analysis_mode == "streaming") keeps the hardcoded 16/highmem;
             # the bw2 fork run with --analysis-mode streaming honors EHV5_STREAMING_* like the other streaming modes.
             cpu=(16 if analysis_mode == "streaming" and use_illumina_expansion_hunter
-                 else EHV5_STREAMING_CPU if "streaming" in analysis_mode
+                 else streaming_cpu if "streaming" in analysis_mode
                  else 2),
             memory=("highmem" if analysis_mode == "streaming" and use_illumina_expansion_hunter
-                    else EHV5_STREAMING_MEMORY if "streaming" in analysis_mode
+                    else streaming_memory if "streaming" in analysis_mode
                     else "standard"),
             localize_by=Localize.GSUTIL_COPY,
             storage=f"{int(input_bam_file_stats.size/10**9) + 14}Gi",
@@ -248,7 +256,7 @@ def create_expansion_hunter_steps(bp, *, reference_fasta, input_bam, input_bai, 
         # --cache-mates is a bw2-fork-only flag; the stock Illumina build rejects it
         if analysis_mode == "seeking" and not use_illumina_expansion_hunter: extra_args += "--cache-mates "
         if analysis_mode == "streaming" and use_illumina_expansion_hunter: extra_args += "--threads 16 "       # IlluminaEHv5 build (cpu=16)
-        elif "streaming" in analysis_mode: extra_args += f"--threads {EHV5_STREAMING_THREADS} "   # EHv5-bw2 streaming modes (incl. plain streaming): threads parallelize htslib CRAM decompression
+        elif "streaming" in analysis_mode: extra_args += f"--threads {streaming_threads} "   # EHv5-bw2 streaming modes (incl. plain streaming): threads parallelize htslib CRAM decompression
         # bw2-fork (f5d4963+) outputs consensus allele sequences by default; disable to keep the
         # regenerated truth-set JSON lean. The official Illumina build lacks this flag.
         if not use_illumina_expansion_hunter: extra_args += "--dont-output-consensus-sequences "
