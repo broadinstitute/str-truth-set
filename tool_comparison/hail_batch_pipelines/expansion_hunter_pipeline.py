@@ -25,7 +25,7 @@ def _count_catalog_loci(catalog_path):
             data = f.read()
     return data.count(b'"LocusId"')
 
-DOCKER_IMAGE = "weisburd/str-analysis-with-expansion-hunter@sha256:e9c0290e75e525553787ee2ce64db4710d8d3cf99a4a95edbedf31812aa874e3"
+DOCKER_IMAGE = "weisburd/str-analysis-with-expansion-hunter@sha256:aae797632c42e00bac595bb263467f79bd6e49d07b89b6e600e2514956de831b"
 
 # optimized-streaming / low-mem-streaming genotype per-locus single-threaded, but htslib decompresses the
 # CRAM across up to 12 threads (HtsLowMemStreamingSampleAnalysis.cpp), so for an UNSHARDED run
