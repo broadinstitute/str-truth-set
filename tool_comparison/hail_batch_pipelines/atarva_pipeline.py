@@ -16,7 +16,7 @@ import re
 
 from step_pipeline import pipeline, Backend, Localize
 
-DOCKER_IMAGE = "weisburd/atarva@sha256:6c0da2e3e261481590ccfa8b8ccb9190a95cd8b68e2bdf9d76f9d0f76df9435e"
+DOCKER_IMAGE = "weisburd/atarva@sha256:39f19cc6d8fc5c195b9b167c580f6d6a65771889a22ff37c7f2ad779ed997cb5"
 
 # str-analysis commit baked-in check: the converter (convert_atarva_vcf_to_expansion_hunter_json) is installed at
 # runtime from this pinned commit so the converter output stays reproducible across runs (matches the vamos pipeline).

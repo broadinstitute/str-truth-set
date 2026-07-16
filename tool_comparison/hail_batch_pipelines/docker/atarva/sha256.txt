@@ -1,1 +1,1 @@
-weisburd/atarva@sha256:6c0da2e3e261481590ccfa8b8ccb9190a95cd8b68e2bdf9d76f9d0f76df9435e
+weisburd/atarva@sha256:39f19cc6d8fc5c195b9b167c580f6d6a65771889a22ff37c7f2ad779ed997cb5
