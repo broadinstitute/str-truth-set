@@ -41,7 +41,7 @@ def main():
     parser.add_argument("--male-or-female", default="female", choices=["male", "female"])
     parser.add_argument("--amplicon", action="store_true", help="Run ATaRVa in targeted (amplicon) mode")
     parser.add_argument("--output-dir", default=OUTPUT_BASE_DIR)
-    parser.add_argument("--cpu", type=int, default=16)
+    parser.add_argument("--cpu", type=int, default=4)
     args = bp.parse_known_args()
 
     regions_bed_paths = [x.path for x in hfs.ls(args.regions_bed)]
@@ -67,7 +67,7 @@ def main():
 
 
 def create_atarva_step(bp, *, reference_fasta, input_bam, input_bai, regions_bed_path, output_dir, output_prefix,
-                       reference_fasta_fai=None, male_or_female="female", amplicon=False, cpu=16, catalog_step=None):
+                       reference_fasta_fai=None, male_or_female="female", amplicon=False, cpu=4, catalog_step=None):
     # catalog_step: optional upstream Step that produces the input catalog bed; the genotyping step depends on it so it
     # never runs before the catalog exists.
     s1 = bp.new_step(f"Run ATaRVa on {os.path.basename(input_bam)}  ({os.path.basename(regions_bed_path)})",
@@ -75,9 +75,10 @@ def create_atarva_step(bp, *, reference_fasta, input_bam, input_bai, regions_bed
                      step_number=1,
                      image=DOCKER_IMAGE,
                      cpu=cpu,
-                     # ATaRVa fans out one process per thread, each holding reads + running sklearn clustering, so give
-                     # the multi-process WGS run highmem headroom rather than risk an OOM part-way through.
-                     memory="highmem",
+                     # ATaRVa fans out one process per thread (-t {cpu}), each with its own read/SNV buffers, so memory
+                     # scales ~linearly with cpu. Per the paper it peaks near ~1GB/thread (PacBio HiFi/ONT Duplex) and
+                     # ~3GB/thread (ONT Simplex), so cpu=4 fits comfortably in standard memory (4GB/core).
+                     memory="standard",
                      storage="200Gi",
                      output_dir=output_dir)
     if catalog_step is not None:
