@@ -103,15 +103,9 @@ def create_atarva_step(bp, *, reference_fasta, input_bam, input_bai, regions_bed
     local_regions_bed = s1.input(regions_bed_path, localize_by=Localize.COPY)
     s1.input(f"{regions_bed_path}.tbi", localize_by=Localize.COPY)
 
-    # ATaRVa decodes CRAM through pysam without an explicit reference, which relies on the CRAM header's reference URL
-    # and is fragile. For CRAM input, convert to BAM against the localized reference first (as the vamos pipeline does);
-    # BAM input is genotyped as-is.
-    if input_bam.endswith(".cram"):
-        s1.command(f"samtools view -@ {cpu} -b -T {local_fasta} -o {output_prefix}.input.bam {local_bam}")
-        s1.command(f"samtools index -@ {cpu} {output_prefix}.input.bam")
-        atarva_input_bam = f"{output_prefix}.input.bam"
-    else:
-        atarva_input_bam = local_bam
+    # The bw2 ATaRVa fork passes the reference to pysam when opening the alignment file, so CRAM input decodes reliably
+    # and is genotyped directly (no BAM conversion). --format tells ATaRVa which reader to use.
+    atarva_format = "cram" if input_bam.endswith(".cram") else "bam"
 
     s1.command("df -kh")
 
@@ -125,9 +119,9 @@ def create_atarva_step(bp, *, reference_fasta, input_bam, input_bai, regions_bed
     # as designed rather than lowered the way LongTR's --min-reads is.
     s1.command(f"/usr/bin/time --verbose atarva genotype "
                f"-f {local_fasta} "
-               f"-b {atarva_input_bam} "
+               f"-b {local_bam} "
                f"-r {local_regions_bed} "
-               f"--format bam "
+               f"--format {atarva_format} "
                f"--karyotype {karyotype} "
                f"-t {cpu} "
                f"{amplicon_arg}"

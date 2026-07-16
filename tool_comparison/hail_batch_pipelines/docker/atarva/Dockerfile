@@ -47,9 +47,12 @@ RUN wget -q https://github.com/samtools/samtools/releases/download/${SAMTOOLS_VE
 
 RUN python3 -m pip install --no-cache-dir --upgrade pip
 
-# ATaRVa the tandem repeat genotyper (https://github.com/SowpatiLab/ATaRVa). Pinned to a release so genotyping stays
-# reproducible across image rebuilds.
-RUN python3 -m pip install --no-cache-dir "ATaRVa==0.7.1"
+# ATaRVa the tandem repeat genotyper. Installed from the bw2 fork at a pinned commit, which adds the
+# reference_filename fix so CRAM reads decode reliably (SowpatiLab/ATaRVa#13); this lets the pipeline genotype CRAM
+# input directly instead of converting it to BAM first. The prebuilt libssw.so ships in the repo, so no compile step
+# is needed. Pinned to a commit so genotyping stays reproducible across image rebuilds.
+RUN python3 -m pip install --no-cache-dir \
+    'git+https://github.com/bw2/ATaRVa.git@3669f10aaab91b222388fcee6d38f235890174e8'
 
 # str-analysis provides convert_atarva_vcf_to_expansion_hunter_json + combine_str_json_to_tsv. The atarva_pipeline
 # runtime-installs a pinned commit (STR_ANALYSIS_COMMIT) on top of this so the converter can be updated without
