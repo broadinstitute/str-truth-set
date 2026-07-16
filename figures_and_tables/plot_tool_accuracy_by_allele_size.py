@@ -573,7 +573,7 @@ def main():
     g = p.add_argument_group("Filters")
     g.add_argument("--tool", choices={
         "IlluminaEHv5", "ExpansionHunter", "EHv5", "EHv5-bw2-optimized", "GangSTR", "HipSTR",
-        "constrain", "TRGTv3", "TRGTv5", "LongTR", "inquiSTR", "vamos",
+        "constrain", "TRGTv3", "TRGTv5", "LongTR", "inquiSTR", "vamos", "ATaRVa",
         "EnsembleTR-EH+HipSTR", "EnsembleTR-EH+HipSTR+GangSTR"},
         help="Plot only this tool")
     g.add_argument("--q-threshold", type=float, help="Plot only this Q threshold")
