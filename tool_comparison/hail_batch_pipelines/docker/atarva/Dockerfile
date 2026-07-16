@@ -25,21 +25,14 @@ RUN apt update && apt-get install --no-install-recommends -y \
     jq \
     time
 
-# htslib + samtools provide bgzip/tabix (index the regions bed) and samtools (decode CRAM -> BAM before genotyping).
-ENV SAMTOOLS_VERSION="1.20"
-RUN wget -q https://github.com/samtools/htslib/releases/download/${SAMTOOLS_VERSION}/htslib-${SAMTOOLS_VERSION}.tar.bz2 \
-    && tar xjf htslib-${SAMTOOLS_VERSION}.tar.bz2 \
-    && rm htslib-${SAMTOOLS_VERSION}.tar.bz2 \
-    && cd htslib-${SAMTOOLS_VERSION} \
-    && ./configure \
-    && make \
-    && make install \
-    && make clean
-
-RUN wget -q https://github.com/samtools/samtools/releases/download/${SAMTOOLS_VERSION}/samtools-${SAMTOOLS_VERSION}.tar.bz2 \
-    && tar xjf samtools-${SAMTOOLS_VERSION}.tar.bz2 \
-    && rm samtools-${SAMTOOLS_VERSION}.tar.bz2 \
-    && cd samtools-${SAMTOOLS_VERSION} \
+# htslib provides bgzip/tabix, used to bgzip + tabix-index the regions bed and the output bed. CRAM is decoded
+# directly by pysam inside ATaRVa (the bw2 fork passes the reference to pysam), so no samtools / CRAM -> BAM step
+# is needed.
+ENV HTSLIB_VERSION="1.20"
+RUN wget -q https://github.com/samtools/htslib/releases/download/${HTSLIB_VERSION}/htslib-${HTSLIB_VERSION}.tar.bz2 \
+    && tar xjf htslib-${HTSLIB_VERSION}.tar.bz2 \
+    && rm htslib-${HTSLIB_VERSION}.tar.bz2 \
+    && cd htslib-${HTSLIB_VERSION} \
     && ./configure \
     && make \
     && make install \
