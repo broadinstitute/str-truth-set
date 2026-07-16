@@ -70,6 +70,14 @@ def create_atarva_step(bp, *, reference_fasta, input_bam, input_bai, regions_bed
                        reference_fasta_fai=None, male_or_female="female", amplicon=False, cpu=4, catalog_step=None):
     # catalog_step: optional upstream Step that produces the input catalog bed; the genotyping step depends on it so it
     # never runs before the catalog exists.
+    # Size the disk to the localized bam/cram plus 30Gi of headroom (reference fasta + vcf/json outputs), rather than a
+    # fixed 200Gi -- ATaRVa reads the alignment in place and writes only a small vcf, so it never needs much beyond the
+    # input file itself.
+    hfs_ls_results = hfs.ls(input_bam)
+    if len(hfs_ls_results) == 0:
+        raise ValueError(f"No files found matching {input_bam}")
+    storage_gb = int(hfs_ls_results[0].size / 10**9) + 30
+
     s1 = bp.new_step(f"Run ATaRVa on {os.path.basename(input_bam)}  ({os.path.basename(regions_bed_path)})",
                      arg_suffix="run-atarva-step",
                      step_number=1,
@@ -79,7 +87,7 @@ def create_atarva_step(bp, *, reference_fasta, input_bam, input_bai, regions_bed
                      # scales ~linearly with cpu. Per the paper it peaks near ~1GB/thread (PacBio HiFi/ONT Duplex) and
                      # ~3GB/thread (ONT Simplex), so cpu=4 fits comfortably in standard memory (4GB/core).
                      memory="standard",
-                     storage="200Gi",
+                     storage=f"{storage_gb}Gi",
                      output_dir=output_dir)
     if catalog_step is not None:
         s1.depends_on(catalog_step)
