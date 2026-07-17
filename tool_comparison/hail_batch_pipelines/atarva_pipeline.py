@@ -123,15 +123,17 @@ def create_atarva_step(bp, *, reference_fasta, input_bam, input_bai, regions_bed
     karyotype = "XY" if male_or_female == "male" else "XX"
     amplicon_arg = "--amplicon " if amplicon else ""
 
-    # ATaRVa is run at its default settings (e.g. --min-reads 10, --map-qual 5), matching how it was benchmarked in the
-    # ATaRVa paper -- its KDE/HDBSCAN genotyping depends on adequate read support, so its coverage thresholds are left
-    # as designed rather than lowered the way LongTR's --min-reads is.
+    # Lower --min-reads from ATaRVa's default of 10 to 2, matching LongTR's setting in this benchmark, so the low-depth
+    # comparison is coverage-matched. At the default 10, ATaRVa no-calls most loci at low coverage (8x) and on male
+    # haploid chrX/chrY (half depth), which counts as discordant and unfairly sinks its "% green" versus tools run at a
+    # lower threshold -- even though it genotypes those loci at 95-100% accuracy when it does call them.
     s1.command(f"/usr/bin/time --verbose atarva genotype "
                f"-f {local_fasta} "
                f"-b {local_bam} "
                f"-r {local_regions_bed} "
                f"--format {atarva_format} "
                f"--karyotype {karyotype} "
+               f"--min-reads 2 "
                f"-t {cpu} "
                f"{amplicon_arg}"
                f"-o {output_prefix}.vcf")
