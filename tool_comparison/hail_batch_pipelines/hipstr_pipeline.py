@@ -75,8 +75,11 @@ def main():
     bp.run()
 
 def create_hipstr_steps(bp, *, reference_fasta, input_bam, input_bai, regions_bed_file_paths, output_dir, output_prefix, reference_fasta_fai=None,
-                        male_or_female="female", catalog_step=None):
+                        male_or_female="female", catalog_step=None, cpu=1, memory="standard"):
     # catalog_step: optional upstream Step that produces the input catalog; the genotyping step(s) depend on it so they never run before the catalog exists.
+    # cpu / memory: Hail Batch VM sizing for the genotyping step (defaults cpu=1 / memory="standard" preserve prior
+    #         behavior). The resource benchmark passes cpu=2 / memory="highmem" (13 GB) because HipSTR needs >6.5 GB
+    #         on the large-VNTR polymorphic catalogs, and Hail can't provide >6.5 GB at cpu=1 (highmem = 6.5 GB/core).
     step1s = []
     step1_output_paths = []
 
@@ -90,7 +93,8 @@ def create_hipstr_steps(bp, *, reference_fasta, input_bam, input_bai, regions_be
                          arg_suffix=f"run-hipstr-step",
                          step_number=1,
                          image=DOCKER_IMAGE,
-                         cpu=1,
+                         cpu=cpu,
+                         memory=memory,
                          localize_by=Localize.GSUTIL_COPY,
                          storage=f"{int(input_bam_file_stats.size/10**9) + 25}Gi",
                          output_dir=output_dir)
