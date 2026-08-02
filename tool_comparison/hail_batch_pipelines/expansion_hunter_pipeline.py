@@ -25,7 +25,7 @@ def _count_catalog_loci(catalog_path):
             data = f.read()
     return data.count(b'"LocusId"')
 
-DOCKER_IMAGE = "weisburd/str-analysis-with-expansion-hunter@sha256:aae797632c42e00bac595bb263467f79bd6e49d07b89b6e600e2514956de831b"
+DOCKER_IMAGE = "weisburd/str-analysis-with-expansion-hunter@sha256:7a006e45a297d42a914fb5b36ee2866308d0a4c3f0a60360f56897a53a76f1ec"
 
 # optimized-streaming / low-mem-streaming genotype per-locus single-threaded, but htslib decompresses the
 # CRAM across up to 12 threads (HtsLowMemStreamingSampleAnalysis.cpp), so for an UNSHARDED run
@@ -254,7 +254,11 @@ def create_expansion_hunter_steps(bp, *, reference_fasta, input_bam, input_bai, 
 
         extra_args = ""
         # --cache-mates is a bw2-fork-only flag; the stock Illumina build rejects it
-        if analysis_mode == "seeking" and not use_illumina_expansion_hunter: extra_args += "--cache-mates "
+        if analysis_mode == "seeking" and not use_illumina_expansion_hunter:
+            extra_args += "--cache-mates "
+            # HtsSeekingSampleAnalysis.cpp genuinely parallelizes per-locus genotyping across --threads
+            # (not just a streaming-mode decompression optimization) -- pass it through here too.
+            extra_args += f"--threads {streaming_threads} "
         if analysis_mode == "streaming" and use_illumina_expansion_hunter: extra_args += "--threads 16 "       # IlluminaEHv5 build (cpu=16)
         elif "streaming" in analysis_mode: extra_args += f"--threads {streaming_threads} "   # EHv5-bw2 streaming modes (incl. plain streaming): threads parallelize htslib CRAM decompression
         # bw2-fork (f5d4963+) outputs consensus allele sequences by default; disable to keep the
