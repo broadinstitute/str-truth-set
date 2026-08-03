@@ -153,6 +153,7 @@ def plot_sequence_accuracy(df, args, distance_column, category_column, category_
                 transform=ax.transAxes)
 
     if tool_name:
+        sns.move_legend(axes[1], loc="upper left", bbox_to_anchor=(1.02, 1))
         legend = axes[1].get_legend()
         legend.set_title(f"{tool_name} Allele Sequence\nvs\nTrue Allele Sequence\n")
         legend.get_title().set_horizontalalignment("center")
@@ -259,7 +260,7 @@ def generate_all_plots(df, args):
                         figure_title=figure_title_line1 + "\n\n" + figure_title_line2 if args.show_title else None)
 
                 output_path = os.path.join(args.output_dir, f"{output_image_filename}.{args.image_type}")
-                plt.savefig(output_path, dpi=300)
+                plt.savefig(output_path, dpi=300, bbox_inches="tight")
                 plt.close()
                 print(f"Saved {output_path}")
                 plot_counter += 1
