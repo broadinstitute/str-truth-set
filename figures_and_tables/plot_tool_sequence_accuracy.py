@@ -2,7 +2,7 @@
 
 This is the sequence-accuracy counterpart of plot_tool_accuracy_by_allele_size.py. That script scores a tool by how
 close its repeat count is to the truth; this one scores the tools that report an actual allele sequence (TRGT,
-ATaRVa, HipSTR) by the edit distance columns that add_sequence_accuracy_columns.py adds:
+ATaRVa, HipSTR, EHv5-bw2-optimized) by the edit distance columns that add_sequence_accuracy_columns.py adds:
 
     SequenceEditDistance: Allele: {tool}             Levenshtein distance in bp
     SequenceEditDistanceNormalized: Allele: {tool}   the same distance / max(1, len(truth allele sequence))
@@ -34,7 +34,7 @@ sns.set_context(font_scale=1.1, rc={
 
 # Tools scored by this benchmark. Must match run_tools/run_genotyping_tools.py's SEQUENCE_ACCURACY_TOOLS --
 # TRGTv3 is scoped out of v1 there, so it's excluded here too even though its VCF format is TRGTv5-compatible.
-SEQUENCE_ACCURACY_TOOLS = ["TRGTv5", "ATaRVa", "HipSTR"]
+SEQUENCE_ACCURACY_TOOLS = ["TRGTv5", "ATaRVa", "HipSTR", "EHv5-bw2-optimized"]
 
 # (upper bound inclusive, label) for the stacked category panel, coarsest last. The bp cuts are absolute; the
 # normalized cuts are fractions of the true allele length.
