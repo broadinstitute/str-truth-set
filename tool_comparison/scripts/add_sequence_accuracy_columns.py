@@ -1,16 +1,17 @@
 """Add sequence-accuracy columns to a tool-vs-truth comparison table.
 
 The accuracy plots score a tool by how close its repeat *count* is to the truth. This script scores the tools that
-report an actual allele *sequence* (TRGT, ATaRVa, HipSTR) by the edit distance between the sequence they report and
-the assembly-derived truth allele sequence, which also captures the substitutions and interruptions that a repeat
-count can't express.
+report an actual allele *sequence* (TRGT, ATaRVa, HipSTR, and -- when run with consensus sequences enabled --
+ExpansionHunter) by the edit distance between the sequence they report and the assembly-derived truth allele
+sequence, which also captures the substitutions and interruptions that a repeat count can't express.
 
 It joins two side tables onto the ...with_{tool}_results.tsv.gz table produced by add_tool_results_columns.py:
 
     --truth-set-genotypes   {sample}.tandem_repeat_genotypes.tsv.gz, whose Allele1Sequence / Allele2Sequence columns
                             hold the assembly's two haplotype sequences spanning the locus interval
-    --allele-sequences      {prefix}.allele_sequences.tsv.gz from str_analysis.extract_allele_sequences_from_vcf,
-                            which holds the tool's two allele sequences over the same interval
+    --allele-sequences      {prefix}.allele_sequences.tsv.gz from str_analysis.extract_allele_sequences_from_vcf or
+                            .extract_allele_sequences_from_expansion_hunter_json, which holds the tool's two allele
+                            sequences over the same interval
 
 and adds 4 numeric columns:
 
@@ -32,6 +33,7 @@ read_tool_allele_sequences() for the two presence rules.
 """
 
 import argparse
+import itertools
 import os
 import pandas as pd
 
@@ -41,15 +43,45 @@ from str_analysis.extract_allele_sequences_from_vcf import CALLED, EXTRACTION_OK
 
 # Tools scored by this benchmark. Must match run_tools/run_genotyping_tools.py's SEQUENCE_ACCURACY_TOOLS --
 # TRGTv3 is scoped out of v1 there, so it's excluded here too even though its VCF format is TRGTv5-compatible.
-SEQUENCE_ACCURACY_TOOLS = ["TRGTv5", "ATaRVa", "HipSTR"]
+SEQUENCE_ACCURACY_TOOLS = ["TRGTv5", "ATaRVa", "HipSTR", "EHv5-bw2-optimized"]
 
 TRUTH_SEQUENCE_COLUMNS = ["TruthAlleleSequence: Allele 1", "TruthAlleleSequence: Allele 2"]
 TOOL_SEQUENCE_COLUMNS = ["ToolAlleleSequence: Allele 1", "ToolAlleleSequence: Allele 2"]
+
+# Private-use-area code points, never present in real sequence data, used to mask 'N' bases before computing edit
+# distance (see _mask_ambiguous_bases). Spans Supplementary Private Use Areas A and B, ~131k code points -- vastly
+# more than any real locus's N count -- so every N occurrence in a single compute_sequence_edit_distances() call
+# gets its own unique placeholder.
+_N_PLACEHOLDER_BASE = 0xF0000
+_N_PLACEHOLDER_RANGE = 0x20000
 
 
 def sequence_or_none(sequence):
     """Return the sequence, or None if it isn't a string (a left-join miss arrives as NaN, not None)."""
     return sequence if isinstance(sequence, str) else None
+
+
+def _mask_ambiguous_bases(sequence, counter):
+    """Replace each 'N' in sequence with a placeholder unique to that occurrence (from counter).
+
+    'N' marks a base a tool couldn't resolve (e.g. ExpansionHunter's consensus sequences), so it must never count as
+    a match in the edit distance -- not even against a genuine 'N' in the truth sequence, which can also carry
+    assembly-gap N's. Giving every N its own placeholder guarantees that, while keeping the string the same length
+    so it doesn't otherwise change how the distance is computed.
+
+    Args:
+        sequence (str): the sequence to mask.
+        counter (Iterator[int]): shared across all sequences being compared in one distance computation, so N's from
+            different sequences never collide.
+
+    Returns:
+        str: sequence with every 'N' replaced by a unique placeholder character.
+    """
+    if "N" not in sequence:
+        return sequence
+    return "".join(
+        chr(_N_PLACEHOLDER_BASE + next(counter) % _N_PLACEHOLDER_RANGE) if base == "N" else base
+        for base in sequence)
 
 
 def pair_truth_sequences(allele_1_sequence, allele_2_sequence, short_allele_size_bp, long_allele_size_bp):
@@ -114,6 +146,13 @@ def compute_sequence_edit_distances(truth_allele_1, truth_allele_2, tool_allele_
     truth_allele_2 = sequence_or_none(truth_allele_2)
     tool_allele_1 = sequence_or_none(tool_allele_1)
     tool_allele_2 = sequence_or_none(tool_allele_2)
+
+    # mask 'N' bases so they never score as a match (see _mask_ambiguous_bases); one shared counter across all 4
+    # sequences so every N occurrence -- on either side, either allele -- gets a distinct placeholder
+    n_counter = itertools.count()
+    truth_allele_1, truth_allele_2, tool_allele_1, tool_allele_2 = (
+        None if sequence is None else _mask_ambiguous_bases(sequence, n_counter)
+        for sequence in (truth_allele_1, truth_allele_2, tool_allele_1, tool_allele_2))
 
     distances = (
         None if truth_allele_1 is None or tool_allele_1 is None else Levenshtein.distance(truth_allele_1, tool_allele_1),
@@ -238,7 +277,8 @@ def parse_args():
                    help="Path of {sample}.tandem_repeat_genotypes.tsv.gz (the truth set, which carries the "
                         "assembly's per-haplotype allele sequences).")
     p.add_argument("--allele-sequences", required=True,
-                   help="Path of {prefix}.allele_sequences.tsv.gz from str_analysis.extract_allele_sequences_from_vcf.")
+                   help="Path of {prefix}.allele_sequences.tsv.gz from str_analysis.extract_allele_sequences_from_vcf "
+                        "or .extract_allele_sequences_from_expansion_hunter_json.")
     p.add_argument("--output-tsv", help="Output path. Defaults to overwriting the input table in place, since the "
                                         "only change is the 4 added columns.")
     p.add_argument("combined_tsv", help="Path of the ...with_{tool}_results.tsv.gz table from "

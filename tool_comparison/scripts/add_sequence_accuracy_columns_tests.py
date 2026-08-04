@@ -83,6 +83,15 @@ class ComputeSequenceEditDistancesTests(unittest.TestCase):
         # pairing even though it would score better (2 + 2 instead of 2 + 4)
         self.assertEqual(compute_sequence_edit_distances("AA", "GGGG", "GG", "AAAA"), (2, 4))
 
+    def test_n_never_counts_as_a_match(self):
+        # an 'N' in the tool sequence (e.g. ExpansionHunter's consensus sequences mark ambiguous bases this way)
+        # must count as a mismatch against the true base, not a free pass
+        self.assertEqual(compute_sequence_edit_distances("AAA", "AAAAA", "NAA", "AAAAA"), (1, 0))
+        # ... and an 'N' at the same position on both sides (truth sequences can carry assembly-gap N's too) must
+        # still count as a mismatch, not coincidentally "match" because both characters happen to be 'N'
+        self.assertEqual(compute_sequence_edit_distances("NAA", "AAAAA", "NAA", "AAAAA"), (1, 0))
+        self.assertEqual(compute_sequence_edit_distances("NNN", "AAAAA", "NNN", "AAAAA"), (3, 0))
+
 
 class ReadToolAlleleSequencesTests(unittest.TestCase):
 

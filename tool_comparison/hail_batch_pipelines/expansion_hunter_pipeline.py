@@ -128,7 +128,7 @@ def main():
 
 def create_expansion_hunter_steps(bp, *, reference_fasta, input_bam, input_bai, variant_catalog_file_paths, output_dir, output_prefix, reference_fasta_fai=None, male_or_female="female",
                                   analysis_mode="seeking", loci_to_exclude=None, min_locus_coverage=None, use_illumina_expansion_hunter=False, run_reviewer=False, num_shards=1,
-                                  catalog_prefilter_step=None, streaming_cpu=None, streaming_threads=None, streaming_memory=None):
+                                  catalog_prefilter_step=None, streaming_cpu=None, streaming_threads=None, streaming_memory=None, enable_consensus_sequences=False):
 
     # cpu/threads/memory for the bw2-fork streaming modes (low-mem-streaming, optimized-streaming). Default to the
     # EHV5_STREAMING_* module constants unless the caller passes explicit values -- e.g. an unsharded run passes
@@ -261,9 +261,11 @@ def create_expansion_hunter_steps(bp, *, reference_fasta, input_bam, input_bai, 
             extra_args += f"--threads {streaming_threads} "
         if analysis_mode == "streaming" and use_illumina_expansion_hunter: extra_args += "--threads 16 "       # IlluminaEHv5 build (cpu=16)
         elif "streaming" in analysis_mode: extra_args += f"--threads {streaming_threads} "   # EHv5-bw2 streaming modes (incl. plain streaming): threads parallelize htslib CRAM decompression
-        # bw2-fork (f5d4963+) outputs consensus allele sequences by default; disable to keep the
-        # regenerated truth-set JSON lean. The official Illumina build lacks this flag.
-        if not use_illumina_expansion_hunter: extra_args += "--dont-output-consensus-sequences "
+        # bw2-fork (f5d4963+) outputs consensus allele sequences by default; disabled by default here to keep the
+        # regenerated truth-set JSON lean. The official Illumina build lacks this flag. Set
+        # enable_consensus_sequences=True (e.g. for the sequence-accuracy benchmark) to keep them.
+        if not use_illumina_expansion_hunter and not enable_consensus_sequences:
+            extra_args += "--dont-output-consensus-sequences "
         # record per-locus thread-CPU genotyping time (GenotypingTimeMillis) in the json; bw2-fork streaming modes
         # only (the flag is not in the stock Illumina build). Makes the json non-deterministic (timing varies per run).
         if analysis_mode in ("low-mem-streaming", "optimized-streaming"): extra_args += "--output-genotype-timing "
@@ -342,7 +344,7 @@ def create_expansion_hunter_steps(bp, *, reference_fasta, input_bam, input_bai, 
     s2.output(f"{output_prefix}.{len(step1_output_paths)}_json_files.bed.gz")
     s2.output(f"{output_prefix}.{len(step1_output_paths)}_json_files.bed.gz.tbi")
 
-    return s2
+    return s2, step1_output_paths
 
 
 if __name__ == "__main__":
