@@ -163,7 +163,8 @@ def plot_sequence_accuracy(df, args, distance_column, category_column, category_
 
 
 def generate_all_plots(df, args):
-    """Generate one figure per (metric x motif size bin x genotype subset) and save it to args.output_dir.
+    """Generate one figure per (metric x motif size bin x genotype subset x no-call filter) and save it to
+    args.output_dir.
 
     Returns:
         int: the number of figures written.
@@ -196,74 +197,88 @@ def generate_all_plots(df, args):
 
             for genotype_subset in ["all", "HET", "HOM"] if not args.genotype else [args.genotype]:
                 if genotype_subset == "all":
-                    df_plot = df_motif
+                    df_genotype = df_motif
                     genotype_filename_token = ".all_genotypes"
                 else:
-                    df_plot = df_motif[df_motif["SummaryString"].str.contains(f":{genotype_subset}")]
+                    df_genotype = df_motif[df_motif["SummaryString"].str.contains(f":{genotype_subset}")]
                     genotype_filename_token = f".{genotype_subset}"
 
-                output_image_filename = ("tool_sequence_accuracy_by_true_allele_size"
-                                         f".{metric_name}{motif_filename_token}{genotype_filename_token}"
-                                         f".{args.coverage}.{args.tool}")
+                # Mirrors plot_tool_accuracy_by_allele_size.py's exclude_no_call_loci variant: both are generated
+                # for every other facet combination, and the viewer's Hide "No Call" loci checkbox picks between
+                # them. Dropping the no-call alleles also drops them from the "% exactly right" denominator, so the
+                # two variants deliberately report different percentages for the same locus set.
+                for exclude_no_call_loci in [False, True]:
+                    if exclude_no_call_loci:
+                        df_plot = df_genotype[df_genotype[category_column] != NO_CALL_LABEL]
+                        no_call_filename_token = ".exclude_no_call_loci"
+                    else:
+                        df_plot = df_genotype
+                        no_call_filename_token = ""
 
-                filter_description = [motif_description]
-                if genotype_subset != "all":
-                    filter_description.append(genotype_subset)
+                    output_image_filename = ("tool_sequence_accuracy_by_true_allele_size"
+                                             f".{metric_name}{motif_filename_token}{genotype_filename_token}"
+                                             f".{args.coverage}{no_call_filename_token}.{args.tool}")
 
-                data_type_label = SEQUENCING_DATA_TYPE_LABELS.get(args.sequencing_data_type, "genome")
-                coverage_label = ("exome data" if args.coverage == "exome"
-                                  else f"{args.coverage} {data_type_label} data")
+                    filter_description = [motif_description]
+                    if genotype_subset != "all":
+                        filter_description.append(genotype_subset)
+                    if exclude_no_call_loci:
+                        filter_description.append("exclude no-call loci")
 
-                # HipSTR doesn't support motifs larger than 9bp, so bins entirely above that are always empty.
-                # A None lower bound means "unstratified" (the all_motifs bin), not "no lower limit" -- it must
-                # not be treated as satisfying "> 9", or the all_motifs bin (which does include HipSTR's real
-                # 2-9bp calls) gets wrongly blanked too.
-                skip_message = None
-                if args.tool == "HipSTR" and (
-                        args.min_motif_size is not None and args.min_motif_size > 9
-                        and (args.max_motif_size is None or args.max_motif_size > 9)):
-                    skip_message = "HipSTR doesn't support motif sizes larger than 9bp"
-                elif len(df_plot) < 10:
-                    skip_message = "Not enough alleles to create plot"
+                    data_type_label = SEQUENCING_DATA_TYPE_LABELS.get(args.sequencing_data_type, "genome")
+                    coverage_label = ("exome data" if args.coverage == "exome"
+                                      else f"{args.coverage} {data_type_label} data")
 
-                n_locus_ids = len(set(df_plot.LocusId))
-                figure_title_line2 = f"{n_locus_ids:,d} loci (" + ", ".join(filter_description) + ")"
-                if skip_message:
-                    figure_title_line1 = f"{TITLE_TOOL_LABELS.get(args.tool, args.tool)} {coverage_label}"
-                    print(f"Skipping {output_image_filename}: {skip_message}")
-                    plot_empty_image(figure_title_line1 + "\n\n" + figure_title_line2, skip_message,
-                                     args.width, args.height)
-                else:
-                    num_alleles_exactly_right = sum(df_plot[category_column] == metric["bins"][0][1])
-                    figure_title_line1 = (
-                        f"{TITLE_TOOL_LABELS.get(args.tool, args.tool)} got {num_alleles_exactly_right:,d} out of "
-                        f"{len(df_plot):,d} allele sequences ({100*num_alleles_exactly_right/len(df_plot):0.1f}%) "
-                        f"exactly right in {coverage_label}")
-                    print(figure_title_line1)
-                    print(f"Plotting {len(df_plot):,d} out of {len(df):,d} rows")
+                    # HipSTR doesn't support motifs larger than 9bp, so bins entirely above that are always empty.
+                    # A None lower bound means "unstratified" (the all_motifs bin), not "no lower limit" -- it must
+                    # not be treated as satisfying "> 9", or the all_motifs bin (which does include HipSTR's real
+                    # 2-9bp calls) gets wrongly blanked too.
+                    skip_message = None
+                    if args.tool == "HipSTR" and (
+                            args.min_motif_size is not None and args.min_motif_size > 9
+                            and (args.max_motif_size is None or args.max_motif_size > 9)):
+                        skip_message = "HipSTR doesn't support motif sizes larger than 9bp"
+                    elif len(df_plot) < 10:
+                        skip_message = "Not enough alleles to create plot"
 
-                    category_order = [NO_CALL_LABEL] + [label for _, label in metric["bins"]]
-                    present = set(df_plot[category_column])
-                    category_order = [label for label in category_order if label in present]
-                    palette = [NO_CALL_COLOR] + CATEGORY_COLORS
-                    palette = [color for label, color in zip(
-                        [NO_CALL_LABEL] + [l for _, l in metric["bins"]], palette) if label in present]
+                    n_locus_ids = len(set(df_plot.LocusId))
+                    figure_title_line2 = f"{n_locus_ids:,d} loci (" + ", ".join(filter_description) + ")"
+                    if skip_message:
+                        figure_title_line1 = f"{TITLE_TOOL_LABELS.get(args.tool, args.tool)} {coverage_label}"
+                        print(f"Skipping {output_image_filename}: {skip_message}")
+                        plot_empty_image(figure_title_line1 + "\n\n" + figure_title_line2, skip_message,
+                                         args.width, args.height)
+                    else:
+                        num_alleles_exactly_right = sum(df_plot[category_column] == metric["bins"][0][1])
+                        figure_title_line1 = (
+                            f"{TITLE_TOOL_LABELS.get(args.tool, args.tool)} got {num_alleles_exactly_right:,d} out of "
+                            f"{len(df_plot):,d} allele sequences ({100*num_alleles_exactly_right/len(df_plot):0.1f}%) "
+                            f"exactly right in {coverage_label}")
+                        print(figure_title_line1)
+                        print(f"Plotting {len(df_plot):,d} out of {len(df):,d} rows")
 
-                    plot_sequence_accuracy(
-                        df_plot, args,
-                        distance_column=distance_column,
-                        category_column=category_column,
-                        category_order=category_order,
-                        palette=palette,
-                        axis_label=metric["axis_label"],
-                        tool_name=args.tool,
-                        figure_title=figure_title_line1 + "\n\n" + figure_title_line2 if args.show_title else None)
+                        category_order = [NO_CALL_LABEL] + [label for _, label in metric["bins"]]
+                        present = set(df_plot[category_column])
+                        category_order = [label for label in category_order if label in present]
+                        palette = [NO_CALL_COLOR] + CATEGORY_COLORS
+                        palette = [color for label, color in zip(
+                            [NO_CALL_LABEL] + [l for _, l in metric["bins"]], palette) if label in present]
 
-                output_path = os.path.join(args.output_dir, f"{output_image_filename}.{args.image_type}")
-                plt.savefig(output_path, dpi=300, bbox_inches="tight")
-                plt.close()
-                print(f"Saved {output_path}")
-                plot_counter += 1
+                        plot_sequence_accuracy(
+                            df_plot, args,
+                            distance_column=distance_column,
+                            category_column=category_column,
+                            category_order=category_order,
+                            palette=palette,
+                            axis_label=metric["axis_label"],
+                            tool_name=args.tool,
+                            figure_title=figure_title_line1 + "\n\n" + figure_title_line2 if args.show_title else None)
+
+                    output_path = os.path.join(args.output_dir, f"{output_image_filename}.{args.image_type}")
+                    plt.savefig(output_path, dpi=300, bbox_inches="tight")
+                    plt.close()
+                    print(f"Saved {output_path}")
+                    plot_counter += 1
 
     return plot_counter
 
