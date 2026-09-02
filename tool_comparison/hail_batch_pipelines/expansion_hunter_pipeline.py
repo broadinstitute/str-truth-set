@@ -1,4 +1,5 @@
 import functools
+import gzip
 import hailtop.fs as hfs
 import logging
 import math
@@ -23,6 +24,10 @@ def _count_catalog_loci(catalog_path):
     else:
         with open(catalog_path, "rb") as f:
             data = f.read()
+    if catalog_path.endswith(".gz") or data[:2] == b"\x1f\x8b":
+        # A gzipped catalog would otherwise be searched for "LocusId" in its compressed bytes, find
+        # none, and report 0 loci, which silently turns a sharded run into no jobs at all.
+        data = gzip.decompress(data)
     return data.count(b'"LocusId"')
 
 DOCKER_IMAGE = "weisburd/str-analysis-with-expansion-hunter@sha256:0f6cd8efbae6b2c35837c856267347e94d0d86cdce60cd80881153fe2d0e57f7"
