@@ -11,7 +11,17 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from add_sequence_accuracy_columns import (
     TOOL_SEQUENCE_COLUMNS, TRUTH_SEQUENCE_COLUMNS,
-    compute_sequence_edit_distances, pair_truth_sequences, read_tool_allele_sequences)
+    compute_sequence_comparisons, pair_truth_sequences, read_tool_allele_sequences)
+
+
+def edit_distances(*alleles):
+    """The edit-distance half of compute_sequence_comparisons()."""
+    return compute_sequence_comparisons(*alleles)[0]
+
+
+def size_differences(*alleles):
+    """The size-difference half of compute_sequence_comparisons()."""
+    return compute_sequence_comparisons(*alleles)[1]
 from add_concordance_columns import write_alleles_table
 
 SCRIPT_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "add_sequence_accuracy_columns.py")
@@ -53,44 +63,44 @@ class PairTruthSequencesTests(unittest.TestCase):
 class ComputeSequenceEditDistancesTests(unittest.TestCase):
 
     def test_index_wise_pairing(self):
-        self.assertEqual(compute_sequence_edit_distances("AAA", "AAAAA", "AAA", "AAAAA"), (0, 0))
+        self.assertEqual(edit_distances("AAA", "AAAAA", "AAA", "AAAAA"), (0, 0))
         # one inserted base on the short allele
-        self.assertEqual(compute_sequence_edit_distances("AAA", "AAAAA", "AATA", "AAAAA"), (1, 0))
+        self.assertEqual(edit_distances("AAA", "AAAAA", "AATA", "AAAAA"), (1, 0))
 
     def test_unavailable_alleles_score_none(self):
-        self.assertEqual(compute_sequence_edit_distances(None, "AAAAA", "AAA", "AAAAA"), (None, 0))
-        self.assertEqual(compute_sequence_edit_distances("AAA", "AAAAA", None, None), (None, None))
+        self.assertEqual(edit_distances(None, "AAAAA", "AAA", "AAAAA"), (None, 0))
+        self.assertEqual(edit_distances("AAA", "AAAAA", None, None), (None, None))
         # a left-join miss arrives as NaN rather than None, and must be treated the same way
-        self.assertEqual(compute_sequence_edit_distances("AAA", "AAAAA", float("nan"), float("nan")), (None, None))
+        self.assertEqual(edit_distances("AAA", "AAAAA", float("nan"), float("nan")), (None, None))
 
     def test_zero_length_allele_gets_a_real_distance(self):
         # a called zero-length tool allele vs a 5bp truth allele is 5 edits away, not unscorable
-        self.assertEqual(compute_sequence_edit_distances("", "AAAAA", "", "AAAAA"), (0, 0))
-        self.assertEqual(compute_sequence_edit_distances("AAAAA", "AAAAA", "", "AAAAA"), (5, 0))
+        self.assertEqual(edit_distances("", "AAAAA", "", "AAAAA"), (0, 0))
+        self.assertEqual(edit_distances("AAAAA", "AAAAA", "", "AAAAA"), (5, 0))
 
     def test_equal_length_tie_break_picks_the_lower_total(self):
         # both truth alleles are 3bp, so either assignment is size-sorted; the pairing with the smaller total wins
-        self.assertEqual(compute_sequence_edit_distances("AAA", "CCC", "CCC", "AAA"), (0, 0))
+        self.assertEqual(edit_distances("AAA", "CCC", "CCC", "AAA"), (0, 0))
         # ... and the same holds when it's the tool's two alleles that are the same length: index-wise scores
         # 3 + 5 = 8, the swapped assignment scores 0 + 2 = 2
-        self.assertEqual(compute_sequence_edit_distances("AAA", "CCCCC", "CCC", "AAA"), (0, 2))
+        self.assertEqual(edit_distances("AAA", "CCCCC", "CCC", "AAA"), (0, 2))
 
         # an exact tie (index-wise 0 + 4 vs swapped 4 + 0) keeps the index-wise pairing, so the output is deterministic
-        self.assertEqual(compute_sequence_edit_distances("AAAA", "AAAA", "AAAA", "CCCC"), (0, 4))
+        self.assertEqual(edit_distances("AAAA", "AAAA", "AAAA", "CCCC"), (0, 4))
 
     def test_no_swap_when_neither_side_has_equal_length_alleles(self):
         # both sides are size-sorted with distinct lengths, so the swapped assignment isn't a valid size-sorted
         # pairing even though it would score better (2 + 2 instead of 2 + 4)
-        self.assertEqual(compute_sequence_edit_distances("AA", "GGGG", "GG", "AAAA"), (2, 4))
+        self.assertEqual(edit_distances("AA", "GGGG", "GG", "AAAA"), (2, 4))
 
     def test_n_never_counts_as_a_match(self):
         # an 'N' in the tool sequence (e.g. ExpansionHunter's consensus sequences mark ambiguous bases this way)
         # must count as a mismatch against the true base, not a free pass
-        self.assertEqual(compute_sequence_edit_distances("AAA", "AAAAA", "NAA", "AAAAA"), (1, 0))
+        self.assertEqual(edit_distances("AAA", "AAAAA", "NAA", "AAAAA"), (1, 0))
         # ... and an 'N' at the same position on both sides (truth sequences can carry assembly-gap N's too) must
         # still count as a mismatch, not coincidentally "match" because both characters happen to be 'N'
-        self.assertEqual(compute_sequence_edit_distances("NAA", "AAAAA", "NAA", "AAAAA"), (1, 0))
-        self.assertEqual(compute_sequence_edit_distances("NNN", "AAAAA", "NNN", "AAAAA"), (3, 0))
+        self.assertEqual(edit_distances("NAA", "AAAAA", "NAA", "AAAAA"), (1, 0))
+        self.assertEqual(edit_distances("NNN", "AAAAA", "NNN", "AAAAA"), (3, 0))
 
 
 class ReadToolAlleleSequencesTests(unittest.TestCase):
@@ -126,6 +136,48 @@ class ReadToolAlleleSequencesTests(unittest.TestCase):
         for locus_id in "1-300-310-A", "1-400-410-A", "1-500-510-A":
             for column in TOOL_SEQUENCE_COLUMNS:
                 self.assertIsNone(df.loc[locus_id, column], f"{locus_id} {column} should be unscorable")
+
+
+class ComputeAlleleSizeDifferencesTests(unittest.TestCase):
+
+    def test_signed_difference_is_tool_minus_truth(self):
+        self.assertEqual(size_differences("AAA", "AAAAA", "AAA", "AAAAA"), (0, 0))
+        # the tool called the short allele 1bp shorter than it is, and the long allele 2bp longer
+        self.assertEqual(size_differences("AAA", "AAAAA", "AA", "AAAAAAA"), (-1, 2))
+
+    def test_substitutions_do_not_change_the_size(self):
+        # this is the whole difference from the edit distance: same length, different bases -> 0
+        self.assertEqual(size_differences("AAA", "AAAAA", "CCC", "AAAAA"), (0, 0))
+        self.assertEqual(edit_distances("AAA", "AAAAA", "CCC", "AAAAA"), (3, 0))
+
+    def test_unavailable_alleles_score_none(self):
+        self.assertEqual(size_differences(None, "AAAAA", "AAA", "AAAAA"), (None, 0))
+        self.assertEqual(size_differences("AAA", "AAAAA", None, None), (None, None))
+        # a left-join miss arrives as NaN rather than None
+        self.assertEqual(size_differences("AAA", "AAAAA", float("nan"), float("nan")), (None, None))
+
+    def test_zero_length_allele_gets_a_real_size_difference(self):
+        # an allele the tool called as spanning zero bases of the locus is a real call, not a missing value
+        self.assertEqual(size_differences("AAAAA", "AAAAA", "", "AAAAA"), (-5, 0))
+        self.assertEqual(size_differences("", "AAAAA", "", "AAAAA"), (0, 0))
+
+    def test_alleles_are_paired_index_wise(self):
+        # both sides are size-sorted, so Allele 1 is compared to Allele 1 even when every length differs
+        self.assertEqual(size_differences("AA", "GGGG", "GG", "AAAA"), (0, 0))
+
+
+class PairingConsistencyTests(unittest.TestCase):
+
+    def test_both_metrics_describe_the_same_tool_allele_when_the_pairing_swaps(self):
+        # equal-length truth alleles let the swapped pairing win on total edit distance. Both metrics have to follow
+        # that same swap -- pairing the sizes index-wise instead would put an exact-match distance (0) on Allele 1
+        # next to a non-zero size difference (-1) for the tool allele that distance did not use.
+        distances, sizes = compute_sequence_comparisons("AAAAAAAAAA", "AAAAACAAAA", "AAAAACAAA", "AAAAAAAAAA")
+        self.assertEqual(distances, (0, 1))
+        self.assertEqual(sizes, (0, -1))
+        for distance, size in zip(distances, sizes):
+            if distance == 0:
+                self.assertEqual(size, 0, "an exact sequence match must have a size difference of 0")
 
 
 class MainTests(unittest.TestCase):
@@ -206,6 +258,22 @@ class MainTests(unittest.TestCase):
         # the tool produced no record for this locus at all -> NA
         self.assertTrue(pd.isna(df.loc["1-400-410-A", "SequenceEditDistance: Allele 1: TRGTv5"]))
 
+    def test_adds_size_difference_columns(self):
+        output_path = os.path.join(self.temp_dir.name, "out.tsv.gz")
+        df = self.run_script(output_path)
+
+        # both alleles are exactly the right size
+        self.assertEqual(df.loc["1-100-110-A", "SequenceSizeDiff (bp): Allele 1: TRGTv5"], 0)
+        self.assertEqual(df.loc["1-100-110-A", "SequenceSizeDiff (bp): Allele 2: TRGTv5"], 0)
+
+        # the tool called the short allele 1bp short, so the difference is signed negative
+        self.assertEqual(df.loc["1-200-210-A", "SequenceSizeDiff (bp): Allele 1: TRGTv5"], -1)
+        self.assertEqual(df.loc["1-200-210-A", "SequenceSizeDiff (bp): Allele 2: TRGTv5"], 0)
+
+        # the same two unscorable loci as the distance columns: no truth sequence, and no tool record
+        self.assertTrue(pd.isna(df.loc["1-300-310-A", "SequenceSizeDiff (bp): Allele 1: TRGTv5"]))
+        self.assertTrue(pd.isna(df.loc["1-400-410-A", "SequenceSizeDiff (bp): Allele 1: TRGTv5"]))
+
     def test_output_columns_survive_the_alleles_table_melt(self):
         # write_alleles_table() raises a ValueError on any column containing "Allele 1" without "Allele 1: ", so the
         # new columns' names have to be exactly "<Metric>: Allele N: {tool}"
@@ -220,6 +288,7 @@ class MainTests(unittest.TestCase):
         self.assertEqual(len(alleles_df), 2 * len(df))
         self.assertIn("SequenceEditDistance: Allele: TRGTv5", alleles_df.columns)
         self.assertIn("SequenceEditDistanceNormalized: Allele: TRGTv5", alleles_df.columns)
+        self.assertIn("SequenceSizeDiff (bp): Allele: TRGTv5", alleles_df.columns)
         # the first locus's two alleles melt into the first and second output rows
         self.assertEqual(alleles_df.iloc[0]["SequenceEditDistance: Allele: TRGTv5"], 0)
         self.assertEqual(alleles_df.iloc[2]["SequenceEditDistance: Allele: TRGTv5"], 1)

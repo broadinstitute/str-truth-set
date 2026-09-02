@@ -1,7 +1,7 @@
 """Add sequence-accuracy columns to a tool-vs-truth comparison table.
 
 The accuracy plots score a tool by how close its repeat *count* is to the truth. This script scores the tools that
-report an actual allele *sequence* (TRGT, ATaRVa, HipSTR, and -- when run with consensus sequences enabled --
+report an actual allele *sequence* (TRGT, LongTR, ATaRVa, HipSTR, and -- when run with consensus sequences enabled --
 ExpansionHunter) by the edit distance between the sequence they report and the assembly-derived truth allele
 sequence, which also captures the substitutions and interruptions that a repeat count can't express.
 
@@ -13,12 +13,22 @@ It joins two side tables onto the ...with_{tool}_results.tsv.gz table produced b
                             .extract_allele_sequences_from_expansion_hunter_json, which holds the tool's two allele
                             sequences over the same interval
 
-and adds 4 numeric columns:
+and adds 6 numeric columns:
 
     SequenceEditDistance: Allele 1: {tool}             Levenshtein distance in bp
     SequenceEditDistance: Allele 2: {tool}
     SequenceEditDistanceNormalized: Allele 1: {tool}   the same distance / max(1, len(truth allele sequence))
     SequenceEditDistanceNormalized: Allele 2: {tool}
+    SequenceSizeDiff (bp): Allele 1: {tool}            len(tool allele) - len(truth allele), signed
+    SequenceSizeDiff (bp): Allele 2: {tool}
+
+The two SequenceSizeDiff columns are the base-pair counterpart of the repeat-count comparison in
+add_concordance_columns.py, and exist because that comparison is quantized. Both NumRepeats: Allele N: {tool} and the
+truth set's own NumRepeats are floor(allele length / motif size), so a count match tolerates up to motif_size - 1 bp
+of real disagreement per allele -- 9.7% of HG002's truth alleles are not a whole number of motifs. These columns
+measure the same quantity the counts are trying to express, in bp, with no flooring on either side. They are the
+weaker sibling of the edit distance (a size match doesn't imply the bases agree) but the one that is directly
+comparable to the count axis, since a tool can only be scored on a length it was able to report.
 
 The "Allele N: " naming is required: add_concordance_columns.write_alleles_table() raises a ValueError on any column
 that contains "Allele 1" without the exact substring "Allele 1: ", and it melts these columns into
@@ -43,14 +53,14 @@ from str_analysis.extract_allele_sequences_from_vcf import CALLED, EXTRACTION_OK
 
 # Tools scored by this benchmark. Must match run_tools/run_genotyping_tools.py's SEQUENCE_ACCURACY_TOOLS --
 # TRGTv3 is scoped out of v1 there, so it's excluded here too even though its VCF format is TRGTv5-compatible.
-SEQUENCE_ACCURACY_TOOLS = ["TRGTv5", "ATaRVa", "HipSTR", "EHv5-bw2-optimized"]
+SEQUENCE_ACCURACY_TOOLS = ["TRGTv5", "LongTR", "ATaRVa", "HipSTR", "EHv5-bw2-optimized"]
 
 TRUTH_SEQUENCE_COLUMNS = ["TruthAlleleSequence: Allele 1", "TruthAlleleSequence: Allele 2"]
 TOOL_SEQUENCE_COLUMNS = ["ToolAlleleSequence: Allele 1", "ToolAlleleSequence: Allele 2"]
 
 # Private-use-area code points, never present in real sequence data, used to mask 'N' bases before computing edit
 # distance (see _mask_ambiguous_bases). Spans Supplementary Private Use Areas A and B, ~131k code points -- vastly
-# more than any real locus's N count -- so every N occurrence in a single compute_sequence_edit_distances() call
+# more than any real locus's N count -- so every N occurrence in a single compute_sequence_comparisons() call
 # gets its own unique placeholder.
 _N_PLACEHOLDER_BASE = 0xF0000
 _N_PLACEHOLDER_RANGE = 0x20000
@@ -125,13 +135,25 @@ def pair_truth_sequences(allele_1_sequence, allele_2_sequence, short_allele_size
     return None, None
 
 
-def compute_sequence_edit_distances(truth_allele_1, truth_allele_2, tool_allele_1, tool_allele_2):
-    """Pair the truth and tool alleles and return the edit distance for each.
+def compute_sequence_comparisons(truth_allele_1, truth_allele_2, tool_allele_1, tool_allele_2):
+    """Pair the truth and tool alleles and return both the edit distance and the signed size difference for each.
+
+    Both metrics come out of ONE pairing decision, so a row's edit distance and its size difference always describe
+    the same tool allele. Computing them in separate passes would let the two disagree: the pairing below can swap
+    the tool alleles, and a size difference paired index-wise would then be measured against the allele the distance
+    did not use, putting an exact-match distance next to a non-zero size difference on the same row.
 
     Both sides arrive size-sorted (Allele 1 is the shorter allele), so the index-wise pairing is the size-sorted one.
     When either side's two alleles happen to have the same length, both assignments are equally size-sorted, so both
-    are evaluated and the one with the smaller total distance wins; an exact tie keeps the index-wise pairing, which
-    makes the result deterministic.
+    are evaluated and the one with the smaller total edit distance wins; an exact tie keeps the index-wise pairing,
+    which makes the result deterministic.
+
+    The size difference is len(tool allele) - len(truth allele), so a positive value means the tool called the allele
+    longer than it is. Both sequences are measured over the same repeat region, so the two lengths are directly
+    comparable: for the VCF-based tools extract_allele_sequences_from_vcf.py trims every record to the catalog locus
+    interval, and for EHv5-bw2-optimized the ConsensusSequences field is ExpansionHunter's own reconstruction of that
+    same region (there is no REF/ALT to trim, so that path does no trimming). Masking replaces each 'N' with exactly
+    one character, so it never changes a length.
 
     Args:
         truth_allele_1 (str): the shorter truth allele sequence, or None when it isn't available.
@@ -140,7 +162,8 @@ def compute_sequence_edit_distances(truth_allele_1, truth_allele_2, tool_allele_
         tool_allele_2 (str): the longer tool allele sequence, or None.
 
     Returns:
-        tuple: (distance for Allele 1, distance for Allele 2), each an int or None when that allele can't be scored.
+        tuple: ((distance for Allele 1, distance for Allele 2), (size difference for Allele 1, size difference for
+        Allele 2)). Each element is an int, or None when that allele can't be scored.
     """
     truth_allele_1 = sequence_or_none(truth_allele_1)
     truth_allele_2 = sequence_or_none(truth_allele_2)
@@ -154,21 +177,21 @@ def compute_sequence_edit_distances(truth_allele_1, truth_allele_2, tool_allele_
         None if sequence is None else _mask_ambiguous_bases(sequence, n_counter)
         for sequence in (truth_allele_1, truth_allele_2, tool_allele_1, tool_allele_2))
 
-    distances = (
-        None if truth_allele_1 is None or tool_allele_1 is None else Levenshtein.distance(truth_allele_1, tool_allele_1),
-        None if truth_allele_2 is None or tool_allele_2 is None else Levenshtein.distance(truth_allele_2, tool_allele_2),
-    )
+    def compare(truth_sequence, tool_sequence):
+        if truth_sequence is None or tool_sequence is None:
+            return None, None
+        return Levenshtein.distance(truth_sequence, tool_sequence), len(tool_sequence) - len(truth_sequence)
 
-    if None in (truth_allele_1, truth_allele_2, tool_allele_1, tool_allele_2):
-        return distances
-    if len(truth_allele_1) != len(truth_allele_2) and len(tool_allele_1) != len(tool_allele_2):
-        return distances
+    paired = (compare(truth_allele_1, tool_allele_1), compare(truth_allele_2, tool_allele_2))
 
-    swapped = (
-        Levenshtein.distance(truth_allele_1, tool_allele_2),
-        Levenshtein.distance(truth_allele_2, tool_allele_1),
-    )
-    return swapped if sum(swapped) < sum(distances) else distances
+    all_available = None not in (truth_allele_1, truth_allele_2, tool_allele_1, tool_allele_2)
+    if all_available and (len(truth_allele_1) == len(truth_allele_2) or len(tool_allele_1) == len(tool_allele_2)):
+        swapped = (compare(truth_allele_1, tool_allele_2), compare(truth_allele_2, tool_allele_1))
+        if swapped[0][0] + swapped[1][0] < paired[0][0] + paired[1][0]:
+            paired = swapped
+
+    distances, size_differences = zip(*paired)
+    return distances, size_differences
 
 
 def read_truth_allele_sequences(truth_set_genotypes_tsv):
@@ -266,6 +289,17 @@ def print_qc(df, tool, tool_sequences_df, rows_in):
         print(f"{len(distances):12,d} {allele} distances: {100 * (distances == 0).mean():.1f}% exactly right, "
               f"median {distances.median():.0f}bp, mean {distances.mean():.1f}bp, "
               f"90th percentile {distances.quantile(0.9):.0f}bp, max {distances.max():.0f}bp")
+
+    for allele in "Allele 1", "Allele 2":
+        # ANALYSIS_OK[imputation]: printed QC only, never the output table. Same reasoning as the distances above.
+        size_differences = pd.to_numeric(df[f"SequenceSizeDiff (bp): {allele}: {tool}"], errors="coerce").dropna()
+        if len(size_differences) == 0:
+            print(f"             No {allele} size differences were computed")
+            continue
+        print(f"{len(size_differences):12,d} {allele} size differences: "
+              f"{100 * (size_differences == 0).mean():.1f}% exactly the right size, "
+              f"{100 * (size_differences < 0).mean():.1f}% too short, {100 * (size_differences > 0).mean():.1f}% too long, "
+              f"median |diff| {size_differences.abs().median():.0f}bp, mean |diff| {size_differences.abs().mean():.1f}bp")
     print("=" * 100)
 
 
@@ -280,7 +314,7 @@ def parse_args():
                    help="Path of {prefix}.allele_sequences.tsv.gz from str_analysis.extract_allele_sequences_from_vcf "
                         "or .extract_allele_sequences_from_expansion_hunter_json.")
     p.add_argument("--output-tsv", help="Output path. Defaults to overwriting the input table in place, since the "
-                                        "only change is the 4 added columns.")
+                                        "only change is the 6 added columns.")
     p.add_argument("combined_tsv", help="Path of the ...with_{tool}_results.tsv.gz table from "
                                         "add_tool_results_columns.py.")
 
@@ -317,12 +351,14 @@ def main():
         df = df.merge(side_df, how="left", on="LocusId", validate="many_to_one")
         assert len(df) == rows_in, f"Merge changed the row count from {rows_in:,d} to {len(df):,d}"
 
-    distances = [
-        compute_sequence_edit_distances(truth_allele_1, truth_allele_2, tool_allele_1, tool_allele_2)
+    comparisons = [
+        compute_sequence_comparisons(truth_allele_1, truth_allele_2, tool_allele_1, tool_allele_2)
         for truth_allele_1, truth_allele_2, tool_allele_1, tool_allele_2 in zip(
             df["TruthAlleleSequence: Allele 1"], df["TruthAlleleSequence: Allele 2"],
             df["ToolAlleleSequence: Allele 1"], df["ToolAlleleSequence: Allele 2"])
     ]
+    distances = [distance for distance, _ in comparisons]
+    size_differences = [size_difference for _, size_difference in comparisons]
 
     for i, allele in enumerate(("Allele 1", "Allele 2")):
         df[f"SequenceEditDistance: {allele}: {args.tool}"] = [distance[i] for distance in distances]
@@ -332,6 +368,8 @@ def main():
             None if distance[i] is None else round(distance[i] / max(1, len(sequence_or_none(truth_sequence) or "")), 6)
             for distance, truth_sequence in zip(distances, df[f"TruthAlleleSequence: {allele}"])
         ]
+        df[f"SequenceSizeDiff (bp): {allele}: {args.tool}"] = [
+            size_difference[i] for size_difference in size_differences]
 
     print_qc(df, args.tool, tool_sequences_df, rows_in)
 

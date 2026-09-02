@@ -2,16 +2,19 @@
 
 This is the sequence-accuracy counterpart of plot_tool_accuracy_by_allele_size.py. That script scores a tool by how
 close its repeat count is to the truth; this one scores the tools that report an actual allele sequence (TRGT,
-ATaRVa, HipSTR, EHv5-bw2-optimized) by the edit distance columns that add_sequence_accuracy_columns.py adds:
+LongTR, ATaRVa, HipSTR, EHv5-bw2-optimized) by the columns that add_sequence_accuracy_columns.py adds:
 
     SequenceEditDistance: Allele: {tool}             Levenshtein distance in bp
     SequenceEditDistanceNormalized: Allele: {tool}   the same distance / max(1, len(truth allele sequence))
+    SequenceSizeDiff (bp): Allele: {tool}            len(tool allele) - len(truth allele), signed
 
 Each figure has two panels sharing the accuracy figure's x axis (true allele size minus the reference repeat count):
 
-    left    a box plot of the edit distance per x bin, so the median and spread are readable directly in bp
-    right   a 100%-stacked histogram of edit-distance categories per x bin, so "how much of this bin is
-            sequence-exact" reads at a glance
+    left    a box plot of the selected metric per x bin, so the median and spread are readable directly. For
+            SequenceSizeDiff this keeps the sign, which is what shows whether a tool over- or under-calls
+    right   a 100%-stacked histogram of that metric's categories per x bin, so "how much of this bin is in the
+            best category" reads at a glance. For SequenceSizeDiff the categories bin the ABSOLUTE size
+            difference, and the best one means only that the length matched, not that the bases did
 
 The left panel deliberately differs from the accuracy figure's left panel, which is a stacked count: a count of
 alleles says nothing about how far off the sequences are, which is the whole point here.
@@ -34,7 +37,7 @@ sns.set_context(font_scale=1.1, rc={
 
 # Tools scored by this benchmark. Must match run_tools/run_genotyping_tools.py's SEQUENCE_ACCURACY_TOOLS --
 # TRGTv3 is scoped out of v1 there, so it's excluded here too even though its VCF format is TRGTv5-compatible.
-SEQUENCE_ACCURACY_TOOLS = ["TRGTv5", "ATaRVa", "HipSTR", "EHv5-bw2-optimized"]
+SEQUENCE_ACCURACY_TOOLS = ["TRGTv5", "LongTR", "ATaRVa", "HipSTR", "EHv5-bw2-optimized"]
 
 # (upper bound inclusive, label) for the stacked category panel, coarsest last. The bp cuts are absolute; the
 # normalized cuts are fractions of the true allele length.
@@ -65,11 +68,28 @@ METRICS = {
         "column_prefix": "SequenceEditDistance",
         "bins": EDIT_DISTANCE_BINS,
         "axis_label": "Edit Distance vs. True Allele Sequence (bp)",
+        "exactly_right_noun": "allele sequences",
+        "legend_title": "Allele Sequence\nvs\nTrue Allele Sequence",
     },
     "edit_distance_normalized": {
         "column_prefix": "SequenceEditDistanceNormalized",
         "bins": NORMALIZED_EDIT_DISTANCE_BINS,
         "axis_label": "Edit Distance / True Allele Length",
+        "exactly_right_noun": "allele sequences",
+        "legend_title": "Allele Sequence\nvs\nTrue Allele Sequence",
+    },
+    # The size difference is signed, so the box plot keeps the sign (it shows whether a tool over- or under-calls)
+    # while the category panel bins its absolute value, reusing the edit distance's bp cuts so the two axes are
+    # read the same way. Binning the signed value directly would put every too-short allele in the "0 (exact)"
+    # bucket, since those cuts are upper bounds.
+    "size_diff_bp": {
+        "column_prefix": "SequenceSizeDiff (bp)",
+        "bins": EDIT_DISTANCE_BINS,
+        "bin_on_absolute_value": True,
+        "axis_label": "Allele Size Minus True Allele Size (bp)",
+        # this metric only establishes that the LENGTH matched, so it must not claim the bases did
+        "exactly_right_noun": "allele sizes",
+        "legend_title": "Allele Size\nvs\nTrue Allele Size",
     },
 }
 
@@ -95,7 +115,7 @@ def bin_edit_distance(distance, bins):
 
 
 def plot_sequence_accuracy(df, args, distance_column, category_column, category_order, palette, axis_label,
-                           tool_name=None, figure_title=None):
+                           legend_title, tool_name=None, figure_title=None):
     """Draw the two-panel figure: a box plot of the distances on the left, stacked categories on the right."""
     fig, axes = plt.subplots(1, 2, figsize=(args.width, args.height))
 
@@ -155,7 +175,7 @@ def plot_sequence_accuracy(df, args, distance_column, category_column, category_
     if tool_name:
         sns.move_legend(axes[1], loc="upper left", bbox_to_anchor=(1.02, 1))
         legend = axes[1].get_legend()
-        legend.set_title(f"{tool_name} Allele Sequence\nvs\nTrue Allele Sequence\n")
+        legend.set_title(f"{tool_name} {legend_title}\n")
         legend.get_title().set_horizontalalignment("center")
         legend.set_frame_on(False)
 
@@ -178,7 +198,9 @@ def generate_all_plots(df, args):
             continue
 
         category_column = f"{distance_column} (bin)"
-        df.loc[:, category_column] = [bin_edit_distance(d, metric["bins"]) for d in df[distance_column]]
+        df.loc[:, category_column] = [
+            bin_edit_distance(abs(d) if metric.get("bin_on_absolute_value") and pd.notna(d) else d, metric["bins"])
+            for d in df[distance_column]]
 
         for motif_size in (["all_motifs"] if args.min_motif_size is None and args.max_motif_size is None
                            else [f"{args.min_motif_size}-{args.max_motif_size}bp"]):
@@ -252,8 +274,8 @@ def generate_all_plots(df, args):
                         num_alleles_exactly_right = sum(df_plot[category_column] == metric["bins"][0][1])
                         figure_title_line1 = (
                             f"{TITLE_TOOL_LABELS.get(args.tool, args.tool)} got {num_alleles_exactly_right:,d} out of "
-                            f"{len(df_plot):,d} allele sequences ({100*num_alleles_exactly_right/len(df_plot):0.1f}%) "
-                            f"exactly right in {coverage_label}")
+                            f"{len(df_plot):,d} {metric['exactly_right_noun']} "
+                            f"({100*num_alleles_exactly_right/len(df_plot):0.1f}%) exactly right in {coverage_label}")
                         print(figure_title_line1)
                         print(f"Plotting {len(df_plot):,d} out of {len(df):,d} rows")
 
@@ -271,6 +293,7 @@ def generate_all_plots(df, args):
                             category_order=category_order,
                             palette=palette,
                             axis_label=metric["axis_label"],
+                            legend_title=metric["legend_title"],
                             tool_name=args.tool,
                             figure_title=figure_title_line1 + "\n\n" + figure_title_line2 if args.show_title else None)
 
@@ -293,7 +316,7 @@ def main():
 
     g = p.add_argument_group("Filters")
     g.add_argument("--tool", choices=SEQUENCE_ACCURACY_TOOLS, required=True, help="Which tool to plot")
-    g.add_argument("--metric", choices=sorted(METRICS), help="Plot only this metric. Both are plotted by default.")
+    g.add_argument("--metric", choices=sorted(METRICS), help="Plot only this metric. All of them are plotted by default.")
     g.add_argument("--coverage", required=True, help="Coverage label of the input table (example: \"30x\")")
     p.add_argument("--sequencing-data-type", choices=sorted(SEQUENCING_DATA_TYPE_LABELS),
                    help="Sequencing data type, used to label the plot title (example: \"pacbio\" -> \"PacBio HiFi\").")
