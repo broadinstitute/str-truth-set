@@ -33,7 +33,11 @@ import re
 from step_pipeline import pipeline, Backend, Localize, Delocalize
 
 # TRGT v5.0.0 image (the default used by create_trgt_step)
-DOCKER_IMAGE = "us-central1-docker.pkg.dev/cmg-analysis/docker-repo/str-analysis-with-trgt@sha256:f3c98cb950538de23c55e1053f6c2f1a0f354dc32b71a887b40491a28d86478a"
+# Docker Hub, not Artifact Registry: str-analysis's build_docker_images.yml workflow pushes only the
+# Docker Hub tag and commits the digest to <image>/sha256_dockerhub.txt, so that is the one CI keeps
+# current. The Artifact Registry copy is only written by a local `make push` and had drifted months
+# behind. Update this from docker_with_trgt/sha256_dockerhub.txt in the str-analysis repo.
+DOCKER_IMAGE = "weisburd/str-analysis-with-trgt@sha256:fadc6fb6cedbf6e64036a4807786ec323834eed3d2f8ad0450b21729f628cdd2"
 # TRGT v3.0.0 image (built from docker/trgt_v3)
 TRGT_V3_DOCKER_IMAGE = "us-central1-docker.pkg.dev/cmg-analysis/docker-repo/str-analysis-with-trgt-v3@sha256:7fc924b2318579c64f37d95a222bd8b00a8c0d0a291f2f844dd223b36b6a8b88"
 

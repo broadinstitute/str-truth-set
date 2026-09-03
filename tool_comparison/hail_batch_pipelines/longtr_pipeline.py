@@ -62,7 +62,11 @@ import re
 
 from step_pipeline import pipeline, Backend, Localize, Delocalize
 
-DOCKER_IMAGE = "us-central1-docker.pkg.dev/cmg-analysis/docker-repo/str-analysis-with-longtr@sha256:0aa8f9eac56b4b52ce0ee190b86f8d1047a1a8b6f99c7057483638e0d8b63617"
+# Docker Hub, not Artifact Registry: str-analysis's build_docker_images.yml workflow pushes only the
+# Docker Hub tag and commits the digest to <image>/sha256_dockerhub.txt, so that is the one CI keeps
+# current. The Artifact Registry copy is only written by a local `make push` and had drifted months
+# behind. Update this from docker_with_longtr/sha256_dockerhub.txt in the str-analysis repo.
+DOCKER_IMAGE = "weisburd/str-analysis-with-longtr@sha256:040629362e70c426e94669e2ef2c912c2b9898b7fafd6502f8aaf463bf0269d1"
 
 REFERENCE_FASTA_PATH = "gs://str-truth-set/hg38/ref/hg38.fa"
 REFERENCE_FASTA_FAI_PATH = "gs://str-truth-set/hg38/ref/hg38.fa.fai"
