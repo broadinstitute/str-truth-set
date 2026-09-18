@@ -38,8 +38,9 @@ from step_pipeline import pipeline, Backend, Localize, Delocalize
 # current. The Artifact Registry copy is only written by a local `make push` and had drifted months
 # behind. Update this from docker_with_trgt/sha256_dockerhub.txt in the str-analysis repo.
 DOCKER_IMAGE = "weisburd/str-analysis-with-trgt@sha256:fadc6fb6cedbf6e64036a4807786ec323834eed3d2f8ad0450b21729f628cdd2"
-# TRGT v3.0.0 image (built from docker/trgt_v3)
-TRGT_V3_DOCKER_IMAGE = "us-central1-docker.pkg.dev/cmg-analysis/docker-repo/str-analysis-with-trgt-v3@sha256:7fc924b2318579c64f37d95a222bd8b00a8c0d0a291f2f844dd223b36b6a8b88"
+# TRGT v3.0.0 image (built from docker/trgt_v3). Update this from docker/trgt_v3/sha256_dockerhub.txt,
+# which `make push` writes alongside the Artifact Registry digest from the same build.
+TRGT_V3_DOCKER_IMAGE = "weisburd/str-analysis-with-trgt-v3@sha256:cc8f93556236eed45cf64529135f725401eb5f2e5a7bc55d3a4d50e2cded8190"
 
 REFERENCE_FASTA_PATH = "gs://str-truth-set/hg38/ref/hg38.fa"
 REFERENCE_FASTA_FAI_PATH = "gs://str-truth-set/hg38/ref/hg38.fa.fai"
