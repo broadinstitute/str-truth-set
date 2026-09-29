@@ -8,7 +8,7 @@ REFERENCE_FASTA_FAI_PATH = "gs://str-truth-set/hg38/ref/hg38.fa.fai"
 CHM1_CHM13_CRAM_PATH = "gs://broad-public-datasets/CHM1_CHM13_WGS2/CHM1_CHM13_WGS2.cram"
 CHM1_CHM13_CRAI_PATH = "gs://broad-public-datasets/CHM1_CHM13_WGS2/CHM1_CHM13_WGS2.cram.crai"
 
-DOCKER_IMAGE = "weisburd/filter-vcfs@sha256:9ea4e1e648e15bb370efbe59f096d54791c9b6dcb75f1ec3e957a3c897014bac"
+DOCKER_IMAGE = "weisburd/filter-vcfs@sha256:ce0fb27c94f69caa82e89e4caa785a15d7d2f6d2da416e43cc9b25e6742e585b"
 
 
 def main():
