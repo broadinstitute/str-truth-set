@@ -16,11 +16,11 @@ sns.set_context(font_scale=1.1, rc={
 GREEN_COLOR = "#50AA44"
 
 # ExpansionHunter v5 variants, which carry a per-allele "Q: Allele: {tool}" quality column (other tools use "Q: {tool}").
-EH_TOOLS = ("IlluminaEHv5", "ExpansionHunter", "EHv5", "EHv5-bw2-optimized")
+EH_TOOLS = ("IlluminaEHv5", "ExpansionHunter", "EHv5-bw2-optimized")
 
 # Tools plotted by default when --tool is not given; each is included only if its
 # "DiffRepeats: Allele: {tool} - Truth" column is present in the input table.
-DEFAULT_TOOLS = ["IlluminaEHv5", "ExpansionHunter", "EHv5", "EHv5-bw2-optimized", "GangSTR",
+DEFAULT_TOOLS = ["IlluminaEHv5", "ExpansionHunter", "EHv5-bw2-optimized", "GangSTR",
                  "HipSTR", "constrain", "TRGTv3", "TRGTv5", "LongTR", "inquiSTR"]
 
 # Per-allele repeat purity column (fraction of the truth allele's bases that match a perfect repeat of the motif) and
@@ -63,7 +63,6 @@ NO_DIFFERENCE_LABEL = "Same"
 # title matches the selected tool). Only tools listed here are renamed; others keep their raw name in the title.
 TITLE_TOOL_LABELS = {
     "IlluminaEHv5": "Illumina/EHv5",
-    "EHv5": "bw2/EHv5 (low-mem-streaming)",
     "EHv5-bw2-optimized": "bw2/EHv5 (optimized-streaming)",
     "EnsembleTR-EH+HipSTR": "EnsembleTR (EH+HipSTR)",
     "EnsembleTR-EH+HipSTR+GangSTR": "EnsembleTR (EH+HipSTR+GangSTR)",
@@ -572,7 +571,7 @@ def main():
 
     g = p.add_argument_group("Filters")
     g.add_argument("--tool", choices={
-        "IlluminaEHv5", "ExpansionHunter", "EHv5", "EHv5-bw2-optimized", "GangSTR", "HipSTR",
+        "IlluminaEHv5", "ExpansionHunter", "EHv5-bw2-optimized", "GangSTR", "HipSTR",
         "constrain", "TRGTv3", "TRGTv5", "LongTR", "inquiSTR", "vamos", "ATaRVa",
         "EnsembleTR-EH+HipSTR", "EnsembleTR-EH+HipSTR+GangSTR"},
         help="Plot only this tool")

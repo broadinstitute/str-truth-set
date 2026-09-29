@@ -32,7 +32,7 @@ def _count_catalog_loci(catalog_path):
 
 DOCKER_IMAGE = "weisburd/str-analysis-with-expansion-hunter@sha256:5990e80cd34ebf69e624c824b530504a03476d23ed0a421017f281587555a162"
 
-# optimized-streaming / low-mem-streaming genotype per-locus single-threaded, but htslib decompresses the
+# optimized-streaming genotypes per-locus single-threaded, but htslib decompresses the
 # CRAM across up to 12 threads (HtsLowMemStreamingSampleAnalysis.cpp), so for an UNSHARDED run
 # (EHV5_NUM_SHARDS=1) more cores parallelize the dominant full-file decompression scan instead of paying
 # for N redundant single-threaded scans via sharding. Defaults (cpu=1/highmem) preserve the right-sizing
@@ -71,7 +71,7 @@ def main():
         "ExpansionHunter to exit with the error message 'Flanks can contain at most 5 characters N but found x Ns.'")
     parser.add_argument("--reference-fasta", default=REFERENCE_FASTA_PATH)
     parser.add_argument("--reference-fasta-fai", default=REFERENCE_FASTA_FAI_PATH)
-    parser.add_argument("--analysis-mode", choices=["seeking", "streaming", "low-mem-streaming", "optimized-streaming"],
+    parser.add_argument("--analysis-mode", choices=["seeking", "streaming", "optimized-streaming"],
                         default="optimized-streaming", help="Run ExpansionHunter with this --analysis-mode.")
     parser.add_argument("--input-bam", default=CHM1_CHM13_CRAM_PATH)
     parser.add_argument("--input-bai", default=CHM1_CHM13_CRAI_PATH)
@@ -135,7 +135,7 @@ def create_expansion_hunter_steps(bp, *, reference_fasta, input_bam, input_bai, 
                                   analysis_mode="seeking", loci_to_exclude=None, min_locus_coverage=None, use_illumina_expansion_hunter=False, run_reviewer=False, num_shards=1,
                                   catalog_prefilter_step=None, streaming_cpu=None, streaming_threads=None, streaming_memory=None, enable_consensus_sequences=False):
 
-    # cpu/threads/memory for the bw2-fork streaming modes (low-mem-streaming, optimized-streaming). Default to the
+    # cpu/threads/memory for the bw2-fork streaming modes (streaming, optimized-streaming). Default to the
     # EHV5_STREAMING_* module constants unless the caller passes explicit values -- e.g. an unsharded run passes
     # cpu=2/threads=4/highmem so the extra threads parallelize the htslib CRAM decompression scan (the dominant cost
     # when the whole catalog is genotyped in one job). Ignored for the official IlluminaEHv5 build (hardcoded 16/highmem).
@@ -145,8 +145,8 @@ def create_expansion_hunter_steps(bp, *, reference_fasta, input_bam, input_bai, 
 
     if use_illumina_expansion_hunter:
         tool_exec = "IlluminaExpansionHunter"
-        # the official Illumina ExpansionHunter build only supports seeking/streaming; optimized-streaming and
-        # low-mem-streaming are bw2-fork-only modes, so clamp to streaming to avoid a CLI error
+        # the official Illumina ExpansionHunter build only supports seeking/streaming; optimized-streaming is a
+        # bw2-fork-only mode, so clamp to streaming to avoid a CLI error
         if analysis_mode not in ("seeking", "streaming"):
             analysis_mode = "streaming"
     else:
@@ -177,10 +177,10 @@ def create_expansion_hunter_steps(bp, *, reference_fasta, input_bam, input_bai, 
     input_bam_file_stats = hfs_ls_results[0]
 
     # Build the list of genotyping work units: (variant_catalog_path, start_with, n_loci, shard_suffix).
-    # EHv5-bw2 streaming modes (low-mem-streaming, optimized-streaming) genotype loci single-threaded, so when
+    # EHv5-bw2 optimized-streaming mode genotypes loci single-threaded, so when
     # num_shards>1 split the single catalog into num_shards index ranges run as parallel 1-cpu jobs via the bw2-fork
     # --start-with/--n-loci flags (start_with=None means "process the whole catalog", the unsharded behavior).
-    if (not use_illumina_expansion_hunter) and analysis_mode in ("low-mem-streaming", "optimized-streaming") \
+    if (not use_illumina_expansion_hunter) and analysis_mode == "optimized-streaming" \
             and num_shards > 1 and len(variant_catalog_file_paths) == 1:
         catalog_path = variant_catalog_file_paths[0]
         total_loci = _count_catalog_loci(catalog_path)
@@ -203,7 +203,7 @@ def create_expansion_hunter_steps(bp, *, reference_fasta, input_bam, input_bai, 
             arg_suffix=f"run-expansion-hunter-step",
             step_number=1,
             image=DOCKER_IMAGE,
-            # EHv5-bw2 streaming modes (low-mem-streaming, optimized-streaming) genotype loci single-threaded
+            # EHv5-bw2 optimized-streaming mode genotypes loci single-threaded
             # (measured ~1.1 cores, <=4.3GB RSS at 31x), so cpu=1/highmem (6.5GB > 4.3GB peak) right-sizes them
             # instead of the old 16/lowmem (which paid for 16 cores while using ~1); cpu=1 standard (3.75GB) would
             # OOM at high coverage. --threads only sped up the brief mate-caching. Only the official IlluminaEHv5
@@ -271,9 +271,9 @@ def create_expansion_hunter_steps(bp, *, reference_fasta, input_bam, input_bai, 
         # enable_consensus_sequences=True (e.g. for the sequence-accuracy benchmark) to keep them.
         if not use_illumina_expansion_hunter and not enable_consensus_sequences:
             extra_args += "--dont-output-consensus-sequences "
-        # record per-locus thread-CPU genotyping time (GenotypingTimeMillis) in the json; bw2-fork streaming modes
-        # only (the flag is not in the stock Illumina build). Makes the json non-deterministic (timing varies per run).
-        if analysis_mode in ("low-mem-streaming", "optimized-streaming"): extra_args += "--output-genotype-timing "
+        # record per-locus thread-CPU genotyping time (GenotypingTimeMillis) in the json; bw2-fork optimized-streaming
+        # mode only (the flag is not in the stock Illumina build). Makes the json non-deterministic (timing varies per run).
+        if analysis_mode == "optimized-streaming": extra_args += "--output-genotype-timing "
         # always emit gzipped output (.json.gz / .vcf.gz). -z is a bw2-fork flag the stock Illumina build lacks,
         # so the output filename is .json.gz only for the bw2 fork; the combine step (step2) globs both forms.
         compress_output = not use_illumina_expansion_hunter

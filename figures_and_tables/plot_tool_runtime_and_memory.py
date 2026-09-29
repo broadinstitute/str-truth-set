@@ -27,15 +27,13 @@ def generate_plot(input_table_path, args, with_coverage=False):
     df.loc[:, "tool"] = df.tool.replace({
         "ExpansionHunter":         "(Optimized) ExpansionHunter v5",
         "EHv5-bw2-optimized":      "(Optimized) ExpansionHunter v5",
-        "EHv5":                    "(Low-mem) ExpansionHunter v5",
         "IlluminaEHv5":            "(Original) ExpansionHunter v5",
         "IlluminaExpansionHunter": "(Original) ExpansionHunter v5",
         "GangSTR":                 "GangSTR v2.5",
         "HipSTR":                  "HipSTR v0.6.2",
     })
 
-    tool_order = ["(Original) ExpansionHunter v5", "(Optimized) ExpansionHunter v5", "(Low-mem) ExpansionHunter v5",
-                  "GangSTR v2.5", "HipSTR v0.6.2"]
+    tool_order = ["(Original) ExpansionHunter v5", "(Optimized) ExpansionHunter v5", "GangSTR v2.5", "HipSTR v0.6.2"]
 
     if with_coverage:
         df.loc[:, "coverage"] = df["coverage"].replace({"40x genome": "40x"})

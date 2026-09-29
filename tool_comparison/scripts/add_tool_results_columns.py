@@ -57,7 +57,7 @@ def parse_args():
     p.add_argument("--verbose", action="store_true",
                    help="Whether to print additional info about input and output columns.")
     p.add_argument("--tool", choices={
-        "IlluminaEHv5", "ExpansionHunter", "EHv5", "EHv5-bw2-optimized", "GangSTR", "HipSTR",
+        "IlluminaEHv5", "ExpansionHunter", "EHv5-bw2-optimized", "GangSTR", "HipSTR",
         "constrain", "TRGTv3", "TRGTv5", "LongTR", "inquiSTR", "vamos", "ATaRVa",
         "EnsembleTR-EH+HipSTR", "EnsembleTR-EH+HipSTR+GangSTR"}, required=True,
         help="Which tool's results are in the input tsv file")
@@ -114,7 +114,7 @@ def main():
     args = parse_args()
 
     tool_df_columns_to_keep = list(TOOL_DF_COLUMNS_TO_KEEP)
-    if args.tool in ("IlluminaEHv5", "ExpansionHunter", "EHv5", "EHv5-bw2-optimized"):
+    if args.tool in ("IlluminaEHv5", "ExpansionHunter", "EHv5-bw2-optimized"):
         tool_df_columns_to_keep += EH_AND_GANGSTR_COLUMNS
         tool_df_columns_to_keep += ["Q: Allele 1", "Q: Allele 2", "NumAllelesSupportedTotal"]
     elif args.tool == "GangSTR":
