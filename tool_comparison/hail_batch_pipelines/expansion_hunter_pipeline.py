@@ -139,8 +139,15 @@ def main():
 def create_expansion_hunter_steps(bp, *, reference_fasta, input_bam, input_bai, variant_catalog_file_paths, output_dir, output_prefix, reference_fasta_fai=None, male_or_female="female",
                                   analysis_mode="seeking", loci_to_exclude=None, min_locus_coverage=None, use_illumina_expansion_hunter=False, run_reviewer=False, num_shards=1,
                                   catalog_prefilter_step=None, streaming_cpu=None, streaming_threads=None, streaming_memory=None, enable_consensus_sequences=False,
-                                  resume_checkpoint_dir=None, checkpoint_interval_seconds=600):
+                                  resume_checkpoint_dir=None, checkpoint_interval_seconds=600, output_motif_composition=None,
+                                  max_depth=None):
     """Adds the ExpansionHunter genotyping step(s) and the step that combines their JSON into TSV/BED.
+
+    output_motif_composition (optional: "all-loci", "loci-with-non-ref-motifs" or "loci-with-known-motifs") passes
+    --output-motif-composition to the bw2-fork ExpansionHunter in optimized-streaming mode, adding a MotifComposition
+    record to the output JSON. Turning it on also raises EH's default --max-depth from 150 to 500, which changes the
+    calls at high-coverage loci, so pass max_depth=150 alongside it to keep the calls identical to a run without it.
+    max_depth (optional int) passes --max-depth (optimized-streaming only); None leaves EH's default.
 
     resume_checkpoint_dir (gs:// dir, optional) makes each genotyping job restartable after preemption. Hail Batch
     reruns a preempted job from the start on a new VM, so EH's own --resume files (<prefix>.processed_loci.txt and
@@ -151,6 +158,10 @@ def create_expansion_hunter_steps(bp, *, reference_fasta, input_bam, input_bai, 
     if resume_checkpoint_dir and (use_illumina_expansion_hunter or analysis_mode != "optimized-streaming"):
         raise ValueError("resume_checkpoint_dir needs the bw2-fork ExpansionHunter in optimized-streaming mode, "
                          "which is the only mode with --resume")
+    if (output_motif_composition or max_depth is not None) and (
+            use_illumina_expansion_hunter or analysis_mode != "optimized-streaming"):
+        raise ValueError("output_motif_composition and max_depth need the bw2-fork ExpansionHunter in "
+                         "optimized-streaming mode")
 
     # cpu/threads/memory for the bw2-fork streaming modes (streaming, optimized-streaming). Default to the
     # EHV5_STREAMING_* module constants unless the caller passes explicit values -- e.g. an unsharded run passes
@@ -295,6 +306,8 @@ def create_expansion_hunter_steps(bp, *, reference_fasta, input_bam, input_bai, 
         # record per-locus thread-CPU genotyping time (GenotypingTimeMillis) in the json; bw2-fork optimized-streaming
         # mode only (the flag is not in the stock Illumina build). Makes the json non-deterministic (timing varies per run).
         if analysis_mode == "optimized-streaming": extra_args += "--output-genotype-timing "
+        if output_motif_composition: extra_args += f"--output-motif-composition {output_motif_composition} "
+        if max_depth is not None: extra_args += f"--max-depth {max_depth} "
         # always emit gzipped output (.json.gz / .vcf.gz). -z is a bw2-fork flag the stock Illumina build lacks,
         # so the output filename is .json.gz only for the bw2 fork; the combine step (step2) globs both forms.
         compress_output = not use_illumina_expansion_hunter
