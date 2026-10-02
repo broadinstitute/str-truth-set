@@ -1,5 +1,6 @@
 import functools
 import gzip
+import hashlib
 import hailtop.fs as hfs
 import logging
 import math
@@ -30,7 +31,11 @@ def _count_catalog_loci(catalog_path):
         data = gzip.decompress(data)
     return data.count(b'"LocusId"')
 
-DOCKER_IMAGE = "weisburd/str-analysis-with-expansion-hunter@sha256:5990e80cd34ebf69e624c824b530504a03476d23ed0a421017f281587555a162"
+DOCKER_IMAGE = "weisburd/str-analysis-with-expansion-hunter@sha256:7054465094c93fce2259e53116c2e32d33823affe1683d39ba8636a0da287220"
+
+# Extra local disk for a checkpointed run (resume_checkpoint_dir): the per-contig temp files EH keeps for --resume,
+# plus the snapshot of them that the checkpoint uploader copies to GCS, both uncompressed.
+CHECKPOINT_EXTRA_STORAGE_GIB = 30
 
 # optimized-streaming genotypes per-locus single-threaded, but htslib decompresses the
 # CRAM across up to 12 threads (HtsLowMemStreamingSampleAnalysis.cpp), so for an UNSHARDED run
@@ -133,7 +138,19 @@ def main():
 
 def create_expansion_hunter_steps(bp, *, reference_fasta, input_bam, input_bai, variant_catalog_file_paths, output_dir, output_prefix, reference_fasta_fai=None, male_or_female="female",
                                   analysis_mode="seeking", loci_to_exclude=None, min_locus_coverage=None, use_illumina_expansion_hunter=False, run_reviewer=False, num_shards=1,
-                                  catalog_prefilter_step=None, streaming_cpu=None, streaming_threads=None, streaming_memory=None, enable_consensus_sequences=False):
+                                  catalog_prefilter_step=None, streaming_cpu=None, streaming_threads=None, streaming_memory=None, enable_consensus_sequences=False,
+                                  resume_checkpoint_dir=None, checkpoint_interval_seconds=600):
+    """Adds the ExpansionHunter genotyping step(s) and the step that combines their JSON into TSV/BED.
+
+    resume_checkpoint_dir (gs:// dir, optional) makes each genotyping job restartable after preemption. Hail Batch
+    reruns a preempted job from the start on a new VM, so EH's own --resume files (<prefix>.processed_loci.txt and
+    the per-contig <prefix>.contig<N>.{json,vcf} temp files) would be lost with the old VM's disk. With this set,
+    each job copies them to a per-job folder under resume_checkpoint_dir every checkpoint_interval_seconds, restores
+    them at the start of a later attempt, and runs EH with --resume. optimized-streaming mode (bw2 fork) only.
+    """
+    if resume_checkpoint_dir and (use_illumina_expansion_hunter or analysis_mode != "optimized-streaming"):
+        raise ValueError("resume_checkpoint_dir needs the bw2-fork ExpansionHunter in optimized-streaming mode, "
+                         "which is the only mode with --resume")
 
     # cpu/threads/memory for the bw2-fork streaming modes (streaming, optimized-streaming). Default to the
     # EHV5_STREAMING_* module constants unless the caller passes explicit values -- e.g. an unsharded run passes
@@ -216,7 +233,7 @@ def create_expansion_hunter_steps(bp, *, reference_fasta, input_bam, input_bai, 
                     else streaming_memory if "streaming" in analysis_mode
                     else "standard"),
             localize_by=Localize.GSUTIL_COPY,
-            storage=f"{int(input_bam_file_stats.size/10**9) + 14}Gi",
+            storage=f"{int(input_bam_file_stats.size/10**9) + 14 + (CHECKPOINT_EXTRA_STORAGE_GIB if resume_checkpoint_dir else 0)}Gi",
             output_dir=output_dir)
 
         step1s.append(s1)
@@ -282,6 +299,89 @@ def create_expansion_hunter_steps(bp, *, reference_fasta, input_bam, input_bai, 
         # bw2-fork locus slice: this shard genotypes loci [start_with, start_with + n_loci) of the sorted catalog
         if start_with is not None: extra_args += f"--start-with {start_with} --n-loci {n_loci} "
 
+        if resume_checkpoint_dir:
+            # EH refuses to resume from a checkpoint whose run signature (EH build, reads, reference, catalog path and
+            # size, sex, locus slice, and the genotyping options) differs from the current run, and it refuses the
+            # same way on every attempt, so a stale checkpoint would fail the job until someone deleted it by hand.
+            # Naming each checkpoint folder after a hash of everything here that feeds that signature means a changed
+            # input starts a new checkpoint instead. The catalog's size and modification time stand in for its
+            # contents, since an overwritten catalog keeps its path.
+            catalog_stats = hfs.stat(variant_catalog_path)
+            checkpoint_key = hashlib.sha256("\n".join(str(x) for x in [
+                DOCKER_IMAGE, reference_fasta, input_bam, variant_catalog_path, catalog_stats.size,
+                catalog_stats.modification_time, male_or_female, extra_args, min_locus_coverage_arg,
+                ",".join(loci_to_exclude or []),
+            ]).encode()).hexdigest()
+            checkpoint_url = os.path.join(
+                resume_checkpoint_dir, f"{os.path.basename(input_bam)}.{chunk_prefix}.{checkpoint_key[:12]}", "")
+            processed_loci_filename = f"{chunk_prefix}.processed_loci.txt"
+
+            # A pinned image without --resume would fail on an unrecognized argument after the CRAM was copied.
+            s1.command(f"""if ! {tool_exec} --help | grep -q -- "--resume"; then
+    echo "This image's ExpansionHunter has no --resume. Pin DOCKER_IMAGE to an image built from a commit that has it."
+    exit 1
+fi""")
+
+            # Whether an earlier attempt left a checkpoint. "There is none" has to be told apart from "could not find
+            # out": treating a failed lookup as "none" would genotype the whole catalog again and then let the
+            # uploader overwrite a nearly finished checkpoint with an early one. So after 5 failed lookups this
+            # attempt fails instead. Hail retries attempts lost to preemption, not ones whose script failed, so this
+            # ends the job, which then has to be resubmitted, and resumes from the checkpoint it refused to overwrite.
+            s1.command(f"""CHECKPOINT_LS=""
+CHECKPOINT_FOUND=""
+CHECKPOINT_WAIT=10
+for try in 1 2 3 4 5; do
+    if CHECKPOINT_LS=$(gcloud storage ls {checkpoint_url}{processed_loci_filename} 2>&1); then
+        CHECKPOINT_FOUND=yes
+        break
+    fi
+    case "$CHECKPOINT_LS" in
+        *"matched no objects"*)
+            CHECKPOINT_FOUND=no
+            break ;;
+    esac
+    echo "Could not check for a checkpoint (try $try of 5): $CHECKPOINT_LS"
+    if [ "$try" -lt 5 ]; then
+        sleep $CHECKPOINT_WAIT
+        CHECKPOINT_WAIT=$(( CHECKPOINT_WAIT * 2 ))
+    fi
+done
+if [ "$CHECKPOINT_FOUND" = "yes" ]; then
+    echo "Found a checkpoint from an earlier attempt, resuming: {checkpoint_url}"
+    gcloud storage cp "{checkpoint_url}*" .
+elif [ "$CHECKPOINT_FOUND" = "no" ]; then
+    echo "No checkpoint for this job, ExpansionHunter will genotype the whole catalog"
+else
+    echo "Gave up checking whether a checkpoint exists: $CHECKPOINT_LS"
+    echo "Failing this attempt rather than starting over, which would overwrite it"
+    exit 1
+fi""")
+
+            # Keep copying EH's progress to the checkpoint while it runs. Each round first copies the processed-loci
+            # list into a local snapshot folder and only then the per-contig temp files. EH only ever appends to these
+            # files, so the snapshot's temp files always hold at least the bytes the snapshot's list records, and a
+            # resumed run cuts each one back to its list entry. cp -pu re-copies only files that changed since the
+            # last round, and keeps their modification times, so gcloud storage rsync skips the contigs that are
+            # already finished. A round whose copies fail (e.g. EH deleting its temp files at the end) uploads
+            # nothing, so the checkpoint never gets a list without the temp files it describes.
+            s1.command(f"""mkdir -p checkpoint_snapshot
+(
+    set +ex
+    while sleep {checkpoint_interval_seconds}; do
+        if [ -s {processed_loci_filename} ] \\
+                && cp -p {processed_loci_filename} checkpoint_snapshot/ \\
+                && cp -pu {chunk_prefix}.contig*.json {chunk_prefix}.contig*.vcf checkpoint_snapshot/; then
+            gcloud storage rsync checkpoint_snapshot {checkpoint_url} || echo "Checkpoint upload failed, will retry"
+        fi
+    done
+) &
+CHECKPOINT_UPLOADER_PID=$!
+echo "Checkpoint uploader running as $CHECKPOINT_UPLOADER_PID, every {checkpoint_interval_seconds}s, to {checkpoint_url}" """)
+
+            # Passed whether or not a checkpoint was restored: with nothing to resume from, EH starts from the
+            # beginning and keeps the checkpoint files up to date as it goes.
+            extra_args += "--resume "
+
         s1.command(f"""/usr/bin/time --verbose {tool_exec} {extra_args} {min_locus_coverage_arg} \
             --reference {local_fasta} \
             --reads {local_bam} \
@@ -289,6 +389,13 @@ def create_expansion_hunter_steps(bp, *, reference_fasta, input_bam, input_bai, 
             --sex {male_or_female} \
             --variant-catalog {local_variant_catalog_path} \
             --output-prefix {chunk_prefix}""")
+
+        if resume_checkpoint_dir:
+            # EH has finished, so stop uploading. The checkpoint folder is left in place: step_pipeline copies the
+            # outputs to GCS only after every command in this step has run, so deleting it here would send the next
+            # attempt back to the beginning if that copy failed. Delete checkpoints for jobs whose JSON exists as a
+            # separate cleanup step.
+            s1.command("kill $CHECKPOINT_UPLOADER_PID 2> /dev/null || true")
 
         s1.command("ls -lhrt")
 
