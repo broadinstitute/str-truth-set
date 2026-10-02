@@ -252,6 +252,10 @@ def create_expansion_hunter_steps(bp, *, reference_fasta, input_bam, input_bai, 
             s1.input(input_bai)
 
         s1.command("set -ex")
+        # Work under /io, where the requested storage is mounted, rather than on the container's small (5 GiB) root
+        # filesystem: EH's output, its uncompressed per-contig temp files, and any --resume checkpoint files are all
+        # written relative to the working directory.
+        s1.command("mkdir -p /io/run_dir && cd /io/run_dir")
 
         local_variant_catalog = s1.input(variant_catalog_path)
         if loci_to_exclude:
@@ -305,11 +309,14 @@ def create_expansion_hunter_steps(bp, *, reference_fasta, input_bam, input_bai, 
             # same way on every attempt, so a stale checkpoint would fail the job until someone deleted it by hand.
             # Naming each checkpoint folder after a hash of everything here that feeds that signature means a changed
             # input starts a new checkpoint instead. The catalog's size and modification time stand in for its
-            # contents, since an overwritten catalog keeps its path.
+            # contents, since an overwritten catalog keeps its path. --threads and --compress-output-files are left
+            # out of the hash because EH leaves them out of its signature too, so a job rerun with a different thread
+            # count still resumes.
             catalog_stats = hfs.stat(variant_catalog_path)
+            signature_args = re.sub(r"--threads \d+ |--compress-output-files ", "", extra_args)
             checkpoint_key = hashlib.sha256("\n".join(str(x) for x in [
                 DOCKER_IMAGE, reference_fasta, input_bam, variant_catalog_path, catalog_stats.size,
-                catalog_stats.modification_time, male_or_female, extra_args, min_locus_coverage_arg,
+                catalog_stats.modification_time, male_or_female, signature_args, min_locus_coverage_arg,
                 ",".join(loci_to_exclude or []),
             ]).encode()).hexdigest()
             checkpoint_url = os.path.join(
@@ -317,7 +324,8 @@ def create_expansion_hunter_steps(bp, *, reference_fasta, input_bam, input_bai, 
             processed_loci_filename = f"{chunk_prefix}.processed_loci.txt"
 
             # A pinned image without --resume would fail on an unrecognized argument after the CRAM was copied.
-            s1.command(f"""if ! {tool_exec} --help | grep -q -- "--resume"; then
+            # ExpansionHunter prints --help to stderr.
+            s1.command(f"""if ! {tool_exec} --help 2>&1 | grep -q -- "--resume"; then
     echo "This image's ExpansionHunter has no --resume. Pin DOCKER_IMAGE to an image built from a commit that has it."
     exit 1
 fi""")
@@ -363,16 +371,55 @@ fi""")
             # resumed run cuts each one back to its list entry. cp -pu re-copies only files that changed since the
             # last round, and keeps their modification times, so gcloud storage rsync skips the contigs that are
             # already finished. A round whose copies fail (e.g. EH deleting its temp files at the end) uploads
-            # nothing, so the checkpoint never gets a list without the temp files it describes.
-            s1.command(f"""mkdir -p checkpoint_snapshot
+            # nothing.
+            #
+            # The upload keeps the same order: the temp files first, and the list only once all of them have
+            # uploaded. An upload is not atomic, and a resumed run rewrites the bytes after its restored list entries
+            # (record lengths differ between runs, e.g. from --output-genotype-timing). So a list that reached GCS
+            # ahead of its temp files could later be restored next to an older attempt's temp file, and EH would cut
+            # that file at offsets that fall inside a record. Uploading the list last means the list in GCS only ever
+            # describes bytes that every temp file in GCS still holds.
+            #
+            # That only holds with one writer. The checkpoint folder is named after the run's inputs, so a second job
+            # for the same sample (e.g. the launch command rerun while an earlier batch is still going) would use the
+            # same folder, and the two uploaders could leave one job's list next to the other's temp files. So each
+            # attempt writes its own owner token to the folder once it has restored from it, and its uploader checks
+            # the token before each round's temp-file upload and again before its list upload, and stops uploading for
+            # good once another attempt has taken the folder over. A takeover in the few seconds between that second
+            # check and the list upload is not caught; closing it would need a conditional write in GCS. The job's own
+            # output is unaffected, since EH writes it locally; only the checkpoint is at stake.
+            s1.command(f"""CHECKPOINT_OWNER="${{HAIL_BATCH_ID:-batch}}.${{HAIL_JOB_ID:-job}}.$(date +%s).$RANDOM"
+echo "$CHECKPOINT_OWNER" > checkpoint_owner.txt
+for try in 1 2 3; do
+    gcloud storage cp checkpoint_owner.txt {checkpoint_url}checkpoint_owner.txt && break
+    echo "Could not write the checkpoint owner (try $try of 3)"
+    sleep 10
+done
+mkdir -p checkpoint_snapshot/contig_files
 (
     set +ex
     while sleep {checkpoint_interval_seconds}; do
+        # A failed read is not proof that another attempt took over, so it only skips this round.
+        if ! CURRENT_OWNER=$(gcloud storage cat {checkpoint_url}checkpoint_owner.txt 2> /dev/null); then
+            echo "Could not read the checkpoint owner, skipping this round"
+            continue
+        fi
+        if [ "$CURRENT_OWNER" != "$CHECKPOINT_OWNER" ]; then
+            echo "Checkpoint folder now belongs to $CURRENT_OWNER, not this attempt ($CHECKPOINT_OWNER); no more uploads"
+            break
+        fi
         if [ -s {processed_loci_filename} ] \\
                 && cp -p {processed_loci_filename} checkpoint_snapshot/ \\
-                && cp -pu {chunk_prefix}.contig*.json {chunk_prefix}.contig*.vcf checkpoint_snapshot/; then
-            gcloud storage rsync checkpoint_snapshot {checkpoint_url} || echo "Checkpoint upload failed, will retry"
+                && cp -pu {chunk_prefix}.contig*.json {chunk_prefix}.contig*.vcf checkpoint_snapshot/contig_files/; then
+            # The owner is checked again right before the list goes up, since another attempt may have taken the
+            # folder over while the temp files were uploading.
+            gcloud storage rsync checkpoint_snapshot/contig_files {checkpoint_url} \\
+                && [ "$(gcloud storage cat {checkpoint_url}checkpoint_owner.txt 2> /dev/null)" = "$CHECKPOINT_OWNER" ] \\
+                && gcloud storage cp checkpoint_snapshot/{processed_loci_filename} {checkpoint_url}{processed_loci_filename} \\
+                || echo "Checkpoint upload failed or the folder changed owner, will check again next round"
         fi
+        # Disk use of the working directory, to size CHECKPOINT_EXTRA_STORAGE_GIB from the job logs.
+        echo "Checkpoint round disk usage: $(df -h . | tail -1)"
     done
 ) &
 CHECKPOINT_UPLOADER_PID=$!
