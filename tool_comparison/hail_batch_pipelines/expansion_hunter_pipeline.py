@@ -31,7 +31,9 @@ def _count_catalog_loci(catalog_path):
         data = gzip.decompress(data)
     return data.count(b'"LocusId"')
 
-DOCKER_IMAGE = "weisburd/str-analysis-with-expansion-hunter@sha256:7054465094c93fce2259e53116c2e32d33823affe1683d39ba8636a0da287220"
+# Built from bw2/ExpansionHunter fea497a, which embeds the 2026-10-08 genotype-quality model trained on truth that
+# counts repeat insertions anchored before a locus (str-analysis bd68a2a)
+DOCKER_IMAGE = "weisburd/str-analysis-with-expansion-hunter@sha256:10b3d26b5ae8b886688fb82bc65cf6e1bcaa3452b58c92ba3f188a0e1b7cdf0e"
 
 # Extra local disk for a checkpointed run (resume_checkpoint_dir): the per-contig temp files EH keeps for --resume,
 # plus the snapshot of them that the checkpoint uploader copies to GCS, both uncompressed.
