@@ -142,8 +142,13 @@ def create_expansion_hunter_steps(bp, *, reference_fasta, input_bam, input_bai, 
                                   analysis_mode="seeking", loci_to_exclude=None, min_locus_coverage=None, use_illumina_expansion_hunter=False, run_reviewer=False, num_shards=1,
                                   catalog_prefilter_step=None, streaming_cpu=None, streaming_threads=None, streaming_memory=None, enable_consensus_sequences=False,
                                   resume_checkpoint_dir=None, checkpoint_interval_seconds=600, output_motif_composition=None,
-                                  max_depth=None, switch_to_user_account=False, output_genotype_timing=True):
+                                  max_depth=None, switch_to_user_account=False, output_genotype_timing=True,
+                                  input_bam_size_bytes=None):
     """Adds the ExpansionHunter genotyping step(s) and the step that combines their JSON into TSV/BED.
+
+    input_bam_size_bytes (optional int) is the size of input_bam, used to size the job's disk. If it's None, the
+    size is looked up with hfs.ls, which needs permission to list the bucket. Terra Data Repository buckets
+    (gs://datarepo-...) let users read files but not list them, so callers with files there must pass the size.
 
     output_genotype_timing (bool) passes --output-genotype-timing in optimized-streaming mode, which records each
     locus's genotyping time (GenotypingTimeMillis) in the output JSON.
@@ -208,10 +213,11 @@ def create_expansion_hunter_steps(bp, *, reference_fasta, input_bam, input_bai, 
     step1s = []
     step1_output_paths = []
 
-    hfs_ls_results = hfs.ls(input_bam)
-    if len(hfs_ls_results) == 0:
-        raise ValueError(f"No files found matching {input_bam}")
-    input_bam_file_stats = hfs_ls_results[0]
+    if input_bam_size_bytes is None:
+        hfs_ls_results = hfs.ls(input_bam)
+        if len(hfs_ls_results) == 0:
+            raise ValueError(f"No files found matching {input_bam}")
+        input_bam_size_bytes = hfs_ls_results[0].size
 
     # Build the list of genotyping work units: (variant_catalog_path, start_with, n_loci, shard_suffix).
     # EHv5-bw2 optimized-streaming mode genotypes loci single-threaded, so when
@@ -253,7 +259,7 @@ def create_expansion_hunter_steps(bp, *, reference_fasta, input_bam, input_bai, 
                     else streaming_memory if "streaming" in analysis_mode
                     else "standard"),
             localize_by=Localize.GSUTIL_COPY,
-            storage=f"{int(input_bam_file_stats.size/10**9) + 14 + (CHECKPOINT_EXTRA_STORAGE_GIB if resume_checkpoint_dir else 0)}Gi",
+            storage=f"{int(input_bam_size_bytes/10**9) + 14 + (CHECKPOINT_EXTRA_STORAGE_GIB if resume_checkpoint_dir else 0)}Gi",
             output_dir=output_dir)
 
         step1s.append(s1)
