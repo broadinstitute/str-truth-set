@@ -31,6 +31,17 @@ def _count_catalog_loci(catalog_path):
         data = gzip.decompress(data)
     return data.count(b'"LocusId"')
 
+
+@functools.lru_cache(maxsize=None)
+def _get_catalog_size_and_modification_time(catalog_path):
+    """Return the (size, modification time) of a variant catalog, as reported by hfs.stat.
+
+    Cached because every sample in a run uses the same catalog, and looking it up in GCS once per sample is slow
+    when there are thousands of samples.
+    """
+    catalog_stats = hfs.stat(catalog_path)
+    return catalog_stats.size, catalog_stats.modification_time
+
 # Built from bw2/ExpansionHunter fea497a, which embeds the 2026-10-08 genotype-quality model trained on truth that
 # counts repeat insertions anchored before a locus (str-analysis bd68a2a)
 DOCKER_IMAGE = "weisburd/str-analysis-with-expansion-hunter@sha256:10b3d26b5ae8b886688fb82bc65cf6e1bcaa3452b58c92ba3f188a0e1b7cdf0e"
@@ -354,11 +365,11 @@ def create_expansion_hunter_steps(bp, *, reference_fasta, input_bam, input_bai, 
             # contents, since an overwritten catalog keeps its path. --threads and --compress-output-files are left
             # out of the hash because EH leaves them out of its signature too, so a job rerun with a different thread
             # count still resumes.
-            catalog_stats = hfs.stat(variant_catalog_path)
+            catalog_size, catalog_modification_time = _get_catalog_size_and_modification_time(variant_catalog_path)
             signature_args = re.sub(r"--threads \d+ |--compress-output-files ", "", extra_args)
             checkpoint_key = hashlib.sha256("\n".join(str(x) for x in [
-                DOCKER_IMAGE, reference_fasta, input_bam, variant_catalog_path, catalog_stats.size,
-                catalog_stats.modification_time, male_or_female, signature_args, min_locus_coverage_arg,
+                DOCKER_IMAGE, reference_fasta, input_bam, variant_catalog_path, catalog_size,
+                catalog_modification_time, male_or_female, signature_args, min_locus_coverage_arg,
                 ",".join(loci_to_exclude or []),
             ]).encode()).hexdigest()
             checkpoint_url = os.path.join(
