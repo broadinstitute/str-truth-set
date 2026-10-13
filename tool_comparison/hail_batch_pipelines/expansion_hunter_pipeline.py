@@ -143,8 +143,13 @@ def create_expansion_hunter_steps(bp, *, reference_fasta, input_bam, input_bai, 
                                   catalog_prefilter_step=None, streaming_cpu=None, streaming_threads=None, streaming_memory=None, enable_consensus_sequences=False,
                                   resume_checkpoint_dir=None, checkpoint_interval_seconds=600, output_motif_composition=None,
                                   max_depth=None, switch_to_user_account=False, output_genotype_timing=True,
-                                  input_bam_size_bytes=None):
+                                  input_bam_size_bytes=None, all_outputs_precached=False):
     """Adds the ExpansionHunter genotyping step(s) and the step that combines their JSON into TSV/BED.
+
+    all_outputs_precached (bool) is passed to bp.new_step(..) for each step created here. Set it when the caller has
+    already called bp.precache_file_paths(..) with a glob that matches these steps' outputs, so that deciding whether
+    each step's outputs already exist only checks that cache, instead of looking up each output path in GCS one at a
+    time (slow when there are thousands of samples).
 
     input_bam_size_bytes (optional int) is the size of input_bam, used to size the job's disk. If it's None, the
     size is looked up with hfs.ls, which needs permission to list the bucket. Terra Data Repository buckets
@@ -260,7 +265,8 @@ def create_expansion_hunter_steps(bp, *, reference_fasta, input_bam, input_bai, 
                     else "standard"),
             localize_by=Localize.GSUTIL_COPY,
             storage=f"{int(input_bam_size_bytes/10**9) + 14 + (CHECKPOINT_EXTRA_STORAGE_GIB if resume_checkpoint_dir else 0)}Gi",
-            output_dir=output_dir)
+            output_dir=output_dir,
+            all_outputs_precached=all_outputs_precached)
 
         step1s.append(s1)
 
@@ -518,7 +524,8 @@ echo "Checkpoint uploader running as $CHECKPOINT_UPLOADER_PID, every {checkpoint
                      memory="highmem",
                      storage="20Gi",
                      localize_by=Localize.GSUTIL_COPY,
-                     output_dir=output_dir)
+                     output_dir=output_dir,
+                     all_outputs_precached=all_outputs_precached)
 
     for step1 in step1s:
         s2.depends_on(step1)
