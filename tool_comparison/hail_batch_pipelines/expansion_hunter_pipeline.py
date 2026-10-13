@@ -142,8 +142,11 @@ def create_expansion_hunter_steps(bp, *, reference_fasta, input_bam, input_bai, 
                                   analysis_mode="seeking", loci_to_exclude=None, min_locus_coverage=None, use_illumina_expansion_hunter=False, run_reviewer=False, num_shards=1,
                                   catalog_prefilter_step=None, streaming_cpu=None, streaming_threads=None, streaming_memory=None, enable_consensus_sequences=False,
                                   resume_checkpoint_dir=None, checkpoint_interval_seconds=600, output_motif_composition=None,
-                                  max_depth=None, switch_to_user_account=False):
+                                  max_depth=None, switch_to_user_account=False, output_genotype_timing=True):
     """Adds the ExpansionHunter genotyping step(s) and the step that combines their JSON into TSV/BED.
+
+    output_genotype_timing (bool) passes --output-genotype-timing in optimized-streaming mode, which records each
+    locus's genotyping time (GenotypingTimeMillis) in the output JSON.
 
     switch_to_user_account (bool) makes each genotyping job switch gcloud auth from the Batch service account to the
     user account from ~/.step_pipeline before copying its inputs, for read data in buckets (eg. Terra workspaces)
@@ -315,7 +318,7 @@ def create_expansion_hunter_steps(bp, *, reference_fasta, input_bam, input_bai, 
             extra_args += "--dont-output-consensus-sequences "
         # record per-locus thread-CPU genotyping time (GenotypingTimeMillis) in the json; bw2-fork optimized-streaming
         # mode only (the flag is not in the stock Illumina build). Makes the json non-deterministic (timing varies per run).
-        if analysis_mode == "optimized-streaming": extra_args += "--output-genotype-timing "
+        if analysis_mode == "optimized-streaming" and output_genotype_timing: extra_args += "--output-genotype-timing "
         if output_motif_composition: extra_args += f"--output-motif-composition {output_motif_composition} "
         if max_depth is not None: extra_args += f"--max-depth {max_depth} "
         # always emit gzipped output (.json.gz / .vcf.gz). -z is a bw2-fork flag the stock Illumina build lacks,
