@@ -46,9 +46,13 @@ def _get_catalog_size_and_modification_time(catalog_path):
 # counts repeat insertions anchored before a locus (str-analysis bd68a2a)
 DOCKER_IMAGE = "weisburd/str-analysis-with-expansion-hunter@sha256:10b3d26b5ae8b886688fb82bc65cf6e1bcaa3452b58c92ba3f188a0e1b7cdf0e"
 
-# Extra local disk for a checkpointed run (resume_checkpoint_dir): the per-contig temp files EH keeps for --resume,
-# plus the snapshot of them that the checkpoint uploader copies to GCS, both uncompressed.
-CHECKPOINT_EXTRA_STORAGE_GIB = 30
+# Local disk beyond the size of the CRAM or BAM for a checkpointed run (resume_checkpoint_dir, which is only allowed
+# in optimized-streaming mode): the reference, the catalog, the per-contig temp files EH keeps for --resume, the
+# snapshot of them that the checkpoint uploader copies to GCS, and the output. In 102 such jobs (2026-10-13, GREGoR
+# genomes and exomes of 0.5-242GB with a ~225k-locus catalog), the most these took was 5.4GB, as measured every 10
+# minutes by the "Checkpoint round disk usage" log line, so this leaves about as much again for peaks between
+# measurements. Other modes keep a 14GiB allowance, which was never measured.
+CHECKPOINTED_RUN_EXTRA_STORAGE_GIB = 10
 
 # optimized-streaming genotypes per-locus single-threaded, but htslib decompresses the
 # CRAM across up to 12 threads (HtsLowMemStreamingSampleAnalysis.cpp), so for an UNSHARDED run
@@ -275,7 +279,7 @@ def create_expansion_hunter_steps(bp, *, reference_fasta, input_bam, input_bai, 
                     else streaming_memory if "streaming" in analysis_mode
                     else "standard"),
             localize_by=Localize.GSUTIL_COPY,
-            storage=f"{int(input_bam_size_bytes/10**9) + 14 + (CHECKPOINT_EXTRA_STORAGE_GIB if resume_checkpoint_dir else 0)}Gi",
+            storage=f"{int(input_bam_size_bytes/10**9) + (CHECKPOINTED_RUN_EXTRA_STORAGE_GIB if resume_checkpoint_dir else 14)}Gi",
             output_dir=output_dir,
             all_outputs_precached=all_outputs_precached)
 
@@ -471,7 +475,7 @@ mkdir -p checkpoint_snapshot/contig_files
                 && gcloud storage cp checkpoint_snapshot/{processed_loci_filename} {checkpoint_url}{processed_loci_filename} \\
                 || echo "Checkpoint upload failed or the folder changed owner, will check again next round"
         fi
-        # Disk use of the working directory, to size CHECKPOINT_EXTRA_STORAGE_GIB from the job logs.
+        # Disk use of the working directory, to size CHECKPOINTED_RUN_EXTRA_STORAGE_GIB from the job logs.
         echo "Checkpoint round disk usage: $(df -h . | tail -1)"
     done
 ) &
