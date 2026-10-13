@@ -279,7 +279,11 @@ def create_expansion_hunter_steps(bp, *, reference_fasta, input_bam, input_bai, 
 
         local_bam = s1.input(input_bam)
         if input_bai:
-            s1.input(input_bai)
+            local_bai = s1.input(input_bai)
+            # ExpansionHunter looks for the index next to the read data file, but some buckets keep it elsewhere (eg.
+            # Terra Data Repository buckets, which put every file in its own folder)
+            expected_local_bai = f"{local_bam}{'.bai' if input_bam.endswith('.bam') else '.crai'}"
+            s1.command(f"[ -e {expected_local_bai} ] || ln -s {local_bai} {expected_local_bai}")
 
         s1.command("set -ex")
         # Work under /io, where the requested storage is mounted, rather than on the container's small (5 GiB) root
