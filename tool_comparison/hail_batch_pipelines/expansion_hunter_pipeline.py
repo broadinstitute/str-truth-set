@@ -42,9 +42,9 @@ def _get_catalog_size_and_modification_time(catalog_path):
     catalog_stats = hfs.stat(catalog_path)
     return catalog_stats.size, catalog_stats.modification_time
 
-# Built from bw2/ExpansionHunter fea497a, which embeds the 2026-10-08 genotype-quality model trained on truth that
-# counts repeat insertions anchored before a locus (str-analysis bd68a2a)
-DOCKER_IMAGE = "weisburd/str-analysis-with-expansion-hunter@sha256:10b3d26b5ae8b886688fb82bc65cf6e1bcaa3452b58c92ba3f188a0e1b7cdf0e"
+# Built from bw2/ExpansionHunter 053dcd8 (e90307c plus a Docker digest commit), which embeds the 2026-10-17
+# genotype-quality model
+DOCKER_IMAGE = "weisburd/str-analysis-with-expansion-hunter@sha256:9e3090a2a69506a513a42ec49d1b9f83f1f0302c828741c3dfde001c629435d8"
 
 # Local disk beyond the size of the CRAM or BAM for a checkpointed run (resume_checkpoint_dir, which is only allowed
 # in optimized-streaming mode): the reference, the catalog, the per-contig temp files EH keeps for --resume, the
