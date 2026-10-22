@@ -46,14 +46,6 @@ def _get_catalog_size_and_modification_time(catalog_path):
 # genotype-quality model
 DOCKER_IMAGE = "weisburd/str-analysis-with-expansion-hunter@sha256:9e3090a2a69506a513a42ec49d1b9f83f1f0302c828741c3dfde001c629435d8"
 
-# Local disk beyond the size of the CRAM or BAM for a checkpointed run (resume_checkpoint_dir, which is only allowed
-# in optimized-streaming mode): the reference, the catalog, the per-contig temp files EH keeps for --resume, the
-# snapshot of them that the checkpoint uploader copies to GCS, and the output. In 102 such jobs (2026-10-13, GREGoR
-# genomes and exomes of 0.5-242GB with a ~225k-locus catalog), the most these took was 5.4GB, as measured every 10
-# minutes by the "Checkpoint round disk usage" log line, so this leaves about as much again for peaks between
-# measurements. Other modes keep a 14GiB allowance, which was never measured.
-CHECKPOINTED_RUN_EXTRA_STORAGE_GIB = 10
-
 # optimized-streaming genotypes per-locus single-threaded, but htslib decompresses the
 # CRAM across up to 12 threads (HtsLowMemStreamingSampleAnalysis.cpp), so for an UNSHARDED run
 # (EHV5_NUM_SHARDS=1) more cores parallelize the dominant full-file decompression scan instead of paying
@@ -158,7 +150,8 @@ def create_expansion_hunter_steps(bp, *, reference_fasta, input_bam, input_bai, 
                                   catalog_prefilter_step=None, streaming_cpu=None, streaming_threads=None, streaming_memory=None, enable_consensus_sequences=False,
                                   resume_checkpoint_dir=None, checkpoint_interval_seconds=600, output_motif_composition=None,
                                   max_depth=None, switch_to_user_account=False, output_genotype_timing=True,
-                                  input_bam_size_bytes=None, all_outputs_precached=False):
+                                  input_bam_size_bytes=None, all_outputs_precached=False,
+                                  extra_disk_gib_beyond_read_data_file=14):
     """Adds the ExpansionHunter genotyping step(s) and the step that combines their JSON into TSV/BED.
 
     all_outputs_precached (bool) is passed to bp.new_step(..) for each step created here. Set it when the caller has
@@ -169,6 +162,16 @@ def create_expansion_hunter_steps(bp, *, reference_fasta, input_bam, input_bai, 
     input_bam_size_bytes (optional int) is the size of input_bam, used to size the job's disk. If it's None, the
     size is looked up with hfs.ls, which needs permission to list the bucket. Terra Data Repository buckets
     (gs://datarepo-...) let users read files but not list them, so callers with files there must pass the size.
+
+    extra_disk_gib_beyond_read_data_file (int) is the local disk each genotyping job gets beyond the size of
+    input_bam: room for the reference, the catalog, EH's output and, in a checkpointed run (resume_checkpoint_dir),
+    the per-contig temp files EH keeps for --resume plus the snapshot of them that the checkpoint uploader copies to
+    GCS. What a checkpointed run needs grows with the catalog. In 102 GREGoR jobs (2026-10-13, genomes and exomes of
+    0.5-242GB with a ~225k-locus catalog) the most it took was 5.4GB. A genome with the 5.65M-locus TRExplorer v2.1
+    catalog needs about 29GB (12.3GB of temp files, as much again for their snapshot, the reference and the output),
+    and 10GiB ran most jobs of batch 8450385 (2026-10-22) out of disk. Checkpointed jobs log their disk use every
+    checkpoint_interval_seconds ("Checkpoint round disk usage"), so their logs show what a catalog needs. The default
+    of 14 was never measured.
 
     output_genotype_timing (bool) passes --output-genotype-timing in optimized-streaming mode, which records each
     locus's genotyping time (GenotypingTimeMillis) in the output JSON.
@@ -279,7 +282,7 @@ def create_expansion_hunter_steps(bp, *, reference_fasta, input_bam, input_bai, 
                     else streaming_memory if "streaming" in analysis_mode
                     else "standard"),
             localize_by=Localize.GSUTIL_COPY,
-            storage=f"{int(input_bam_size_bytes/10**9) + (CHECKPOINTED_RUN_EXTRA_STORAGE_GIB if resume_checkpoint_dir else 14)}Gi",
+            storage=f"{int(input_bam_size_bytes/10**9) + extra_disk_gib_beyond_read_data_file}Gi",
             output_dir=output_dir,
             all_outputs_precached=all_outputs_precached)
 
@@ -475,7 +478,7 @@ mkdir -p checkpoint_snapshot/contig_files
                 && gcloud storage cp checkpoint_snapshot/{processed_loci_filename} {checkpoint_url}{processed_loci_filename} \\
                 || echo "Checkpoint upload failed or the folder changed owner, will check again next round"
         fi
-        # Disk use of the working directory, to size CHECKPOINTED_RUN_EXTRA_STORAGE_GIB from the job logs.
+        # Disk use of the working directory, to size extra_disk_gib_beyond_read_data_file from the job logs.
         echo "Checkpoint round disk usage: $(df -h . | tail -1)"
     done
 ) &
